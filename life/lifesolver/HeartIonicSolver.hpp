@@ -531,6 +531,7 @@ initialize( )
 	M_solutionGatingW.epetraVector().PutScalar (0.);
 }
 
+
 template< typename Mesh,
           typename SolverType = LifeV::SolverAztecOO >
 class LuoRudy : public virtual HeartIonicSolver<Mesh, SolverType>
@@ -958,6 +959,200 @@ initialize( )
     M_solutionGatingX.globalAssemble();
     M_solutionGatingCa.globalAssemble();
 }
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////
+///////////// MINIMAL MODEL: Bueno-Orovio et al. (2008) ////////////////
+// Parameters and data as in Ruiz-Baier et al. (2012) IUTAM Proc.  /////
+//            only epicardial parameters are considered               //
+////////////////////////////////////////////////////////////////////////
+
+template< typename Mesh,
+          typename SolverType = LifeV::SolverAztecOO >
+class MinimalModel : public virtual HeartIonicSolver<Mesh, SolverType>
+{
+public:
+	typedef typename HeartIonicSolver<Mesh, SolverType>::data_Type data_Type;
+	typedef typename HeartIonicSolver<Mesh, SolverType>::vector_Type vector_Type;
+	typedef typename HeartIonicSolver<Mesh, SolverType>::function_Type function_Type;
+
+    MinimalModel( const data_Type& dataType,
+                      const Mesh& mesh,
+                      FESpace<Mesh, MapEpetra>& uFEspace,
+                      Epetra_Comm& comm );
+    virtual ~MinimalModel();
+
+    void updateRepeated( );
+
+    void updateElementSolution( UInt eleID );
+
+    void solveIonicModel( const vector_Type& u, const Real timeStep );
+
+    void computeIonicCurrent( Real Capacitance,
+                      VectorElemental& elvec,
+                      VectorElemental& elvec_u,
+                      FESpace<Mesh, MapEpetra>& uFESpace );
+
+    const vector_Type& solutionGatingW1() const {return M_solutionGatingW1;}
+    const vector_Type& solutionGatingW2() const {return M_solutionGatingW2;}
+    const vector_Type& solutionGatingW3() const {return M_solutionGatingW3;}
+    void initialize( );
+
+
+    Real M_MinimalEpitheta0, M_MinimalEpitheta1, M_MinimalEpitheta2, M_MinimalEpitheta1minus, M_MinimalEpitau301, M_MinimalEpitau302, M_MinimalEpitau31,
+        M_MinimalEpitau32, M_MinimalEpitau01, M_MinimalEpitau02, M_MinimalEpiwStar2inf, M_MinimalEpivv, M_MinimalEpitau11minus, M_MinimalEpitau12minus,
+        M_MinimalEpitau1plus, M_MinimalEpitau21minus, M_tau22minus, M_tau2plus, M_k2minus, M_v2minus,
+        M_MinimalEpitauFi, M_MinimalEpik30, M_MinimalEpiv30, M_MinimalEpik3, M_MinimalEpiv3, M_MinimalEpitauSi, M_MinimalEpitau2inf;
+
+
+
+protected:
+
+    //! Global solution _w1
+    vector_Type                    	M_solutionGatingW1;
+    vector_Type						M_solutionGatingW1Repeated;
+    VectorElemental 						M_elvec1;
+    //! Global solution _w2
+    vector_Type                    	M_solutionGatingW2;
+    vector_Type						M_solutionGatingW2Repeated;
+    VectorElemental 						M_elvec2;
+    //! Global solution _w3
+    vector_Type                    	M_solutionGatingW3;
+    vector_Type						M_solutionGatingW3Repeated;
+    VectorElemental 						M_elvec3;
+private:
+};
+
+
+//
+// IMPLEMENTATION
+//
+
+//! Constructor
+template<typename Mesh, typename SolverType>
+MinimalModel<Mesh, SolverType>::
+MinimalModel( const data_Type& dataType,
+                  const Mesh& mesh,
+                  FESpace<Mesh, MapEpetra>& uFEspace,
+                  Epetra_Comm& comm ):
+    HeartIonicSolver<Mesh, SolverType>( dataType, mesh, uFEspace, comm),
+    M_solutionGatingW1 ( HeartIonicSolver<Mesh, SolverType>::M_localMap ),
+    M_solutionGatingW1Repeated ( M_solutionGatingW1, Repeated ),
+    M_solutionGatingW2 ( HeartIonicSolver<Mesh, SolverType>::M_localMap ),
+    M_solutionGatingW2Repeated ( M_solutionGatingW1, Repeated ),
+    M_solutionGatingW3 ( HeartIonicSolver<Mesh, SolverType>::M_localMap ),
+    M_solutionGatingW3Repeated ( M_solutionGatingW3, Repeated ),
+    M_elvec1 ( HeartIonicSolver<Mesh, SolverType>::M_uFESpace.fe().nbFEDof(), 1 ),
+    M_elvec2 ( HeartIonicSolver<Mesh, SolverType>::M_uFESpace.fe().nbFEDof(), 1 ),
+    M_elvec3 ( HeartIonicSolver<Mesh, SolverType>::M_uFESpace.fe().nbFEDof(), 1 ),
+{
+}
+
+template<typename Mesh, typename SolverType>
+MinimalModel<Mesh, SolverType>::
+~MinimalModel()
+{
+}
+
+template<typename Mesh, typename SolverType>
+void MinimalModel<Mesh, SolverType>::updateRepeated( )
+{
+	M_solutionGatingW1Repeated=M_solutionGatingW1;
+    M_solutionGatingW2Repeated=M_solutionGatingW2;
+    M_solutionGatingW3Repeated=M_solutionGatingW3;
+}
+
+template<typename Mesh, typename SolverType>
+void MinimalModel<Mesh, SolverType>::updateElementSolution( UInt eleID )
+{
+	M_elvec.zero();
+	UInt ig;
+    for ( UInt iNode = 0 ;
+          iNode < HeartIonicSolver<Mesh, SolverType>::M_uFESpace.fe().nbFEDof() ; iNode++ )
+    {
+        ig = HeartIonicSolver<Mesh, SolverType>::M_uFESpace.dof().localToGlobalMap( eleID, iNode );
+        M_elvec1.vec()[ iNode ] = M_solutionGatingW1Repeated[ig];
+        M_elvec2.vec()[ iNode ] = M_solutionGatingW2Repeated[ig];
+        M_elvec3.vec()[ iNode ] = M_solutionGatingW3Repeated[ig];
+    }
+}
+
+template<typename Mesh, typename SolverType>
+void MinimalModel<Mesh, SolverType>::solveIonicModel( const vector_Type& u, const Real timeStep )
+{
+	Real G = this->M_data.RMCParameterB() / this->M_data.RMCPotentialAmplitude() / this->M_data.RMCTimeUnit();
+
+	Real alpha = 1 / timeStep + G*this -> M_data.RMCPotentialAmplitude() * this -> M_data.RMCParameterD() ;
+
+	HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
+
+	M_solutionGatingW*=1/timeStep;
+	vector_Type temp(u);
+	temp.epetraVector().PutScalar ( G * this -> M_data.RMCRestPotential() );
+	M_solutionGatingW+= G*u;
+	M_solutionGatingW-= temp;
+	M_solutionGatingW*=1/alpha;
+	M_solutionGatingW.globalAssemble();
+	HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
+
+}
+
+template<typename Mesh, typename SolverType>
+void MinimalModel<Mesh, SolverType>::computeIonicCurrent(  Real Capacitance, VectorElemental& elvec,
+                                                              VectorElemental& elvec_u, FESpace<Mesh, MapEpetra>& uFESpace )
+{
+	Real u_ig, w1_ig, w2_ig, w3_ig ;
+
+	Real G1 = this->M_data.RMCParameterC1() / this->M_data.RMCTimeUnit() / pow(this->M_data.RMCPotentialAmplitude(),2.0);
+	Real G2 = this->M_data.RMCParameterC2() / this->M_data.RMCTimeUnit();
+
+        for ( UInt ig = 0; ig < uFESpace.fe().nbQuadPt();ig++ )
+    {
+        u_ig = w1_ig = w2_ig = w3_ig = 0.;
+        for ( UInt i = 0;i < uFESpace.fe().nbFEDof();i++ )
+            u_ig += elvec_u( i ) * uFESpace.fe().phi( i, ig );
+        for ( UInt i = 0;i < uFESpace.fe().nbFEDof();i++ )
+            w1_ig += M_elvec1( i ) * uFESpace.fe().phi( i, ig );
+        for ( UInt i = 0;i < uFESpace.fe().nbFEDof();i++ )
+            w2_ig += M_elvec2( i ) * uFESpace.fe().phi( i, ig );
+        for ( UInt i = 0;i < uFESpace.fe().nbFEDof();i++ )
+            w3_ig += M_elvec3( i ) * uFESpace.fe().phi( i, ig );
+
+
+        for ( UInt i = 0;i < uFESpace.fe().nbFEDof();i++ )
+        {
+            elvec( i ) -= Capacitance * ( G1 * ( u_ig - this -> M_data.RMCRestPotential() ) *
+                                       (u_ig - this->M_data.RMCRestPotential() -
+                                        this->M_data.RMCParameterA() * this->M_data.RMCPotentialAmplitude() ) *
+                                       (u_ig - this->M_data.RMCRestPotential() -
+                                        this->M_data.RMCPotentialAmplitude() ) + G2 *
+                                       (u_ig - this->M_data.RMCRestPotential() ) * w_ig) *
+                uFESpace.fe().phi( i, ig ) * uFESpace.fe().weightDet( ig );
+        }
+    }
+}
+
+template<typename Mesh, typename SolverType>
+void MinimalModel<Mesh, SolverType>::
+initialize( )
+{
+	M_solutionGatingW1.epetraVector().PutScalar (0.0);
+	M_solutionGatingW2.epetraVector().PutScalar (1.0);
+	M_solutionGatingW3.epetraVector().PutScalar (0.0);
+}
+
+
+
+
+
+
+
 
 } // namespace LifeV
 

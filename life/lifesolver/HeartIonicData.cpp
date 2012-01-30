@@ -79,7 +79,35 @@ HeartIonicData::HeartIonicData() :
         M_MSInitialTime                 ( ),
         M_MSTend                        ( ),
         M_MSBDForder                    ( ),
-        M_MSHasHeterogeneousTauClose    ( )
+        M_MSHasHeterogeneousTauClose    ( ),
+        //Minimal model:
+        M_MinimalEpitheta0 ( ),
+        M_MinimalEpitheta1 ( ),
+        M_MinimalEpitheta2 ( ),
+        M_MinimalEpitheta1minus ( ),
+        M_MinimalEpitau301 ( ),
+        M_MinimalEpitau302 ( ),
+        M_MinimalEpitau31 ( ),
+        M_MinimalEpitau32 ( ),
+        M_MinimalEpitau01 ( ),
+        M_MinimalEpitau02 ( ),
+        M_MinimalEpiwStar2inf ( ),
+        M_MinimalEpivv ( ),
+        M_MinimalEpitau11minus ( ),
+        M_MinimalEpitau12minus ( ),
+        M_MinimalEpitau1plus ( ),
+        M_MinimalEpitau21minus ( ),
+        M_MinimalEpitau22minus ( ),
+        M_MinimalEpitau2plus ( ),
+        M_MinimalEpik2minus ( ),
+        M_MinimalEpiv2minus ( ),
+        M_MinimalEpitauFi ( ),
+        M_MinimalEpik30 ( ),
+        M_MinimalEpiv30 ( ),
+        M_MinimalEpik3 ( ),
+        M_MinimalEpiv3 ( ),
+        M_MinimalEpitauSi ( ),
+        M_MinimalEpitau2inf ( )
 {
 }
 
@@ -108,7 +136,35 @@ HeartIonicData::HeartIonicData( const HeartIonicData& dataIonic ) :
         M_MSInitialTime                 ( dataIonic.M_MSInitialTime ),
         M_MSTend                        ( dataIonic.M_MSTend ),
         M_MSBDForder                    ( dataIonic.M_MSBDForder ),
-        M_MSHasHeterogeneousTauClose    ( dataIonic.M_MSHasHeterogeneousTauClose )
+        M_MSHasHeterogeneousTauClose    ( dataIonic.M_MSHasHeterogeneousTauClose ),
+        M_MinimalEpitheta0 (dataIonic.M_MinimalEpitheta0 ),
+        M_MinimalEpitheta1 (dataIonic.M_MinimalEpitheta1 ),
+        M_MinimalEpitheta2 (dataIonic.M_MinimalEpitheta2 ),
+        M_MinimalEpitheta1minus (dataIonic.M_MinimalEpitheta1minus ),
+        M_MinimalEpitau301 (dataIonic.M_MinimalEpitau301 ),
+        M_MinimalEpitau302 (dataIonic.M_MinimalEpitau302 ),
+        M_MinimalEpitau31 (dataIonic.M_MinimalEpitau31 ),
+        M_MinimalEpitau32 (dataIonic.M_MinimalEpitau32 ),
+        M_MinimalEpitau01 (dataIonic.M_MinimalEpitau01 ),
+        M_MinimalEpitau02 (dataIonic.M_MinimalEpitau02 ),
+        M_MinimalEpiwStar2inf (dataIonic.M_MinimalEpiwStar2inf ),
+        M_MinimalEpivv (dataIonic.M_MinimalEpivv ),
+        M_MinimalEpitau11minus (dataIonic.M_MinimalEpitau11minus ),
+        M_MinimalEpitau12minus (dataIonic.M_MinimalEpitau12minus ),
+        M_MinimalEpitau1plus (dataIonic.M_MinimalEpitau1plus ),
+        M_MinimalEpitau21minus (dataIonic.M_MinimalEpitau21minus ),
+        M_MinimalEpitau22minus (dataIonic.M_MinimalEpitau22minus ),
+        M_MinimalEpitau2plus (dataIonic.M_MinimalEpitau2plus ),
+        M_MinimalEpik2minus (dataIonic.M_MinimalEpik2minus ),
+        M_MinimalEpiv2minus (dataIonic.M_MinimalEpiv2minus ),
+        M_MinimalEpitauFi (dataIonic.M_MinimalEpitauFi ),
+        M_MinimalEpik30 (dataIonic.M_MinimalEpik30 ),
+        M_MinimalEpiv30 (dataIonic.M_MinimalEpiv30 ),
+        M_MinimalEpik3 (dataIonic.M_MinimalEpik3 ),
+        M_MinimalEpiv3 (dataIonic.M_MinimalEpiv3 ),
+        M_MinimalEpitauSi (dataIonic.M_MinimalEpitauSi ),
+        M_MinimalEpitau2inf (dataIonic.M_MinimalEpitau2inf )
+
 {
 }
 
@@ -144,6 +200,33 @@ HeartIonicData::operator=( const HeartIonicData& dataIonic )
         M_MSTend                        = dataIonic.M_MSTend;
         M_MSBDForder                    = dataIonic.M_MSBDForder;
 
+        M_MinimalEpitheta0 = dataIonic.M_MinimalEpitheta0;
+        M_MinimalEpitheta1 = dataIonic.M_MinimalEpitheta1;
+        M_MinimalEpitheta2 = dataIonic.M_MinimalEpitheta2;
+        M_MinimalEpitheta1minus = dataIonic.M_MinimalEpitheta1minus;
+        M_MinimalEpitau301  = dataIonic.M_MinimalEpitau301;
+        M_MinimalEpitau302 = dataIonic.M_MinimalEpitau302;
+        M_MinimalEpitau31 = dataIonic.M_MinimalEpitau31;
+        M_MinimalEpitau32 = dataIonic.M_MinimalEpitau32;
+        M_MinimalEpitau01 = dataIonic.M_MinimalEpitau01;
+        M_MinimalEpitau02 = dataIonic.M_MinimalEpitau02;
+        M_MinimalEpiwStar2inf = dataIonic.M_MinimalEpiwStar2inf;
+        M_MinimalEpivv = dataIonic.M_MinimalEpivv;
+        M_MinimalEpitau11minus = dataIonic.M_MinimalEpitau11minus;
+        M_MinimalEpitau12minus = dataIonic.M_MinimalEpitau12minus;
+        M_MinimalEpitau1plus = dataIonic.M_MinimalEpitau1plus;
+        M_MinimalEpitau21minus = dataIonic.M_MinimalEpitau21minus;
+        M_MinimalEpitau22minus = dataIonic.M_MinimalEpitau22minus;
+        M_MinimalEpitau2plus = dataIonic.M_MinimalEpitau2plus;
+        M_MinimalEpik2minus = dataIonic.M_MinimalEpik2minus;
+        M_MinimalEpiv2minus = dataIonic.M_MinimalEpiv2minus;
+        M_MinimalEpitauFi = dataIonic.M_MinimalEpitauFi;
+        M_MinimalEpik30 = dataIonic.M_MinimalEpik30;
+        M_MinimalEpiv30 = dataIonic.M_MinimalEpiv30;
+        M_MinimalEpik3 = dataIonic.M_MinimalEpik3;
+        M_MinimalEpiv3 = dataIonic.M_MinimalEpiv3;
+        M_MinimalEpitauSi = dataIonic.M_MinimalEpitauSi;
+        M_MinimalEpitau2inf = dataIonic.M_MinimalEpitau2inf;
     }
     return *this;
 }
@@ -174,12 +257,41 @@ HeartIonicData::setup(  const GetPot& dataFile )
     M_MSTend                     = dataFile( "electric/physics/end_time",1000.0 );
     M_MSBDForder                 = dataFile( "electric/time_discretization/BDF_order",1 );
 
+    M_MinimalEpitheta0 = dataFile("electric/physics/Epitheta0", );
+        M_MinimalEpitheta1 = dataFile("electric/physics/Epitheta1", );
+        M_MinimalEpitheta2 = dataFile("electric/physics/Epitheta2", );
+        M_MinimalEpitheta1minus = dataFile("electric/physics/Epitheta1minus", );
+        M_MinimalEpitau301  = dataFile("electric/physics/Epitau301", );
+        M_MinimalEpitau302 = dataFile("electric/physics/Epitau302", );
+        M_MinimalEpitau31 = dataFile("electric/physics/Epitau31", );
+        M_MinimalEpitau32 = dataFile("electric/physics/Epitau32", );
+        M_MinimalEpitau01 = dataFile("electric/physics/Epitau01", );
+        M_MinimalEpitau02 = dataFile("electric/physics/Epitau02", );
+        M_MinimalEpiwStar2inf = dataFile("electric/physics/EpiwStar2inf", );
+        M_MinimalEpivv = dataFile("electric/physics/Epivv", );
+        M_MinimalEpitau11minus = dataFile("electric/physics/Epitau11minus", );
+        M_MinimalEpitau12minus = dataFile("electric/physics/Epitau12minus", );
+        M_MinimalEpitau1plus = dataFile("electric/physics/Epitau1plus", );
+        M_MinimalEpitau21minus = dataFile("electric/physics/Epitau21minus", );
+        M_MinimalEpitau22minus = dataFile("electric/physics/Epitau22minus", );
+        M_MinimalEpitau2plus = dataFile("electric/physics/Epitau2plus", );
+        M_MinimalEpik2minus = dataFile("electric/physics/Epik2minus", );
+        M_MinimalEpiv2minus = dataFile("electric/physics/Epiv2minus", );
+        M_MinimalEpitauFi = dataFile("electric/physics/EpitauFi", );
+        M_MinimalEpik30 = dataFile("electric/physics/Epik30", );
+        M_MinimalEpiv30 = dataFile("electric/physics/Epiv30", );
+        M_MinimalEpik3 = dataFile("electric/physics/Epik3", );
+        M_MinimalEpiv3 = dataFile("electric/physics/Epiv3", );
+        M_MinimalEpitauSi = dataFile("electric/physics/EpitauSi", );
+        M_MinimalEpitau2inf = dataFile("electric/physics/Epitau2inf", );
+
+
 }
 
-// Output
+
+
 void HeartIonicData::showMe( std::ostream& output )
 {
- output << " The output is still to be coded! \n" << std::endl;
 }
 
 }
