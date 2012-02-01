@@ -26,7 +26,7 @@
 
 /*!
     @file
-    @brief  Heart Functors for the Luo-Rudy Kinetics
+    @brief  Heart Functors
 
     @date 04−2010
     @author

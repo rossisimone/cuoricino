@@ -255,6 +255,16 @@ Heart::run()
                                                             *M_heart_fct->M_comm));
     }
 
+    else if (ion_model==4)
+    {
+        if (verbose) std::cout<<"Ion Model = Bueno-Orovio minimal human model"<<std::endl<<std::flush;
+        ionicModel.reset(new MitchellSchaeffer< mesh_Type >(_dataIonic,
+                                                            *meshPart.meshPartition(),
+                                                            *uFESpacePtr,
+                                                            *M_heart_fct->M_comm));
+    }
+
+
 #ifdef MONODOMAIN
                                  electricModel.initialize( M_heart_fct->initialScalar());
                                  //electricModel.initialize(scrollwaveInitSlab);

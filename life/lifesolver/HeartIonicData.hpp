@@ -162,17 +162,8 @@ public:
     const Real& MinimalEpiv30() const { return  M_MinimalEpiv30;}
     const Real& MinimalEpik3() const { return M_MinimalEpik3;}
     const Real& MinimalEpiv3() const { return M_MinimalEpiv3;}
-    const Real& MinimalEpitauSi()const { return M_MinimalEpitauSi;}
-    const Real& M_MinimalEpitau2inf() const { return M_MinimalEpitau2inf;}
-
-
-
-
-
-
-
-
-
+    const Real& MinimalEpitauSi() const { return M_MinimalEpitauSi;}
+    const Real& MinimalEpitau2inf() const { return M_MinimalEpitau2inf;}
 
     //@}
 
@@ -218,6 +209,24 @@ private:
 
     bool        M_MSHasHeterogeneousTauClose;
 
+
+        //Epicardial parameters for the Minimal model
+    Real M_MinimalEpitheta0;
+    Real M_MinimalEpitheta1;
+    Real M_MinimalEpitheta2;
+    Real M_MinimalEpitheta1minus;
+    Real M_MinimalEpitau301;
+    Real M_MinimalEpitau302;
+    Real M_MinimalEpitau31;
+    Real M_MinimalEpitau32;
+    Real M_MinimalEpitau01;
+    Real M_MinimalEpitau02;
+    Real M_MinimalEpiwStar2inf, M_MinimalEpivv,
+        M_MinimalEpitau11minus, M_MinimalEpitau12minus, M_MinimalEpitau1plus,
+        M_MinimalEpitau21minus, M_MinimalEpitau22minus, M_MinimalEpitau2plus, M_MinimalEpik2minus, M_MinimalEpiv2minus,
+        M_MinimalEpitauFi, M_MinimalEpik30, M_MinimalEpiv30, M_MinimalEpik3,
+        M_MinimalEpiv3, M_MinimalEpitauSi;
+    Real M_MinimalEpitau2inf;
 
 };
 
