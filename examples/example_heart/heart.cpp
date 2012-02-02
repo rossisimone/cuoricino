@@ -258,12 +258,19 @@ Heart::run()
     else if (ion_model==4)
     {
         if (verbose) std::cout<<"Ion Model = Bueno-Orovio minimal human model"<<std::endl<<std::flush;
-        ionicModel.reset(new MitchellSchaeffer< mesh_Type >(_dataIonic,
+        ionicModel.reset(new MinimalModel< mesh_Type >(_dataIonic,
                                                             *meshPart.meshPartition(),
                                                             *uFESpacePtr,
                                                             *M_heart_fct->M_comm));
     }
-
+    else if (ion_model==5)
+    {
+        if (verbose) std::cout<<"Ion Model = Courtemanche-Ramirez-Nattel model for the atrium"<<std::endl<<std::flush;
+        ionicModel.reset(new CourtemancheRamirezNattel< mesh_Type >(_dataIonic,
+                                                            *meshPart.meshPartition(),
+                                                            *uFESpacePtr,
+                                                            *M_heart_fct->M_comm));
+    }
 
 #ifdef MONODOMAIN
                                  electricModel.initialize( M_heart_fct->initialScalar());
