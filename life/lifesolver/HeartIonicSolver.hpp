@@ -28,7 +28,7 @@
   @file
   @brief Class for choosing and solving ionic models in electrophysiology.
   @Mitchel-Schaeffer, Rogers-McCulloch, Luo-Rudy I, Bueno-Orovio et al., and Courtemanche et al.
-  @All models include the coupling with the mechanical activation in the fibers direction
+  @All ventricular models include the coupling with the mechanical activation in the fibers direction
 
   @date 11-2007
   @author Lucia Mirabella <lucia.mirabella@mail.polimi.it> and Mauro Perego <mauro.perego@polimi.it>
@@ -1347,17 +1347,17 @@ public:
     const vector_Type& vectorConcentrationCaRel() const {return M_vectorConcentrationCaRel;}
     const vector_Type& vectorConcentrationCaUp() const {return M_vectorConcentrationCaUp;}
 
-	Real M_permeabilityRatio, M_Ca0, M_Na0, M_K0, M_R, M_temperature, M_F, M_C, M_Vi,
-        M_Vup, M_Vrel, M_gNa, M_gKl, M_gTo, M_gKr, M_gKs, M_gCal, M_gKur,
-        M_gbCa, M_gbNa, M_INaKmax, M_INaCamax, M_IpCamax, M_Iupmax, M_Irel,
-        M_krel, M_KmNai, M_KmK0, M_KmNa, M_KmCa, M_Kup, M_consCaUpMax,
+	Real M_R, M_temperature, M_F, M_permeabilityRatio, M_C, M_Ca0, M_Na0, M_K0,
+        M_Vi, M_Vup, M_Vrel, M_KmNai, M_KmK0, M_KmNa, M_KmCa, M_Kup, M_consCaUpMax,
         M_consTrpnMax, M_consCmdnMax, M_consCsqnMax, M_KmTrpn, M_KmCmdn,
-        M_KmCsqn, M_ah, M_aj, M_bh, M_bj, M_am, M_bm, M_tauh, M_tauj, M_taum,
+        M_KmCsqn,  M_gNa, M_gKl, M_gTo, M_gKr, M_gKs, M_gCal, M_gbCa, M_gbNa,
+        M_INaKmax, M_INaCamax, M_IpCamax, M_Iupmax, M_krel, M_Irel,
+        M_ah, M_aj, M_bh, M_bj, M_am, M_bm, M_tauh, M_tauj, M_taum,
         M_hinf, M_jinf, M_minf, M_akl, M_bkl, M_aaa, M_baa, M_aai, M_bai,
         M_tauai, M_aiinf, M_tauaa, M_aainf, M_aua, M_bua, M_aui, M_bui, M_tauui,
         M_uiinf, M_tauua, M_uainf, M_axr, M_bxr, M_tauxr, M_xrinf, M_axs, M_bxs,
         M_tauxs, M_xsinf, M_dinf, M_finf, M_taud, M_tauf, M_fCainf, M_taufca, M_taupu,
-        M_puinf, M_taupv, M_pvinf, M_taupw, M_pwinf, M_EK, M_EKl, M_ENa, M_Klinf, M_ECan;
+        M_puinf, M_taupv, M_pvinf, M_taupw, M_pwinf, M_EK, M_EKl, M_ENa, M_Klinf, M_ECan, M_gKur;
 
     // Na current
     Real M_INa;
@@ -1383,8 +1383,7 @@ public:
     Real M_INab;
 	// Ca pump
     Real M_IpCa;
-	// Release of Ca from the reticulum
-    vector_Type M_vectorCurrentIrel;
+
 	// Ca transfert into the reticulum
     Real M_Itr;
 	// Ca transfert into the reticulum from the cell
@@ -1480,7 +1479,8 @@ protected:
 	vector_Type 		M_vectorIonicChangeK;
 	vector_Type 		M_vectorIonicChangeCaUp;
 	vector_Type 		M_vectorIonicChangeCaRel;
-
+    // Release of Ca from the reticulum
+    vector_Type         M_vectorCurrentIrel;
    	vector_Type			M_ionicCurrent;
     vector_Type			M_ionicCurrentRepeated;
     VectorElemental  	M_elemVecIonicCurrent;
@@ -1511,6 +1511,10 @@ CourtemancheRamirezNattel( const data_Type& dataType,
 			M_Ca0(1.8),
 			M_Na0(140.),
 			M_K0(5.4),
+            // volume constants
+			M_Vi(13668),
+			M_Vup(1109.52),
+			M_Vrel(96.48),
 
 			M_KmNai(10.),
 			M_KmK0(1.5),
@@ -1526,11 +1530,6 @@ CourtemancheRamirezNattel( const data_Type& dataType,
 			M_KmTrpn(0.0005),
 			M_KmCmdn(0.00238),
 			M_KmCsqn(0.8),
-
-			// volume constants
-			M_Vi(13668),
-			M_Vup(1109.52),
-			M_Vrel(96.48),
 
 			// model constants
 			M_gNa(7.8),
@@ -1678,12 +1677,14 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::solveIonicModel( const vector_
 		// L-type Ca current
 		M_ICal = M_gCal*M_solutionGatingD[ig]*M_solutionGatingF[ig]*M_solutionGatingFCa[ig]*(u_ig-65.0);
 
+        Real satiga;
+        satiga=
 		// Na-K pump
 		M_INaK = M_INaKmax*(1.0/(1.0+0.1245
                                  *exp(-0.1*u_ig* M_F/(M_R * M_temperature) )
                                  +0.0365/7.0*(exp(M_Na0/67.3)-1.0)
                                  *exp(-u_ig* M_F/(M_R * M_temperature) )))
-            *(1.0/(1.0+pow(M_KmNai/M_vectorConcentrationNa[ig]),1.5))*(M_K0/(M_K0+M_KmK0));
+            *(1.0/(1.0+pow(M_KmNai/M_vectorConcentrationNa[ig],1.5)))*(M_K0/(M_K0+M_KmK0));
 
         // Na-Ca exchanger
         M_INaCa = M_INaCamax/((pow(M_KmNa,3.0)+pow(M_Na0,3.0))*(M_KmCa+M_Ca0)*(1.0+0.1*exp((0.35-1.0)*u_ig* M_F/(M_R * M_temperature)))
@@ -2036,13 +2037,13 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::computeODECoefficients( const 
 
 	// Ca release current from JSR
     //Fn expression has been simplified, being equivalent as the initial expression (simplification of the power of 10, in the
-    //following expressions using Fn). Furthermore, a modification has been done : instead of 10^-13, I used 10^-10
+    //following expressions using Fn). Furthermore, a modification has been done : instead of 10^-13, we put 10^-10
 
     M_taupu=8.0;
-	M_puinf=1.0/(1.0+exp(-(M_vectorFn*pow(10,4)-3.4175*pow(10,3))/(13.67)));
+	M_puinf=1.0/(1.0+exp(-(M_vectorFn[ig]*pow(10,4)-3.4175*pow(10,3))/(13.67)));
 
-	M_taupv = 1.91 + 2.09 / (1.0 + exp(-(M_vectorFn * pow(10, 4.0) - 3.4175 * pow(10, 3)) / (13.67)));
-	M_pvinf = 1.0 - 1.0 / (1.0 + exp(-(M_vectorFn * pow(10, 4.0) - 6.835 * pow(10, 2)) / (13.67)));
+	M_taupv = 1.91 + 2.09 / (1.0 + exp(-(M_vectorFn[ig] * pow(10, 4.0) - 3.4175 * pow(10, 3)) / (13.67)));
+	M_pvinf = 1.0 - 1.0 / (1.0 + exp(-(M_vectorFn[ig] * pow(10, 4.0) - 6.835 * pow(10, 2)) / (13.67)));
 
 
 	M_taupw=6.0*(1.0-exp(-(u_ig-7.9)/5.0))/((1.0+0.3*exp(-(u_ig-7.9)/5.0))*(u_ig-7.9));
