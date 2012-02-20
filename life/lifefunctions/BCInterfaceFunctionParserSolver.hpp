@@ -43,8 +43,8 @@
 // FSI includes
 #include <life/lifesolver/FSIOperator.hpp>
 
-// OneDimensional includes
-#include <life/lifesolver/OneDimensionalSolver.hpp>
+// OneDFSI includes
+#include <life/lifesolver/OneDFSISolver.hpp>
 
 // BCInterface includes
 #include <life/lifefunctions/BCInterfaceFunctionParser.hpp>
@@ -151,7 +151,7 @@ public:
     typedef PhysicalSolverType                                                    physicalSolver_Type;
     typedef BCInterfaceFunction< physicalSolver_Type >                            function_Type;
     typedef BCInterfaceFunctionParser< physicalSolver_Type >                      functionParser_Type;
-    typedef OneDimensionalSolver::solutionPtr_Type                                solutionPtr_Type;
+    typedef OneDFSISolver::solutionPtr_Type                                       solutionPtr_Type;
 
     //@}
 
@@ -183,13 +183,11 @@ public:
     //! @name Set Methods
     //@{
 
-#ifdef MULTISCALE_IS_IN_LIFEV
     //! Set data for 0D boundary conditions
     /*!
      * @param data BC data loaded from GetPot file
      */
     virtual void setData( const BCInterfaceData0D& data );
-#endif
 
     //! Set data for 1D boundary conditions
     /*!
@@ -257,7 +255,7 @@ protected:
     boost::shared_ptr< PhysicalSolverType >    M_physicalSolver;
     solutionPtr_Type                           M_solution;
 
-    OneDimensional::bcSide_Type                M_side;
+    OneDFSI::bcSide_Type                       M_side;
     bcFlag_Type                                M_flag;
     std::set< physicalSolverList >             M_list;
 
@@ -321,7 +319,7 @@ BCInterfaceFunctionParserSolver< PhysicalSolverType >::BCInterfaceFunctionParser
 // ===================================================
 template< >
 inline void
-BCInterfaceFunctionParserSolver< OneDimensionalSolver >::updatePhysicalSolverVariables()
+BCInterfaceFunctionParserSolver< OneDFSISolver >::updatePhysicalSolverVariables()
 {
 
 #ifdef HAVE_LIFEV_DEBUG
@@ -345,9 +343,9 @@ BCInterfaceFunctionParserSolver< OneDimensionalSolver >::updatePhysicalSolverVar
         case f_area:
 
 #ifdef HAVE_LIFEV_DEBUG
-            Debug( 5023 ) << "                                              f_area(" << static_cast<Real> (M_side) << "): " << M_physicalSolver->boundaryValue( *M_solution, OneDimensional::A, M_side ) << "\n";
+            Debug( 5023 ) << "                                              f_area(" << static_cast<Real> (M_side) << "): " << M_physicalSolver->boundaryValue( *M_solution, OneDFSI::A, M_side ) << "\n";
 #endif
-            setVariable( "f_area", M_physicalSolver->boundaryValue( *M_solution, OneDimensional::A, M_side ) );
+            setVariable( "f_area", M_physicalSolver->boundaryValue( *M_solution, OneDFSI::A, M_side ) );
 
             break;
 
@@ -363,20 +361,20 @@ BCInterfaceFunctionParserSolver< OneDimensionalSolver >::updatePhysicalSolverVar
         case f_flux:
 
 #ifdef HAVE_LIFEV_DEBUG
-            Debug( 5023 ) << "                                              f_flux(" << static_cast<Real> (M_side) << "): " << M_physicalSolver->boundaryValue( *M_solution, OneDimensional::Q, M_side ) << "\n";
+            Debug( 5023 ) << "                                              f_flux(" << static_cast<Real> (M_side) << "): " << M_physicalSolver->boundaryValue( *M_solution, OneDFSI::Q, M_side ) << "\n";
 #endif
 
-            setVariable( "f_flux", M_physicalSolver->boundaryValue( *M_solution, OneDimensional::Q, M_side ) );
+            setVariable( "f_flux", M_physicalSolver->boundaryValue( *M_solution, OneDFSI::Q, M_side ) );
 
             break;
 
         case f_pressure:
 
 #ifdef HAVE_LIFEV_DEBUG
-            Debug( 5023 ) << "                                              f_pressure(" << static_cast<Real> (M_side) << "): " << M_physicalSolver->boundaryValue( *M_solution, OneDimensional::P, M_side ) << "\n";
+            Debug( 5023 ) << "                                              f_pressure(" << static_cast<Real> (M_side) << "): " << M_physicalSolver->boundaryValue( *M_solution, OneDFSI::P, M_side ) << "\n";
 #endif
 
-            setVariable( "f_pressure", M_physicalSolver->boundaryValue( *M_solution, OneDimensional::P, M_side ) );
+            setVariable( "f_pressure", M_physicalSolver->boundaryValue( *M_solution, OneDFSI::P, M_side ) );
 
             break;
 
@@ -450,7 +448,7 @@ BCInterfaceFunctionParserSolver< OneDimensionalSolver >::updatePhysicalSolverVar
             break;
 
         default:
-            switchErrorMessage( "OneDimensionalModel_Solver" );
+            switchErrorMessage( "OneDFSIModel_Solver" );
 
             break;
         }
@@ -587,7 +585,7 @@ BCInterfaceFunctionParserSolver< FSIOperator >::updatePhysicalSolverVariables()
 
 template< >
 inline void
-BCInterfaceFunctionParserSolver< OseenSolver< RegionMesh3D< LinearTetra > > >::updatePhysicalSolverVariables()
+BCInterfaceFunctionParserSolver< OseenSolver< RegionMesh< LinearTetra > > >::updatePhysicalSolverVariables()
 {
 
 #ifdef HAVE_LIFEV_DEBUG
@@ -665,7 +663,7 @@ BCInterfaceFunctionParserSolver< OseenSolver< RegionMesh3D< LinearTetra > > >::u
 
 template< >
 inline void
-BCInterfaceFunctionParserSolver< OseenSolverShapeDerivative< RegionMesh3D< LinearTetra > > >::updatePhysicalSolverVariables()
+BCInterfaceFunctionParserSolver< OseenSolverShapeDerivative< RegionMesh< LinearTetra > > >::updatePhysicalSolverVariables()
 {
 
 #ifdef HAVE_LIFEV_DEBUG
@@ -807,7 +805,6 @@ BCInterfaceFunctionParserSolver< ZeroDimensionalTemporaryData >::updatePhysicalS
 // ===================================================
 // Set Methods
 // ===================================================
-#ifdef MULTISCALE_IS_IN_LIFEV
 template< class PhysicalSolverType >
 inline void
 BCInterfaceFunctionParserSolver< PhysicalSolverType >::setData( const BCInterfaceData0D& data )
@@ -823,7 +820,6 @@ BCInterfaceFunctionParserSolver< PhysicalSolverType >::setData( const BCInterfac
 
     createAccessList( data );
 }
-#endif
 
 template< class PhysicalSolverType >
 inline void
@@ -862,7 +858,7 @@ BCInterfaceFunctionParserSolver< PhysicalSolverType >::setData( const BCInterfac
 // ===================================================
 template< >
 inline void
-BCInterfaceFunctionParserSolver< OneDimensionalSolver >::createAccessList( const BCInterfaceData& data )
+BCInterfaceFunctionParserSolver< OneDFSISolver >::createAccessList( const BCInterfaceData& data )
 {
 
 #ifdef HAVE_LIFEV_DEBUG
@@ -900,7 +896,7 @@ BCInterfaceFunctionParserSolver< FSIOperator >::createAccessList( const BCInterf
 
 template< >
 inline void
-BCInterfaceFunctionParserSolver< OseenSolver< RegionMesh3D< LinearTetra > > >::createAccessList( const BCInterfaceData& data )
+BCInterfaceFunctionParserSolver< OseenSolver< RegionMesh< LinearTetra > > >::createAccessList( const BCInterfaceData& data )
 {
 
 #ifdef HAVE_LIFEV_DEBUG
@@ -918,7 +914,7 @@ BCInterfaceFunctionParserSolver< OseenSolver< RegionMesh3D< LinearTetra > > >::c
 
 template< >
 inline void
-BCInterfaceFunctionParserSolver< OseenSolverShapeDerivative< RegionMesh3D< LinearTetra > > >::createAccessList( const BCInterfaceData& data )
+BCInterfaceFunctionParserSolver< OseenSolverShapeDerivative< RegionMesh< LinearTetra > > >::createAccessList( const BCInterfaceData& data )
 {
 
 #ifdef HAVE_LIFEV_DEBUG

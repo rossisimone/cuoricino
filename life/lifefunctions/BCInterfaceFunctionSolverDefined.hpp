@@ -44,14 +44,11 @@
 #include <life/lifesolver/FSIMonolithicGE.hpp>
 #include <life/lifesolver/FSIMonolithicGI.hpp>
 
-// OneDimensional includes
-#include <life/lifesolver/OneDimensionalSolver.hpp>
+// OneDFSI includes
+#include <life/lifesolver/OneDFSISolver.hpp>
 
 // BCInterface includes
-#ifdef MULTISCALE_IS_IN_LIFEV
 #include <life/lifefem/BCInterfaceData0D.hpp>
-#endif
-
 #include <life/lifefem/BCInterfaceData1D.hpp>
 #include <life/lifefem/BCInterfaceData3D.hpp>
 
@@ -94,13 +91,11 @@ public:
     //! @name Methods
     //@{
 
-#ifdef MULTISCALE_IS_IN_LIFEV
     //! Copy the stored parameters in the 0D data container
     /*!
      * @param data boundary condition data loaded from \c GetPot file
      */
     void exportData( BCInterfaceData0D& /*data*/ ) {}
-#endif
 
     //! Copy the stored parameters in the 1D data container
     /*!
@@ -132,13 +127,11 @@ public:
     //! @name Set Methods
     //@{
 
-#ifdef MULTISCALE_IS_IN_LIFEV
     //! Set data for 0D boundary conditions
     /*!
      * @param data boundary condition data loaded from \c GetPot file
      */
     void setData( const BCInterfaceData0D& /*data*/ ) {}
-#endif
 
     //! Set data for 1D boundary conditions
     /*!
@@ -638,7 +631,7 @@ inline void BCInterfaceFunctionSolverDefined< FSIOperator >::checkFunction( BCVe
  *  @author Cristiano Malossi
  *
  *  The BCInterfaceFunctionSolverDefined class provides a general interface between the
- *  \c BCInterface1D and the solver defined boundary conditions of the \c OneDimensionalSolver.
+ *  \c BCInterface1D and the solver defined boundary conditions of the \c OneDFSISolver.
  *
  *  <b>DETAILS:</b> <BR>
  *  The list of available conditions is described by the \c solverDefinedFunctions enum type.
@@ -652,18 +645,18 @@ inline void BCInterfaceFunctionSolverDefined< FSIOperator >::checkFunction( BCVe
  *  </ol>
  */
 template< >
-class BCInterfaceFunctionSolverDefined< OneDimensionalSolver >
+class BCInterfaceFunctionSolverDefined< OneDFSISolver >
 {
 public:
 
     //! @name Type definitions
     //@{
 
-    typedef OneDimensionalSolver                                  physicalSolver_Type;
+    typedef OneDFSISolver                                         physicalSolver_Type;
     typedef boost::shared_ptr< physicalSolver_Type >              physicalSolverPtr_Type;
 
-    typedef OneDimensionalBC                                      bc_Type;
-    typedef bc_Type::bcFunctionSolverDefinedPtr_Type                    bcFunctionSolverDefinedPtr_Type;
+    typedef OneDFSIBC                                             bc_Type;
+    typedef bc_Type::bcFunctionSolverDefinedPtr_Type              bcFunctionSolverDefinedPtr_Type;
 
     typedef bc_Type::vectorPtrContainer_Type                      vectorPtrContainer_Type;
 
@@ -693,7 +686,7 @@ public:
     /*!
      * @param base base of the bc
      */
-    void assignFunction( OneDimensionalFunction& base );
+    void assignFunction( OneDFSIFunction& base );
 
     //! Update the solver variables
     void updatePhysicalSolverVariables() {}

@@ -235,6 +235,14 @@ BCHandler::modifyBC( bcFlag_Type const& aFlag, BCFunctionUDepBase const& bcFunct
 }
 
 void
+BCHandler::modifyBC( bcFlag_Type const& aFlag, bcType_Type const& bcType )
+{
+    BCBase* bcBasePtr = findBC( aFlag );
+
+    bcBasePtr->setType( bcType );
+}
+
+void
 BCHandler::merge( BCHandler& bcHandler )
 {
     M_sumOffsets();
@@ -272,7 +280,7 @@ BCHandler::setOffset( const bcName_Type& name, Int offset )
 
     if (bc == 0)
         std::cout << "BCHandler::setOffset : BC " << name << " not found ... ";
-
+    else
     bc->setOffset(offset);
 }
 
@@ -282,7 +290,7 @@ BCHandler::findBCWithFlag(const bcFlag_Type& aFlag)
 {
     ID i;
 
-    for (i = 0; i <= M_bcList.size(); i++)
+    for (i = 0; i < M_bcList.size(); i++)
         if (aFlag == M_bcList[i].flag())
             break;
 
@@ -294,7 +302,7 @@ BCHandler::findBCWithFlag(const bcFlag_Type& aFlag) const
 {
     ID i;
 
-    for (i = 0; i <= M_bcList.size(); i++)
+    for (i = 0; i < M_bcList.size(); i++)
         if (aFlag == M_bcList[i].flag())
             break;
 

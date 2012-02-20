@@ -37,8 +37,8 @@
 #ifndef BCInterfaceData1D_H
 #define BCInterfaceData1D_H 1
 
-// OneDimensional includes
-#include <life/lifefem/OneDimensionalBCHandler.hpp>
+// 1D BCHandler include
+#include <life/lifefem/OneDFSIBCHandler.hpp>
 
 // BCInterface includes
 #include <life/lifefem/BCInterfaceData.hpp>
@@ -120,31 +120,23 @@ public:
     //! @name Set Methods
     //@{
 
-#ifndef MULTISCALE_IS_IN_LIFEV
-    //! Set the flag of the boundary condition
-    /*!
-     * @param flag Boundary condition flag
-     */
-    void setFlag( const bcFlag_Type& flag ) { M_flag = flag; }
-#endif
-
     //! Set the side of the boundary condition
     /*!
      * @param flag Boundary condition side
      */
-    void setSide( const OneDimensional::bcSide_Type& side ) { M_side = side; }
+    void setSide( const OneDFSI::bcSide_Type& side ) { M_side = side; }
 
     //! Set the line of the boundary condition
     /*!
      * @param line Boundary condition line
      */
-    void setLine( const OneDimensional::bcLine_Type& line ) { M_line = line; }
+    void setLine( const OneDFSI::bcLine_Type& line ) { M_line = line; }
 
     //! Set the quantity of the boundary condition
     /*!
      * @param quantity Boundary condition quantity
      */
-    void setQuantity( const OneDimensional::bcType_Type& quantity ) { M_quantity = quantity; }
+    void setQuantity( const OneDFSI::bcType_Type& quantity ) { M_quantity = quantity; }
 
     //@}
 
@@ -152,31 +144,23 @@ public:
     //! @name Get Methods
     //@{
 
-#ifndef MULTISCALE_IS_IN_LIFEV
-    //! Get the flag of the boundary condition
-    /*!
-     * @return Boundary condition flag
-     */
-    const bcFlag_Type& flag() const { return M_flag; }
-#endif
-
     //! Get the flag of the boundary condition
     /*!
      * @return Boundary condition side
      */
-    const OneDimensional::bcSide_Type& side() const { return M_side; }
+    const OneDFSI::bcSide_Type& side() const { return M_side; }
 
     //! Get the mode of the boundary condition
     /*!
      * @return Boundary condition line
      */
-    const OneDimensional::bcLine_Type& line() const { return M_line; }
+    const OneDFSI::bcLine_Type& line() const { return M_line; }
 
     //! Get the quantity of the boundary condition
     /*!
      * @return Boundary condition quantity
      */
-    const OneDimensional::bcType_Type& quantity() const { return M_quantity; }
+    const OneDFSI::bcType_Type& quantity() const { return M_quantity; }
 
     //! Get the resistance vector {R1, R2, R3 ...}
     /*!
@@ -197,10 +181,6 @@ private:
     //! @name Private Methods
     //@{
 
-#ifndef MULTISCALE_IS_IN_LIFEV
-    void readFlag( const GetPot& dataFile, const char* flag ) { M_flag = dataFile( flag, 0 ); }
-#endif
-
     void readSide( const GetPot& dataFile, const char* side ) {  M_side = M_mapSide[dataFile( side, "left" )]; }
 
     void readLine( const GetPot& dataFile, const char* line ) { M_line = M_mapLine[dataFile( line, "first" )]; }
@@ -217,21 +197,17 @@ private:
     //! @name Private Members
     //@{
 
-#ifndef MULTISCALE_IS_IN_LIFEV
-    bcFlag_Type                                                    M_flag;
-#endif
-
-    OneDimensional::bcSide_Type                                    M_side;
-    OneDimensional::bcLine_Type                                    M_line;
-    OneDimensional::bcType_Type                                    M_quantity;
+    OneDFSI::bcSide_Type                                           M_side;
+    OneDFSI::bcLine_Type                                           M_line;
+    OneDFSI::bcType_Type                                           M_quantity;
 
     resistanceContainer_Type                                       M_resistance;
     Real                                                           M_capacitance;
 
     // Maps
-    std::map< std::string, OneDimensional::bcSide_Type >           M_mapSide;
-    std::map< std::string, OneDimensional::bcType_Type >           M_mapQuantity;
-    std::map< std::string, OneDimensional::bcLine_Type >           M_mapLine;
+    std::map< std::string, OneDFSI::bcSide_Type >                  M_mapSide;
+    std::map< std::string, OneDFSI::bcType_Type >                  M_mapQuantity;
+    std::map< std::string, OneDFSI::bcLine_Type >                  M_mapLine;
 
     //@}
 };

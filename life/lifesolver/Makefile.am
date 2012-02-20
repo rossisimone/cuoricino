@@ -31,9 +31,15 @@ liblifesolver_la_SOURCES   = FSIData.cpp ADRData.cpp VenantKirchhoffElasticData.
 					LevelSetData.cpp VenantKirchhoffViscoelasticData.cpp MonolithicBlock.cpp MonolithicBlockComposed.cpp MonolithicBlockComposedDN.cpp \
                     MonolithicBlockComposedDND.cpp MonolithicBlockComposedDNND.cpp MonolithicBlockComposedNN.cpp MonolithicBlockMatrix.cpp \
                     MonolithicBlockMatrixRN.cpp MonolithicRobinInterface.cpp\
-                    OneDimensionalData.cpp OneDimensionalFluxLinear.cpp OneDimensionalFluxNonLinear.cpp\
-                    OneDimensionalSourceLinear.cpp OneDimensionalSourceNonLinear.cpp OneDimensionalPhysicsLinear.cpp\
-                    OneDimensionalPhysicsNonLinear.cpp OneDimensionalSolver.cpp
+                    OneDFSIData.cpp OneDFSIFluxLinear.cpp OneDFSIFluxNonLinear.cpp\
+                    OneDFSISourceLinear.cpp OneDFSISourceNonLinear.cpp OneDFSIPhysicsLinear.cpp\
+                    OneDFSIPhysicsNonLinear.cpp\
+                    OneDFSISolver.cpp\
+                    ZeroDimensionalData.cpp\
+                    ZeroDimensionalCircuitData.cpp\
+                    ZeroDimensionalRythmosModelInterface.cpp\
+                    ZeroDimensionalRythmosSolverInterface.cpp\
+                    ZeroDimensionalSolver.cpp
 
 liblifesolver_la_LIBADD    = ../lifefilters/liblifefilters.la ../lifearray/liblifearray.la ../lifecore/liblifecore.la ../lifefunctions/liblifefunctions.la $(petsc_libs) $(aztec_libs) $(boost_libs)
 

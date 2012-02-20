@@ -95,7 +95,7 @@ public:
     /*!
      * @param base base of the 1D boundary condition
      */
-    void assignFunction( OneDimensionalFunction& base ) { base.setFunction( functionSelectorTimeTimeStep() ); }
+    void assignFunction( OneDFSIFunction& base ) { base.setFunction( functionSelectorTimeTimeStep() ); }
 
     //! Assign the function to the base of the 3D \c BCHandler
     /*!
@@ -148,13 +148,11 @@ public:
     //! @name Set Methods
     //@{
 
-#ifdef MULTISCALE_IS_IN_LIFEV
     //! Set data for 0D boundary conditions
     /*!
      * @param data boundary condition data loaded from \c GetPot file
      */
     void setData( const BCInterfaceData0D& data ) { setGlobalData( data ); }
-#endif
 
     //! Set data for 1D boundary conditions
     /*!

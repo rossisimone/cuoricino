@@ -78,6 +78,7 @@ namespace LifeV
 
 /*!
   @author A. Fumagalli <alessio.fumagalli@mail.polimi.it>
+  @see For applications related to two-phase flow see \cite Fumagalli2011a
 
   This class implements a Darcy solver.
   <br>
@@ -239,6 +240,7 @@ namespace LifeV
   conditions are imposed via BCHandler class.
   @todo Insert any scientific publications that use this solver.
   @bug If the save flag for the exporter is setted to 0 the program fails.
+
 */
 
 template< typename Mesh, typename SolverType = LifeV::SolverAztecOO >
@@ -985,6 +987,10 @@ setup ()
     M_prec.reset( PRECFactory::instance().createObject( precType ) );
     ASSERT( M_prec.get() != 0, "DarcySolver : Preconditioner not set" );
 
+    // make sure mesh facets are updated
+    if(! M_dual_FESpace.mesh()->hasLocalFacets() )
+    M_dual_FESpace.mesh()->updateElementFacets();
+
 } // setup
 
 // Solve the linear system.
@@ -1065,7 +1071,7 @@ computePrimalAndDual ()
 
         for ( UInt iLocalFace(0); iLocalFace <  M_dual_FESpace.mesh()->element( iElem ).S_numLocalFaces; ++iLocalFace )
         {
-            UInt iGlobalFace( M_dual_FESpace.mesh()->localFaceId( iElem, iLocalFace ) );
+            UInt iGlobalFace( M_dual_FESpace.mesh()->localFacetId( iElem, iLocalFace ) );
             if ( M_dual_FESpace.mesh()->faceElement( iGlobalFace, 0 ) != iElem )
             {
                 M_elvecFlux[ iLocalFace ] = 0;

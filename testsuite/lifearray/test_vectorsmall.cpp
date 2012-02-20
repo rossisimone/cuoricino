@@ -52,7 +52,6 @@ using namespace LifeV;
 // ===================================================
 int main()
 {
-
     // test for dim = 3
     Vector3D v1( 1., 1., 2. ), v2( 0., 1., 0. ), v3;
 
@@ -75,12 +74,10 @@ int main()
     v1.normalize();
     std::cout << v1              << std::endl << std::endl;
 
-    MeshVertex v4( 0, 1., 2., 3. );
+    std::vector<Real> v4( 3, 1. );
     std::cout << castToVector3D ( v4 ) << std::endl << std::endl;
-    std::vector<Real> v5( 3, 1. );
+    KN<Real> v5( 3, 2. );
     std::cout << castToVector3D ( v5 ) << std::endl << std::endl;
-    KN<Real> v6( 3, 2. );
-    std::cout << castToVector3D ( v6 ) << std::endl << std::endl;
 
 
     // test for dim = 5
@@ -106,6 +103,11 @@ int main()
     std::cout << castToVectorSmall<5> ( c ) << std::endl << std::endl;
     KN<Real> d( 5, 2. );
     std::cout << castToVectorSmall<5> ( d ) << std::endl << std::endl;
+
+    VectorSmall<10> v6 = VectorSmall<10>::Constant( 3. );
+    std::cout << v6 << std::endl << std::endl;
+    v6 = VectorSmall<10>::Zero();
+    std::cout << v6 << std::endl << std::endl;
 
     return 0;
 }

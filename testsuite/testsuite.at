@@ -25,8 +25,9 @@ m4_include([test_Parser/testsuite.at])
 
 #lifearray tests
 AT_BANNER([life/lifearray testsuite ...])
-#m4_include([lifearray/testsuite.at])
+m4_include([lifearray/testsuite.at])
 m4_include([test_VectorContainer/testsuite.at])
+m4_include([test_MatrixEpetraStructuredFramework/testsuite.at])
 
 #lifealg tests
 #AT_BANNER([life/lifealg testsuite ...])
@@ -49,6 +50,7 @@ m4_include([lifemesh/testsuite.at])
 AT_BANNER([life/lifesolver testsuite ...])
 m4_include([test_ADRAssembler/testsuite.at])
 m4_include([test_bdf/testsuite.at])
+m4_include([test_navierStokes/testsuite.at])
 m4_include([test_darcy/testsuite.at])
 m4_include([test_fsi/testsuite.at])
 m4_include([test_hyperbolic/testsuite.at])
@@ -59,3 +61,4 @@ m4_include([test_timeAdvance_orderI/testsuite.at])
 m4_include([test_timeAdvance_orderII/testsuite.at])
 m4_include([test_monolithic/testsuiteGCE.at])
 m4_include([test_monolithic/testsuiteCE.at])
+m4_include([test_ZeroDimensional/testsuite.at])
