@@ -68,7 +68,8 @@ TESTSUITES=$(srcdir)/lifealg/testsuite.at \
            $(srcdir)/test_monolithic/testsuiteGCE.at \
            $(srcdir)/test_monolithic/testsuiteCE.at \
            $(srcdir)/test_Parser/testsuite.at \
-           $(srcdir)/test_VectorContainer/testsuite.at
+           $(srcdir)/test_VectorContainer/testsuite.at\
+           $(srcdir)/test_ZeroDimensional/testsuite.at
 
 
 $(srcdir)/package.m4: $(top_srcdir)/configure.in.in

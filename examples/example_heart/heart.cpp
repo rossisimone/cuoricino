@@ -69,6 +69,20 @@ Real zero_scalar( const Real& /* t */,
     return 0.;
 }
 
+Real scrollwaveInitSlab( const Real& /* t */,
+                      const Real& x,
+                      const Real& y,
+                      const Real& z,
+                      const ID& /* i */ )
+{
+    double r = std::sqrt((x-0.0)*(x-0.0)/3.0625
+                         +(y-0.0)*(y-0.0)/3.0625
+                         +(z+0.15)*(z+0.15)/21.16); // elli
+    Real const oldi(1.0-1.0/(1.0+exp(-90.0*(r-1)))); // elli
+    return -84.0 + 110.0*oldi;
+}
+
+
 // ===================================================
 //! Constructors
 // ===================================================
@@ -241,11 +255,30 @@ Heart::run()
                                                             *M_heart_fct->M_comm));
     }
 
+    else if (ion_model==4)
+    {
+        if (verbose) std::cout<<"Ion Model = Bueno-Orovio minimal human model"<<std::endl<<std::flush;
+        ionicModel.reset(new MinimalModel< mesh_Type >(_dataIonic,
+                                                            *meshPart.meshPartition(),
+                                                            *uFESpacePtr,
+                                                            *M_heart_fct->M_comm));
+    }
+    else if (ion_model==5)
+    {
+        if (verbose) std::cout<<"Ion Model = Courtemanche-Ramirez-Nattel model for the atrium"<<std::endl<<std::flush;
+        ionicModel.reset(new CourtemancheRamirezNattel< mesh_Type >(_dataIonic,
+                                                            *meshPart.meshPartition(),
+                                                            *uFESpacePtr,
+                                                            *M_heart_fct->M_comm));
+    }
+
 #ifdef MONODOMAIN
-    electricModel.initialize( M_heart_fct->initialScalar());
+                                 electricModel.initialize( M_heart_fct->initialScalar());
+                                 //electricModel.initialize(scrollwaveInitSlab);
 #else
-    electricModel.initialize( M_heart_fct->initialScalar(),
-                              M_heart_fct->zeroScalar() );
+                                 electricModel.initialize( M_heart_fct->initialScalar(),
+                                                           //electricModel.initialize(scrollwaveInitSlab,
+                                                          M_heart_fct->zeroScalar() );
 #endif
 
     if (verbose) std::cout << "ok." << std::endl;

@@ -26,7 +26,7 @@
 
 /*!
     @file
-    @brief  Heart Functors for the Luo-Rudy Kinetics
+    @brief  Heart Functors
 
     @date 04−2010
     @author
@@ -49,16 +49,22 @@ HeartFunctors::HeartFunctors():
     M_dataFile          ( ),
     M_stimulusSource    ( ),
     M_stimulusPeriod1   ( ),
+    M_stimulusPeriod1b   ( ),
     M_stimulusPeriod2   ( ),
     M_stimulusPeriod3   ( ),
     M_stimulusPeriod4   ( ),
     M_stimulusPeriod5   ( ),
     M_stimulusPeriod6   ( ),
     M_stimulusStart1    ( ),
+    M_stimulusStart1b    ( ),
     M_stimulusStop1     ( ),
+    M_stimulusStop1b    ( ),
     M_stimulusValue1    ( ),
+    M_stimulusValue1b    ( ),
     M_stimulusRadius1   ( ),
     M_stimulusCenter1   (3),
+    M_stimulusLeft1b   (3),
+    M_stimulusRight1b   (3),
     M_stimulusStart2    ( ),
     M_stimulusStop2     ( ),
     M_stimulusValue2    ( ),
@@ -122,16 +128,22 @@ HeartFunctors::HeartFunctors( GetPot& dataFile ):
     M_dataFile          (dataFile),
     M_stimulusSource    (dataFile("electric/physics/stim_source",1)),
     M_stimulusPeriod1   (dataFile("electric/physics/stim_period_1",200.)),
+    M_stimulusPeriod1b   (dataFile("electric/physics/stim_period_1b",200.)),
     M_stimulusPeriod2   (dataFile("electric/physics/stim_period_2",200.)),
     M_stimulusPeriod3   (dataFile("electric/physics/stim_period_3",200.)),
     M_stimulusPeriod4   (dataFile("electric/physics/stim_period_4",200.)),
     M_stimulusPeriod5   (dataFile("electric/physics/stim_period_5",200.)),
     M_stimulusPeriod6   (dataFile("electric/physics/stim_period_6",200.)),
     M_stimulusStart1    (dataFile("electric/physics/stim_start_1",0.)),
+    M_stimulusStart1b    (dataFile("electric/physics/stim_start_1b",0.)),
     M_stimulusStop1     (dataFile("electric/physics/stim_stop_1",0.)),
+    M_stimulusStop1b     (dataFile("electric/physics/stim_stop_1b",0.)),
     M_stimulusValue1    (dataFile("electric/physics/stim_value_1",0.)),
+    M_stimulusValue1b    (dataFile("electric/physics/stim_value_1b",0.)),
     M_stimulusRadius1   (dataFile("electric/physics/stim_radius_1",0.)),
     M_stimulusCenter1   (3),
+    M_stimulusLeft1b   (3),
+    M_stimulusRight1b   (3),
     M_stimulusStart2    (dataFile("electric/physics/stim_start_2",0.)),
     M_stimulusStop2     (dataFile("electric/physics/stim_stop_2",0.)),
     M_stimulusValue2    (dataFile("electric/physics/stim_value_2",0.)),
@@ -193,6 +205,12 @@ HeartFunctors::HeartFunctors( GetPot& dataFile ):
     M_stimulusCenter1(0) = dataFile("electric/physics/stim_center_1",0.,0);
     M_stimulusCenter1(1) = dataFile("electric/physics/stim_center_1",0.,1);
     M_stimulusCenter1(2) = dataFile("electric/physics/stim_center_1",0.,2);
+    M_stimulusLeft1b(0) = dataFile("electric/physics/stim_left_1b",0.,0);
+    M_stimulusLeft1b(1) = dataFile("electric/physics/stim_left_1b",0.,1);
+    M_stimulusLeft1b(2) = dataFile("electric/physics/stim_left_1b",0.,2);
+    M_stimulusRight1b(0) = dataFile("electric/physics/stim_right_1b",0.,0);
+    M_stimulusRight1b(1) = dataFile("electric/physics/stim_right_1b",0.,1);
+    M_stimulusRight1b(2) = dataFile("electric/physics/stim_right_1b",0.,2);
     M_stimulusCenter2(0) = dataFile("electric/physics/stim_center_2",0.,0);
     M_stimulusCenter2(1) = dataFile("electric/physics/stim_center_2",0.,1);
     M_stimulusCenter2(2) = dataFile("electric/physics/stim_center_2",0.,2);
@@ -334,12 +352,14 @@ Real
 HeartFunctors::setStimulus( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   id) const
 {
     Real returnValue1;
+    Real returnValue1b;
     Real returnValue2;
     Real returnValue3;
     Real returnValue4;
     Real returnValue5;
     Real returnValue6;
     Real timeReset1(t - static_cast<int>(t/M_stimulusPeriod1) * M_stimulusPeriod1);
+    Real timeReset1b(t - static_cast<int>(t/M_stimulusPeriod1b) * M_stimulusPeriod1b);
     Real timeReset2(t - static_cast<int>(t/M_stimulusPeriod2) * M_stimulusPeriod2);
     Real timeReset3(t - static_cast<int>(t/M_stimulusPeriod3) * M_stimulusPeriod3);
     Real timeReset4(t - static_cast<int>(t/M_stimulusPeriod4) * M_stimulusPeriod4);
@@ -354,6 +374,20 @@ HeartFunctors::setStimulus( const Real& t, const Real& x, const Real& y, const R
         returnValue1 = M_stimulusValue1;
     }
     else returnValue1 = 0.;
+
+    if ( (timeReset1b >= M_stimulusStart1b && timeReset1b <= M_stimulusStop1b) &&
+         ( x >= M_stimulusLeft1b(0) ) && ( x <= M_stimulusRight1b(0)) &&
+         ( y >= M_stimulusLeft1b(1) ) && ( y <= M_stimulusRight1b(1)) &&
+         ( z >= M_stimulusLeft1b(2) ) && ( z <= M_stimulusRight1b(2))
+         )
+    {
+        returnValue1b = M_stimulusValue1b;
+    }
+    else returnValue1b = 0.;
+
+
+
+
 
     if ( (timeReset2 >= M_stimulusStart2 && timeReset2 <= M_stimulusStop2) &&
             ( ( ( x - M_stimulusCenter2(0) ) * ( x - M_stimulusCenter2(0) ) +
@@ -400,7 +434,7 @@ HeartFunctors::setStimulus( const Real& t, const Real& x, const Real& y, const R
     }
     else returnValue6 = 0.;
 
-    Real    returnValue = returnValue1 + returnValue2 + returnValue3 + returnValue4 + returnValue5 + returnValue6;
+    Real    returnValue = returnValue1 + returnValue1b + returnValue2 + returnValue3 + returnValue4 + returnValue5 + returnValue6;
 
     if (id == 0)
         return returnValue;
@@ -516,7 +550,7 @@ HeartFunctors::region1_Type
 HeartFunctors::appliedCurrent()
 {
     region1_Type f;
-    f = boost::bind(&HeartFunctors::setAppliedCurrent, this, 1, 2, 3, 4 );
+    f = boost::bind(&HeartFunctors::setAppliedCurrent, this, _1, _2, _3, _4 );
     return f;
 }
 
@@ -524,7 +558,7 @@ HeartFunctors::region1_Type
 HeartFunctors::stimulus()
 {
     region1_Type f;
-    f = boost::bind(&HeartFunctors::setStimulus, this, 1, 2, 3, 4, 5);
+    f = boost::bind(&HeartFunctors::setStimulus, this, _1, _2, _3, _4, _5);
     return f;
 }
 
@@ -532,7 +566,7 @@ const HeartFunctors::region_Type
 HeartFunctors::reducedConductivitySphere()
 {
     region_Type f;
-    f = boost::bind(&HeartFunctors::setReducedConductivitySphere, this, 1, 2, 3, 4, 5, 6);
+    f = boost::bind(&HeartFunctors::setReducedConductivitySphere, this, _1, _2, _3, _4, _5, _6);
     return f;
 }
 
@@ -540,7 +574,7 @@ const HeartFunctors::region_Type
 HeartFunctors::reducedConductivityCylinder()
 {
     region_Type f;
-    f = boost::bind(&HeartFunctors::setReducedConductivityCylinder, this, 1, 2, 3, 4, 5, 6);
+    f = boost::bind(&HeartFunctors::setReducedConductivityCylinder, this, _1, _2, _3, _4, _5, _6);
     return f;
 }
 
@@ -548,7 +582,7 @@ const HeartFunctors::region_Type
 HeartFunctors::reducedConductivityBox()
 {
     region_Type f;
-    f = boost::bind(&HeartFunctors::setReducedConductivityBox, this, 1, 2, 3, 4, 5, 6);
+    f = boost::bind(&HeartFunctors::setReducedConductivityBox, this, _1, _2, _3, _4, _5, _6);
     return f;
 }
 
@@ -556,7 +590,7 @@ const HeartFunctors::region1_Type
 HeartFunctors::initialScalar()
 {
     region1_Type f;
-    f = boost::bind(&HeartFunctors::setInitialScalar, this, 1, 2, 3, 4, 5);
+    f = boost::bind(&HeartFunctors::setInitialScalar, this, _1, _2, _3, _4, _5);
     return f;
 }
 
@@ -564,6 +598,6 @@ const HeartFunctors::region1_Type
 HeartFunctors::zeroScalar()
 {
     region1_Type f;
-    f = boost::bind(&HeartFunctors::setZeroScalar, this, 1, 2, 3, 4, 5);
+    f = boost::bind(&HeartFunctors::setZeroScalar, this, _1, _2, _3, _4, _5);
     return f;
 }
