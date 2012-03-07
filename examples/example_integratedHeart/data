@@ -12,7 +12,7 @@ blockOper   = AdditiveSchwarz
 #AdditiveSchwarzGI
 #AdditiveSchwarzRNGI
 
-DDBlockPrec = ComposedDN
+DDBlockPrec = AdditiveSchwarz
 # OPTIONS:
 #AdditiveSchwarz: monolithic A-S preconditioner,
 #AdditiveSchwarzGI: monolithic A-S preconditioner,
@@ -91,7 +91,7 @@ mesh_dir  = ./Mesh/
 mesh_file = integratedHeart_prototype1_fluid.mesh
 vel_order       = P1            # P1, P1Bubble, P2
 press_order     = P1            # P1, P2
-stiff_strain    = true
+stiff_strain    = false
 
 [../miscellaneous]
 verbose   = 1
@@ -130,7 +130,7 @@ poisson   = 0.40
 
 [../time_discretization]
 initialtime		= 0.
-endtime			= 0.004
+endtime			= 0.8
 timestep		= 0.001
 BDF_order		= 1
 
@@ -181,9 +181,9 @@ displayList        = false
 
 [../prec]
 reuse           = false
-prectype        = Composed
+prectype        = Ifpack
 rescale_factor = 1. # solid matrix rescale factor
-displayList     = true
+displayList     = false
 entry           = 0.0
 
 [./robin]
@@ -440,12 +440,12 @@ neval = 5
 [parameters]
 
 Pin     = 0   	#pressure at entry of the vessel
-Pout    = 0     #pressure at exit of the heart / distal pressure
+Pout    = 100000     #pressure at exit of the heart / distal pressure
 RExtD   = 100      	# distal resistance
 RExtP   = 1300    	# proximal resistance
 Cp	= 0.001		# windkessel capacity
 BDType  = 1		# boundary type 0) P=Pout 1) RExtD 2) RC 3) RCR
-fExt    = 450000.       #maximal value of the force apply by the muscle
+fExt    = 225000.       #maximal value of the force apply by the muscle
 tAppl   = 0.01    	#when we want to apply the force
 pi      = 3.141592635   #value of pi
 periode = 0.8		#period of the muscle

@@ -51,7 +51,6 @@
 #include "life/lifesolver/FSIMonolithicGI.hpp"
 
 #include "flowConditions.hpp"
-//#include "lumpedHeart.hpp"
 #include "ud_functions.hpp"
 
 #define OUTLET 3
@@ -85,12 +84,13 @@ FSIOperator::fluidBchandlerPtr_Type BCh_harmonicExtension(FSIOperator &_oper)
 
     FSISolver::fluidBchandlerPtr_Type BCh_he(new FSIOperator::fluidBchandler_Type );
 
-    BCh_he->addBC("HE1", INLET, Essential, Full, bcf,   3);
-    BCh_he->addBC("HE2", OUTLET, Essential, Full, bcf,   3);
-    BCh_he->addBC("HE3", TOPCARDIUM, Essential, Full, bcf,   3);
-    BCh_he->addBC("HE4", INLETRING, EssentialVertices, Full, bcf,   3);
-    BCh_he->addBC("HE5", OUTLETRING, EssentialVertices, Full, bcf,   3);
-    BCh_he->addBC("HE6", TOPCARDIUMRING, EssentialVertices, Full, bcf,   3);
+    BCh_he->addBC("HE1", INLET,          Essential,         Full, bcf, 3);
+    BCh_he->addBC("HE2", OUTLET,         Essential,         Full, bcf, 3);
+    BCh_he->addBC("HE3", TOPCARDIUM,     Essential,         Full, bcf, 3);
+    BCh_he->addBC("HE4", INLETRING,      EssentialVertices, Full, bcf, 3);
+    BCh_he->addBC("HE5", OUTLETRING,     EssentialVertices, Full, bcf, 3);
+    BCh_he->addBC("HE6", TOPCARDIUMRING, EssentialVertices, Full, bcf, 3);
+    BCh_he->addBC("HE7", AORTICROOT,     EssentialVertices, Full, bcf, 3);
 
     if (_oper.data().method() == "monolithicGE")
     {
@@ -115,14 +115,6 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFlux(bool /*isOpen=true*/)
 
     BCFunctionBase flow_3 (fluxFunction);
     BCFunctionBase bcf      (fZero);
-    //uncomment  to use fluxes
-
-    //  BCh_fluid->addBC("InFlow" , INLET,  Flux, Normal, flow_3);
-//   if(!isOpen)
-//       BCh_fluid->addBC("InFlow" , INLET,  Flux,   Normal, bcf);
-
-    //uncomment  to use fluxes
-    //BCh_fluid->addBC("FL1", INLET,  Flux, Normal, flow_3);
 
     return BCh_fluid;
 }
@@ -137,27 +129,25 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid(FSIOperator &_oper, bool
 
     FSIOperator::fluidBchandlerPtr_Type BCh_fluid( new FSIOperator::fluidBchandler_Type );
 
-    BCFunctionBase bcf      (fZero);
-    BCFunctionBase mitral_flow      (u_mitral );
-    BCFunctionBase test_flow      (u_test );
+    BCFunctionBase bcf (fZero);
+    BCFunctionBase mitral_flow (u_mitral );
 
     BCFunctionBase in_press (LifeV::FlowConditions::inPressure);
     BCFunctionBase out_press (LifeV::FlowConditions::outPressure);
 
-    //BCh_fluid->addBC("InFlow" , INLET,  Essential, Full, bcfw0, 3);
-
-    BCh_fluid->addBC("InFlow" , INLET,   EssentialVertices,   Full, mitral_flow, 3);
+    BCh_fluid->addBC("FL1",  INLET,     EssentialVertices, Full,   mitral_flow, 3);
 
     if ( AorticValveisOpen ) {
-        BCh_fluid->addBC("OutFlow" , OUTLET,  Natural, Normal, out_press);
+        BCh_fluid->addBC("FL2", OUTLET, Natural,           Normal, out_press);
     } else {
-        BCh_fluid->addBC("OutFlow" , OUTLET,   EssentialVertices,   Full, bcf, 3);
+        BCh_fluid->addBC("FL2", OUTLET, EssentialVertices, Full,   bcf,         3);
     }
 
-    BCh_fluid->addBC("FL3", TOPCARDIUM, Essential, Full, bcf,   3);
-    BCh_fluid->addBC("FL4", INLETRING, EssentialVertices, Full, bcf,   3);
-    BCh_fluid->addBC("FL5", OUTLETRING, EssentialVertices, Full, bcf,   3);
-    BCh_fluid->addBC("FL6", TOPCARDIUMRING, EssentialVertices, Full, bcf,   3);
+    /*  Cannot fix both fluid and structure on a coupled interface ring */
+    BCh_fluid->addBC("FL3", TOPCARDIUM, EssentialVertices, Full,   bcf,         3);
+    BCh_fluid->addBC("FL4", INLETRING,  EssentialVertices, Full,   bcf,         3);
+    BCh_fluid->addBC("FL5", OUTLETRING, EssentialVertices, Full,   bcf,         3);
+    BCh_fluid->addBC("FL6", AORTICROOT, EssentialVertices, Full,   bcf,         3);
 
     return BCh_fluid;
 }
@@ -173,16 +163,13 @@ FSIOperator::solidBchandlerPtr_Type BCh_monolithicSolid(FSIOperator &_oper)
     FSIOperator::solidBchandlerPtr_Type BCh_solid( new FSIOperator::solidBchandler_Type );
 
     BCFunctionBase bcf(fZero);
+    BCFunctionBase aroundheart(FlowConditions::fextvessel);
 
-    BCh_solid->addBC("ST1", TOP, Essential, Full, bcf,  3);
-    BCh_solid->addBC("ST1", INNERRING, Essential, Full, bcf,  3);
+    std::vector<LifeV::ID> zComp(1); zComp[0] = 3;
 
-    aortaVelIn::S_timestep = _oper.dataFluid()->dataTime()->timeStep();
-    BCFunctionBase hyd(fZero);
-    BCFunctionBase young (E);
-    //robin condition on the outer wall
-    _oper.setRobinOuterWall(hyd, young);
-    //BCh_solid->addBC("OuterWall", OUTERWALL, Robin, Normal, _oper.bcfRobinOuterWall());
+    BCh_solid->addBC("OuterWall", OUTERWALL, Natural,           Normal, aroundheart);
+    BCh_solid->addBC("Top",       TOP,       Essential,         Full,   bcf,         3);
+    BCh_solid->addBC("InnerRing", INNERRING, EssentialVertices, Full,   bcf,         3);
 
     return BCh_solid;
 }

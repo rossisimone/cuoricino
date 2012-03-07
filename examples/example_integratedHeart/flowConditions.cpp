@@ -40,18 +40,6 @@
 namespace LifeV
 {
 FlowConditions::FlowConditions():
-        pi(3.141592635),
-//        bcOnFluid(true),
-//        M_outflux(0),
-//        M_influx(0),
-//        M_outP(0),
-        M_area0(0),
-        M_inRadius0(0),
-        M_outRadius0(0),
-        M_inDeltaRadius(0),
-        M_outDeltaRadius(0),
-        M_beta(0),
-        M_rhos(0),
         conditionNumber(0)
 {
     outputVector.push_back(0);
@@ -155,7 +143,7 @@ void FlowConditions::renewParameters ( FSISolver&  oper_,
     {
         M_outP =  std::pow((M_rhos/(2.*std::sqrt(2.))*qn/area + std::sqrt(M_beta*std::sqrt(M_area0))),2.)
                   - M_beta*std::sqrt(M_area0);
-        FlowConditions::outputVector[conditionNumber]=M_outP;
+        //FlowConditions::outputVector[conditionNumber]=M_outP;
 
         Oper->displayer().leaderPrint( " Flow rate = " , qn );
         Oper->displayer().leaderPrint( " outflow pressure   = " , M_outP );
@@ -192,7 +180,37 @@ void FlowConditions::renewParameters ( FSISolver&  oper_,
 
 }
 
+void FlowConditions::renewLumpedParameters( const int&    Flag , const Real & flux )
+{
 
+  //    oper.worldComm().Broadcast( fluidQuantities.Values(), fluidQuantities.Length(),
+  //                oper.getFluidLeaderId() );
+
+  Flux_old = Flux;
+  Flux     = flux;
+
+  std::cout<<"M_outP Old = "<<M_outP<<std::endl;
+    // Setting parameters for our simulation:
+    // if imposing the absorbing boundary condition through the pressure:
+
+    switch(BDType)
+      {
+      case 1: //explicit resistance
+    M_outP=Rext_d*Flux+Pout;
+    break;
+      case 2: //explicit windkessel RC
+    M_outP= (Rext_d*Cp*M_outP+dt*Pout)/(dt+Rext_d*Cp)+Rext_d*dt*Flux/(dt+Rext_d*Cp);
+    break;
+      case 3: //explicit windkessel RCR
+    M_outP=(Rext_d*Cp*M_outP+(dt*Rext_p+dt*Rext_d+Rext_p*Rext_d*Cp)*Flux-Rext_p*Rext_d*Cp*Flux_old+dt*Pout)/(dt+Rext_d*Cp);
+
+    break;
+      default:
+    M_outP=Pout;
+      }
+    std::cout<<"M_outP = "<<M_outP<<std::endl;
+
+}
 
 
 Real FlowConditions::fZero(const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
@@ -267,6 +285,14 @@ Real FlowConditions::force_cardium(const Real& t)
 
 }
 
+Real FlowConditions::fextvessel(const Real& t, const Real& /*x*/, const Real& /*y*/, const Real&/* z*/, const ID& /*i*/)
+{
+    //    Real t_loc=t/T-int(t/T);
+    Real t_loc=t*2*acos(-1)/periode;
+
+    return -fExt*force_cardium(t_loc);
+
+}
 
 Real FlowConditions::outPressure0(const Real&/*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
@@ -334,12 +360,40 @@ Real FlowConditions::outDeltaRadius(const Real& /*t*/, const Real& x, const Real
     return 0.;
 }
 
+Real FlowConditions::nu(-1);
+Real FlowConditions::mu(-1);
+Real FlowConditions::dt(1);
+Real FlowConditions::rho(-1);
+Real FlowConditions::Pin(-1);
+Real FlowConditions::Pout(-1);
+//For Explicit Resistance or Windkessel
+Real FlowConditions::Rext_d(0);
+Real FlowConditions::Rext_p(0);
+Real FlowConditions::Cp(0);
+int FlowConditions::BDType(0);
+Real FlowConditions::Flux(0);
+Real FlowConditions::Flux_old(0);
+
+Real FlowConditions::fExt(-1);
+Real FlowConditions::tAppl(-1);
+Real FlowConditions::periode(-1);
+Real FlowConditions::pi(3.141592635);
+
 bool FlowConditions::bcOnFluid(true);
 
 Real FlowConditions::M_outflux(0);
 Real FlowConditions::M_influx(0);
 Real FlowConditions::M_outP(0);
 Real FlowConditions::M_inP(0);
+
+Real FlowConditions::M_area0(0);
+Real FlowConditions::M_inRadius0(0);
+Real FlowConditions::M_outRadius0(0);
+Real FlowConditions::M_inDeltaRadius(0);
+Real FlowConditions::M_outDeltaRadius(0);
+
+Real FlowConditions::M_beta(0);
+Real FlowConditions::M_rhos(0);
 
 std::vector<Real> FlowConditions::outputVector;
 }
