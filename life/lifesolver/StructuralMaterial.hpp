@@ -62,6 +62,7 @@
 #include <life/lifefem/Assembly.hpp>
 #include <life/lifefem/AssemblyElemental.hpp>
 #include <life/lifefem/AssemblyElementalStructure.hpp>
+#include <life/lifefem/AssemblyElementalActiveStructure.hpp>
 #include <life/lifefem/FESpace.hpp>
 
 #include <life/lifecore/LifeV.hpp>
