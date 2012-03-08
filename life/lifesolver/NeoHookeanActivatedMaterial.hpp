@@ -67,7 +67,7 @@ class NeoHookeanActivatedMaterial :
     typedef typename super::dataPtr_Type    dataPtr_Type;
     typedef typename super::displayerPtr_Type    displayerPtr_Type;
 
-    //! Definition of local tensors
+    //! Definition of local scalar, vectors and tensors
     typedef KN<Real> 				     KN_Type;
     typedef boost::shared_ptr<KN_Type>		     KNPtr_Type;
 
@@ -361,14 +361,16 @@ void NeoHookeanActivatedMaterial<Mesh>::updateNonLinearJacobianTerms( matrixPtr_
        	}
 
 	//! Computes F, Cof(F), J = det(F), Tr(C)
+	//! Passes Gammaf, fo
+	//! and computes I_4f, I_1E
 	computeKinematicsVariables( dk_loc );
 
-	//! Stiffness for non-linear terms of the Neo-Hookean model
+	//! Stiffness for non-linear terms of the active Neo-Hookean model
 	/*!
 	 The results of the integrals are stored at each step into elmatK, until to build K matrix of the bilinear form
 	*/
 
-	//! VOLUMETRIC PART
+	//! VOLUMETRIC PART (Same as in the passive mechanics)
 	//! 1. Stiffness matrix: int { 1/2 * bulk * ( 2 - 1/J + 1/J^2 ) * ( CofF : \nabla \delta ) (CofF : \nabla v) }
 	AssemblyElementalStructure::stiff_Jac_Pvol_1term( 0.5 * bulk, (*M_CofFk), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
@@ -376,20 +378,47 @@ void NeoHookeanActivatedMaterial<Mesh>::updateNonLinearJacobianTerms( matrixPtr_
 	AssemblyElementalStructure::stiff_Jac_Pvol_2term( 0.5 * bulk, (*M_CofFk), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
     	//! ISOCHORIC PART
-    	//! 1. Stiffness matrix : int { -2/3 * mu * J^(-5/3) *( CofF : \nabla \delta ) ( F : \nabla \v ) }
-	AssemblyElementalStructure::stiff_Jac_P1iso_NH_1term( (-2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+    	//! 1. Stiffness matrix : int { -2/3 * mu * (1+Gammaf) * J^(-5/3) *( CofF : \nabla \delta ) ( F : \nabla \v ) }
+	AssemblyElementalActiveStructure::stiff_Jac_P1iso_NH_1term_Act( (-2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
-   	//! 2. Stiffness matrix : int { 2/9 * mu * ( Ic_iso / J^2 )( CofF : \nabla \delta ) ( CofF : \nabla \v ) }
-	AssemblyElementalStructure::stiff_Jac_P1iso_NH_2term( (2.0/9.0) * mu, (*M_CofFk), (*M_Jack), (*M_trCisok), *this->M_elmatK, this->M_FESpace->fe() );
+   	//! 2. Stiffness matrix : int { 2/9 * mu * (1+Gammaf) * ( Ic_iso / J^2 )( CofF : \nabla \delta ) ( CofF : \nabla \v ) }
+	AssemblyElementalActiveStructure::stiff_Jac_P1iso_NH_2term_Act( (2.0/9.0) * mu, (*M_CofFk), (*M_Gammaf), (*M_Jack), (*M_trCisok), *this->M_elmatK, this->M_FESpace->fe() );
 
-   	//! 3. Stiffness matrix : int { mu * J^(-2/3) (\nabla \delta : \nabla \v)}
-	AssemblyElementalStructure::stiff_Jac_P1iso_NH_3term( mu, (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+   	//! 3. Stiffness matrix : int { mu * (1+Gammaf) * J^(-2/3) (\nabla \delta : \nabla \v)}
+	AssemblyElementalActiveStructure::stiff_Jac_P1iso_NH_3term_Act( mu, (*M_Gammaf), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
-  	//! 4. Stiffness matrix : int { -2/3 * mu * J^(-5/3) ( F : \nabla \delta ) ( CofF : \nabla \v ) }
-	AssemblyElementalStructure::stiff_Jac_P1iso_NH_4term( (-2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+  	//! 4. Stiffness matrix : int { -2/3 * mu * (1+Gammaf) * J^(-5/3) ( F : \nabla \delta ) ( CofF : \nabla \v ) }
+	AssemblyElementalActiveStructure::stiff_Jac_P1iso_NH_4term_Act( (-2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
-  	//! 5. Stiffness matrix : int { 1/3 * mu * J^(-2) * Ic_iso * (CofF [\nabla \delta]^t CofF ) : \nabla \v }
-	AssemblyElementalStructure::stiff_Jac_P1iso_NH_5term( (1.0/3.0) * mu, (*M_CofFk), (*M_Jack), (*M_trCisok), *this->M_elmatK, this->M_FESpace->fe() );
+  	//! 5. Stiffness matrix : int { 1/3 * mu * (1+Gammaf) * J^(-2) * Ic_iso * (CofF [\nabla \delta]^t CofF ) : \nabla \v }
+	AssemblyElementalActiveStructure::stiff_Jac_P1iso_NH_5term_Act( (1.0/3.0) * mu, (*M_CofFk), (*M_Gammaf), (*M_Jack), (*M_trCisok), *this->M_elmatK, this->M_FESpace->fe() );
+
+	//! 6. Jacobian matrix S1 : Int { coef * g(Gammaf) * J^(-2/3) (\nabla \delta [fo \tomes fo] : \nabla \v)}
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S1term_Act( mu, (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() ); 
+
+	//! 7. Jacobian matrix S2 : Int { -2/3* coef * g(Gammaf) * J^(-5/3) *( CofF : \nabla \delta ) ( F [fo\otimes fo]: \nabla \v ) }
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S2term_Act((-2.0/3.0) * mu, (*M_CofFk),  (*M_Fk), (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+
+	//! 8. Jacobian matrix S3: Int { 1/3 * coef * J^(-2-2/3) * I_4f * (CofF [\nabla \delta]^t CofF ) : \nabla \v }
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S3term_Act((1.0/3.0) * mu, (*M_CofFk), (*M_Jack), (*M_Gammaf), (*I_4f), *this->M_elmatK, this->M_FESpace->fe() );
+
+	//! 9. Jacobian matrix S41 : Int { -2/3* coef * g(Gammaf) * J^(-5/3) *( F [fo\otimes fo] : \nabla \delta ) ( CofF: \nabla \v ) }
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S41term_Act(-(2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+
+	//! 10. Jacobian matrix S42: Int { 2/9 * coef * g(Gammaf) * I_4f * J^{-8/3} ( CofF : \nabla \delta ) ( CofF : \nabla \v ) }
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S42term_Act((2.0/9.0) * mu, (*M_CofFk), (*M_Jack), (*M_Gammaf), (*I_4f), *this->M_elmatK, this->M_FESpace->fe() );
+
+	//! 11. Jacobian matrix S5: Int { 1/3 * coef * J^(-2-2/3) * I_1E * gammaf * (CofF [\nabla \delta]^t CofF [fo \otimes fo]) : \nabla \v }
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S5term_Act((1.0/3.0) * mu, (*M_CofFk), (*M_Jack), (*M_Gammaf), (*fo), (*I_1E), *this->M_elmatK, this->M_FESpace->fe() );
+
+	//! 12. Jacobian matrix S61 : Int { 2/9* coef * gammaf * I_1E * J^(-8/3) *( CofF : \nabla \delta ) ( CofF [fo\otimes fo]: \nabla \v ) }
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S61term_Act((2.0/9.0) * mu, (*M_CofFk), (*M_Gammaf), (*fo), (*I_1E), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+
+	//! 13. Jacobian matrix S62 : Int { -2/3* coef * gammaf *(1+gammaf) * J^(-5/3) *( F : \nabla \delta ) ( CofF [fo\otimes fo]: \nabla \v ) }
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S62term_Act(-(2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+
+	//! 14. Jacobian matrix S63 : Int { -2/3* coef * gammaf *(1+gammaf) * J^(-5/3) *( F [fo\otimes fo] : \nabla \delta ) ( CofF [fo\otimes fo]: \nabla \v ) }
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S63term_Act((1.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
         //! assembling
         for ( UInt ic = 0; ic < nc; ++ic )
@@ -419,7 +448,7 @@ void NeoHookeanActivatedMaterial<Mesh>::computeStiffness( const vector_Type&    
     this->M_stiff.reset(new vector_Type(*this->M_localMap));
 
     displayer->leaderPrint(" \n******************************************************************\n  ");
-    displayer->leaderPrint(" Non-Linear S-  Computing the Neo-Hookean nonlinear stiffness vector"     );
+    displayer->leaderPrint(" Non-Linear S-  Computing the stiffness vector - Active neo-Hookean "     );
     displayer->leaderPrint(" \n******************************************************************\n  ");
 
     UInt totalDof   = this->M_FESpace->dof().numTotalDof();
@@ -469,9 +498,9 @@ void NeoHookeanActivatedMaterial<Mesh>::computeStiffness( const vector_Type&    
 
      	//! Isochoric part
      	/*!
-     	Source term P1iso_NH
+     	Source term Active P1iso_NH_Act
      	*/
-     	AssemblyElementalStructure::source_P1iso_NH( mu, (*M_CofFk) ,(*M_Fk),  (*M_Jack),  (*M_trCisok) , *this->M_elvecK,  this->M_FESpace->fe());
+     	AssemblyElementalActiveStructure::source_P1iso_NH_Act( mu, (*M_CofFk) ,(*M_Fk), (*M_Gammaf), (*M_Jack),  (*M_trCisok) , *this->M_elvecK,  this->M_FESpace->fe());
 
      	for ( UInt ic = 0; ic < nDimensions; ++ic )
      	{

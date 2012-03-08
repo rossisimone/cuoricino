@@ -26,7 +26,7 @@
 
 /*!
     @file
-    @brief File containing the procedures for the local assembly of the differential operators for the structural problem
+    @brief Local assembly of the active Neo-Hookean elasticity problem
 
     @author Ricardo Ruiz <ricardo.ruiz@epfl.ch>
  */
@@ -649,7 +649,7 @@ void stiff_Jac_NH_S62term_Act( Real coef,
 }
 
 
-//! 14. Jacobian matrix S63 : Int { -2/3* coef * gammaf *(1+gammaf) * J^(-5/3) *( F : \nabla \delta ) ( CofF [fo\otimes fo]: \nabla \v ) }
+//! 14. Jacobian matrix S63 : Int { -2/3* coef * gammaf *(1+gammaf) * J^(-5/3) *( F [fo\otimes fo] : \nabla \delta ) ( CofF [fo\otimes fo]: \nabla \v ) }
 void stiff_Jac_NH_S63term_Act( Real coef,
 			      const KNMK<Real> CofFk,
 			      const KNMK<Real> Fk,
