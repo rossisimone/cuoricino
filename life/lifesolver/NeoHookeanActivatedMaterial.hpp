@@ -167,7 +167,7 @@ class NeoHookeanActivatedMaterial :
     /*!
       \param dk_loc: the elemental displacement
     */
-    void computeKinematicsVariables( const VectorElemental& dk_loc );
+  void computeKinematicsVariables( const VectorElemental& dk_loc);
 
 
     //! Computes the deformation Gradient F, the cofactor of F Cof(F), the determinant of F J = det(F), the trace of C Tr(C).
@@ -223,6 +223,13 @@ protected:
     KNPtr_Type						M_trCisok;
     KNPtr_Type						M_trCk;
 
+   //! Local fibers vector
+    KNMPtr_Type                                         M_fiberVector;
+
+    KNPtr_Type						M_Gammaf;
+    KNPtr_Type						M_I_4f;
+    KNPtr_Type						M_I_1E;
+
 };
 
 
@@ -262,7 +269,7 @@ NeoHookeanActivatedMaterial<Mesh>::setup( const boost::shared_ptr< FESpace<Mesh,
     this->M_displayer = displayer;
     this->M_dataMaterial  = dataMaterial;
 
-    std::cout<<"I am setting up the Material"<<std::endl;
+    std::cout<<"setting up the activated material"<<std::endl;
 
     this->M_FESpace                     = dFESpace;
     this->M_localMap                    = monolithicMap;
@@ -284,7 +291,8 @@ NeoHookeanActivatedMaterial<Mesh>::setup( const boost::shared_ptr< FESpace<Mesh,
     M_Jack.reset			( new KN_Type( dFESpace->fe().nbQuadPt() ) );
     M_trCisok.reset			( new KN_Type( dFESpace->fe().nbQuadPt() ) );
     M_trCk.reset			( new KN_Type( dFESpace->fe().nbQuadPt() ) );
-
+    M_I_4f.reset			( new KN_Type( dFESpace->fe().nbQuadPt() ) );
+    M_I_1E.reset			( new KN_Type( dFESpace->fe().nbQuadPt() ) );
 }
 
 
@@ -394,7 +402,7 @@ void NeoHookeanActivatedMaterial<Mesh>::updateNonLinearJacobianTerms( matrixPtr_
 	AssemblyElementalActiveStructure::stiff_Jac_P1iso_NH_5term_Act( (1.0/3.0) * mu, (*M_CofFk), (*M_Gammaf), (*M_Jack), (*M_trCisok), *this->M_elmatK, this->M_FESpace->fe() );
 
 	//! 6. Jacobian matrix S1 : Int { coef * g(Gammaf) * J^(-2/3) (\nabla \delta [fo \tomes fo] : \nabla \v)}
-	AssemblyElementalActiveStructure::stiff_Jac_NH_S1term_Act( mu, (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() ); 
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S1term_Act( mu, (*M_Gammaf), (*M_fiberVector), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() ); 
 
 	//! 7. Jacobian matrix S2 : Int { -2/3* coef * g(Gammaf) * J^(-5/3) *( CofF : \nabla \delta ) ( F [fo\otimes fo]: \nabla \v ) }
 	AssemblyElementalActiveStructure::stiff_Jac_NH_S2term_Act((-2.0/3.0) * mu, (*M_CofFk),  (*M_Fk), (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
@@ -403,22 +411,22 @@ void NeoHookeanActivatedMaterial<Mesh>::updateNonLinearJacobianTerms( matrixPtr_
 	AssemblyElementalActiveStructure::stiff_Jac_NH_S3term_Act((1.0/3.0) * mu, (*M_CofFk), (*M_Jack), (*M_Gammaf), (*I_4f), *this->M_elmatK, this->M_FESpace->fe() );
 
 	//! 9. Jacobian matrix S41 : Int { -2/3* coef * g(Gammaf) * J^(-5/3) *( F [fo\otimes fo] : \nabla \delta ) ( CofF: \nabla \v ) }
-	AssemblyElementalActiveStructure::stiff_Jac_NH_S41term_Act(-(2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S41term_Act(-(2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*M_fiberVector), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
 	//! 10. Jacobian matrix S42: Int { 2/9 * coef * g(Gammaf) * I_4f * J^{-8/3} ( CofF : \nabla \delta ) ( CofF : \nabla \v ) }
 	AssemblyElementalActiveStructure::stiff_Jac_NH_S42term_Act((2.0/9.0) * mu, (*M_CofFk), (*M_Jack), (*M_Gammaf), (*I_4f), *this->M_elmatK, this->M_FESpace->fe() );
 
 	//! 11. Jacobian matrix S5: Int { 1/3 * coef * J^(-2-2/3) * I_1E * gammaf * (CofF [\nabla \delta]^t CofF [fo \otimes fo]) : \nabla \v }
-	AssemblyElementalActiveStructure::stiff_Jac_NH_S5term_Act((1.0/3.0) * mu, (*M_CofFk), (*M_Jack), (*M_Gammaf), (*fo), (*I_1E), *this->M_elmatK, this->M_FESpace->fe() );
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S5term_Act((1.0/3.0) * mu, (*M_CofFk), (*M_Jack), (*M_Gammaf), (*M_fiberVector), (*I_1E), *this->M_elmatK, this->M_FESpace->fe() );
 
 	//! 12. Jacobian matrix S61 : Int { 2/9* coef * gammaf * I_1E * J^(-8/3) *( CofF : \nabla \delta ) ( CofF [fo\otimes fo]: \nabla \v ) }
-	AssemblyElementalActiveStructure::stiff_Jac_NH_S61term_Act((2.0/9.0) * mu, (*M_CofFk), (*M_Gammaf), (*fo), (*I_1E), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S61term_Act((2.0/9.0) * mu, (*M_CofFk), (*M_Gammaf), (*M_fiberVector), (*I_1E), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
 	//! 13. Jacobian matrix S62 : Int { -2/3* coef * gammaf *(1+gammaf) * J^(-5/3) *( F : \nabla \delta ) ( CofF [fo\otimes fo]: \nabla \v ) }
-	AssemblyElementalActiveStructure::stiff_Jac_NH_S62term_Act(-(2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S62term_Act(-(2.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*M_fiberVector), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
 	//! 14. Jacobian matrix S63 : Int { -2/3* coef * gammaf *(1+gammaf) * J^(-5/3) *( F [fo\otimes fo] : \nabla \delta ) ( CofF [fo\otimes fo]: \nabla \v ) }
-	AssemblyElementalActiveStructure::stiff_Jac_NH_S63term_Act((1.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S63term_Act((1.0/3.0) * mu, (*M_CofFk), (*M_Fk), (*M_Gammaf), (*M_fiberVector), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
         //! assembling
         for ( UInt ic = 0; ic < nc; ++ic )
@@ -520,9 +528,31 @@ void NeoHookeanActivatedMaterial<Mesh>::computeStiffness( const vector_Type&    
 
 
 template <typename Mesh>
-void NeoHookeanActivatedMaterial<Mesh>::computeKinematicsVariables( const VectorElemental& dk_loc )
+void NeoHookeanActivatedMaterial<Mesh>::computeKinematicsVariables( const VectorElemental& dk_loc, const vector_Type & rawFiberVector)
 {
-    Real s;
+  Real s;
+  UInt eleID = this->M_FESpace->fe().currentLocalId();
+  VectorElemental aux0(dFESpace->fe().nbQuadPt() ) );
+VectorElemental aux1(dFESpace->fe().nbQuadPt() ) );
+VectorElemental aux2(dFESpace->fe().nbQuadPt() ) );
+
+//!Definition of the local value of the fibers direction
+for ( Int ig = 0; ig < static_cast<Int> (this->M_FESpace->fe().nbQuadPt()); ig++ )
+  {
+    aux0[ig] = aux1[ig] = aux2[ig] = 0;
+    for ( Int i = 0; i < static_cast<Int> (this->M_FESpace->fe().nbFEDof()); i++ )
+      {
+	aux0[ig] += rawFiberVector[this->M_FESpace->dof().localToGlobalMap( eleID, i)] * this->M_FESpace->fe().phi( i, ig );
+	aux1[ig] += rawFiberVector[this->M_FESpace->dof().localToGlobalMap( eleID, i)+this->M_FESpace->dim()] * this->M_FESpace->fe().phi( i, ig );
+	aux2[ig] += rawFiberVector[this->M_FESpace->dof().localToGlobalMap( eleID, i)+2 * this->M_FESpace->dim()] * this->M_FESpace->fe().phi( i, ig );
+      }
+    Real norm = sqrt(aux0[ig]*aux0[ig]+aux1[ig]*aux1[ig]+aux2[ig]*aux2[ig]);
+    (*M_fiberVector)(0,ig) = aux0[ig]/norm;
+    (*M_fiberVector)(1,ig) = aux1[ig]/norm;
+    (*M_fiberVector)(2,ig) = aux2[ig]/norm; 
+  }
+
+
 
     //! loop on quadrature points (ig)
     for ( Int ig = 0; ig < static_cast<Int> (this->M_FESpace->fe().nbQuadPt()); ig++ )
