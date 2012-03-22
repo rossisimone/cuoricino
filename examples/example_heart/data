@@ -1,4 +1,4 @@
-# -*- getpot -*- (GetPot mode activation for emacs)
+	# -*- getpot -*- (GetPot mode activation for emacs)
 #----------------------------------------------------------------
 #      Data file for heart test
 #----------------------------------------------------------------
@@ -13,9 +13,9 @@ type = hdf5
 
 [./physics]
 
-test_case   = 2             # in particular for b.c. condition
-ion_model = 5				# 1: RM 	2: LR  3:MS  4:Minimal 5:CRN
-u0 = -84.					# 0.: RM	-84.: LR
+test_case   = 2         # in particular for b.c. condition
+ion_model = 5		# 1: RM  2: LR  3: MS  4: Minimal  5: CRN
+u0 = -84.		# 0.: RM  -84.: LR
 D       = 0.001;
 heartDiffusionFunctor = 0
 
@@ -34,8 +34,8 @@ timestep		= 0.1
 BDF_order		= 1
 
 [../space_discretization]
-mesh_dir        = ./  #Mesh/
-mesh_file       = leftAtrium.mesh
+mesh_dir        = ./Mesh/
+mesh_file       = lid16.mesh #leftAtrium.mesh
 mesh_type       = .mesh
 hasFibers = 0
 fibers_dir = ./Mesh/
