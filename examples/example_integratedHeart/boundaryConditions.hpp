@@ -135,16 +135,17 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid(FSIOperator &_oper, bool
     BCFunctionBase in_press (LifeV::FlowConditions::inPressure);
     BCFunctionBase out_press (LifeV::FlowConditions::outPressure);
 
-    BCh_fluid->addBC("FL1",  INLET,     EssentialVertices, Full,   mitral_flow, 3);
+    BCh_fluid->addBC("FL1",  INLET,     Essential, Full,   mitral_flow, 3);
 
     if ( AorticValveisOpen ) {
         BCh_fluid->addBC("FL2", OUTLET, Natural,           Normal, out_press);
     } else {
-        BCh_fluid->addBC("FL2", OUTLET, EssentialVertices, Full,   bcf,         3);
+        BCh_fluid->addBC("FL2", OUTLET, Essential, Full,   bcf,         3);
     }
 
     /*  Cannot fix both fluid and structure on a coupled interface ring */
     BCh_fluid->addBC("FL3", TOPCARDIUM, EssentialVertices, Full,   bcf,         3);
+
     BCh_fluid->addBC("FL4", INLETRING,  EssentialVertices, Full,   bcf,         3);
     BCh_fluid->addBC("FL5", OUTLETRING, EssentialVertices, Full,   bcf,         3);
     BCh_fluid->addBC("FL6", AORTICROOT, EssentialVertices, Full,   bcf,         3);
@@ -168,8 +169,8 @@ FSIOperator::solidBchandlerPtr_Type BCh_monolithicSolid(FSIOperator &_oper)
     std::vector<LifeV::ID> zComp(1); zComp[0] = 3;
 
     BCh_solid->addBC("OuterWall", OUTERWALL, Natural,           Normal, aroundheart);
-    BCh_solid->addBC("Top",       TOP,       Essential,         Full,   bcf,         3);
-    BCh_solid->addBC("InnerRing", INNERRING, EssentialVertices, Full,   bcf,         3);
+    BCh_solid->addBC("Top",       TOP,       EssentialVertices, Full,   bcf,         3);
+//    BCh_solid->addBC("InnerRing", INNERRING, EssentialVertices, Full,   bcf,         3);
 
     return BCh_solid;
 }
