@@ -39,6 +39,8 @@ SUBDIRS		= data  \
               test_timeAdvance_orderII \
               test_structuralsolver \
               test_monolithic
+              test_VectorContainer\
+              test_ZeroDimensional
 
 # add newly created testsuite.at scripts to TESTSUITES to allow the automatic generation of the
 # 'testsuite' script upon modification of one of them
