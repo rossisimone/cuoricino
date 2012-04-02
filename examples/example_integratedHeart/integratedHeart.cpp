@@ -330,6 +330,8 @@ public:
                 }
             }
 
+            FC0.renewParameters( *M_fsi, 3 );
+
             boost::timer _timer;
 
             if(iter%M_saveEvery==0)

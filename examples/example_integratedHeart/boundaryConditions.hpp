@@ -90,7 +90,7 @@ FSIOperator::fluidBchandlerPtr_Type BCh_harmonicExtension(FSIOperator &_oper)
     BCh_he->addBC("HE4", INLETRING,      EssentialVertices, Full, bcf, 3);
     BCh_he->addBC("HE5", OUTLETRING,     EssentialVertices, Full, bcf, 3);
     BCh_he->addBC("HE6", TOPCARDIUMRING, EssentialVertices, Full, bcf, 3);
-    BCh_he->addBC("HE7", AORTICROOT,     EssentialVertices, Full, bcf, 3);
+//    BCh_he->addBC("HE7", AORTICROOT,     EssentialVertices, Full, bcf, 3);
 
     if (_oper.data().method() == "monolithicGE")
     {
@@ -148,7 +148,7 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid(FSIOperator &_oper, bool
 
     BCh_fluid->addBC("FL4", INLETRING,  EssentialVertices, Full,   bcf,         3);
     BCh_fluid->addBC("FL5", OUTLETRING, EssentialVertices, Full,   bcf,         3);
-    BCh_fluid->addBC("FL6", AORTICROOT, EssentialVertices, Full,   bcf,         3);
+//    BCh_fluid->addBC("FL6", AORTICROOT, EssentialVertices, Full,   bcf,         3);
 
     return BCh_fluid;
 }
@@ -170,7 +170,7 @@ FSIOperator::solidBchandlerPtr_Type BCh_monolithicSolid(FSIOperator &_oper)
 
     BCh_solid->addBC("OuterWall", OUTERWALL, Natural,           Normal, aroundheart);
     BCh_solid->addBC("Top",       TOP,       EssentialVertices, Full,   bcf,         3);
-//    BCh_solid->addBC("InnerRing", INNERRING, EssentialVertices, Full,   bcf,         3);
+    BCh_solid->addBC("InnerRing", INNERRING, EssentialVertices, Full,   bcf,         3);
 
     return BCh_solid;
 }

@@ -39,8 +39,7 @@
 
 namespace LifeV
 {
-FlowConditions::FlowConditions():
-        conditionNumber(0)
+FlowConditions::FlowConditions()        
 {
     outputVector.push_back(0);
     conditionNumber= FlowConditions::outputVector.size()-1;
@@ -143,7 +142,7 @@ void FlowConditions::renewParameters ( FSISolver&  oper_,
     {
         M_outP =  std::pow((M_rhos/(2.*std::sqrt(2.))*qn/area + std::sqrt(M_beta*std::sqrt(M_area0))),2.)
                   - M_beta*std::sqrt(M_area0);
-        //FlowConditions::outputVector[conditionNumber]=M_outP;
+        FlowConditions::outputVector[conditionNumber]=M_outP;
 
         Oper->displayer().leaderPrint( " Flow rate = " , qn );
         Oper->displayer().leaderPrint( " outflow pressure   = " , M_outP );
@@ -285,12 +284,12 @@ Real FlowConditions::force_cardium(const Real& t)
 
 }
 
-Real FlowConditions::fextvessel(const Real& t, const Real& /*x*/, const Real& /*y*/, const Real&/* z*/, const ID& /*i*/)
+Real FlowConditions::fextvessel(const Real& t, const Real& /*x*/, const Real& /*y*/, const Real& z, const ID& /*i*/)
 {
     //    Real t_loc=t/T-int(t/T);
     Real t_loc=t*2*acos(-1)/periode;
 
-    return -fExt*force_cardium(t_loc);
+    return -fExt * force_cardium(t_loc) * z / 8; // Linearly graded force 
 
 }
 
@@ -394,6 +393,8 @@ Real FlowConditions::M_outDeltaRadius(0);
 
 Real FlowConditions::M_beta(0);
 Real FlowConditions::M_rhos(0);
+
+UInt FlowConditions::conditionNumber(0);
 
 std::vector<Real> FlowConditions::outputVector;
 }
