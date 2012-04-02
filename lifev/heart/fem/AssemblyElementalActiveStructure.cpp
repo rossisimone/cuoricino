@@ -34,7 +34,7 @@
 #ifndef ELEMOPERSTRUCTURE_CPP
 #define ELEMOPERSTRUCTURE_CPP 1
 
-#include <life/lifefem/AssemblyElementalActiveStructure.hpp>
+#include <lifev/heart/fem/AssemblyElementalActiveStructure.hpp>
 
 namespace LifeV
 {

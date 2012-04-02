@@ -35,14 +35,14 @@
 #ifndef _ELEMOPERSTRUCTURE_H_INCLUDED
 #define _ELEMOPERSTRUCTURE_H_INCLUDED
 
-#include <life/lifearray/MatrixElemental.hpp>
-#include <life/lifearray/VectorElemental.hpp>
+#include <lifev/core/array/MatrixElemental.hpp>
+#include <lifev/core/array/VectorElemental.hpp>
 
-#include <life/lifecore/LifeV.hpp>
+#include <lifev/core/LifeV.hpp>
 
-#include <life/lifefem/CurrentBoundaryFE.hpp>
-#include <life/lifefem/CurrentFE.hpp>
-#include <life/lifefem/DOF.hpp>
+#include <lifev/core/fem/CurrentBoundaryFE.hpp>
+#include <lifev/core/fem/CurrentFE.hpp>
+#include <lifev/core/fem/DOF.hpp>
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -81,7 +81,7 @@ namespace LifeV
       @param elvec The elementary vector of the current volume
       @param fe The current finite element
     */
-    //! The following 6 methods are exactly as in the non-active case, but multiplied by (1+Gammaf) 
+    //! The following 6 methods are exactly as in the non-active case, but multiplied by (1+Gammaf)
     void source_P1iso_NH_Act(Real coef, const KNMK<Real> CofFk, const KNMK<Real> Fk, const KN<Real> Gammaf, const KN<Real> Jk, const KN<Real> Ic_isok, VectorElemental& elvec, const CurrentFE& fe);
 
     void stiff_Jac_P1iso_NH_1term_Act( Real coef, const KNMK<Real> CofFk, const KNMK<Real> Fk, const KN<Real> Gammaf, const KN<Real> Jk, MatrixElemental& elmat, const CurrentFE& fe );
@@ -94,7 +94,7 @@ namespace LifeV
 
     void stiff_Jac_P1iso_NH_5term_Act( Real coef, const KNMK<Real> CofFk, const KN<Real> Gammaf, const KN<Real> Jk, const KN<Real> Ic_isok, MatrixElemental& elmat, const CurrentFE& fe );
 
-    //!The following 9 methods contain the pure active components and the anisotropic activation 
+    //!The following 9 methods contain the pure active components and the anisotropic activation
 
     //! 6. Jacobian matrix S1 : Int { coef * g(Gammaf) * J^(-2/3) (\nabla \delta [fo \tomes fo] : \nabla \v)}
     void stiff_Jac_NH_S1term_Act( Real coef, const KN<Real> Gammaf, const KNM<Real> fo, const KN<Real> Jk, MatrixElemental& elmat, const CurrentFE& fe );

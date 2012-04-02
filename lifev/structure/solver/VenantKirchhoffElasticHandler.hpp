@@ -47,7 +47,7 @@
 #include <lifev/core/fem/ReferenceFE.hpp>
 #include <lifev/core/fem/DOF.hpp>
 #include <lifev/core/LifeV.hpp>
-#include <life/lifefilters/medit_wrtrs.hpp>
+//#include <life/lifefilters/medit_wrtrs.hpp>
 #include <lifev/core/fem/BCHandler.hpp>
 
 namespace LifeV

@@ -35,23 +35,27 @@
 #include <fstream>
 #include <boost/shared_ptr.hpp>
 
-#include <life/lifearray/elemMat.hpp>
-#include <life/lifearray/elemVec.hpp>
-#include <life/lifefem/AssemblyElemental.hpp>
-#include <life/lifefem/Assembly.hpp>
-#include <life/lifefem/BCManage.hpp>
-#include <life/lifealg/SolverAztecOO.hpp>
-#include <life/lifealg/MapEpetra.hpp>
-#include <life/lifearray/EpetraMatrix.hpp>
-#include <life/lifearray/EpetraVector.hpp>
-#include <life/lifemesh/RegionMesh3D.hpp>
-#include <life/lifecore/LifeChrono.hpp>
-#include <life/lifefem/SobolevNorms.hpp>
-#include <life/lifefem/GeometricMap.hpp>
-#include <life/lifesolver/HeartMonodomainData.hpp>
-#include <life/lifefem/FESpace.hpp>
-#include <life/lifesolver/HeartStiffnessFibers.hpp>
-#include <life/lifefem/TimeAdvanceBDF.hpp>
+#include <lifev/core/array/elemMat.hpp>
+#include <lifev/core/array/elemVec.hpp>
+#include <lifev/core/array/EpetraMatrix.hpp>
+#include <lifev/core/array/EpetraVector.hpp>
+
+#include <lifev/core/algorithm/SolverAztecOO.hpp>
+#include <lifev/core/algorithm/MapEpetra.hpp>
+
+#include <lifev/core/mesh/RegionMesh3D.hpp>
+
+#include <lifev/core/util/LifeChrono.hpp>
+
+#include <lifev/core/fem/AssemblyElemental.hpp>
+#include <lifev/core/fem/Assembly.hpp>
+#include <lifev/core/fem/BCManage.hpp>
+#include <lifev/core/fem/SobolevNorms.hpp>
+#include <lifev/core/fem/GeometricMap.hpp>
+#include <lifev/core/fem/FESpace.hpp>
+
+#include <lifev/heart/solver/HeartMonodomainData.hpp>
+#include <lifev/heart/solver/HeartStiffnessFibers.hpp>
 
 namespace LifeV
 {

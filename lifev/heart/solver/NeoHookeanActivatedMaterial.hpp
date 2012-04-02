@@ -27,12 +27,12 @@
 /*!
  *  @file
  *  @brief This file contains the definition for the Neo-Hookean activated material
- *  @brief The activation is assumed to be a time-space dependent scalar field acting 
+ *  @brief The activation is assumed to be a time-space dependent scalar field acting
  *  @brief    along the fibers direction
  *  @version 1.0
  *  @date 29-02-2012
  *  @author Ricardo Ruiz-Baier
- 
+
  *  @maintainer  Ricardo Ruiz-Baier  <ricardo.ruiz@epfl.ch>
   */
 
@@ -42,7 +42,7 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#include <life/lifesolver/StructuralMaterial.hpp>
+#include <lifev/structure/solver/StructuralMaterial.hpp>
 
 namespace LifeV
 {
@@ -402,7 +402,7 @@ void NeoHookeanActivatedMaterial<Mesh>::updateNonLinearJacobianTerms( matrixPtr_
 	AssemblyElementalActiveStructure::stiff_Jac_P1iso_NH_5term_Act( (1.0/3.0) * mu, (*M_CofFk), (*M_Gammaf), (*M_Jack), (*M_trCisok), *this->M_elmatK, this->M_FESpace->fe() );
 
 	//! 6. Jacobian matrix S1 : Int { coef * g(Gammaf) * J^(-2/3) (\nabla \delta [fo \tomes fo] : \nabla \v)}
-	AssemblyElementalActiveStructure::stiff_Jac_NH_S1term_Act( mu, (*M_Gammaf), (*M_fiberVector), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() ); 
+	AssemblyElementalActiveStructure::stiff_Jac_NH_S1term_Act( mu, (*M_Gammaf), (*M_fiberVector), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
 
 	//! 7. Jacobian matrix S2 : Int { -2/3* coef * g(Gammaf) * J^(-5/3) *( CofF : \nabla \delta ) ( F [fo\otimes fo]: \nabla \v ) }
 	AssemblyElementalActiveStructure::stiff_Jac_NH_S2term_Act((-2.0/3.0) * mu, (*M_CofFk),  (*M_Fk), (*M_Gammaf), (*fo), (*M_Jack), *this->M_elmatK, this->M_FESpace->fe() );
@@ -549,7 +549,7 @@ for ( Int ig = 0; ig < static_cast<Int> (this->M_FESpace->fe().nbQuadPt()); ig++
     Real norm = sqrt(aux0[ig]*aux0[ig]+aux1[ig]*aux1[ig]+aux2[ig]*aux2[ig]);
     (*M_fiberVector)(0,ig) = aux0[ig]/norm;
     (*M_fiberVector)(1,ig) = aux1[ig]/norm;
-    (*M_fiberVector)(2,ig) = aux2[ig]/norm; 
+    (*M_fiberVector)(2,ig) = aux2[ig]/norm;
   }
 
 
