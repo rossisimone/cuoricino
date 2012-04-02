@@ -93,10 +93,12 @@ typeOfGeneralizedAlpha            = HHT
 
 [../space_discretization]
 mesh_dir  = ./Mesh/
-mesh_file = integratedHeart_prototype1_fluid.mesh
+#mesh_file = integratedHeart_prototype1_fluid.mesh
+mesh_file = idealHeart_fluid.mesh
+mesh_order     = P1
 vel_order       = P1            # P1, P1Bubble, P2
 press_order     = P1            # P1, P2
-stiff_strain    = true
+stiff_strain    = false
 
 [../miscellaneous]
 verbose   = 1
@@ -123,15 +125,15 @@ tolerance       =  0.0005 # how far points are to be considered the same on the 
 
 useExactJacobian = false # always false for linear structure model. Otherwise it allows to chose beween an exact-inexact
                          # Newton scheme
-
+rescaleFactor    = 1. # this factor can be used to rescale the structure block
 [./physics]
 
-solidType = linearVenantKirchhof #NOTE: the nonlinear choice is not available (still in development)
-# either linearVenantKirchhof or nonLinearVenantKirchhof (the last one still in development)
-material_flag = 0
+solidType = linearVenantKirchhoff #NOTE: the nonlinear choice is not available (still in development)
+# either linearVenantKirchhoff or nonLinearVenantKirchhoff (the last one still in development)
+material_flag = 1 # CHANGED TO AVOID A POSSIBLE BUG
 density   = 1.2
 young     = 7.0E6
-poisson   = 0.40
+poisson   = 0.35
 bulk      = 1e7
 alpha     = 2.5e6
 gamma     = 1
@@ -149,7 +151,8 @@ typeOfGeneralizedAlpha            = HHT
 
 [../space_discretization]
 mesh_dir  = ./Mesh/ #test_tubes/  # the directory where the mesh file is
-mesh_file = integratedHeart_prototype1_structure.mesh  # mesh file
+#mesh_file = integratedHeart_prototype1_structure.mesh  # mesh file
+mesh_file = idealHeart_structure.mesh  # mesh file
 order     = P1
 mesh_faces      = all                   # update all faces elements
 mesh_edges      = all                   # update all faces elements
@@ -194,7 +197,6 @@ displayList        = false
 [../prec]
 reuse           = false
 prectype        = Composed
-rescale_factor = 1. # solid matrix rescale factor
 displayList     = false
 entry           = 0.0
 
@@ -423,7 +425,6 @@ typeOfGeneralizedAlpha            = HHT
 
 [../prec]
 prectype        = Ifpack
-rescale_factor  = 1.e-2 # solid matrix rescale factor
 displayList     = false
 
 [./ifpack]

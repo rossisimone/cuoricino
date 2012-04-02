@@ -127,8 +127,8 @@ private:
     static Real M_beta;
     static Real M_rhos;
 
-    static    std::vector<Real> outputVector;
-    UInt conditionNumber;
+    static std::vector<Real> outputVector;
+    static UInt conditionNumber;
 };
 }
 
