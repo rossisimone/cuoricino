@@ -14,23 +14,23 @@ type = hdf5
 [./physics]
 
 test_case   = 2         # in particular for b.c. condition
-ion_model = 5		# 1: RM  2: LR  3: MS  4: Minimal  5: CRN
+ion_model = 1		# 1: RM  2: LR  3: MS  4: Minimal  5: CRN
 u0 = -84.		# 0.: RM  -84.: LR
-D       = 0.001;
+D       = 0.0156;
 heartDiffusionFunctor = 0
 
 #Left Atrium:
-stim_center_1 	= '0 -130 1410'
-stim_radius_1 	= 5
+stim_center_1 	= '0 0 0'
+stim_radius_1 	= 0.25
 stim_start_1 	= 0
-stim_stop_1 	= 1
-stim_value_1 	= 50
+stim_stop_1 	= 10
+stim_value_1 	= 110
 stim_period_1 	= 600
 
 [../time_discretization]
 initialtime		= 0
-endtime			= 600
-timestep		= 0.1
+endtime			= 300
+timestep		= 0.25
 BDF_order		= 1
 
 [../space_discretization]
