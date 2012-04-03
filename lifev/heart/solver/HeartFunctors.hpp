@@ -50,7 +50,7 @@
 
 
 #include <lifev/core/filter/GetPot.hpp>
-#include <lifev/array/MatrixEpetra.hpp>
+#include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/core/fem/FESpace.hpp>
 
