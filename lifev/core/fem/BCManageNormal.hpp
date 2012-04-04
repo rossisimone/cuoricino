@@ -863,7 +863,7 @@ void BCManageNormal<MatrixType>::M_buildRotationMatrix(matrix_Type& systemMatrix
     M_rotationMatrixPtr->insertOneDiagonal();
 
     static const Int nbRows(3);
-    static const Int nbCols(3);
+    Int nbCols(3);
     Real* values[nbCols];
     Int Indices[3];
     for ( Int n = 0; n < nbCols; ++n )
