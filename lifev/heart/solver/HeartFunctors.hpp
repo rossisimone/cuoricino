@@ -55,6 +55,7 @@
 #include <lifev/core/fem/FESpace.hpp>
 
 
+
 namespace LifeV
 {
 
@@ -151,6 +152,7 @@ public:
 
     Int  M_stimulusSource;
     Real M_stimulusPeriod1;
+    Real M_stimulusPeriod1b;
     Real M_stimulusPeriod2;
     Real M_stimulusPeriod3;
     Real M_stimulusPeriod4;
@@ -158,10 +160,15 @@ public:
     Real M_stimulusPeriod6;
 
     Real M_stimulusStart1;
+    Real M_stimulusStart1b;
     Real M_stimulusStop1;
+    Real M_stimulusStop1b;
     Real M_stimulusValue1;
+    Real M_stimulusValue1b;
     Real M_stimulusRadius1;
     KN<Real> M_stimulusCenter1;
+    KN<Real> M_stimulusLeft1b;
+    KN<Real> M_stimulusRight1b;
 
     Real M_stimulusStart2;
     Real M_stimulusStop2;
