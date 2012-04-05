@@ -863,8 +863,8 @@ void BCManageNormal<MatrixType>::M_buildRotationMatrix(matrix_Type& systemMatrix
     M_rotationMatrixPtr->insertOneDiagonal();
 
     static const Int nbRows(3);
-    Int nbCols(3);
-    Real* values[nbCols];
+    static const Int nbCols(3);
+    std::vector<Real*> values(nbCols);
     Int Indices[3];
     for ( Int n = 0; n < nbCols; ++n )
     {
@@ -933,7 +933,7 @@ void BCManageNormal<MatrixType>::M_buildRotationMatrix(matrix_Type& systemMatrix
         //-1 because we added one to the diagonal
         M_rotationMatrixPtr->addToCoefficient(Indices[2],Indices[2],-1.0);
 
-        M_rotationMatrixPtr->addToCoefficients(nbCols, nbRows, cols, rows, values);
+        M_rotationMatrixPtr->addToCoefficients(nbCols, nbRows, cols, rows, &values[0]);
     }
 
     for ( Int n = 0; n < nbRows; ++n )
