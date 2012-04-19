@@ -109,8 +109,8 @@ factor    = 1
 
 [../ipstab]
 use        = 1
-gammaBeta  = 0.1
-gammaDiv   = 0.
+gammaBeta  = 1
+gammaDiv   = 0.2
 gammaPress = 0.05
 reuse = true
 [../] # physics
@@ -469,7 +469,7 @@ RExtD   = 100      	# distal resistance
 RExtP   = 1300    	# proximal resistance
 Cp	= 0.001		# windkessel capacity
 BDType  = 1		# boundary type 0) P=Pout 1) RExtD 2) RC 3) RCR
-fExt    = 225000.       #maximal value of the force apply by the muscle
+fExt    = 4250000.       #maximal value of the force apply by the muscle
 tAppl   = 0.01    	#when we want to apply the force
 pi      = 3.141592635   #value of pi
 periode = 0.8		#period of the muscle

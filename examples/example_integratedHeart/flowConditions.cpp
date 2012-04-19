@@ -289,7 +289,7 @@ Real FlowConditions::fextvessel(const Real& t, const Real& /*x*/, const Real& /*
     //    Real t_loc=t/T-int(t/T);
     Real t_loc=t*2*acos(-1)/periode;
 
-    return -fExt * force_cardium(t_loc) * z / 8; // Linearly graded force 
+    return -fExt * force_cardium(t_loc);
 
 }
 
