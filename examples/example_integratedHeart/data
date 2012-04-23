@@ -86,10 +86,10 @@ initialtime		= 0.
 endtime			= 0.800
 timestep		= 0.001
 BDF_order		= 1
-theta           = 0.5
-gamma            = 0.5
-rhoInf          = 1
-typeOfGeneralizedAlpha            = HHT
+theta                   = 0.5
+gamma                   = 0.5
+rhoInf                  = 1
+typeOfGeneralizedAlpha  = HHT
 
 [../space_discretization]
 mesh_dir  = ./Mesh/
@@ -110,7 +110,7 @@ factor    = 1
 [../ipstab]
 use        = 1
 gammaBeta  = 1
-gammaDiv   = 0.2
+gammaDiv   = 0.0
 gammaPress = 0.05
 reuse = true
 [../] # physics
