@@ -4,4 +4,5 @@ INCLUDE(AddSubdirectories)
 
 ADD_SUBDIRECTORIES(
   basic_example
+  integrated_heart
 )
