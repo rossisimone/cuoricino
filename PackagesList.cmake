@@ -78,8 +78,8 @@ SET( LifeV_PACKAGES_AND_DIRS_AND_CLASSIFICATIONS
   Darcy                 lifev/darcy                       PS
   NavierStokes          lifev/navier_stokes               PS
   Structure             lifev/structure                   PS
-  Heart                 lifev/heart                       PS
   FSI                   lifev/fsi                         PS
+  Heart                 lifev/heart                       PS
   BCInterface           lifev/bc_interface                PS
   OneDFSI               lifev/one_d_fsi                   PS
   ZeroDimensional       lifev/zero_dimensional            EX
