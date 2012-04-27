@@ -293,7 +293,7 @@ HeartIonicData::setup(  const GetPot& dataFile )
 
 
 
-void HeartIonicData::showMe( std::ostream& output )
+void HeartIonicData::showMe( std::ostream& /*output*/ )
 {
 }
 
