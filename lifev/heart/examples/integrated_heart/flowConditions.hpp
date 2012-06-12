@@ -77,6 +77,7 @@ public:
 
     static Real inPressure          (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
     static Real outPressure         (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
+    static Real outFlux             (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
 
     static Real outPressure0         (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
     static Real outPressure1         (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);

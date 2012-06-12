@@ -53,7 +53,7 @@ void FlowConditions::setParamsFromGetPot( const GetPot& dataFile )
     nu      = mu / rho;
     Pin     = dataFile( "parameters/Pin", 1. );
     Pout    = dataFile( "parameters/Pout", 1. );
-    M_outP  = Pout;
+    M_outflux = 0;
     Rext_d  = dataFile( "parameters/RExtD",0. );
     Rext_p  = dataFile( "parameters/RExtP", 0. );
     Cp      = dataFile( "parameters/Cp", 0. );
@@ -179,19 +179,21 @@ void FlowConditions::renewParameters ( FSISolver&  oper_,
 
 }
 
-void FlowConditions::renewLumpedParameters( const int&    Flag , const Real & flux )
+void FlowConditions::renewLumpedParameters( const int&    Flag , const Real & Pvalve )
 {
 
   //    oper.worldComm().Broadcast( fluidQuantities.Values(), fluidQuantities.Length(),
   //                oper.getFluidLeaderId() );
 
-  Flux_old = Flux;
-  Flux     = flux;
+  //Flux_old = Flux;
+  //Flux     = flux;
 
-  std::cout<<"M_outP Old = "<<M_outP<<std::endl;
+  std::cout<<"M_outflux Old = "<< M_outflux <<std::endl;
     // Setting parameters for our simulation:
-    // if imposing the absorbing boundary condition through the pressure:
 
+    M_outflux = (Pvalve - Pout) / Rext_d; // Aortic outflow according to Q_av = (P_av - P_ao) / R_av
+
+    /*
     switch(BDType)
       {
       case 1: //explicit resistance
@@ -208,7 +210,7 @@ void FlowConditions::renewLumpedParameters( const int&    Flag , const Real & fl
     M_outP=Pout;
       }
     std::cout<<"M_outP = "<<M_outP<<std::endl;
-
+     */
 }
 
 
@@ -236,9 +238,15 @@ Real FlowConditions::inPressure(const Real& t, const Real& /*x*/, const Real& /*
   */
 }
 
+
 Real FlowConditions::outPressure(const Real&/*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
 {
-  return -M_outP;
+  return Pout;
+}
+
+Real FlowConditions::outFlux(const Real&/*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+{
+  return M_outflux;
 
 
   /*

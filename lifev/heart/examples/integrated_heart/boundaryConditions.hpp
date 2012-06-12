@@ -109,17 +109,24 @@ FSIOperator::fluidBchandlerPtr_Type BCh_harmonicExtension(FSIOperator &_oper)
 }
 
 
-FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFlux(bool /*isOpen=true*/)
+FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFlux( bool AorticValveisOpen, bool MitralValveisOpen )
 {
+
     FSIOperator::fluidBchandlerPtr_Type BCh_fluid( new FSIOperator::fluidBchandler_Type );
 
-    BCFunctionBase flow_3 (fluxFunction);
-    BCFunctionBase bcf      (fZero);
+    BCFunctionBase out_flux (LifeV::FlowConditions::outFlux);
+    BCFunctionBase bcNoSlip (fZero);
+
+    if ( AorticValveisOpen ) {
+        BCh_fluid->addBC("FL2", OUTLET, Flux,              Normal, out_flux);
+    } else {
+        BCh_fluid->addBC("FL2", OUTLET, Flux,              Normal, bcNoSlip);
+    }
 
     return BCh_fluid;
 }
 
-FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid(FSIOperator &_oper, bool AorticValveisOpen, bool MitralValveisOpen )
+FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid(FSIOperator &_oper )
 {
     // Boundary conditions for the fluid velocity
     Debug( 10000 ) << "Boundary condition for the fluid\n";
@@ -129,26 +136,15 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid(FSIOperator &_oper, bool
 
     FSIOperator::fluidBchandlerPtr_Type BCh_fluid( new FSIOperator::fluidBchandler_Type );
 
-    BCFunctionBase bcf (fZero);
+    BCFunctionBase bcNoSlip (fZero);
     BCFunctionBase mitral_flow (u_mitral );
 
-    BCFunctionBase in_press (LifeV::FlowConditions::inPressure);
-    BCFunctionBase out_press (LifeV::FlowConditions::outPressure);
-
-    BCh_fluid->addBC("FL1",  INLET,     Essential, Full,   mitral_flow, 3);
-
-    if ( AorticValveisOpen ) {
-        BCh_fluid->addBC("FL2", OUTLET, Natural,           Normal, out_press);
-    } else {
-        BCh_fluid->addBC("FL2", OUTLET, Essential, Full,   bcf,         3);
-    }
-
-    /*  Cannot fix both fluid and structure on a coupled interface ring */
-    BCh_fluid->addBC("FL3", TOPCARDIUM, EssentialVertices, Full,   bcf,         3);
-
-    BCh_fluid->addBC("FL4", INLETRING,  EssentialVertices, Full,   bcf,         3);
-    BCh_fluid->addBC("FL5", OUTLETRING, EssentialVertices, Full,   bcf,         3);
-    BCh_fluid->addBC("FL6", AORTICROOT, EssentialVertices, Full,   bcf,         3);
+    /*  Note: cannot fix both fluid and structure on a coupled interface ring */
+    BCh_fluid->addBC("FL1", INLET,      Essential,         Full,   mitral_flow, 3);
+    BCh_fluid->addBC("FL3", TOPCARDIUM, EssentialVertices, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC("FL4", INLETRING,  EssentialVertices, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC("FL5", OUTLETRING, EssentialVertices, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC("FL6", AORTICROOT, EssentialVertices, Full,   bcNoSlip,    3);
 
     return BCh_fluid;
 }

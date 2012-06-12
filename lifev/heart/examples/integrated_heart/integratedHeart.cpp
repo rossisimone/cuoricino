@@ -193,17 +193,17 @@ public:
         Debug( 10000 ) << "Setting up the BC \n";
 #endif
 
-        /* Default configuration is ED with both valves closed
+        /* Start at end-diastolic configuration with both valves closed
          */
         M_aorticValveIsOpen = false;
         M_mitralValveIsOpen = false;
 
-        M_fsi->setFluidBC( BCh_monolithicFlux( true ) );
+        M_fsi->setFluidBC( BCh_monolithicFlux( M_aorticValveIsOpen, M_mitralValveIsOpen ) );
         M_fsi->setSolidBC( BCh_monolithicSolid( *M_fsi->FSIOper( ) ) );
 
         M_fsi->setup();
 
-        M_fsi->setFluidBC( BCh_monolithicFluid( *M_fsi->FSIOper( ), M_aorticValveIsOpen, M_mitralValveIsOpen ) );
+        M_fsi->setFluidBC( BCh_monolithicFluid( *M_fsi->FSIOper( ) ) );
         M_fsi->setHarmonicExtensionBC( BCh_harmonicExtension( *M_fsi->FSIOper( ) ) );
 
         dynamic_cast<LifeV::FSIMonolithic*>(M_fsi->FSIOper().get())->mergeBCHandlers();
@@ -307,26 +307,27 @@ public:
             std::cout<<"flux Aortic: "<<M_fsi->FSIOper()->fluid().flux(OUTLET, M_fsi->displacement())<<std::endl;
             std::cout<<"area Aortic: "<<M_fsi->FSIOper()->fluid().area(OUTLET)<<std::endl;
 
-            /* Renew the parameters in the lumped parameter windkessel model according to the current outgoing flux */
-            FC0.renewLumpedParameters(OUTLET, M_fsi->FSIOper()->fluid().flux(OUTLET, M_fsi->displacement()));
+            /* Renew the parameters in the lumped parameter valve model.The average pressure on the aortic valve
+             * needs to be passed to the valve to set the correct outgoing flux. */
+            FC0.renewLumpedParameters(OUTLET, M_fsi->FSIOper()->fluid().pressure(OUTLET, M_fsi->displacement()));
 
             if ( M_aorticValveIsOpen && M_fsi->FSIOper()->fluid().flux(OUTLET, M_fsi->displacement()) < 0)
             {
                 // Close the aortic valve
                 M_aorticValveIsOpen = false;
                 std::cout<<"Closing aortic valve"<<endl;
-                M_fsi->setFluidBC(BCh_monolithicFluid(*M_fsi->FSIOper(), M_aorticValveIsOpen, M_mitralValveIsOpen));
+                //M_fsi->setFluidBC(BCh_monolithicFluid(*M_fsi->FSIOper(), M_aorticValveIsOpen, M_mitralValveIsOpen));
+                M_fsi->setFluidBC( LifeV::BCh_monolithicFlux( M_aorticValveIsOpen, M_mitralValveIsOpen ) );
             }
             else{
                 if ( (!M_aorticValveIsOpen) && ( M_fsi->FSIOper()->fluid().pressure(OUTLET, M_fsi->displacement())
-                                > -LifeV::FlowConditions::outPressure(M_data->dataFluid()->dataTime()->time(),-1,-1,-1,3) ) )
+                                > LifeV::FlowConditions::outPressure(M_data->dataFluid()->dataTime()->time(),-1,-1,-1,3) ) )
                 {
                     // Open the aortic valve
-		    std::cout << M_fsi->FSIOper()->fluid().pressure(OUTLET, M_fsi->displacement()) << endl;
-		    std::cout << -LifeV::FlowConditions::outPressure(M_data->dataFluid()->dataTime()->time(),-1,-1,-1,3) << endl;
-                    M_aorticValveIsOpen=true;
+		            M_aorticValveIsOpen=true;
                     std::cout << "Opening aortic valve" << endl;
-                    M_fsi->setFluidBC( BCh_monolithicFluid( *M_fsi->FSIOper(), M_aorticValveIsOpen, M_mitralValveIsOpen ) );
+                    //M_fsi->setFluidBC( BCh_monolithicFluid( *M_fsi->FSIOper() ) );
+                    M_fsi->setFluidBC( LifeV::BCh_monolithicFlux( M_aorticValveIsOpen, M_mitralValveIsOpen ) );
                 }
             }
 
