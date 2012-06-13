@@ -94,7 +94,9 @@ void FSIExactJacobian::evalResidual(vector_Type&       res,
 
     res  = this->lambdaSolid();
     res -=  disp;
-    M_solid->updateJacobian(M_solid->displacement());
+
+    if (this->isSolid())
+      M_solid->updateJacobian(M_solid->displacement());
 
     this->displayer().leaderPrint("FSI ---      NormInf res        =                     " , res.normInf(), "\n" );
     if (this->isSolid())
@@ -231,7 +233,7 @@ void FSIExactJacobian::registerMyProducts( )
     FSIFactory_Type::instance().registerProduct( "exactJacobian", &createEJ );
 
     solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct( "linearVenantKirchhoff", &super::createVenantKirchhoffLinear );
-    solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct( "nonlinearVenantKirchhoff", &super::createVenantKirchhoffNonLinear );
+    solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct( "nonLinearVenantKirchhoff", &super::createVenantKirchhoffNonLinear );
 }
 
 // ===================================================
@@ -326,6 +328,8 @@ void FSIExactJacobian::eval(const vector_Type& _disp,
             *M_beta -= veloFluidMesh();//implicit
 
 
+	    if(M_data->dataFluid()->conservativeFormulation())
+	      *M_rhs = M_fluid->matrixMass()*M_fluidTimeAdvance->rhsContributionFirstDerivative();
             if (recomputeMatrices)
             {
                 double alpha = M_fluidTimeAdvance->coefficientFirstDerivative(0)/M_data->dataFluid()->dataTime()->timeStep();
@@ -335,6 +339,8 @@ void FSIExactJacobian::eval(const vector_Type& _disp,
             {
                 this->M_fluid->updateRightHandSide( *M_rhs );
             }
+	    if(!M_data->dataFluid()->conservativeFormulation())
+	      *M_rhs = M_fluid->matrixMass()*M_fluidTimeAdvance->rhsContributionFirstDerivative();
         }
 
         this->M_fluid->iterate( *M_BCh_u );
