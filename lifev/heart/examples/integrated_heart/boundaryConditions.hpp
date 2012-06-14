@@ -140,11 +140,11 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid(FSIOperator &_oper )
     BCFunctionBase mitral_flow (u_mitral );
 
     /*  Note: cannot fix both fluid and structure on a coupled interface ring */
-    BCh_fluid->addBC("FL1", INLET,      Essential,         Full,   mitral_flow, 3);
-    BCh_fluid->addBC("FL3", TOPCARDIUM, EssentialVertices, Full,   bcNoSlip,    3);
-    BCh_fluid->addBC("FL4", INLETRING,  EssentialVertices, Full,   bcNoSlip,    3);
-    BCh_fluid->addBC("FL5", OUTLETRING, EssentialVertices, Full,   bcNoSlip,    3);
-    BCh_fluid->addBC("FL6", AORTICROOT, EssentialVertices, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC("FL1", INLET,      Essential, Full,   mitral_flow, 3);
+    BCh_fluid->addBC("FL3", TOPCARDIUM, Essential, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC("FL4", INLETRING,  Essential, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC("FL5", OUTLETRING, Essential, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC("FL6", AORTICROOT, Essential, Full,   bcNoSlip,    3);
 
     return BCh_fluid;
 }
