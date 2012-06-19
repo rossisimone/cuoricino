@@ -311,6 +311,7 @@ public:
              * needs to be passed to the valve to set the correct outgoing flux. */
             FC0.renewLumpedParameters(OUTLET, M_fsi->FSIOper()->fluid().pressure(OUTLET, M_fsi->displacement()));
 
+	/*
             if ( M_aorticValveIsOpen && M_fsi->FSIOper()->fluid().flux(OUTLET, M_fsi->displacement()) < 0)
             {
                 // Close the aortic valve
@@ -330,7 +331,7 @@ public:
                     M_fsi->setFluidBC( LifeV::BCh_monolithicFlux( M_aorticValveIsOpen, M_mitralValveIsOpen ) );
                 }
             }
-
+	*/
             FC0.renewParameters( *M_fsi, 3 );
 
             boost::timer _timer;

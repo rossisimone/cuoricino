@@ -117,7 +117,7 @@ reuse = true
 [../] # fluid
 
 [interface]
-fluid_flag      =  5 # default: 1
+fluid_flag        =  5 # default: 1
 fluid_vertex_flag = 5
 tolerance       =  0.0005 # how far points are to be considered the same on the interface
 [../] # interface
@@ -465,7 +465,7 @@ neval = 5
 [parameters]
 
 Pin     = 0          	#pressure at entry of the vessel
-Pout    = 1000        #pressure at exit of the heart / aortic pressure
+Pout    = 100000        #pressure at exit of the heart / aortic pressure
 RExtD   = 150      	# distal resistance
 RExtP   = 1300    	# proximal resistance
 Cp	= 0.001		# windkessel capacity

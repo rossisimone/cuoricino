@@ -246,7 +246,7 @@ Real FlowConditions::outPressure(const Real&/*t*/, const Real& /*x*/, const Real
 
 Real FlowConditions::outFlux(const Real&/*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
 {
-  return M_outflux;
+  return (M_outflux > 0 ? M_outflux : 0); // On-off valve
 
 
   /*
