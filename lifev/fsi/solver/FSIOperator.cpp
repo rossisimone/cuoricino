@@ -1265,10 +1265,17 @@ FSIOperator::setAlphafbcf( const bcFunction_Type& alphafbcf )
 void
 FSIOperator::setStructureDispToHarmonicExtension( const vector_Type& disp, UInt type )
 {
+
+    if (M_bcvStructureDispToHarmonicExtension == 0)
+    { 
+	// In case this has not been initialized yet
+        M_bcvStructureDispToHarmonicExtension.reset( new  BCVectorInterface );
+    }
+ 
     M_bcvStructureDispToHarmonicExtension->setup( disp,
                                                   M_dFESpace->dof().numTotalDof(),
                                                   M_dofStructureToHarmonicExtension,
-                                                  type );
+                                                  type );    
 }
 
 
