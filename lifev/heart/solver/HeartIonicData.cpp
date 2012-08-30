@@ -236,6 +236,7 @@ HeartIonicData::operator=( const HeartIonicData& dataIonic )
 void
 HeartIonicData::setup(  const GetPot& dataFile )
 {
+
     M_MSHasHeterogeneousTauClose = dataFile( "electric/physics/hasHeteroTauClose",1 );
     M_RMCParameterA   		               = dataFile( "electric/physics/a",0.13 );   // 0.13  adim  //RogersMcCulloch1994
     M_RMCParameterB   		               = dataFile( "electric/physics/b",0.013 );  // 0.013 adim //RogersMcCulloch1994
@@ -288,7 +289,11 @@ HeartIonicData::setup(  const GetPot& dataFile )
     M_MinimalEpitauSi = dataFile("electric/physics/EpitauSi",3.3849 );
     M_MinimalEpitau2inf = dataFile("electric/physics/Epitau2inf",0.01 );
 
+    M_subiter = dataFile( "electric/time_discretization/subiter",100);
 
+    M_SLinitial = dataFile("electric/physics/SLinitial",1.9 );
+    M_SLrest= dataFile("electric/physics/SLinitial",1.9 );
+    M_SLset= dataFile("electric/physics/SLinitial",1.9 );
 }
 
 

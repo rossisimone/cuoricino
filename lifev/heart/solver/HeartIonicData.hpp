@@ -174,7 +174,11 @@ public:
     std::string wOrder() const;
 */
 
-
+    UInt M_subiter;
+    //Rice MODEL
+    Real M_SLinitial;
+    Real M_SLrest;
+    Real M_SLset;
 private:
 
 
@@ -227,6 +231,11 @@ private:
         M_MinimalEpitauFi, M_MinimalEpik30, M_MinimalEpiv30, M_MinimalEpik3,
         M_MinimalEpiv3, M_MinimalEpitauSi;
     Real M_MinimalEpitau2inf;
+
+
+
+
+
 
 };
 

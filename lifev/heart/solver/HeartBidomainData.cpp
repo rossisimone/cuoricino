@@ -147,42 +147,22 @@ HeartBidomainData::operator=( const HeartBidomainData& dataBidomain )
 void
 HeartBidomainData::setup(  const GetPot& dataFile )
 {
-    M_volumeSurfaceRatio                   = dataFile("electric/physics/Chi",1e3); 	// [1e-3 1/cm]   ColliPavarinoTaccardi2005
-    M_membraneCapacitance                  = dataFile("electric/physics/Cm",1e-3);  	// [1e-3 mF/cm2]   ColliPavarinoTaccardi2005
-    if ( dataFile("electric/physics/ion_model",1) == 1)
-    {
-        M_internalDiffusivity              = dataFile("electric/physics/D_i" ,3.3e-2);       // 3.3e-2  [1/Ohm/cm]   D_i_LR * D_RM/D_LR  see dataMonodomain
-        M_externalDiffusivity              = dataFile("electric/physics/D_e" ,4.29e-2);      // 4.29e-2 [1/Ohm/cm]	D_e_LR * D_RM/D_LR  see dataMonodomain
-        M_longitudinalInternalConductivity = dataFile("electric/physics/sigmal_i", 8.19e-2); // 8.19e-2 [1/Ohm/cm]   sigmal_i_LR * D_RM/D_LR
-        M_transversalInternalConductivity  = dataFile("electric/physics/sigmat_i", 8.6e-3); 	// 8.6e-3  [1/Ohm/cm]   sigmat_i_LR * D_RM/D_LR
-        M_longitudinalExternalConductivity = dataFile("electric/physics/sigmal_e", 5.46e-2); // 5.46e-2 [1/Ohm/cm]	sigmal_e_LR * D_RM/D_LR
-        M_transversalExternalConductivity  = dataFile("electric/physics/sigmat_e",3.69e-2); // 3.69e-2 [1/Ohm/cm]	sigmat_e_LR * D_RM/D_LR
-    }
-    else if ( dataFile("electric/physics/ion_model",1) == 2)
-    {
-        M_internalDiffusivity              = dataFile("electric/physics/D_i" , 1.21e-3);  		// sigmal_i/3 + sigmat_i*2/3
-        M_externalDiffusivity              = dataFile("electric/physics/D_e" , 1.57e-3);  		// sigmal_e/3 + sigmat_e*2/3
-        M_longitudinalInternalConductivity = dataFile("electric/physics/sigmal_i", 3e-3);  		// 3e-3      [1/Ohm/cm]   ColliPavarinoTaccardi2005
-        M_transversalInternalConductivity  = dataFile("electric/physics/sigmat_i", 3.1525e-4); 	// 3.1525e-4 [1/Ohm/cm]   ColliPavarinoTaccardi2005
-        M_longitudinalExternalConductivity = dataFile("electric/physics/sigmal_e", 2e-3); 		// 2e-3      [1/Ohm/cm]   ColliPavarinoTaccardi2005
-        M_transversalExternalConductivity  = dataFile("electric/physics/sigmat_e",1.3514e-3); 	// 1.3514e-3 [1/Ohm/cm]   ColliPavarinoTaccardi2005
-    }
-    else if ( dataFile("electric/physics/ion_model",1) == 3)
-    {
-        M_internalDiffusivity              = dataFile("electric/physics/D_i" ,3.3e-2);       // 3.3e-2  [1/Ohm/cm]   D_i_LR * D_RM/D_LR  see dataMonodomain
-        M_externalDiffusivity              = dataFile("electric/physics/D_e" ,4.29e-2);      // 4.29e-2 [1/Ohm/cm]      D_e_LR * D_RM/D_LR  see dataMonodomain
-        M_longitudinalInternalConductivity = dataFile("electric/physics/sigmal_i", 8.19e-2); // 8.19e-2 [1/Ohm/cm]   sigmal_i_LR * D_RM/D_LR
-        M_transversalInternalConductivity  = dataFile("electric/physics/sigmat_i", 8.6e-3);      // 8.6e-3  [1/Ohm/cm]   sigmat_i_LR * D_RM/D_LR
-        M_longitudinalExternalConductivity = dataFile("electric/physics/sigmal_e", 5.46e-2); // 5.46e-2 [1/Ohm/cm]        sigmal_e_LR * D_RM/D_LR
-        M_transversalExternalConductivity  = dataFile("electric/physics/sigmat_e",3.69e-2); // 3.69e-2 [1/Ohm/cm]        sigmat_e_LR * D_RM/D_LR
-    }
-    M_heartDiffusionFactor                 = dataFile("electric/physics/heart_diff_fct",0);
-    M_verbose 		                       = dataFile( "electric/miscellaneous/verbose", 1 );
-    M_postProcessingDirectory              = dataFile("electric/miscellaneous/post_dir","./");
-    M_uOrder 		                       = dataFile( "electric/space_discretization/u_order", "P1");
-    M_fibersFormat 	                       = dataFile("electric/space_discretization/fibers_format",0);
-    M_hasFibers 	                       = dataFile( "electric/space_discretization/has_fibers", 0);
-    M_BDForder       	                   = dataFile("electric/time_discretization/BDF_order",1);
+    M_volumeSurfaceRatio               = dataFile("electric/physics/Chi",1e3); 	// [1e-3 1/cm]   ColliPavarinoTaccardi2005
+    M_membraneCapacitance              = dataFile("electric/physics/Cm",1e-3);  	// [1e-3 mF/cm2]   ColliPavarinoTaccardi2005
+    M_internalDiffusivity              = dataFile("electric/physics/D_i" , 1.21e-3);  		// sigmal_i/3 + sigmat_i*2/3
+    M_externalDiffusivity              = dataFile("electric/physics/D_e" , 1.57e-3);  		// sigmal_e/3 + sigmat_e*2/3
+    M_longitudinalInternalConductivity = dataFile("electric/physics/sigmal_i", 3e-3);  		// 3e-3      [1/Ohm/cm]   ColliPavarinoTaccardi2005
+    M_transversalInternalConductivity  = dataFile("electric/physics/sigmat_i", 3.1525e-4); 	// 3.1525e-4 [1/Ohm/cm]   ColliPavarinoTaccardi2005
+    M_longitudinalExternalConductivity = dataFile("electric/physics/sigmal_e", 2e-3); 		// 2e-3      [1/Ohm/cm]   ColliPavarinoTaccardi2005
+    M_transversalExternalConductivity  = dataFile("electric/physics/sigmat_e",1.3514e-3); 	// 1.3514e-3 [1/Ohm/cm]   ColliPavarinoTaccardi2005
+
+    M_heartDiffusionFactor             = dataFile("electric/physics/heart_diff_fct",0);
+    M_verbose 		                   = dataFile( "electric/miscellaneous/verbose", 1 );
+    M_postProcessingDirectory          = dataFile("electric/miscellaneous/post_dir","./");
+    M_uOrder 		                   = dataFile( "electric/space_discretization/u_order", "P1");
+    M_fibersFormat 	                   = dataFile("electric/space_discretization/fibers_format",0);
+    M_hasFibers 	                   = dataFile( "electric/space_discretization/has_fibers", 0);
+    M_BDForder       	               = dataFile("electric/time_discretization/BDF_order",1);
     if ( M_hasFibers )
     {
         std::string fibersDirectory = dataFile( "electric/space_discretization/fibers_dir", this->meshDir().c_str() );

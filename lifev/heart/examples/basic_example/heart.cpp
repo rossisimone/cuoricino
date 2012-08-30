@@ -240,8 +240,8 @@ Heart::run()
     }
     else if (ion_model==2)
     {
-        if (verbose) std::cout<<"Ion Model = Luo-Rudy"<<std::endl<<std::flush;
-        ionicModel.reset(new LuoRudy< mesh_Type >(_dataIonic,
+       if (verbose) std::cout<<"Ion Model = Luo-Rudy"<<std::endl<<std::flush;
+        ionicModel.reset(new HeartLuoRudy< mesh_Type >(_dataIonic,
                                                   *meshPart.meshPartition(),
                                                   *uFESpacePtr,
                                                   *M_heart_fct->M_comm));

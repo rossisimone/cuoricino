@@ -49,6 +49,7 @@
 #include <lifev/heart/solver/HeartBidomainSolver.hpp>
 #endif
 #include <lifev/heart/solver/HeartIonicSolver.hpp>
+#include <lifev/heart/solver/HeartLuoRudy.hpp>
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <lifev/core/filter/ExporterEmpty.hpp>

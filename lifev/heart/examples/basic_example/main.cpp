@@ -32,7 +32,7 @@
     @author Lucia Mirabella <lucia.mirabella@gmail.com>, Mauro Perego <perego.mauro@gmail.com>
 
     @contributor Simone Rossi <simone.rossi@epfl.ch>, Ricardo Ruiz-Baier <ricardo.ruiz@epfl.ch>
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
+    @maintainer Simone Rossi <simone.rossi@epfl.ch>
  */
 
 // Tell the compiler to ignore specific kind of warnings:

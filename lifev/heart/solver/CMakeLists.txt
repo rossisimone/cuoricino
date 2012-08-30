@@ -1,12 +1,15 @@
 SET(solver_HEADERS
+  solver/HeartAlievPanfilov.hpp
   solver/HeartMonodomainData.hpp
   solver/HeartStiffnessFibers.hpp
   solver/HeartIonicData.hpp
   solver/HeartBidomainData.hpp
   solver/HeartIonicSolver.hpp
+  solver/HeartLuoRudy.hpp
   solver/HeartBidomainSolver.hpp
   solver/HeartFunctors.hpp
   solver/HeartMonodomainSolver.hpp
+  solver/HeartRice.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES
