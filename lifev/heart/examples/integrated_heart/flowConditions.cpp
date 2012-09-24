@@ -191,7 +191,14 @@ void FlowConditions::renewLumpedParameters( const int&    Flag , const Real & Pv
   std::cout<<"M_outflux Old = "<< M_outflux <<std::endl;
     // Setting parameters for our simulation:
 
-    M_outflux = (Pvalve - Pout) / Rext_d; // Aortic outflow according to Q_av = (P_av - P_ao) / R_av
+    if (Pvalve > Pout)
+    {
+      M_outflux = (Pvalve - Pout) / Rext_d; // Aortic outflow according to Q_av = (P_av - P_ao) / R_av
+    }
+    else
+    {
+      M_outflux = 0;    
+    }
 
     /*
     switch(BDType)

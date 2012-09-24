@@ -117,11 +117,8 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFlux( bool AorticValveisOpen, 
     BCFunctionBase out_flux (LifeV::FlowConditions::outFlux);
     BCFunctionBase bcNoSlip (fZero);
 
-//    if ( AorticValveisOpen ) {
-        BCh_fluid->addBC("FL2", OUTLET, Flux,              Normal, out_flux);
-//    } else {
-//        BCh_fluid->addBC("FL2", OUTLET, Flux,              Normal, bcNoSlip);
-//    }
+    // 
+    BCh_fluid->addBC("FL2", OUTLET, Flux,              Normal, out_flux);
 
     return BCh_fluid;
 }
