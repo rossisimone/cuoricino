@@ -63,6 +63,7 @@ HeartMonodomainData::HeartMonodomainData() :
     M_verbose                       ( ),
     M_heartDiffusionFactor          ( ),
     M_diffusivity                   ( ),
+    M_beta                          ( ),
     M_longitudinalConductivity      ( ),
     M_membraneCapacitance           ( ),
     M_transversalConductivity       ( ),
@@ -83,6 +84,7 @@ HeartMonodomainData::HeartMonodomainData( const HeartMonodomainData& dataMonodom
     M_verbose                       ( dataMonodomain.M_verbose ),
     M_heartDiffusionFactor          ( dataMonodomain.M_heartDiffusionFactor ),
     M_diffusivity                   ( dataMonodomain.M_diffusivity ),
+    M_beta                          ( dataMonodomain.M_beta ),
     M_longitudinalConductivity      ( dataMonodomain.M_longitudinalConductivity ),
     M_membraneCapacitance           ( dataMonodomain.M_membraneCapacitance ),
     M_transversalConductivity       ( dataMonodomain.M_transversalConductivity ),
@@ -108,6 +110,7 @@ HeartMonodomainData::operator=( const HeartMonodomainData& dataMonodomain )
         M_hasFibers                     = dataMonodomain.M_hasFibers;
         M_heartDiffusionFactor          = dataMonodomain.M_heartDiffusionFactor;
         M_diffusivity                   = dataMonodomain.M_diffusivity;
+	M_beta                          = dataMonodomain.M_beta;
         M_longitudinalConductivity      = dataMonodomain.M_longitudinalConductivity;
         M_membraneCapacitance           = dataMonodomain.M_membraneCapacitance;
         M_transversalConductivity       = dataMonodomain.M_transversalConductivity;
@@ -130,7 +133,7 @@ HeartMonodomainData::setup(  const GetPot& dataFile )
 {
     M_volumeSurfaceRatio           = dataFile("electric/physics/Chi", 1e3);   // [1e-3 1/cm]    ColliPavarinoTaccardi2005
     M_membraneCapacitance          = dataFile("electric/physics/Cm", 1e-3);	  // [1e-3 mF/cm2]  ColliPavarinoTaccardi2005
-
+    M_beta = dataFile("electric/physics/beta" , -0.25);
     M_diffusivity = dataFile("electric/physics/D" , 5.7e-4);  // 5.7e-4 [1/Ohm/cm]              sigmal/3 + sigmat*2/3
     M_longitudinalConductivity = dataFile("electric/physics/sigmal", 1.2e-3);  // 1.2e-3  [1/Ohm/cm]   sigmal_i*sigmal_e/(sigmal_i+sigmal_e)    ColliPavarinoTaccardi2005
     M_transversalConductivity  = dataFile("electric/physics/sigmat", 2.56e-4); // 2.56e-4 [1/Ohm/cm]   sigmat_i*sigmat_e/(sigmat_i+sigmat_e)    ColliPavarinoTaccardi2005

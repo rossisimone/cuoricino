@@ -7,5 +7,6 @@ ADD_SUBDIRECTORIES(
   basic_example
   ETA_monodomain
   integrated_heart
+  oneway_EM
 #  RiceModel
 )

@@ -152,6 +152,9 @@ public:
     //! D
     const Real&        diffusivity()                    const { return M_diffusivity; }
 
+    //! beta
+    const Real&        beta()                    const { return M_beta; }
+
     //! Post_dir
     std::string        postProcessingDirectory()        const { return M_postProcessingDirectory; }
 
@@ -176,6 +179,7 @@ private:
     Int         M_heartDiffusionFactor;
 
     Real        M_diffusivity;
+    Real        M_beta;
     Real        M_longitudinalConductivity;
     Real        M_membraneCapacitance;
     Real        M_transversalConductivity;

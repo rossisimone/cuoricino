@@ -82,7 +82,7 @@ SET( LifeV_PACKAGES_AND_DIRS_AND_CLASSIFICATIONS
   BCInterface           lifev/bc_interface                PS
   OneDFSI               lifev/one_d_fsi                   PS
   ZeroDimensional       lifev/zero_dimensional            EX
-  Multiscale            lifev/multiscale                  EX
+#  Multiscale            lifev/multiscale                  EX
   Heart                 lifev/heart                       EX
   Dummy                 lifev/dummy                       EX
 )
