@@ -26,14 +26,15 @@
 
 /*!
  *  @file
- *  @brief File containing the boundary conditions for the Monolithic Test
+ *  @brief File containing the lumped parameter models for the Integrated Heart example
  *
- *  @date 2009-04-09
- *  @author Paolo Crosetto <crosetto@iacspc70.epfl.ch>
+ *  @date 2012-09-25
+ *  @author Toni Lassila <toni.lassila@epfl.ch>
+ *          Paolo Crosetto <crosetto@iacspc70.epfl.ch>
+
+ *  @maintainer Toni Lassila <toni.lassila@epfl.ch>
  *
- *  @contributor Cristiano Malossi <cristiano.malossi@epfl.ch>
- *  @maintainer Paolo Crosetto <crosetto@iacspc70.epfl.ch>
- */
+*/
 
 #include "flowConditions.hpp"
 
@@ -100,10 +101,6 @@ void FlowConditions::initParameters( FSIOperator&  Oper,
 
     }
 
-    //Oper.worldComm().Broadcast( solidQuantities.Values(), solidQuantities.Length(),
-    //Oper.getSolidLeaderId() );
-
-
     M_beta  = solidQuantities(0);
     M_rhos  = solidQuantities(1);
     Oper.displayer().leaderPrint( "  Outflow BC : beta      = " , M_beta );
@@ -117,7 +114,6 @@ void FlowConditions::renewParameters ( FSISolver&  oper_,
 {
 
     Epetra_SerialDenseVector fluidQuantities(2); // Flux and Area
-    //Epetra_SerialDenseVector solidQuantities(0); // M_beta and M_rhos
     FSIOperator* Oper(oper_.FSIOper().get());
 
     if (Oper->isFluid())
@@ -137,7 +133,8 @@ void FlowConditions::renewParameters ( FSISolver&  oper_,
     area = fluidQuantities(1);
 
     // Setting parameters for our simulation:
-    // if imposing the absorbing boundary condition through the pressure:
+    // If imposing the absorbing boundary condition through the pressure:
+
     if (bcOnFluid)
     {
         M_outP =  std::pow((M_rhos/(2.*std::sqrt(2.))*qn/area + std::sqrt(M_beta*std::sqrt(M_area0))),2.)
@@ -153,7 +150,7 @@ void FlowConditions::renewParameters ( FSISolver&  oper_,
     }
     else
     {
-        // if imposing the absorbing boundary condition through change in radius: --> Not ready
+        // If imposing the absorbing boundary condition through change in radius: --> Not ready
 #ifdef  TESTING
         M_outP = Pout;
 
@@ -173,22 +170,14 @@ void FlowConditions::renewParameters ( FSISolver&  oper_,
 
     }
 
-    // for now applying absBC only at outflow
+    // For now applying absBC only at outflow
     M_inDeltaRadius = 0;
-    //    M_inP = Pin;
 
 }
 
 void FlowConditions::renewLumpedParameters( const int&    Flag , const Real & Pvalve )
 {
 
-  //    oper.worldComm().Broadcast( fluidQuantities.Values(), fluidQuantities.Length(),
-  //                oper.getFluidLeaderId() );
-
-  //Flux_old = Flux;
-  //Flux     = flux;
-
-  std::cout<<"M_outflux Old = "<< M_outflux <<std::endl;
     // Setting parameters for our simulation:
 
     if (Pvalve > Pout)
@@ -200,24 +189,6 @@ void FlowConditions::renewLumpedParameters( const int&    Flag , const Real & Pv
       M_outflux = 0;    
     }
 
-    /*
-    switch(BDType)
-      {
-      case 1: //explicit resistance
-    M_outP=Rext_d*Flux+Pout;
-    break;
-      case 2: //explicit windkessel RC
-    M_outP= (Rext_d*Cp*M_outP+dt*Pout)/(dt+Rext_d*Cp)+Rext_d*dt*Flux/(dt+Rext_d*Cp);
-    break;
-      case 3: //explicit windkessel RCR
-    M_outP=(Rext_d*Cp*M_outP+(dt*Rext_p+dt*Rext_d+Rext_p*Rext_d*Cp)*Flux-Rext_p*Rext_d*Cp*Flux_old+dt*Pout)/(dt+Rext_d*Cp);
-
-    break;
-      default:
-    M_outP=Pout;
-      }
-    std::cout<<"M_outP = "<<M_outP<<std::endl;
-     */
 }
 
 
@@ -230,53 +201,47 @@ Real FlowConditions::fZero(const Real& /*t*/, const Real& /*x*/, const Real& /*y
 Real FlowConditions::inPressure(const Real& t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
 {
   return -Pin;
-  /*
-    switch(i) {
-    case 0:
-        return 0.0;
-    case 1:
-        return 0.0;
-    case 2:
-        return - Pin;//M_inP;
-    default:
-        ERROR_MSG("This entry is not allowed: flowConditions.hpp");
-    };
-    return 0.;
-  */
 }
 
 
 Real FlowConditions::outPressure(const Real&/*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
 {
+
   return Pout;
+
 }
 
 Real FlowConditions::outFlux(const Real&/*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
 {
-  return (M_outflux > 0 ? M_outflux : 0); // On-off valve
 
+  /* Imposes flow rate at the aortic valve */
+  return (M_outflux > 0 ? M_outflux : 0); // On-off valve 
 
-  /*
+}
+
+Real FlowConditions::outProfile(const Real&/*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+{ 
+
+    /* Imposes flat velocity profile at the aortic valve */
+    Real outVelocity = (M_outflux > 0 ? M_outflux : 0) / 5.29414; // Scale velocity to aortic valve area    
+    Real normalVector[3] = {0, 0, 1};
+
     switch(i) {
     case 0:
-        return 0;
+        return normalVector[0] * outVelocity;
         break;
     case 1:
-        return 0;
+        return normalVector[1] * outVelocity;
         break;
-    case 2:
-        //return 0.;
-        return 0;
+    case 2:        
+        return normalVector[2] * outVelocity;
         break;
     default:
         ERROR_MSG("This entry is not allowed: flowConditions.hpp");
         break;
-    }
-  */
+    }  
+
 }
-
-
-
 
 
 Real FlowConditions::force_cardium(const Real& t)
@@ -301,10 +266,10 @@ Real FlowConditions::force_cardium(const Real& t)
 
 Real FlowConditions::fextvessel(const Real& t, const Real& /*x*/, const Real& /*y*/, const Real& z, const ID& /*i*/)
 {
-    //    Real t_loc=t/T-int(t/T);
+
     Real t_loc=t*2*acos(-1)/periode;
 
-    return -fExt * force_cardium(t_loc);
+    return -fExt * force_cardium(t_loc) * 2 * (8 - z) / 9.5;
 
 }
 
@@ -380,7 +345,9 @@ Real FlowConditions::dt(1);
 Real FlowConditions::rho(-1);
 Real FlowConditions::Pin(-1);
 Real FlowConditions::Pout(-1);
+
 //For Explicit Resistance or Windkessel
+
 Real FlowConditions::Rext_d(0);
 Real FlowConditions::Rext_p(0);
 Real FlowConditions::Cp(0);

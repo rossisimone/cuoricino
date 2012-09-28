@@ -83,7 +83,7 @@ viscosity = 0.035             # viscosity
 [../time_discretization]
 method          = BDF
 initialtime		= 0.000
-endtime			= 2.400
+endtime			= 0.054
 timestep		= 0.001
 BDF_order		= 2
 theta                   = 0.5
@@ -465,8 +465,8 @@ neval = 5
 [parameters]
 
 Pin     = 0          	#pressure at entry of the vessel
-Pout    = 1000        #pressure at exit of the heart / aortic pressure
-RExtD   = 3000      	# distal resistance
+Pout    = 100000        #pressure at exit of the heart / aortic pressure
+RExtD   = 2000      	# distal resistance
 RExtP   = 1300    	# proximal resistance
 Cp	= 0.001		# windkessel capacity
 BDType  = 1		# boundary type 0) P=Pout 1) RExtD 2) RC 3) RCR

@@ -26,14 +26,15 @@
 
 /*!
  *  @file
- *  @brief File containing the boundary conditions for the Monolithic Test
+ *  @brief File containing the lumped parameter models for the Integrated Heart example
  *
- *  @date 2009-04-09
- *  @author Paolo Crosetto <crosetto@iacspc70.epfl.ch>
+ *  @date 2012-09-25
+ *  @author Toni Lassila <toni.lassila@epfl.ch>
+ *          Paolo Crosetto <crosetto@iacspc70.epfl.ch>
+
+ *  @maintainer Toni Lassila <toni.lassila@epfl.ch>
  *
- *  @contributor Cristiano Malossi <cristiano.malossi@epfl.ch>
- *  @maintainer Paolo Crosetto <crosetto@iacspc70.epfl.ch>
- */
+*/
 
 #ifndef __FLOWCONDITIONS_HPP
 #define __FLOWCONDITIONS_HPP
@@ -78,6 +79,7 @@ public:
     static Real inPressure          (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
     static Real outPressure         (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
     static Real outFlux             (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
+    static Real outProfile          (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
 
     static Real outPressure0         (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
     static Real outPressure1         (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i);
@@ -102,10 +104,10 @@ private:
     static Real dt;
     static Real Pin;
     static Real Pout;
-    static Real Rext_d; //external distal resistance
-    static Real Rext_p; //external proximal resistance
-    static Real Cp; //capacity for the pressure term in Windkessel
-    static int BDType; //boundary condition type (explicit Resistance, Windkessel RC, RCR)
+    static Real Rext_d; // External distal resistance
+    static Real Rext_p; // External proximal resistance
+    static Real Cp;     // Capacity for the pressure term in Windkessel
+    static int BDType;  // Boundary condition type (explicit Resistance, Windkessel RC, RCR)
     static Real Flux;
     static Real Flux_old;
     static Real fExt;

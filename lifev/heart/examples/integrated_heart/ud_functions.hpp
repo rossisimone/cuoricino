@@ -26,18 +26,15 @@
 
 /*!
  *  @file
- *  @brief File containing the boundary conditions for the Monolithic Test
+ *  @brief Deprecated file for the Integrated Heart example
  *
- *  @date 2009-04-09
- *  @author Paolo Crosetto <crosetto@iacspc70.epfl.ch>
+ *  @date 2012-09-25
+ *  @author Toni Lassila <toni.lassila@epfl.ch>
+ *          Paolo Crosetto <crosetto@iacspc70.epfl.ch>
+
+ *  @maintainer Toni Lassila <toni.lassila@epfl.ch>
  *
- *  @contributor Cristiano Malossi <cristiano.malossi@epfl.ch>
- *  @maintainer Paolo Crosetto <crosetto@iacspc70.epfl.ch>
- *
- *  Contains the functions to be assigned as boundary conditions, in the file boundaryConditions.hpp . The functions
- *  can depend on time and space, while they can take in input an ID specifying one of the three principal axis
- *  if the functions to assign is vectorial and the boundary condition is of type \c Full \c.
- */
+*/
 
 #ifndef UDF_HPP
 #define UDF_HPP
