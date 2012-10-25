@@ -58,8 +58,8 @@
 #include <lifev/heart/solver/HeartAlievPanfilov.hpp>
 
 #include <lifev/structure/solver/VenantKirchhoffElasticData.hpp>
-#include <lifev/structure/solver/StructuralMaterial.hpp>
-#include <lifev/structure/solver/StructuralSolver.hpp>
+#include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
+#include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinear.hpp>
 #include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
@@ -414,7 +414,7 @@ ElectroMech::run()
   MeshData             meshData;
   meshData.setup(dataFile, "solid/space_discretization");
 
-  boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr(new RegionMesh<LinearTetra>);
+  boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr(new RegionMesh<LinearTetra>( *(parameters->comm) ) );
   readMesh(*fullMeshPtr, meshData);
 
   MeshPartitioner< RegionMesh<LinearTetra> > meshPart( fullMeshPtr, parameters->comm );
@@ -528,7 +528,7 @@ ElectroMech::run()
   if (verbose) std::cout << "ok." << std::endl;
 
   //! Constructor of the structuralSolver
-  StructuralSolver< RegionMesh<LinearTetra> > solid;
+  StructuralOperator< RegionMesh<LinearTetra> > solid;
 
 
   electricModel.setup( M_heart_fct->M_dataFile );
@@ -673,8 +673,8 @@ ElectroMech::run()
 
     *rhsSolid *=0;
     timeAdvance->updateRHSContribution( dt );
-    *rhsSolid += *solid.Mass() *timeAdvance->rhsContributionSecondDerivative()/timeAdvanceCoefficient;
-    solid.updateRightHandSide( *rhsSolid );
+    *rhsSolid += *solid.massMatrix() *timeAdvance->rhsContributionSecondDerivative()/timeAdvanceCoefficient;
+    solid.setRightHandSide( *rhsSolid );
 
     //! 7. Iterate --> Calling Newton
     solid.iterate( BChS );
@@ -683,7 +683,7 @@ ElectroMech::run()
 
     *disp = solid.displacement();
     *vel  = timeAdvance->velocity();
-    *acc  = timeAdvance->accelerate();
+    *acc  = timeAdvance->acceleration();
 
 
     displMech=solid.displacement();

@@ -156,10 +156,10 @@ Heart::run()
 
     //! Construction of the partitioned mesh
     boost::shared_ptr<mesh_Type> localMeshPtr;
-    {
+    //{
         MeshPartitioner< mesh_Type >   meshPart(fullMeshPtr, M_heart_fct->M_comm);
         localMeshPtr = meshPart.meshPartition();
-    }
+    //}
     std::string uOrder =  M_heart_fct->M_dataFile( "electric/space_discretization/u_order", "P1");
 
     //! Initialization of the FE type and quadrature rules for both the variables
@@ -244,15 +244,9 @@ Heart::run()
     }
     else if (ion_model==2)
     {
-<<<<<<< HEAD
        if (verbose) std::cout<<"Ion Model = Luo-Rudy"<<std::endl<<std::flush;
         ionicModel.reset(new HeartLuoRudy< mesh_Type >(_dataIonic,
                                                   *meshPart.meshPartition(),
-=======
-        if (verbose) std::cout<<"Ion Model = Luo-Rudy"<<std::endl<<std::flush;
-        ionicModel.reset(new LuoRudy< mesh_Type >(_dataIonic,
-                                                  *localMeshPtr,
->>>>>>> TimeAdvanceFSI
                                                   *uFESpacePtr,
                                                   *M_heart_fct->M_comm));
     }

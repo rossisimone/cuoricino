@@ -547,11 +547,6 @@ FSIMonolithic::assembleFluidBlock(UInt iter, const vector_Type& solution)
     {
         M_resetPrec=true;
         M_fluidTimeAdvance->updateRHSContribution( M_data->dataFluid()->dataTime()->timeStep() );
-<<<<<<< HEAD
-        *M_rhs += M_fluid->matrixMass() * ( M_fluidTimeAdvance->rhsContributionFirstDerivative() );
-        couplingRhs(M_rhs);
-      }
-=======
         if(!M_data->dataFluid()->conservativeFormulation())
             *M_rhs += M_fluid->matrixMass()*(M_fluidTimeAdvance->rhsContributionFirstDerivative());//(M_bdf->rhsContributionFirstDerivative()) ;
         else
@@ -559,7 +554,6 @@ FSIMonolithic::assembleFluidBlock(UInt iter, const vector_Type& solution)
         couplingRhs(M_rhs/*, M_fluidTimeAdvance->stencil()[0]*/);
     }
     //the conservative formulation as it is now is of order 1. To have higher order (TODO) we need to store the mass matrices computed at the previous time steps.
->>>>>>> TimeAdvanceFSI
     if(M_data->dataFluid()->conservativeFormulation())
         M_fluid->updateSystem(alpha,*this->M_beta, *this->M_rhs, M_fluidBlock, solution );
     this->M_fluid->updateStabilization(*M_fluidBlock);
@@ -569,11 +563,7 @@ void FSIMonolithic::updateRHS()
 {
     // Update fluid (iter == 0)
     M_fluidTimeAdvance->updateRHSContribution( M_data->dataFluid()->dataTime()->timeStep() );
-<<<<<<< HEAD
-    *M_rhs += M_fluid->matrixMass() * ( M_fluidTimeAdvance->rhsContributionFirstDerivative() );
-=======
     *M_rhs += M_fluid->matrixMass()*(M_fluidTimeAdvance->rhsContributionFirstDerivative());
->>>>>>> TimeAdvanceFSI
     couplingRhs(M_rhs);
 
     // Update solid (iter == 0)

@@ -408,8 +408,8 @@ Real u_mitral(const Real& t, const Real& x, const Real& y, const Real& z, const 
   Real n1 = 0.28979;
   Real n2 = 0.;
     Real n3= 0.95709;
-    //    Real factor_vel=60;
-    Real factor_vel=80;
+    //    Real factor_vel=80;
+    Real factor_vel=31.8;
 
     //    Real t_loc=t/T-int(t/T);
     Real t_loc=t*2*acos(-1)/T;
