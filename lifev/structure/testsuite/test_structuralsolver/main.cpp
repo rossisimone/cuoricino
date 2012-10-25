@@ -66,8 +66,8 @@
 
 #include <lifev/structure/solver/VenantKirchhoffElasticData.hpp>
 
-#include <lifev/structure/solver/StructuralMaterial.hpp>
-#include <lifev/structure/solver/StructuralSolver.hpp>
+#include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
+#include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinear.hpp>
 #include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
@@ -84,7 +84,7 @@
 
 using namespace LifeV;
 
-int returnValue = EXIT_SUCCESS;
+int returnValue = EXIT_FAILURE;
 enum TimeScheme { BDF_ORDER_ONE = 1, BDF_ORDER_TWO, BDF_ORDER_THREE };
 
 namespace
@@ -231,7 +231,7 @@ Structure::run2d()
 void
 Structure::run3d()
 {
-    typedef StructuralSolver< RegionMesh<LinearTetra> >::vector_Type  vector_Type;
+    typedef StructuralOperator< RegionMesh<LinearTetra> >::vector_Type  vector_Type;
     typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
     typedef boost::shared_ptr< TimeAdvance< vector_Type > >       timeAdvance_type;
 
@@ -249,7 +249,7 @@ Structure::run3d()
     MeshData             meshData;
     meshData.setup(dataFile, "solid/space_discretization");
 
-    boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr(new RegionMesh<LinearTetra>);
+    boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr(new RegionMesh<LinearTetra>( *( parameters->comm ) ));
     readMesh(*fullMeshPtr, meshData);
 
     MeshPartitioner< RegionMesh<LinearTetra> > meshPart( fullMeshPtr, parameters->comm );
@@ -323,7 +323,7 @@ Structure::run3d()
     //! #################################################################################
 
     //! 1. Constructor of the structuralSolver
-    StructuralSolver< RegionMesh<LinearTetra> > solid;
+    StructuralOperator< RegionMesh<LinearTetra> > solid;
 
     //! 2. Setup of the structuralSolver
     solid.setup(dataStructure,
@@ -339,7 +339,7 @@ Structure::run3d()
     solid.buildSystem(timeAdvanceCoefficient);
 
 
-
+    dataStructure->showMe();
     //! =================================================================================
     //! Temporal data and initial conditions
     //! =================================================================================
@@ -366,9 +366,11 @@ Structure::run3d()
 
     if (timeAdvanceMethod =="BDF")
     {
+      Real tZero = dataStructure->dataTime()->initialTime();
+
         for ( UInt previousPass=0; previousPass < dataStructure->dataTimeAdvance()->orderBDF() ; previousPass++)
         {
-      Real previousTimeStep = -previousPass*dt;
+      Real previousTimeStep = tZero - previousPass*dt;
       std::cout<<"BDF " <<previousTimeStep<<"\n";
       uv0.push_back(disp);
         }
@@ -376,9 +378,9 @@ Structure::run3d()
 
     timeAdvance->setInitialCondition(uv0);
 
-    timeAdvance->setTimeStep(dataStructure->dataTime()->timeStep());
+    timeAdvance->setTimeStep( dt );
 
-    timeAdvance->updateRHSContribution(dataStructure->dataTime()->timeStep());
+    timeAdvance->updateRHSContribution( dt );
 
     MPI_Barrier(MPI_COMM_WORLD);
 
@@ -420,7 +422,7 @@ Structure::run3d()
     exporter->postProcess( 0 );
     /*
     //!--------------------------------------------------------------------------------------------
-    //! MATLAB FILE WITH DISPLACEMENT OF A CHOOSEN POINT
+    //! MATLAB FILE WITH DISPLACEMENT OF A CHOSEN POINT
     //!--------------------------------------------------------------------------------------------
     cout.precision(16);
     ofstream file_comp( "Displacement_components_NL.m" );
@@ -461,63 +463,64 @@ Structure::run3d()
     //! =============================================================================
     //! Temporal loop
     //! =============================================================================
-    for (Real time = dt; time <= T; time += dt)
+    //    for (Real time = dt; time <= T; time += dt)
+    for (dataStructure->dataTime()->setTime( dt ) ; dataStructure->dataTime()->canAdvance( ); dataStructure->dataTime()->updateTime( ))
     {
-    dataStructure->dataTime()->setTime(time);
+      //      dataStructure->dataTime()->setTime(time);
 
-    if (verbose)
+      if (verbose)
         {
-        std::cout << std::endl;
-        std::cout << "S- Now we are at time " << dataStructure->dataTime()->time() << " s." << std::endl;
-    }
+	  std::cout << std::endl;
+	  std::cout << "S- Now we are at time " << dataStructure->dataTime()->time() << " s." << std::endl;
+	}
 
-        //! 6. Updating right-hand side
-    *rhs *=0;
-    timeAdvance->updateRHSContribution( dt );
-    *rhs += *solid.Mass() *timeAdvance->rhsContributionSecondDerivative()/timeAdvanceCoefficient;
-    solid.updateRightHandSide( *rhs );
+      //! 6. Updating right-hand side
+      *rhs *=0;
+      timeAdvance->updateRHSContribution( dt );
+      *rhs += *solid.massMatrix() *timeAdvance->rhsContributionSecondDerivative()/timeAdvanceCoefficient;
+      solid.setRightHandSide( *rhs );
 
-        //! 7. Iterate --> Calling Newton
-    solid.iterate( BCh );
+      //! 7. Iterate --> Calling Newton
+      solid.iterate( BCh );
 
-        timeAdvance->shiftRight( solid.displacement() );
+      timeAdvance->shiftRight( solid.displacement() );
 
-        *solidDisp = solid.displacement();
-    *solidVel  = timeAdvance->velocity();
-    *solidAcc  = timeAdvance->accelerate();
+      *solidDisp = solid.displacement();
+      *solidVel  = timeAdvance->velocity();
+      *solidAcc  = timeAdvance->acceleration();
 
-    exporter->postProcess( time );
+      exporter->postProcess( dataStructure->dataTime()->time() );
 
-    /* This part lets to save the displacement at one point of the mesh and to check the result
-       w.r.t. manufactured solution.
-        //!--------------------------------------------------------------------------------------------------
-        //! MATLAB FILE WITH DISPLACEMENT OF A CHOOSEN POINT
-        //!--------------------------------------------------------------------------------------------------
-    cout <<"*******  DISPLACEMENT COMPONENTS of ID node "<< IDPoint << " *******"<< std::endl;
-    for ( UInt k = IDPoint - 1 ; k <= solid.displacement().size() - 1; k = k + solid.displacement().size()/nDimensions )
-    {
-        file_comp<< solid.displacement()[ k ] << " ";
-            cout.precision(16);
-        cout <<"*********************************************************"<< std::endl;
-        cout <<" solid.disp()[ "<< k <<" ] = "<<  solid.displacement()[ k ]  << std::endl;
-        cout <<"*********************************************************"<< std::endl;
-    }
-    file_comp<< endl;
-    */
+      /* This part lets to save the displacement at one point of the mesh and to check the result
+	 w.r.t. manufactured solution.
+	 //!--------------------------------------------------------------------------------------------------
+	 //! MATLAB FILE WITH DISPLACEMENT OF A CHOOSEN POINT
+	 //!--------------------------------------------------------------------------------------------------
+	 cout <<"*******  DISPLACEMENT COMPONENTS of ID node "<< IDPoint << " *******"<< std::endl;
+	 for ( UInt k = IDPoint - 1 ; k <= solid.displacement().size() - 1; k = k + solid.displacement().size()/nDimensions )
+	 {
+	 file_comp<< solid.displacement()[ k ] << " ";
+	 cout.precision(16);
+	 cout <<"*********************************************************"<< std::endl;
+	 cout <<" solid.disp()[ "<< k <<" ] = "<<  solid.displacement()[ k ]  << std::endl;
+	 cout <<"*********************************************************"<< std::endl;
+	 }
+	 file_comp<< endl;
+      */
 
-    Real normVect;
-    normVect =  solid.displacement().norm2();
-    std::cout << "The norm 2 of the displacement field is: "<< normVect << std::endl;
+      Real normVect;
+      normVect =  solid.displacement().norm2();
+      std::cout << "The norm 2 of the displacement field is: "<< normVect << std::endl;
 
     ///////// CHECKING THE RESULTS OF THE TEST AT EVERY TIMESTEP
         if (!dataStructure->solidType().compare("linearVenantKirchhoff"))
-          CheckResultLE(normVect,time);
+          CheckResultLE(normVect, dataStructure->dataTime()->time() );
         else if (!dataStructure->solidType().compare("nonLinearVenantKirchhoff"))
-          CheckResultSVK(normVect,time);
+          CheckResultSVK(normVect, dataStructure->dataTime()->time() );
         else if (!dataStructure->solidType().compare("exponential"))
-          CheckResultEXP(normVect,time );
+          CheckResultEXP(normVect, dataStructure->dataTime()->time() );
         else
-          CheckResultNH(normVect,time );
+          CheckResultNH(normVect, dataStructure->dataTime()->time() );
 
     ///////// END OF CHECK
 
@@ -532,48 +535,48 @@ Structure::run3d()
 
 void Structure::CheckResultLE(const Real& dispNorm,const Real& time)
 {
-    if ( time == 0.1  && std::fabs(dispNorm-0.276527)>1e-5 )
+    if ( time == 0.1  && std::fabs(dispNorm-0.276527)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.2  && std::fabs(dispNorm-0.276536)>1e-5 )
+    if ( time == 0.2  && std::fabs(dispNorm-0.276536)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.3  && std::fabs(dispNorm-0.276529)>1e-5 )
+    if ( time == 0.3  && std::fabs(dispNorm-0.276529)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.4  && std::fabs(dispNorm-0.276531)>1e-5 )
+    if ( time == 0.4  && std::fabs(dispNorm-0.276531)<=1e-5 )
         this->resultChanged(time);
 }
 
 void Structure::CheckResultSVK(const Real& dispNorm,const Real& time)
 {
-    if ( time == 0.1  && std::fabs(dispNorm-0.263348)>1e-5 )
+    if ( time == 0.1  && std::fabs(dispNorm-0.263348)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.2  && std::fabs(dispNorm-0.263350)>1e-5 )
+    if ( time == 0.2  && std::fabs(dispNorm-0.263350)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.3  && std::fabs(dispNorm-0.263350)>1e-5 )
+    if ( time == 0.3  && std::fabs(dispNorm-0.263350)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.4  && std::fabs(dispNorm-0.263351)>1e-5 )
+    if ( time == 0.4  && std::fabs(dispNorm-0.263351)<=1e-5 )
         this->resultChanged(time);
 }
 void Structure::CheckResultEXP(const Real& dispNorm,const Real& time)
 {
-    if ( time == 0.1  && std::fabs(dispNorm-0.284844)>1e-5 )
+    if ( time == 0.1  && std::fabs(dispNorm-0.284844)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.2  && std::fabs(dispNorm-0.284853)>1e-5 )
+    if ( time == 0.2  && std::fabs(dispNorm-0.284853)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.3  && std::fabs(dispNorm-0.284846)>1e-5 )
+    if ( time == 0.3  && std::fabs(dispNorm-0.284846)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.4  && std::fabs(dispNorm-0.284848)>1e-5 )
+    if ( time == 0.4  && std::fabs(dispNorm-0.284848)<=1e-5 )
         this->resultChanged(time);
 }
 
 void Structure::CheckResultNH(const Real& dispNorm,const Real& time)
 {
-    if ( time == 0.1  && std::fabs(dispNorm-0.286120)>1e-5 )
+    if ( time == 0.1  && std::fabs(dispNorm-0.286120)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.2  && std::fabs(dispNorm-0.286129)>1e-5 )
+    if ( time == 0.2  && std::fabs(dispNorm-0.286129)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.3  && std::fabs(dispNorm-0.286122)>1e-5 )
+    if ( time == 0.3  && std::fabs(dispNorm-0.286122)<=1e-5 )
         this->resultChanged(time);
-    if ( time == 0.4  && std::fabs(dispNorm-0.286123)>1e-5 )
+    if ( time == 0.4  && std::fabs(dispNorm-0.286123)<=1e-5 )
         this->resultChanged(time);
 }
 
@@ -581,8 +584,8 @@ void Structure::CheckResultNH(const Real& dispNorm,const Real& time)
 
 void Structure::resultChanged(Real time)
 {
-  std::cout << "Some modifications led to changes in the l2 norm of the solution at time " << time << std::endl;
-  returnValue = EXIT_FAILURE;
+  std::cout << "Correct value at time: " << time << std::endl;
+  returnValue = EXIT_SUCCESS;
 }
 
 

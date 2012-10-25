@@ -80,6 +80,7 @@ namespace LifeV
 
 template < class Fct >
 Int NonLinearRichardson( VectorEpetra& sol,
+<<<<<<< HEAD
                       Fct&        functional,
                       Real        abstol,
                       Real        reltol,
@@ -90,6 +91,19 @@ Int NonLinearRichardson( VectorEpetra& sol,
                       UInt        verboseLevel = 0,
                       std::ostream& output = std::cout,
                       const Real& time = 0 )
+=======
+			 Fct&        functional,
+			 Real        abstol,
+			 Real        reltol,
+			 UInt&       maxit,
+			 Real        eta_max,
+			 Int         NonLinearLineSearch,
+			 UInt iter = UInt(0),
+			 UInt        verboseLevel = 0,
+			 std::ostream& output = std::cout,
+			 const Real& time = 0
+			 )
+>>>>>>> TimeAdvanceFSI
 {
     /*
         */

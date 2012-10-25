@@ -40,12 +40,11 @@
 #ifndef COMPOSEDPRECONDITIONER_HPP
 #define COMPOSEDPRECONDITIONER_HPP
 
-#include <boost/shared_ptr.hpp>
-#include <vector>
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <Epetra_Operator.h>
+#include <Epetra_MultiVector.h>
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
@@ -93,7 +92,7 @@ public:
     */
     ComposedOperator( const ComposedOperator<operator_Type>& P);
 
-    virtual ~ComposedOperator( );
+    virtual ~ComposedOperator();
     //@}
 
     //!@name Public Methods
@@ -345,7 +344,7 @@ ComposedOperator<operator_Type>::ComposedOperator( const ComposedOperator<operat
 template <typename operator_Type>
 ComposedOperator<operator_Type>::~ComposedOperator()
 {
-
+    M_operator.clear();
 }
 
 // ===================================================

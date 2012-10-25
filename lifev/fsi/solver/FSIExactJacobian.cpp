@@ -308,28 +308,32 @@ void FSIExactJacobian::eval(const vector_Type& _disp,
         if ( iter==0 || !this->M_data->dataFluid()->isSemiImplicit() )
         {
             *M_beta *= 0.;
-            vector_Type meshDisp( M_meshMotion->disp(), Repeated );
 
             if( iter==0 )
             {
                 M_ALETimeAdvance->updateRHSFirstDerivative(M_data->dataFluid()->dataTime()->timeStep());
-                M_ALETimeAdvance->shiftRight(meshDisp);
-                M_ALETimeAdvance->extrapolation(meshDisp);//closer initial solution
+                M_ALETimeAdvance->shiftRight(M_meshMotion->disp());
+                M_ALETimeAdvance->extrapolation(M_meshMotion->disp());//closer initial solution
             }
             else
             {
-                M_ALETimeAdvance->setSolution(meshDisp);
+                M_ALETimeAdvance->setSolution(M_meshMotion->disp());
             }
 
-            this->moveMesh(meshDisp);
+            vector_Type meshDispRepeated( M_meshMotion->disp(), Repeated );
+            this->moveMesh(meshDispRepeated);
             vector_Type vel ( this->M_ALETimeAdvance->velocity( ) );
             transferMeshMotionOnFluid( vel, veloFluidMesh() );
             M_fluidTimeAdvance->extrapolation(*M_beta);//explicit
             *M_beta -= veloFluidMesh();//implicit
 
 
+	    //the conservative formulation as it is now is of order 1. To have higher order (TODO) we need to store the mass matrices computed at the previous time steps.
 	    if(M_data->dataFluid()->conservativeFormulation())
-	      *M_rhs = M_fluid->matrixMass()*M_fluidTimeAdvance->rhsContributionFirstDerivative();
+	      //*M_rhs = M_fluid->matrixMass()*M_fluidTimeAdvance->rhsContributionFirstDerivative();
+	      *M_rhs = M_fluidMassTimeAdvance->rhsContributionFirstDerivative();
+
+
             if (recomputeMatrices)
             {
                 double alpha = M_fluidTimeAdvance->coefficientFirstDerivative(0)/M_data->dataFluid()->dataTime()->timeStep();
@@ -340,7 +344,10 @@ void FSIExactJacobian::eval(const vector_Type& _disp,
                 this->M_fluid->updateRightHandSide( *M_rhs );
             }
 	    if(!M_data->dataFluid()->conservativeFormulation())
-	      *M_rhs = M_fluid->matrixMass()*M_fluidTimeAdvance->rhsContributionFirstDerivative();
+	      {
+		*M_rhs = M_fluid->matrixMass()*M_fluidTimeAdvance->rhsContributionFirstDerivative();
+		this->M_fluid->updateRightHandSide( *M_rhs );
+	      }
         }
 
         this->M_fluid->iterate( *M_BCh_u );

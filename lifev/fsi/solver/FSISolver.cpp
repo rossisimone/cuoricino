@@ -55,7 +55,7 @@ FSISolver::FSISolver():
         M_interComm         ( new MPI_Comm )
 {
 #ifdef DEBUG
-    Debug( 6220 ) << "FSISolver::FSISolver constructor starts\n";
+    debugStream( 6220 ) << "FSISolver::FSISolver constructor starts\n";
 #endif
 }
 
@@ -145,7 +145,7 @@ FSISolver::setData( const dataPtr_Type& data )
 #ifdef DEBUG
     if ( fluid )
     {
-        Debug(6220) << M_epetraComm->MyPID()
+        debugStream(6220) << M_epetraComm->MyPID()
         << " ( " << rank << " ) "
         << " out of " << M_epetraComm->NumProc()
         << " ( " << numtasks << " ) "
@@ -153,7 +153,7 @@ FSISolver::setData( const dataPtr_Type& data )
     }
     if ( solid )
     {
-        Debug(6220) << M_epetraComm->MyPID()
+        debugStream(6220) << M_epetraComm->MyPID()
         << " ( " << rank << " ) "
         << " out of " << M_epetraComm->NumProc()
         << " ( " << numtasks << " ) "
@@ -212,7 +212,7 @@ FSISolver::setData( const dataPtr_Type& data )
     M_epetraWorldComm->Barrier();
 
 #ifdef DEBUG
-    Debug( 6220 ) << "FSISolver constructor ends\n";
+    debugStream( 6220 ) << "FSISolver constructor ends\n";
 #endif
 
 //@     M_lambda.resize(M_oper->displacement().size());
@@ -221,8 +221,8 @@ FSISolver::setData( const dataPtr_Type& data )
 //     M_lambda   = ZeroVector( M_lambda.size() );
 //     M_lambdaDot   = ZeroVector( M_lambdaDot.size() );
 
-//     Debug( 6220 ) << "FSISolver::M_lambda: " << M_lambda.size() << "\n";
-//     Debug( 6220 ) << "FSISolver::M_lambdaDot: " << M_lambdaDot.size() << "\n";
+//     debugStream( 6220 ) << "FSISolver::M_lambda: " << M_lambda.size() << "\n";
+//     debugStream( 6220 ) << "FSISolver::M_lambdaDot: " << M_lambdaDot.size() << "\n";
 
     M_oper->setData( data );
 }
@@ -237,20 +237,6 @@ FSISolver::setup( void )
     M_oper->buildSystem();
 }
 
-
-void
-FSISolver::initialize( const std::string& /*velFName*/,
-                       const std::string& /*pressName*/,
-                       const std::string& /*velwName*/,
-                       const std::string& /*depName*/,
-                       const std::string& /*velSName*/,
-                       const Real&        /*Tstart = 0.*/)
-{
-//             M_oper->fluid().initialize(velFName, pressName, velwName, Tstart);
-//             M_oper->solid().initialize(depName, velSName, Tstart);
-}
-
-
 void
 FSISolver::initialize(std::vector< vectorPtr_Type> u0, std::vector< vectorPtr_Type> ds0, std::vector< vectorPtr_Type> df0)
 {
@@ -260,61 +246,54 @@ FSISolver::initialize(std::vector< vectorPtr_Type> u0, std::vector< vectorPtr_Ty
       if ( this->isFluid() )
       {
         for(i=0; i<M_oper->fluidTimeAdvance()->size(); ++i)
-	  {
+      {
             vectorPtr_Type vec(new vector_Type(M_oper->fluid().getMap()));
             u0.push_back(vec);// couplingVariableMap()
-	  }
+      }
         for(i=0; i<M_oper->ALETimeAdvance()->size(); ++i)
-	  {
+      {
             vectorPtr_Type vec(new vector_Type(M_oper->meshMotion().getMap()));
             df0.push_back(vec);// couplingVariableMap()
-	  }
+      }
       }
       if ( this->isSolid() )
       {
         for(i=0; i<M_oper->solidTimeAdvance()->size(); ++i)
-	  {
+      {
             vectorPtr_Type vec(new vector_Type(M_oper->solid().map()));
             ds0.push_back(vec);// couplingVariableMap()
-	  }
+      }
       }
       M_oper->initializeTimeAdvance(u0, ds0, df0);
       //  M_oper->initializeBDF(*u0);
     }
     else
     {
-
         M_oper->initializeTimeAdvance(u0, ds0, df0); // couplingVariableMap()//copy
     }
 }
-
-void
-FSISolver::initialize( fluidFunction_Type const& u0,
-                       fluidFunction_Type const& p0,
-                       solidFunction_Type const& d0,
-                       solidFunction_Type const& w0,
-                       fluidFunction_Type const& df0)
-{
-}
-
 
 
 void
 FSISolver::iterate()
 {
-    Debug( 6220 ) << "============================================================\n";
-    Debug( 6220 ) << "Solving FSI at time " << M_data->dataFluid()->dataTime()->time() << " with FSI: " << M_data->method()  << "\n";
-    Debug( 6220 ) << "============================================================\n";
+    debugStream( 6220 ) << "============================================================\n";
+    debugStream( 6220 ) << "Solving FSI at time " << M_data->dataFluid()->dataTime()->time() << " with FSI: " << M_data->method()  << "\n";
+    debugStream( 6220 ) << "============================================================\n";
+
+    if (M_epetraWorldComm->MyPID() == 0)
+    {
+        std::cerr << std::endl << "Warning: FSISolver::iterate() is deprecated!" << std::endl
+                  << "         You should use FSISolver::iterate( solution ) instead!" << std::endl;
+    }
 
     // Update the system
     M_oper->updateSystem( );
 
-    // We extract a pointer to the solution (\todo{uselessly})
-    //    vector_Type* lambda = M_oper->solutionPtr();
+    // We extract a copy of the solution (\todo{uselessly})
     vector_Type lambda = M_oper->solution();
-    //M_oper->solutionPtr(lambda);//copy of a shared_ptr
 
-    // the newton solver
+    // The Newton solver
     UInt maxiter = M_data->maxSubIterationNumber();
     UInt status = NonLinearRichardson( lambda,
                                        *M_oper,
@@ -323,12 +302,13 @@ FSISolver::iterate()
                                        maxiter,
                                        M_data->errorTolerance(),
                                        M_data->NonLinearLineSearch(),
-                                       0,
-                                       2,
+                                       0,/*first newton iter*/
+                                       2,/*verbosity level*/
                                        M_out_res,
-                                       M_data->dataFluid()->dataTime()->time() );
+                                       M_data->dataFluid()->dataTime()->time()
+                       );
 
-    // We update the solution pointer
+    // We update the solution
     M_oper->updateSolution( lambda );
 
     // Update the system
@@ -349,8 +329,63 @@ FSISolver::iterate()
         }
     }
 
-    Debug( 6220 ) << "FSISolver iteration at time " << M_data->dataFluid()->dataTime()->time() << " done\n";
-    Debug( 6220 ) << "============================================================\n";
+    debugStream( 6220 ) << "FSISolver iteration at time " << M_data->dataFluid()->dataTime()->time() << " done\n";
+    debugStream( 6220 ) << "============================================================\n";
+    std::cout << std::flush;
+}
+
+
+void
+FSISolver::iterate( vectorPtr_Type& solution )
+{
+    debugStream( 6220 ) << "============================================================\n";
+    debugStream( 6220 ) << "Solving FSI at time " << M_data->dataFluid()->dataTime()->time() << " with FSI: " << M_data->method()  << "\n";
+    debugStream( 6220 ) << "============================================================\n";
+
+    // Update the system
+    M_oper->updateSystem( );
+
+    // The initial guess for the Newton method is received from outside.
+    // For instance, it can be the solution at the previous time or an extrapolation
+    vector_Type lambda ( *solution );
+
+
+    // the newton solver
+    UInt maxiter = M_data->maxSubIterationNumber();
+    UInt status = NonLinearRichardson( lambda,
+                                       *M_oper,
+                                       M_data->absoluteTolerance(),
+                                       M_data->relativeTolerance(),
+                                       maxiter,
+                                       M_data->errorTolerance(),
+                                       M_data->NonLinearLineSearch(),
+                                       0,/*first newton iter*/
+                                       2,/*verbosity level*/
+                                       M_out_res,
+                                       M_data->dataFluid()->dataTime()->time()
+                       );
+
+    // After the Newton method, the solution that was received is modified with the current solution
+    // It is passed outside where it is used as the user wants.
+    *solution = lambda;
+
+    if (status == EXIT_FAILURE)
+    {
+        std::ostringstream __ex;
+        __ex << "FSISolver::iterate ( " << M_data->dataFluid()->dataTime()->time() << " ) Inners iterations failed to converge\n";
+        throw std::logic_error( __ex.str() );
+    }
+    else
+    {
+        //M_oper->displayer().leaderPrint("FSI-  Number of inner iterations:              ", maxiter, "\n" );
+        if (M_epetraWorldComm->MyPID() == 0)
+        {
+            M_out_iter << M_data->dataFluid()->dataTime()->time() << " " << maxiter;
+        }
+    }
+
+    debugStream( 6220 ) << "FSISolver iteration at time " << M_data->dataFluid()->dataTime()->time() << " done\n";
+    debugStream( 6220 ) << "============================================================\n";
     std::cout << std::flush;
 }
 
@@ -368,7 +403,7 @@ FSISolver::setSourceTerms( const fluidSource_Type& fluidSource,
 void
 FSISolver::setFSI( )
 {
-    Debug( 6220 ) << "FSISolver::setFSI with operator " << M_data->method() << "\n";
+    debugStream( 6220 ) << "FSISolver::setFSI with operator " << M_data->method() << "\n";
     M_oper = FSIOperPtr_Type( FSIOperator::FSIFactory_Type::instance().createObject( M_data->method() ) );
 }
 

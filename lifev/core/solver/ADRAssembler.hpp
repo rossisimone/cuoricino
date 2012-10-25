@@ -39,16 +39,21 @@
 #ifndef ADRASSEMBLER_H
 #define ADRASSEMBLER_H 1
 
-#include <lifev/core/util/LifeChrono.hpp>
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+#include <boost/scoped_ptr.hpp>
+
+#pragma GCC diagnostic warning "-Wunused-variable"
+#pragma GCC diagnostic warning "-Wunused-parameter"
+
 #include <lifev/core/LifeV.hpp>
+
+#include <lifev/core/util/LifeChrono.hpp>
 
 #include <lifev/core/fem/Assembly.hpp>
 #include <lifev/core/fem/FESpace.hpp>
 #include <lifev/core/fem/AssemblyElemental.hpp>
-
-#include <boost/shared_ptr.hpp>
-#include <boost/scoped_ptr.hpp>
-
 
 namespace LifeV
 {
@@ -554,12 +559,13 @@ addAdvection(matrix_ptrType matrix, const vector_type& beta, const UInt& offsetL
     // Some constants
     const UInt nbElements(M_fespace->mesh()->numElements());
     const UInt fieldDim(M_fespace->fieldDim());
+    const UInt betaFieldDim(M_betaFESpace->fieldDim());
     const UInt nbTotalDof(M_fespace->dof().numTotalDof());
     const UInt nbQuadPt(M_advCFE->nbQuadPt());
 
     // Temporaries
     //Real localValue(0);
-    std::vector< std::vector< Real > > localBetaValue(nbQuadPt, std::vector<Real>(3,0.0));
+    std::vector< std::vector< Real > > localBetaValue(nbQuadPt, std::vector<Real>( betaFieldDim, 0.0 ) );
 
     // Loop over the elements
     for (UInt iterElement(0); iterElement < nbElements; ++iterElement)
@@ -572,10 +578,10 @@ addAdvection(matrix_ptrType matrix, const vector_type& beta, const UInt& offsetL
         M_localAdv->zero();
 
         // Interpolate beta in the quadrature points
-        AssemblyElemental::interpolate(localBetaValue,*M_advBetaCFE,3,M_betaFESpace->dof(),iterElement,beta);
+        AssemblyElemental::interpolate(localBetaValue,*M_advBetaCFE,betaFieldDim,M_betaFESpace->dof(),iterElement,beta);
 
         // Assemble the advection
-        AssemblyElemental::advection(*M_localAdv,*M_advCFE,localBetaValue,fieldDim);
+        AssemblyElemental::advection(*M_localAdv,*M_advCFE,1.0,localBetaValue,fieldDim);
 
 
         // Assembly

@@ -218,7 +218,7 @@ main( int argc, char** argv )
     // +-----------------------------------------------+
     if (verbose) std::cout << std::endl << "[Loading the mesh]" << std::endl;
 
-    boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr(new RegionMesh<LinearTetra>);
+    boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr( new RegionMesh<LinearTetra>( *Comm ) );
 
     // Building the mesh from the source
     if(meshSource == RegularMesh)
@@ -253,7 +253,11 @@ main( int argc, char** argv )
                         MeshUtility::MeshStatistics::computeSize(*fullMeshPtr).maxH << std::endl;
     }
     if (verbose) std::cout << "Partitioning the mesh ... " << std::endl;
-    MeshPartitioner< RegionMesh<LinearTetra> >   meshPart(fullMeshPtr, Comm);
+    boost::shared_ptr<RegionMesh<LinearTetra> > meshPtr;
+    {
+        MeshPartitioner< RegionMesh<LinearTetra> >   meshPart(fullMeshPtr, Comm);
+        meshPtr = meshPart.meshPartition();
+    }
     fullMeshPtr.reset(); //Freeing the global mesh to save memory
 
     // +-----------------------------------------------+
@@ -267,11 +271,11 @@ main( int argc, char** argv )
                            << "FE for the pressure: " << pOrder << std::endl;
 
     if (verbose) std::cout << "Building the velocity FE space ... " << std::flush;
-    fespacePtr_Type uFESpace( new FESpace< mesh_Type, MapEpetra >(meshPart,uOrder, numDimensions, Comm));
+    fespacePtr_Type uFESpace( new fespace_Type( meshPtr, uOrder, numDimensions, Comm ) );
     if (verbose) std::cout << "ok." << std::endl;
 
     if (verbose) std::cout << "Building the pressure FE space ... " << std::flush;
-    fespacePtr_Type pFESpace( new FESpace< mesh_Type, MapEpetra >(meshPart,pOrder, 1, Comm));
+    fespacePtr_Type pFESpace( new fespace_Type( meshPtr, pOrder, 1, Comm ) );
     if (verbose) std::cout << "ok." << std::endl;
 
     // Creation of the total map
@@ -303,7 +307,7 @@ main( int argc, char** argv )
     if (verbose) std::cout << "ok." << std::endl;
 
     // Update the BCHandler (internal data related to FE)
-    bcHandler.bcUpdate( *meshPart.meshPartition(), uFESpace->feBd(), uFESpace->dof());
+    bcHandler.bcUpdate( *meshPtr, uFESpace->feBd(), uFESpace->dof());
 
     // +-----------------------------------------------+
     // |              Matrices Assembly                |
@@ -369,7 +373,7 @@ main( int argc, char** argv )
     fluxHandler.addBC("Flux" , 1,  Flux, Normal, flow);
 
     // Update the BCHandler (internal data related to FE)
-    fluxHandler.bcUpdate( *meshPart.meshPartition(), uFESpace->feBd(), uFESpace->dof());
+    fluxHandler.bcUpdate( *meshPtr, uFESpace->feBd(), uFESpace->dof());
 
     vector_Type fluxVector(solutionMap);
     oseenAssembler.addFluxTerms(fluxVector, fluxHandler);
@@ -399,13 +403,9 @@ main( int argc, char** argv )
     vectorPtr_Type beta;
     beta.reset(new vector_Type(solutionMap,Repeated));
 
-// <<<<<<< HEAD
     vector_Type convect(rhs->map());
 
     vectorPtr_Type velocity;
-// =======
-//    vectorPtr_Type velocity;
-    //>>>>>>> master
     velocity.reset(new vector_Type(uFESpace->map(),Unique));
 
     vectorPtr_Type pressure;
@@ -433,7 +433,7 @@ main( int argc, char** argv )
         *solution *= 0;
         *solution = *velocity;
         *beta *= 0;
-        oseenAssembler.addConvectionRhs(*beta,*solution);
+        oseenAssembler.addConvectionRhs(*beta,1.,*solution);
         bdfConvection.setInitialCondition( *beta );
         bdfConvectionInit.setInitialCondition( *beta );
 
@@ -444,7 +444,7 @@ main( int argc, char** argv )
                 uFESpace->interpolate( static_cast<FESpace< mesh_Type, MapEpetra >::function_Type>( problem_Type::uexact ), *velocity, currentTime-(3-i)*timestep );
                 *solution = *velocity;
                 *beta *= 0;
-                oseenAssembler.addConvectionRhs(*beta,*solution);
+                oseenAssembler.addConvectionRhs(*beta,1.,*solution);
                 bdfConvectionInit.shiftRight( *beta );
             }
         }
@@ -486,18 +486,18 @@ main( int argc, char** argv )
             *systemMatrix += *baseMatrix;
             if(convectionTerm == SemiImplicit)
             {
-                oseenAssembler.addConvection(*systemMatrix,*solution);
+                oseenAssembler.addConvection(*systemMatrix,1.0,*solution);
             }
             else if(convectionTerm == Explicit)
             {
-                oseenAssembler.addConvectionRhs(*rhs,*solution);
+                oseenAssembler.addConvectionRhs(*rhs,1.,*solution);
             }
             else if(convectionTerm == KIO91)
             {
 	      bdfConvectionInit.extrapolation(convect);
 	      *rhs -= convect;
 	      *beta *= 0;
-	      oseenAssembler.addConvectionRhs(*beta,*solution);
+	      oseenAssembler.addConvectionRhs(*beta,1.,*solution);
 	      bdfConvectionInit.shiftRight(*beta);
             }
 
@@ -520,7 +520,7 @@ main( int argc, char** argv )
         if(convectionTerm == KIO91)
         {
             *beta *= 0;
-            oseenAssembler.addConvectionRhs(*beta,*solution);
+            oseenAssembler.addConvectionRhs(*beta,1.,*solution);
             bdfConvection.shiftRight(*beta);
         }
 
@@ -534,7 +534,7 @@ main( int argc, char** argv )
     if (verbose) std::cout << "Defining the exporter... " << std::flush;
     ExporterHDF5<mesh_Type> exporter ( dataFile, "OseenAssembler");
     exporter.setPostDir( "./" ); // This is a test to see if M_post_dir is working
-    exporter.setMeshProcId( meshPart.meshPartition(), Comm->MyPID() );
+    exporter.setMeshProcId( meshPtr, Comm->MyPID() );
     if (verbose) std::cout << "done" << std::endl;
 
     if (verbose) std::cout << "Updating the exporter... " << std::flush;
@@ -581,11 +581,11 @@ main( int argc, char** argv )
         {
           //  *beta = bdf.extrapolation(); // Extrapolation for the convective term
           bdf.extrapolation( *beta ); // Extrapolation for the convective term
-	  oseenAssembler.addConvection(*systemMatrix,*beta);
+	  oseenAssembler.addConvection(*systemMatrix,1.0,*beta);
         }
         else if(convectionTerm == Explicit)
         {
-            oseenAssembler.addConvectionRhs(*rhs,*solution);
+            oseenAssembler.addConvectionRhs(*rhs,1.,*solution);
         }
         else if(convectionTerm == KIO91)
         {
@@ -612,7 +612,7 @@ main( int argc, char** argv )
         if(convectionTerm == KIO91)
         {
             *beta *= 0;
-            oseenAssembler.addConvectionRhs(*beta,*solution);
+            oseenAssembler.addConvectionRhs(*beta,1.,*solution);
             bdfConvection.shiftRight(*beta);
         }
 

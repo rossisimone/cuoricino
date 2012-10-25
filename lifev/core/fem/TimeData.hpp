@@ -27,7 +27,7 @@
 
 /*!
     @file
-    @brief File containing a class for handling temporal data
+    @brief File containing a class for handling temporal discretization
 
     @author M.A. Fernandez
     @author Cristiano Malossi <cristiano.malossi@epfl.ch>
@@ -41,18 +41,26 @@
 #ifndef TimeData_H
 #define TimeData_H 1
 
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 #include <ostream>
+
+#pragma GCC diagnostic warning "-Wunused-variable"
+#pragma GCC diagnostic warning "-Wunused-parameter"
+
+
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/LifeV.hpp>
 
 namespace LifeV
 {
 
-//! TimeData - Class for handling temporal data
+//! TimeData - Class for handling temporal discretization.
 /*!
  *  @author Cristiano Malossi
  *
- *  The class is a data container for the time.
+ *  The class is a data container for the time discretization.
  */
 class TimeData
 {
@@ -107,6 +115,13 @@ public:
      * @return true if time = initial time, false viceversa
      */
     bool isFirstTimeStep() { return round( M_time ) == round( M_initialTime ); }
+
+    //! Return if it is the N time step with respect to the current initial time
+    /*!
+     * @param n time step number
+     * @return true if time - (n - 1) * timeStep == initialTime, false viceversa
+     */
+    bool isFirstNTimeStep( const UInt& n ) { return round( M_time - (n - 1) * M_timeStep ) == round( M_initialTime ); }
 
     //! Return if it is the last time step
     /*!
@@ -230,19 +245,29 @@ public:
      */
     const UInt& timeStepNumber() const { return M_timeStepNumber; }
 
-    //@}
+  //@}
 
 private:
 
     Real round( const Real& n, const Int& decimal=10 ) const;
 
-    Real                    M_initialTime;    // initial time
-    Real                    M_endTime;        // end time
-    Real                    M_periodTime;     // period time
-    Real                    M_inCycleTime;    // in cycle time
-    Real                    M_time;           // time
-    Real                    M_timeStep;       // time step
-    UInt                    M_timeStepNumber; // iteration number
+    //! initial time
+    Real                    M_initialTime;
+
+    //! end time
+    Real                    M_endTime;
+
+    //! period time
+    Real                    M_periodTime;
+
+    //! current time
+    Real                    M_time;
+
+    //! time step
+    Real                    M_timeStep;
+
+    //! iteration number
+    UInt                    M_timeStepNumber;
 };
 
 } // namespace LifeV

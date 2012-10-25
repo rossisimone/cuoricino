@@ -40,6 +40,8 @@
 #define MONOLITHICBLOCKCOMPOSED_H 1
 
 #include <lifev/core/LifeV.hpp>
+#include <Epetra_Operator.h>
+#include <lifev/core/algorithm/ComposedOperator.hpp>
 #include <lifev/fsi/solver/MonolithicBlock.hpp>
 
 #include <boost/scoped_ptr.hpp>
@@ -231,9 +233,7 @@ public:
     //! returns the vector of pointers to the coupling blocks (by const reference).
     const std::vector<matrixPtr_Type>& couplingVector() const {return M_coupling;}
 
-    //const std::vector<Int>& blockReordering(){return M_blockReordering;}
-
-    //@}
+  //@}
 
     //!@name Set Methods
     //@{

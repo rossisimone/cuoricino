@@ -66,8 +66,8 @@
 
 #include <lifev/core/algorithm/NonLinearAitken.hpp>
 
-#include <lifev/structure/solver/StructuralSolver.hpp>
-#include <lifev/structure/solver/StructuralMaterial.hpp>
+#include <lifev/structure/solver/StructuralOperator.hpp>
+#include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinear.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
 #include <lifev/structure/solver/ExponentialMaterialNonLinear.hpp>
@@ -120,10 +120,10 @@ public:
 #endif
 
     typedef OseenSolverShapeDerivative   <mesh_Type>                                fluid_Type;
-    typedef StructuralSolver  <mesh_Type>                                           solid_Type;
+    typedef StructuralOperator  <mesh_Type>                                           solid_Type;
     typedef HarmonicExtensionSolver<mesh_Type>                                      meshMotion_Type;
     typedef OseenSolverShapeDerivative   <mesh_Type>                                fluidLin_Type;
-    typedef StructuralSolver  <mesh_Type>                                           solidLin_Type;
+    typedef StructuralOperator  <mesh_Type>                                           solidLin_Type;
     typedef boost::shared_ptr<fluid_Type>                                           fluidPtr_Type;
     typedef boost::shared_ptr<solid_Type>                                           solidPtr_Type;
     typedef boost::shared_ptr<meshMotion_Type>                                      meshMotionPtr_Type;
@@ -284,8 +284,8 @@ public:
      */
     virtual void initialize( fluidPtr_Type::value_type::function_Type const& u0,
                              fluidPtr_Type::value_type::function_Type const& p0,
-                             solidPtr_Type::value_type::Function const& d0,
-                             solidPtr_Type::value_type::Function const& w0,
+                             solidPtr_Type::value_type::function const& d0,
+                             solidPtr_Type::value_type::function const& w0,
                              fluidPtr_Type::value_type::function_Type const& df0 );
 
     //@}
@@ -303,12 +303,12 @@ public:
 
     //!@name Factory Methods
     //@{
-    static StructuralMaterial< FSIOperator::mesh_Type >*    createVenantKirchhoffLinear(){ return new VenantKirchhoffMaterialLinear< FSIOperator::mesh_Type >(); }
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createVenantKirchhoffLinear(){ return new VenantKirchhoffMaterialLinear< FSIOperator::mesh_Type >(); }
 
-    static StructuralMaterial< FSIOperator::mesh_Type >*    createVenantKirchhoffNonLinear(){ return new VenantKirchhoffMaterialNonLinear< FSIOperator::mesh_Type >(); }
-    static StructuralMaterial< FSIOperator::mesh_Type >*    createExponentialMaterialNonLinear(){ return new ExponentialMaterialNonLinear< FSIOperator::mesh_Type >(); }
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createVenantKirchhoffNonLinear(){ return new VenantKirchhoffMaterialNonLinear< FSIOperator::mesh_Type >(); }
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createExponentialMaterialNonLinear(){ return new ExponentialMaterialNonLinear< FSIOperator::mesh_Type >(); }
 
-    static StructuralMaterial< FSIOperator::mesh_Type >*    createNeoHookeanMaterialNonLinear(){ return new NeoHookeanMaterialNonLinear< FSIOperator::mesh_Type >(); }
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createNeoHookeanMaterialNonLinear(){ return new NeoHookeanMaterialNonLinear< FSIOperator::mesh_Type >(); }
 
     //@}
 
@@ -320,7 +320,7 @@ public:
     //@{
     //!Initializes the TimeAdvance scheme which should handle the fluid time discretization, solid and move mesh
     /**
-       \todo{a general time advancing class should be used everywhere}
+       Initialization of the time advancing classes for fluid, structure and geometry problem.
      */
     void initializeTimeAdvance( const std::vector<vectorPtr_Type>& initialFluidVel, const std::vector<vectorPtr_Type>& initialSolidDisp,const std::vector<vectorPtr_Type>&  initialFluiDisp);
 
@@ -422,6 +422,12 @@ public:
      */
     //@{
 
+    //! Get the extrapolation of the solution
+    /*!
+     *  @param extrapolation vector to be filled with the extrapolated solution
+     */
+    void extrapolation( vector_Type& extrapolation ) const { M_fluidTimeAdvance->extrapolation( extrapolation ); }
+
 //     vector_Type & displacement()                                        { return *M_lambdaSolid; }
 //     vector_Type & displacementOld()                                     { return *M_lambdaSolidOld; }
 //     vector_Type & residual();
@@ -499,9 +505,9 @@ public:
     // const mesh_Type& solidMesh()                                  const { return *M_solidMesh; }
 
     //!getter for the partitioned fluid mesh
-    const MeshPartitioner< mesh_Type >& fluidMeshPart()           const { return *M_fluidMeshPart; }
+    mesh_Type & fluidLocalMesh()                                        { return *M_fluidLocalMesh; }
     //!getter for the partitioned solid mesh
-    const MeshPartitioner< mesh_Type >& solidMeshPart()           const { return *M_solidMeshPart; }
+    mesh_Type & solidLocalMesh()                                        { return *M_solidLocalMesh; }
 
     //!getter for the fluid velocity FESpace
     const FESpace<mesh_Type, MapEpetra>& uFESpace()               const { return *M_uFESpace; }
@@ -574,9 +580,6 @@ public:
     //! Getter for the right hand side
     const vectorPtr_Type& getRHS()                                  const { return M_rhs; }
 
-    //! getter for the fluid velocity
-    const vector_Type& un()                                      const { return M_fluidTimeAdvance->solution(); }
-
     const boost::shared_ptr<TimeAdvance<vector_Type> > ALETimeAdvance()const { return  M_ALETimeAdvance; }
     const boost::shared_ptr<TimeAdvance<vector_Type> > fluidTimeAdvance()const { return  M_fluidTimeAdvance; }
     const boost::shared_ptr<TimeAdvance<vector_Type> > solidTimeAdvance()const { return  M_solidTimeAdvance; }
@@ -585,20 +588,14 @@ public:
     const string fluidTimeAdvanceMethod()const { return  M_fluidTimeAdvanceMethod; }
     const string solidTimeAdvanceMethod()const { return  M_solidTimeAdvanceMethod; }
 
-
     //! gets the solution vector by reference
     virtual const vector_Type& solution()                           const { return *M_lambda; }
-
-    //! gets a pointer to the solution vector by reference
-
 
     //! gets the solid displacement by copy
     virtual void getSolidDisp( vector_Type& soliddisp )                 { soliddisp = M_solid->displacement(); }
 
     //! gets the solid velocity by copy
     virtual void getSolidVel( vector_Type& solidvel )                   { solidvel = M_solidTimeAdvance->velocity(); }
-
-    virtual vector_Type* solutionPtr()                                 { return M_lambda.get(); }
 
     //! Export the solid displacement by copying it to an external vector
     /*!
@@ -618,7 +615,7 @@ public:
     /*!
      * @param solidAcc vector to be filled with the solid acceleration
      */
-    virtual void exportSolidAcceleration( vector_Type& solidAcc ) { solidAcc = M_solidTimeAdvance->accelerate(); }
+    virtual void exportSolidAcceleration( vector_Type& solidAcc ) { solidAcc = M_solidTimeAdvance->acceleration(); }
 
 
     //! Getter for the right hand side
@@ -744,17 +741,10 @@ public:
     void setDerFluidLoadToFluid              ( const vector_Type& dload, UInt type = 0 );
     void setRobinOuterWall                   ( const function_Type& dload, const function_Type& E);
 
-    //! sets the solution vector by reference
-    virtual void setSolutionPtr              ( const vectorPtr_Type& sol ) { M_lambda = sol; }
-
-    //! sets the solution vector by copy
-    virtual void setSolution                 ( const vector_Type& solution ) { M_lambda.reset( new vector_Type( solution ) ); }
-
-
     //! Setter for the time derivative of the interface displacement
     void setSolutionDerivative( const vector_Type& solutionDerivative ) { M_lambdaDot.reset( new vector_Type( solutionDerivative ) ); }
 
-    //! Setup of the TimeAdvance classes
+    //! Setup of the TimeAdvance classes given the input data file
     void
     setupTimeAdvance( const dataFile_Type& dataFile );
 
@@ -811,8 +801,8 @@ protected:
     boost::shared_ptr<mesh_Type>                      M_fluidMesh;
     boost::shared_ptr<mesh_Type>                      M_solidMesh;
 
-    boost::shared_ptr<MeshPartitioner< mesh_Type > >    M_fluidMeshPart;
-    boost::shared_ptr<MeshPartitioner< mesh_Type > >    M_solidMeshPart;
+    boost::shared_ptr<mesh_Type>                        M_fluidLocalMesh;
+    boost::shared_ptr<mesh_Type>                        M_solidLocalMesh;
 
     fluidBchandlerPtr_Type                              M_BCh_u;
     solidBchandlerPtr_Type                              M_BCh_d;
@@ -837,6 +827,7 @@ protected:
     std::string                                          M_ALETimeAdvanceMethod;
 
     boost::shared_ptr<TimeAdvance<vector_Type> >      M_fluidTimeAdvance;
+    boost::shared_ptr<TimeAdvance<vector_Type> >      M_fluidMassTimeAdvance;
     boost::shared_ptr<TimeAdvance<vector_Type> >      M_solidTimeAdvance;
     boost::shared_ptr<TimeAdvance<vector_Type> >      M_ALETimeAdvance;
 

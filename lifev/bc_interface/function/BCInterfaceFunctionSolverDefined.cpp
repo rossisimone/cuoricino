@@ -57,7 +57,7 @@ BCInterfaceFunctionSolverDefined< FSIOperator >::BCInterfaceFunctionSolverDefine
 {
 
 #ifdef HAVE_LIFEV_DEBUG
-    Debug( 5025 ) << "BCInterfaceFunctionSolverDefined::BCInterfaceFunctionSolverDefined()" << "\n";
+    debugStream( 5025 ) << "BCInterfaceFunctionSolverDefined::BCInterfaceFunctionSolverDefined()" << "\n";
 #endif
 
 }
@@ -70,7 +70,7 @@ BCInterfaceFunctionSolverDefined< FSIOperator >::exportData( BCInterfaceData3D& 
 {
 
 #ifdef HAVE_LIFEV_DEBUG
-    Debug( 5025 ) << "BCInterfaceFunctionSolverDefined::exportData" << "\n";
+    debugStream( 5025 ) << "BCInterfaceFunctionSolverDefined::exportData" << "\n";
 #endif
 
     data.setName( M_name );
@@ -85,7 +85,7 @@ BCInterfaceFunctionSolverDefined< FSIOperator >::updatePhysicalSolverVariables()
 {
 
 #ifdef HAVE_LIFEV_DEBUG
-    Debug( 5025 ) << "BCInterfaceFunctionSolverDefined::updatePhysicalSolverVariables" << "\n";
+    debugStream( 5025 ) << "BCInterfaceFunctionSolverDefined::updatePhysicalSolverVariables" << "\n";
 #endif
 
     switch ( M_FSIFunction )
@@ -115,14 +115,14 @@ BCInterfaceFunctionSolverDefined< FSIOperator >::updatePhysicalSolverVariables()
         // Update Time advance
         M_physicalSolver->solidTimeAdvance()->updateRHSFirstDerivative( timeStep );
 
-        Int verticesGlobalNumber( M_physicalSolver->solidMeshPart().meshPartition()->numGlobalVertices() );
-        for ( UInt i(0) ; i < M_physicalSolver->solidMeshPart().meshPartition()->numVertices() ; ++i )
+        Int verticesGlobalNumber( M_physicalSolver->solidLocalMesh().numGlobalVertices() );
+        for ( UInt i(0) ; i < M_physicalSolver->solidLocalMesh().numVertices() ; ++i )
         {
-            gid = M_physicalSolver->solidMeshPart().meshPartition()->meshTransformer().pointInitial( i ).id();
+            gid = M_physicalSolver->solidLocalMesh().meshTransformer().pointInitial( i ).id();
 
-            x   = M_physicalSolver->solidMeshPart().meshPartition()->meshTransformer().pointInitial( i ).x();
-            y   = M_physicalSolver->solidMeshPart().meshPartition()->meshTransformer().pointInitial( i ).y();
-            z   = M_physicalSolver->solidMeshPart().meshPartition()->meshTransformer().pointInitial( i ).z();
+            x   = M_physicalSolver->solidLocalMesh().meshTransformer().pointInitial( i ).x();
+            y   = M_physicalSolver->solidLocalMesh().meshTransformer().pointInitial( i ).y();
+            z   = M_physicalSolver->solidLocalMesh().meshTransformer().pointInitial( i ).z();
 
             alpha = M_vectorFunctionRobin[0]->functionTimeSpace( t, x, y, z, 0 );
             beta  = M_vectorFunctionRobin[1]->functionTimeSpace( t, x, y, z, 0 );
@@ -138,13 +138,6 @@ BCInterfaceFunctionSolverDefined< FSIOperator >::updatePhysicalSolverVariables()
             (*M_robinAlphaCoefficient)[gid + verticesGlobalNumber * 2] = alpha;
             (*M_robinBetaCoefficient)[gid + verticesGlobalNumber * 2]  = beta;
         }
-
-        // Set displacement and velocity at time tn (mid-point scheme for the solid)
-        FSIOperator::vector_Type displacementTn( M_physicalSolver->dFESpace().map(), Repeated, Zero );
-        FSIOperator::vector_Type velocityTn( M_physicalSolver->dFESpace().map(), Repeated, Zero );
-
-        M_physicalSolver->exportSolidDisplacement( displacementTn );
-        M_physicalSolver->exportSolidVelocity( velocityTn );
 
         *M_robinRHS = M_physicalSolver->solidTimeAdvance()->rhsContributionFirstDerivative();
 
@@ -163,7 +156,7 @@ BCInterfaceFunctionSolverDefined< FSIOperator >::setData( const BCInterfaceData3
 {
 
 #ifdef HAVE_LIFEV_DEBUG
-    Debug( 5025 ) << "BCInterfaceFunctionSolverDefined::setData" << "\n";
+    debugStream( 5025 ) << "BCInterfaceFunctionSolverDefined::setData" << "\n";
 #endif
 
     //Set mapFunction
@@ -219,7 +212,7 @@ BCInterfaceFunctionSolverDefined< OneDFSISolver >::BCInterfaceFunctionSolverDefi
 {
 
 #ifdef HAVE_LIFEV_DEBUG
-    Debug( 5025 ) << "BCInterfaceFunctionSolverDefined::BCInterfaceFunctionSolverDefined()" << "\n";
+    debugStream( 5025 ) << "BCInterfaceFunctionSolverDefined::BCInterfaceFunctionSolverDefined()" << "\n";
 #endif
 
 }
@@ -270,7 +263,7 @@ BCInterfaceFunctionSolverDefined< OneDFSISolver >::setData( const BCInterfaceDat
 {
 
 #ifdef HAVE_LIFEV_DEBUG
-    Debug( 5025 ) << "BCInterfaceFunctionSolverDefined::setData( data )" << "\n";
+    debugStream( 5025 ) << "BCInterfaceFunctionSolverDefined::setData( data )" << "\n";
 #endif
 
     //Set mapFunction

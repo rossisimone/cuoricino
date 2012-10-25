@@ -5,6 +5,7 @@ SET(filter_HEADERS
   filter/GetPot.hpp
   filter/Exporter.hpp
   filter/ImporterMesh3D.hpp
+  filter/ImporterMesh3DNew.hpp
   filter/Importer.hpp
   filter/ExporterEmpty.hpp
   filter/ExporterVTK.hpp
@@ -14,7 +15,6 @@ SET(filter_HEADERS
 CACHE INTERNAL "")
 
 SET(filter_SOURCES
-  filter/Exporter.cpp
   filter/Importer.cpp
   filter/ImporterMesh3D.cpp
 CACHE INTERNAL "")
