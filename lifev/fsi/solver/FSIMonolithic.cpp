@@ -428,13 +428,7 @@ updateSolidSystem( vectorPtr_Type & rhsFluidCoupling )
 {
     Real coefficient ( M_data->dataSolid()->dataTime()->timeStep() * M_data->dataSolid()->dataTime()->timeStep() * M_solid->rescaleFactor() /  M_solidTimeAdvance->coefficientSecondDerivative( 0 ) );
     M_solidTimeAdvance->updateRHSContribution( M_data->dataSolid()->dataTime()->timeStep() );
-<<<<<<< HEAD
-    *rhsFluidCoupling += *M_solid->Mass() * ( M_solidTimeAdvance->rhsContributionSecondDerivative() * coefficient );
-=======
     *rhsFluidCoupling += *M_solid->massMatrix() * ( M_solidTimeAdvance->rhsContributionSecondDerivative() * coefficient );
-    // TODO NOTE: this mass * vector multiplication in serial may lead to a NaN for unclear reasons
-    // (both the matrix and the vector does not contain a NaN before the multiplication..)
->>>>>>> TimeAdvanceFSI
 }
 
 void
