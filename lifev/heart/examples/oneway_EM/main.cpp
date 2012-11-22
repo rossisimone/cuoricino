@@ -54,6 +54,7 @@
 #include <lifev/core/mesh/MeshData.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/heart/solver/HeartUpdatedMonodomainSolver.hpp>
+#include <lifev/heart/solver/NeoHookeanActivatedMaterial.hpp>
 #include <lifev/heart/solver/HeartIonicSolver.hpp>
 #include <lifev/heart/solver/HeartAlievPanfilov.hpp>
 
@@ -303,10 +304,10 @@ Real d0heart(const Real& t, const Real& x, const Real& y, const Real& z, const I
 
 static Real d0CanineHeart(const Real& t, const Real& x, const Real& y, const Real& z, const ID& i)
 {
-    double rr = std::sqrt((x-55.0)*(x-55.0)+(y-40.0)*(y-40.0)+(z-9.0)*(z-9.0));//canineheart
+    double rr = std::sqrt((x-1.0)*(x-1.0)+(y-1.5)*(y-1.5)+(z-0.9)*(z-0.9));//canineheart
     if (t == 0)
     {
-          return 10.0*(1.0-1.0/(1.0+exp(-90.0*(rr-45.0))));//-z*(z - 5.)*x/50.; // -z*(z - 80.)*x/5000.;//
+          return 10.0*(1.0-1.0/(1.0+exp(-90.0*(rr-0.5))));//-z*(z - 5.)*x/50.; // -z*(z - 80.)*x/5000.;//
     }
 
     return 0.0;
@@ -386,8 +387,8 @@ ElectroMech::run()
   Real meanu;
   Real minu;
   //Real maxu;
-  //Real maxdispl;
-  //Real mindispl;
+  Real maxdispl;
+  Real mindispl;
   //! Construction of data classes
 
   HeartMonodomainData _dataFunctors(M_heart_fct);
@@ -688,24 +689,28 @@ ElectroMech::run()
 
     displMech=solid.displacement();
     computeDispl(displElech, electricModel, _dataFunctors );
-    if (time < 22 )
-      {
-	displ=0.0*displElech;
-      }
-    else
-      {        //! Solving the solid mechanics
-	displ=2*(0.65*displMech+0.25*displElech);
-      }
+    //if (time < 22 )
+    //  {
+    //	displ=0.0*displElech;
+    //  }
+    //else
+    //  {        //! Solving the solid mechanics
+    displ=2*(0.65*displMech+0.25*displElech);
+	//}
 
     electricModel.moveMesh( displ );
     normu=electricModel.solutionTransmembranePotential().norm2();
     electricModel.solutionTransmembranePotential().epetraVector().MeanValue(&meanu);
     electricModel.solutionTransmembranePotential().epetraVector().MaxValue(&minu);
+    displ.epetraVector().MaxValue(&maxdispl);
+    displ.epetraVector().MinValue(&mindispl);
     if (verbose)
       {
 	  std::cout << "norm u " << normu << std::endl;
 	  std::cout << "mean u " << meanu << std::endl;
 	  std::cout << "max u " << minu << std::endl<<std::flush;
+	  std::cout << "max disp " << maxdispl << std::endl;
+	  std::cout << "min disp " << mindispl << std::endl;
       }
 
     *Uptr = electricModel.solutionTransmembranePotential();

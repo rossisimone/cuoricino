@@ -32,8 +32,8 @@
  */
 
 
-#ifndef _ELEMOPERSTRUCTURE_H_INCLUDED
-#define _ELEMOPERSTRUCTURE_H_INCLUDED
+#ifndef _ELEMOPERACTIVESTRUCTURE_H_INCLUDED
+#define _ELEMOPERACTIVESTRUCTURE_H_INCLUDED
 
 #include <lifev/core/array/MatrixElemental.hpp>
 #include <lifev/core/array/VectorElemental.hpp>
