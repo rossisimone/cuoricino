@@ -6,8 +6,10 @@
 * #problem datas
 [problem]
 
+#method     = monolithicGE # monolithicGE, monolithicGI
 method     = monolithicGI # monolithicGE, monolithicGI
 
+#blockOper   = AdditiveSchwarz
 blockOper   = AdditiveSchwarzGI
 # OPTIONS:
 #AdditiveSchwarz: standard operator for the monolithicGE
@@ -15,6 +17,7 @@ blockOper   = AdditiveSchwarzGI
 #AdditiveSchwarzGI: standard operator for the monolithicGI, the three fields (fluid, structure and geometry) are assembled in one single matrix
 #AdditiveSchwarzRNGI: Robin-Neumann operator for the GI
 
+#DDBlockPrec = ComposedDN
 DDBlockPrec = ComposedDN2GI
 # OPTIONS:
 #AdditiveSchwarz: monolithic A-S preconditioner,
@@ -113,7 +116,6 @@ filename   = solid  # name of the postprocessed file
 initSol=00005             # label of the solution from which we want to start (5 digits by convention)
 initSolFD=00006           # label of the fluid displacement solution from which we want to start (may be important e.g. if we want to restart with GI from a GE simulation)
 type       = hdf5         # format of the imported solution
-##restartType=restartFSI
 
 ** #importer for the fluid
 [./fluid]
@@ -126,27 +128,23 @@ filename   = solidImp     # name of the imported solution
 * #Fluid data
 [fluid]
 useShapeDerivatives           = true # tells if the shape derivatives are neglected or not in the Jacobian matrix
-semiImplicit                  = false # tells if we advance in time after the first nonlinear iteration or not
-domainVelImplicit             = true  # tells if the domain vel is to be considered implicitly in the convective term
-convectiveImplicit            = true  # tells if the velocity is to be considered implicitly in the convective term
 conservativeFormulation       = false  # tells if the conservative or non conservative formulation is used
+#semiImplicit                  = false # tells if we advance in time after the first nonlinear iteration or not
+#domainVelImplicit             = true  # tells if the domain vel is to be considered implicitly in the convective term
+#convectiveImplicit            = true  # tells if the velocity is to be considered implicitly in the convective term
 
 ** #Physical quantities
 [./physics]
-density   = 1.0               # density
+density   = 1.060              # density
 viscosity = 0.035              # viscosity
 
 ** #time discretization
 [../time_discretization]
 method          = BDF         # can be BDF, Generalized alpha in the future
 initialtime        = 0.
-endtime            = 0.001
-timestep        = 0.001
-BDF_order        = 2   # can go up to 5
-##theta           = 0.5
-##gamma            = 0.5
-##rhoInf          = 1
-##typeOfGeneralizedAlpha            = HHT
+endtime            = 0.8
+timestep        = 0.002
+BDF_order        = 3   # can go up to 5
 
 ** #space discretization
 [../space_discretization]
@@ -160,7 +158,7 @@ stiff_strain    = true               # wether the full stiffness tensor is assem
 
 ** #misellaneous (obsolete)
 [../miscellaneous]
-verbose   = 1
+verbose   = 0
 velname   = vel
 pressname = press
 steady    = 0
@@ -187,34 +185,32 @@ tolerance       =  0.0005        # how far points are to be considered the same 
 * #solid section
 [solid]
 
-useExactJacobian = false # always false for linear structure model. Otherwise it allows to chose beween an exact-inexact
+useExactJacobian = true # always false for linear structure model. Otherwise it allows to chose beween an exact-inexact
                          # Newton scheme
 rescaleFactor    = 1.    # this factor can be used to rescale the structure block
 
 ** # physical data for the solid
 [./physics]
 
-solidType = linearVenantKirchhoff
-## available choices: exponential, neoHookean, nonLinearVenantKirchhoff, linearVenantKirchhoff
+#solidType = linearVenantKirchhoff
+solidType 	= neoHookean		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / expoenential
 material_flag = 1                #the mesh flag of the structure volume
 density   = 1.2
-young     = 4.0E6
-poisson   = 0.45
-bulk      = 1e7
-alpha     = 2.5e6            # the parameter at the exponent for the exponential model
-gamma     = 1                # parameter for the exponential model
+young     	= 8.e+6
+poisson   	= 0.45
+bulk		= 1.3333e+8
+alpha 		= 2.684564e+6
+gamma		= 1.0
+
 
 ** #time discretization
 [../time_discretization]
 method          = BDF # Newmark or BDF (generalized alpha in the future)
-initialtime        = 0.
-endtime            = 0.001
-timestep        = 0.001
-BDF_order        = 2
-##theta           = 0.25
-##gamma           = 0.5
-##rhoInf          = 1
-##typeOfGeneralizedAlpha            = HHT
+initialtime     = 0.
+endtime         = 0.8
+timestep        = 0.002
+BDF_order       = 3
+
 
 ** #space discretization
 [../space_discretization]
@@ -227,7 +223,7 @@ mesh_edges      = all                   # update all faces elements
 
 ** #miscellaneous
 [../miscellaneous]
-verbose   = 1
+verbose   = 0
 depname   = dep
 
 * #monolithic FSI linear system data
@@ -258,7 +254,7 @@ displayList        = false
 ** # preconditioner section
 [../prec]
 reuse           = false
-prectype        = Ifpack #Composed # either Ifpack, ML, or Composed
+prectype        = Ifpack # either Ifpack, ML, or Composed
 entry           = 0.0
 
 *** # parameters for the Robin-Robin preconditioner
@@ -337,7 +333,6 @@ node_min_per_proc   = 64
 max_min_ratio       = 1.1
 min_per_proc        = 20
 partitioner         = ParMETIS #Zoltan: to be implemented
-##Zoltan_dimensions = 3
 
 **** aggregation
 [../aggregation]
@@ -548,14 +543,10 @@ keep_info       = 1
 ** #time discretization (used only for the calculation/extrapolation of the domain velocity)
 [../time_discretization]
 method          = BDF
-initialtime        = 0.
-endtime            = 1.6
-timestep        = 0.001
-BDF_order        = 2
-##theta           = 0.5
-##gamma            = 0.5
-##rhoInf          = 1
-##typeOfGeneralizedAlpha            = HHT
+initialtime     = 0.
+endtime         = 0.8
+timestep        = 0.002
+BDF_order       = 3
 
 ** #preconditioner (used only in the GE case, when this problem is considered separately)
 [../prec]
@@ -730,12 +721,12 @@ solvertype = Amesos_Umfpack
 [parameters]
 
 Pin     = 0          	#pressure at entry of the vessel
-Pout    = 10000        #pressure at exit of the heart / aortic pressure
-RExtD   = 2000      	# distal resistance
+Pout    = 100000        #pressure at exit of the heart / aortic pressure
+RExtD   = 1500      	# distal resistance
 RExtP   = 1300    	# proximal resistance
 Cp	= 0.001		# windkessel capacity
 BDType  = 1		# boundary type 0) P=Pout 1) RExtD 2) RC 3) RCR
-fExt    = 450000.       #maximal value of the force apply by the muscle
+fExt    = 0.45000       #maximal value of the force apply by the muscle
 tAppl   = 0.01    	#when we want to apply the force
 pi      = 3.141592635   #value of pi
 periode = 0.8		#period of the muscle
