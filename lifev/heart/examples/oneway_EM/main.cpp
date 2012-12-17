@@ -57,7 +57,7 @@
 #include <lifev/heart/solver/HeartIonicSolver.hpp>
 #include <lifev/heart/solver/HeartAlievPanfilov.hpp>
 
-#include <lifev/structure/solver/VenantKirchhoffElasticData.hpp>
+#include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
@@ -408,13 +408,13 @@ ElectroMech::run()
   //! dataElasticStructure
   GetPot dataFile( parameters->data_file_name.c_str() );
 
-  boost::shared_ptr<VenantKirchhoffElasticData> dataStructure(new VenantKirchhoffElasticData( ));
+  boost::shared_ptr<StructuralConstitutiveLawData> dataStructure(new StructuralConstitutiveLawData( ));
   dataStructure->setup(dataFile);
 
   MeshData             meshData;
   meshData.setup(dataFile, "solid/space_discretization");
 
-  boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr(new RegionMesh<LinearTetra>( *(parameters->comm) ) );
+  boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr(new RegionMesh<LinearTetra>( parameters->comm ) );
   readMesh(*fullMeshPtr, meshData);
 
   MeshPartitioner< RegionMesh<LinearTetra> > meshPart( fullMeshPtr, parameters->comm );
