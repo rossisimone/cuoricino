@@ -85,6 +85,7 @@ SET( LifeV_PACKAGES_AND_DIRS_AND_CLASSIFICATIONS
 #  Multiscale            lifev/multiscale                  EX
   Heart                 lifev/heart                       EX
   Dummy                 lifev/dummy                       EX
+  ETA                   lifev/eta                         EX
 )
 
 

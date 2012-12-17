@@ -172,10 +172,11 @@ public:
 
   //! Update the right hand side \f$ f_V \f$ of the time derivative formula
   /*!
-    Set and Return the right hand side \f$ f_V \f$ of the time derivative formula
+    Return the right hand side \f$ f_V \f$ of the time derivative formula
     @param timeStep defined the  time step need to compute the
+    @returns rhsV
   */
-  void updateRHSFirstDerivative(const Real& timeStep = 1 );
+  void RHSFirstDerivative(const Real& timeStep, feVectorType& rhsContribution, int const shift = 0 ) const;
 
   //! Update the right hand side \f$ f_W \f$ of the time derivative formula
   /*!
@@ -354,18 +355,18 @@ void TimeAdvanceNewmark <feVectorType>::shiftRight(const feVector_Type& solution
 }
 
 template<typename feVectorType>
-//const feVector_Type&
 void
-TimeAdvanceNewmark<feVectorType>::updateRHSFirstDerivative(const Real& timeStep )
+TimeAdvanceNewmark<feVectorType>::RHSFirstDerivative(const Real& timeStep, feVectorType& rhsContribution, int const shift ) const
 {
-  feVectorContainerPtrIterate_Type it  =  this->M_rhsContribution.begin();
+    rhsContribution *=  (this->M_alpha[ 1 ] / timeStep) ;
 
-  *it = new feVector_Type(*this->M_unknowns[0]);
+    Real timeStepPower(1.); // was: std::pow( timeStep, static_cast<Real>(i - 1 ) )
 
-  **it *=  this->M_alpha[ 1 ] / timeStep ;
-
-  for (UInt i= 1; i  < this->M_firstOrderDerivativeSize; ++i )
-    **it += ( this->M_alpha[ i+1 ] * std::pow( timeStep, static_cast<Real>(i - 1 ) ) ) *  (* this->M_unknowns[ i ]);
+    for (UInt i= 1; i  < this->M_firstOrderDerivativeSize; ++i )
+    {
+        rhsContribution += ( this->M_alpha[ i+1 ] * timeStepPower ) *  (* this->M_unknowns[ i-shift ]);
+        timeStepPower *= timeStep;
+    }
 }
 
 template<typename feVectorType>
@@ -379,7 +380,6 @@ TimeAdvanceNewmark<feVectorType>::updateRHSSecondDerivative(const Real& timeStep
   **it *=  this->M_xi[ 1 ] /(timeStep * timeStep) ;
 
   for ( UInt i = 1;  i < this->M_secondOrderDerivativeSize; ++i )
-
     **it += ( this->M_xi[ i+1 ] * std::pow(timeStep, static_cast<Real>(i - 2) ) ) * ( *this->M_unknowns[ i ]);
 }
 
@@ -622,6 +622,7 @@ Real
 TimeAdvanceNewmark<feVectorType>::coefficientExtrapolation(const UInt& i) const
 {
   ASSERT ( i <  3 ,  "coeff_der i must equal 0 or 1 because U^*= U^n + timeStep*V^n + timeStep^2 / 2 W^n");
+
   switch (i)
   {
   case 0:
@@ -634,24 +635,23 @@ TimeAdvanceNewmark<feVectorType>::coefficientExtrapolation(const UInt& i) const
 	  ERROR_MSG ("coeff_der i must equal 0 or 1 because U^*= U^n + timeStep*V^n + timeStep^2 / 2 W^n");
   }
   return 1;
-
 }
 
 template<typename feVectorType>
 Real
 TimeAdvanceNewmark<feVectorType>::coefficientExtrapolationFirstDerivative(const UInt& i ) const
 {
-	  switch (i)
-	  {
-	  case 0:
-		  return this->M_betaFirstDerivative(i);
-	  case 1:
-		  return this->M_betaFirstDerivative(i)*this->M_timeStep;
-	  case 2:
-		  return this->M_betaFirstDerivative(i)*this->M_timeStep*this->M_timeStep;
-	  default:
-		  ERROR_MSG ("coeff_der i must equal 0 or 1 because U^*= U^n + timeStep*V^n + timeStep^2 / 2 W^n");
-	  }
+    switch (i)
+    {
+    case 0:
+        return this->M_betaFirstDerivative(i);
+    case 1:
+        return this->M_betaFirstDerivative(i)*this->M_timeStep;
+    case 2:
+        return this->M_betaFirstDerivative(i)*this->M_timeStep*this->M_timeStep;
+    default:
+        ERROR_MSG ("coeff_der i must equal 0 or 1 because U^*= U^n + timeStep*V^n + timeStep^2 / 2 W^n");
+    }
 	  return 1;
 }
 

@@ -541,7 +541,7 @@ void RogersMcCulloch<Mesh, SolverType>::computeIonicCurrent(  Real Capacitance,
 {
 	Real u_ig, w_ig;
 
-	Real G1 = this->M_data.RMCParameterC1() / this->M_data.RMCTimeUnit() / pow(this->M_data.RMCPotentialAmplitude(),2.0);
+	Real G1 = this->M_data.RMCParameterC1() / this->M_data.RMCTimeUnit() / std::pow(this->M_data.RMCPotentialAmplitude(),2.0);
 	Real G2 = this->M_data.RMCParameterC2() / this->M_data.RMCTimeUnit();
 
         for ( UInt ig = 0; ig < uFESpace.fe().nbQuadPt();ig++ )
@@ -1859,7 +1859,6 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::solveIonicModel( const vector_
         M_vectorInfimumpv.epetraVector().ReplaceGlobalValue(ig, 0, M_pvinf);
         M_vectorInfimumpw.epetraVector().ReplaceGlobalValue(ig, 0, M_pwinf);
     }
-
     M_vectorExponentialh.globalAssemble();
     M_vectorExponentialj.globalAssemble();
     M_vectorExponentialm.globalAssemble();
