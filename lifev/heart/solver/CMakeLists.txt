@@ -13,7 +13,6 @@ SET(solver_HEADERS
   solver/HeartFunctors.hpp
   solver/HeartMonodomainSolver.hpp
   solver/HeartUpdatedMonodomainSolver.hpp
-  solver/XbNegroniLascano96.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES
