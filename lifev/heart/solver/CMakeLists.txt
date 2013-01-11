@@ -1,3 +1,6 @@
+ADD_SUBDIRECTORIES(
+	XbModels
+)
 SET(solver_HEADERS
   solver/HeartAlievPanfilov.hpp
   solver/HeartMonodomainData.hpp
@@ -10,6 +13,7 @@ SET(solver_HEADERS
   solver/HeartFunctors.hpp
   solver/HeartMonodomainSolver.hpp
   solver/HeartUpdatedMonodomainSolver.hpp
+  solver/XbNegroniLascano96.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES

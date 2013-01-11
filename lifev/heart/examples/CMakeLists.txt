@@ -8,5 +8,6 @@ ADD_SUBDIRECTORIES(
   ETA_monodomain
   integrated_heart
   oneway_EM
+  XbNegroniLascano96
 #  RiceModel
 )
