@@ -62,8 +62,6 @@ public:
      */
 	HeartXbModel();
 
-	HeartXbModel( Epetra_Comm& comm );
-
 	HeartXbModel( const HeartXbModel &Xb );
 
     //! Destructor
@@ -89,12 +87,7 @@ public:
 
     //@}
 
-    //! MPI communicator
-    Epetra_Comm*                   M_comm;
 
-    //! Boolean that indicates if output is sent to cout
-    bool                           M_verbose;
-    Int								M_me;
     //@}
 
 
@@ -109,18 +102,10 @@ HeartXbModel::HeartXbModel()
 {
 }
 
-HeartXbModel::HeartXbModel( Epetra_Comm& comm ):
-    M_comm                   ( &comm ),
-    M_me                     ( M_comm->MyPID() ),
-    M_verbose                ( M_me == 0)
-{
-}
+
 
 HeartXbModel::HeartXbModel( const HeartXbModel &Xb )
 {
-	M_comm 		= Xb.M_comm;
-	M_me		= Xb.M_me;
-	M_verbose	= Xb.M_verbose;
 }
 
 // ===================================================
@@ -128,9 +113,6 @@ HeartXbModel::HeartXbModel( const HeartXbModel &Xb )
 // ===================================================
 HeartXbModel& HeartXbModel::operator =( const HeartXbModel &Xb )
 {
-	M_comm 		= Xb.M_comm;
-	M_me		= Xb.M_me;
-	M_verbose	= Xb.M_verbose;
 	return 		*this;
 }
 

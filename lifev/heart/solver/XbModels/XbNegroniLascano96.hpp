@@ -67,27 +67,14 @@ public:
 
     //! Constructor
     XbNegroniLascano96();
-    /*!
-     * @param Epetra communicator
-     */
-    XbNegroniLascano96( Epetra_Comm& comm );
-    /*!
-     * @param Epetra communicator
-     * @param list of parameters in an xml file
-     */
-    XbNegroniLascano96( Epetra_Comm& comm,
-    					  Teuchos::ParameterList& parameterList );
 
     /*!
      * @param Epetra communicator
      * @param list of parameters in an xml file
-     * @param State variables
      */
-//    XbNegroniLascano96(  Epetra_Comm& comm,
-//    						const Teuchos::ParameterList& parameterList,
-//                			const vector_Type& TCa,
-//                			const vector_Type& TCas,
-//                			const vector_Type& Ts);
+    XbNegroniLascano96( Teuchos::ParameterList& parameterList );
+
+
     /*!
      * @param XbNegroniLascano96 object
      */
@@ -116,55 +103,32 @@ public:
     inline const Real& Beta1()  	const { return M_beta1; 	}
     inline const Real& Beta2()  	const { return M_beta2; 	}
     inline const Real& Beta3()  	const { return M_beta3; 	}
-//
-//    inline void setAlpha1	( const Real &alpha1 ) { this->M_alpha1 = alpha1; 	}
-//    inline void setAlpha2	( const Real &alpha2 ) { this->M_alpha2 = alpha2; 	}
-//    inline void setAlpha3	( const Real &alpha3 ) { this->M_alpha3 = alpha3; 	}
-//    inline void setAlpha4	( const Real &alpha4 ) { this->M_alpha4 = alpha4; 	}
-//    inline void setAlpha5	( const Real &alpha5 ) { this->M_alpha5 = alpha5; 	}
-//    inline void setBeta1 	( const Real &beta1  ) { this->M_beta1 	=  beta1; 	}
-//    inline void setBeta2 	( const Real &beta2  ) { this->M_beta2 	=  beta2; 	}
-//    inline void setBeta3 	( const Real &beta3  ) { this->M_beta3 	=  beta3; 	}
-//
-//
-//    //members getters and setters
-//
-//    inline const vector_Type T()  	  const { return M_T; 		}
-//    inline const vector_Type TCa()	  const { return M_TCa; 	}
-//    inline const vector_Type TCas() const { return M_TCas; 	}
-//    inline const vector_Type Ts() 	  const { return M_Ts; 	}
-//
-//    inline const void setT	( const vector_Type &T 		) { this->M_T 		= T; 	}
-//    inline const void setTCa	( const vector_Type &TCa  	) { this->M_TCa		= TCa; 	}
-//    inline const void setTCas( const vector_Type &TCas	) { this->M_TCas	= TCas;	}
-//    inline const void setTs	( const vector_Type &Ts 	) { this->M_Ts 		= Ts; 	}
-//
-//    //repeated members getters and setters
-//
-//    inline const vector_Type TRepeated()  	const { return M_TRepeated; 	}
-//    inline const vector_Type TCaRepeated()	const { return M_TCaRepeated; 	}
-//    inline const vector_Type TCasRepeated() 	const { return M_TCasRepeated;	}
-//    inline const vector_Type TsRepeated() 	const { return M_TsRepeated; 	}
-//
-//    inline const void setTRepeated		( vector_Type const &TRepeated 		) { this->M_TRepeated 		= TRepeated; 	}
-//    inline const void setTCaRepeated		( vector_Type const &TCaRepeated  	) { this->M_TCaRepeated 	= TCaRepeated;	}
-//    inline const void setTCasRepeated	( vector_Type const &TCaRepeateds	) { this->M_TCasRepeated	= TCasRepeated;	}
-//    inline const void setTsRepeated		( vector_Type const &TsRepeated 	) { this->M_TsRepeated 		= TsRepeated; 	}
-//    //@}
-//
-//
-//    //! @name Methods
-//    //@{
-//
-//    virtual void updateRepeated( )=0;
-//
-//    //! Update the xb model elvecs
-// //   virtual void updateElementSolution( UInt eleIDw )=0;
-//
-//    //! Solves the ionic model
-//    virtual void solveXbModel( const vector_Type& Calcium,
-//                         	 	 const Real timeStep )=0;
 
+    inline void setAlpha1	( const Real &alpha1 ) { this->M_alpha1 = alpha1; 	}
+    inline void setAlpha2	( const Real &alpha2 ) { this->M_alpha2 = alpha2; 	}
+    inline void setAlpha3	( const Real &alpha3 ) { this->M_alpha3 = alpha3; 	}
+    inline void setAlpha4	( const Real &alpha4 ) { this->M_alpha4 = alpha4; 	}
+    inline void setAlpha5	( const Real &alpha5 ) { this->M_alpha5 = alpha5; 	}
+    inline void setBeta1 	( const Real &beta1  ) { this->M_beta1 	=  beta1; 	}
+    inline void setBeta2 	( const Real &beta2  ) { this->M_beta2 	=  beta2; 	}
+    inline void setBeta3 	( const Real &beta3  ) { this->M_beta3 	=  beta3; 	}
+
+
+    inline const short int& Size() const { return M_numberOfStates; }
+    //! @name Methods
+    //@{
+
+    //const std::vector<*VectorEpetra>& computeRhs( std::vector<*VectorEpetra>& v, VectorEpetra& Ca, VectorEpetra& vel ) ;
+    const std::vector<Real> computeRhs( const std::vector<Real>& v, const Real& Ca, const Real& vel );
+    //virtual void updateRepeated( )=0;
+
+    //! Update the xb model elvecs
+
+
+    //! Solves the ionic model
+    //virtual void solveXbModel( const vector_Type& Calcium,
+    //	                 	 	 const Real timeStep )=0;
+    //@}
 
 private:
     //! Model Parameters
@@ -181,16 +145,8 @@ private:
 
 
 
-    //! Xb states
-//    vector_Type M_T;
-//    vector_Type M_TCa;
-//    vector_Type M_TCas;
-//    vector_Type M_Ts;
-//
-//    vector_Type M_TRepeated;
-//    vector_Type M_TCaRepeated;
-//    vector_Type M_TCasRepeated;
-//    vector_Type M_TsRepeated;
+    //! Xb states == equivalent to the number of equations
+    short int M_numberOfStates;
 
     //@}
 
@@ -199,12 +155,7 @@ private:
 // ===================================================
 //! Constructors
 // ===================================================
-XbNegroniLascano96::XbNegroniLascano96()
-{
-}
-
-XbNegroniLascano96::XbNegroniLascano96( Epetra_Comm& comm )	:
-    HeartXbModel( comm ),
+XbNegroniLascano96::XbNegroniLascano96()	:
     M_alpha1 ( 0.0 ),
     M_alpha2 ( 0.0 ),
     M_alpha3 ( 0.0 ),
@@ -212,31 +163,13 @@ XbNegroniLascano96::XbNegroniLascano96( Epetra_Comm& comm )	:
     M_alpha5 ( 0.0 ),
     M_beta1  ( 0.0 ),
     M_beta2  ( 0.0 ),
-    M_beta3  ( 0.0 )
-//    M_T 		  ( HeartXbModel::M_localMap ),
-//    M_TRepeated   ( M_T, Repeated ),
-//    M_TCa 		  ( HeartXbModel::M_localMap ),
-//    M_TCaRepeated ( M_Tca, Repeated ),
-//    M_TCas 		  ( HeartXbModel::M_localMap ),
-//    M_TCasRepeated( M_Tcas, Repeated ),
-//    M_Ts 		  ( HeartXbModel::M_localMap ),
-//    M_TsRepeated  ( M_Ts, Repeated )
+    M_beta3  ( 0.0 ),
+	M_numberOfStates( 3 )
 {
 }
 
-
-
-XbNegroniLascano96::XbNegroniLascano96( Epetra_Comm& comm,
-											 Teuchos::ParameterList& parameterList 	)	:
-	HeartXbModel( comm )
-////	M_T 		  ( HeartXbModel::M_localMap ),
-////	M_TRepeated   ( M_T, Repeated ),
-////	M_TCa 		  ( HeartXbModel::M_localMap ),
-////	M_TCaRepeated ( M_Tca, Repeated ),
-////	M_TCas 		  ( HeartXbModel::M_localMap ),
-////	M_TCasRepeated( M_Tcas, Repeated ),
-////	M_Ts 		  ( HeartXbModel::M_localMap ),
-////	M_TsRepeated  ( M_Ts, Repeated )
+XbNegroniLascano96::XbNegroniLascano96( Teuchos::ParameterList& parameterList 	)	:
+	M_numberOfStates( 3 )
 {
 	M_alpha1 =  parameterList.get("alpha1", 0.0);
 	M_alpha2 =  parameterList.get("alpha2", 0.0);
@@ -248,34 +181,9 @@ XbNegroniLascano96::XbNegroniLascano96( Epetra_Comm& comm,
 	M_beta3  =  parameterList.get("beta1",  0.0);
 }
 
-//XbNegroniLascano96::XbNegroniLascano96( Epetra_Comm& comm,
-//										const Teuchos::ParameterList& parameterList,
-//										const vector_Type& TCa,
-//										const vector_Type& TCas,
-//										const vector_Type& Ts							)	:
-//    HeartXbModel( comm )
-//{
-//	M_alpha1 =  parameterList.get("alpha1", 0.0);
-//	M_alpha2 =  parameterList.get("alpha2", 0.0);
-//	M_alpha3 =  parameterList.get("alpha3", 0.0);
-//	M_alpha4 =  parameterList.get("alpha4", 0.0);
-//	M_alpha5 =  parameterList.get("alpha5", 0.0);
-//	M_beta1  =  parameterList.get("beta1",  0.0);
-//	M_beta2  =  parameterList.get("beta1",  0.0);
-//	M_beta3  =  parameterList.get("beta1",  0.0);
-//
-////	M_TCa 	 =	TCa;
-////	M_TCas 	 =	TCas;
-////	M_Ts 	 =	Ts;
-////	M_T		 =	1.0 - TCa - TCas - Ts;
-//}
-
-
 XbNegroniLascano96::XbNegroniLascano96( const XbNegroniLascano96& Xb )
 {
-	M_comm 		= Xb.M_comm;
-	M_me		= Xb.M_me;
-	M_verbose	= Xb.M_verbose;
+	//M_verbose	= Xb.M_verbose;
 
 	M_alpha1 =  Xb.M_alpha1;
 	M_alpha2 =  Xb.M_alpha2;
@@ -286,24 +194,15 @@ XbNegroniLascano96::XbNegroniLascano96( const XbNegroniLascano96& Xb )
 	M_beta2  =  Xb.M_beta2;
 	M_beta3  =  Xb.M_beta3;
 
-//	M_TCa 	 =	Xb.M_TCa;
-//	M_TCas 	 =	Xb.M_TCas;
-//	M_Ts 	 =	Xb.M_Ts;
-//	M_T		 =	Xb.M_T;
+	M_numberOfStates = Xb.M_numberOfStates;
 }
-
-
-
-
 
 // ===================================================
 //! Operator
 // ===================================================
 XbNegroniLascano96& XbNegroniLascano96::operator=( const XbNegroniLascano96& Xb )
 {
-	M_comm 		= Xb.M_comm;
-	M_me		= Xb.M_me;
-	M_verbose	= Xb.M_verbose;
+	//M_verbose	= Xb.M_verbose;
 
 	M_alpha1 =  Xb.M_alpha1;
 	M_alpha2 =  Xb.M_alpha2;
@@ -314,7 +213,51 @@ XbNegroniLascano96& XbNegroniLascano96::operator=( const XbNegroniLascano96& Xb 
 	M_beta2  =  Xb.M_beta2;
 	M_beta3  =  Xb.M_beta3;
 
+	M_numberOfStates = Xb.M_numberOfStates;
+
 	return 		*this;
+}
+
+
+// ===================================================
+//! Methods
+// ===================================================
+//const std::vector<*VectorEpetra>& XbNegroniLascano96::computeRhs( std::vector<*VectorEpetra>& v,
+//																			 VectorEpetra& Ca,
+//																			 VectorEpetra& vel )
+//{
+//
+//	vector<Real> v
+//	for( int j = 0; j < Ca.epetraVector().MyLength(); j++){
+//
+//
+//
+//	}
+//
+//
+//
+//}
+const std::vector<Real> XbNegroniLascano96::computeRhs(	const	std::vector<Real>& 	v,
+																const	Real& 			Ca,
+																const	Real& 			vel )
+{
+
+	std::vector<Real> rhs(3,0);
+	Real Q1 = M_alpha1 * Ca * ( 1.0 - v[0] - v[1] - v[2] ) - M_beta1 * v[0];
+
+	Real TCaEff(1.0);
+	Real Q2 = M_alpha2 * v[0] * TCaEff - M_beta2 * v[1];
+	Real Q3 = M_alpha3 * v[1] - M_beta3 * Ca * v[2];
+	Real param(1.0);
+	Real Q4 = M_alpha4 * v[1] + M_alpha5 * ( param * vel ) * ( param * vel ) * v[2];
+	Real Q5 = M_alpha5 * ( param * vel ) * ( param * vel ) * v[1];
+
+	rhs[0] = Q1 - Q2;
+	rhs[1] = Q2 - Q3 - Q5;
+	rhs[2] = Q3 - Q4;
+
+	return rhs;
+
 }
 
 

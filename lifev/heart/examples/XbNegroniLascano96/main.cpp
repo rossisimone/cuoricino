@@ -84,53 +84,75 @@ Int main( Int argc, char** argv )
 	HeartXbModel Xb;
 	std::cout << " Done!" << endl;
 
-	std::cout << "Constructor HeartXbSolver ... ";
-	HeartXbModel Xx( Comm );
-	std::cout << " Done!" << endl;
 
 	std::cout << "Copy constructor ... ";
-	HeartXbModel Xd = Xx;
+	HeartXbModel Xd = Xb;
 	std::cout << " Done!" << endl;
 
 	std::cout << "0perator = ... ";
-	Xb = Xx;
+	Xb = Xd;
 	std::cout << " Done!" << endl;
 
-	std::cout << "New operator  ... ";
-	HeartXbModel * Xc = new HeartXbModel( Comm );
-	std::cout << " Done!" << endl;
+
 
 
 	std::cout << "Empty constructor NL96 ... ";
 	XbNegroniLascano96 * Xq = new XbNegroniLascano96();
 	std::cout << " Done!" << endl;
 
-	std::cout << "Comm Constructor NL96 ... ";
-	XbNegroniLascano96 * Xw = new XbNegroniLascano96( Comm );
-	std::cout << " Done!" << endl;
-
 	std::cout << "Parameter ConstructorNL96 ... ";
-	XbNegroniLascano96 * Xe = new XbNegroniLascano96( Comm, NLParameterList );
+	XbNegroniLascano96  Xe( NLParameterList );
 	std::cout << " Done!" << endl;
 
 	std::cout << "Operator =  ... ";
-	Xq = Xe;
+	*Xq = Xe;
 	std::cout << " Done!" << endl;
 
-	std::cout << "Copy Constructor NL96 ... ";
-	XbNegroniLascano96 * Xr = Xq;
-	std::cout << " Done!" << endl;
 
-	std::cout << "alpha1: " << Xr->Alpha1() << endl;
-	std::cout << "alpha2: " << Xr->Alpha2() << endl;
-	std::cout << "alpha3: " << Xr->Alpha3() << endl;
-	std::cout << "alpha4: " << Xr->Alpha4() << endl;
-	std::cout << "alpha5: " << Xr->Alpha5() << endl;
-	std::cout << "beta1: " << Xr->Beta1() << endl;
-	std::cout << "beta2: " << Xr->Beta2() << endl;
-	std::cout << "beta3: " << Xr->Beta3() << endl;
+	std::cout << "alpha1: " << Xq->Alpha1() << endl;
+	std::cout << "alpha2: " << Xq->Alpha2() << endl;
+	std::cout << "alpha3: " << Xq->Alpha3() << endl;
+	std::cout << "alpha4: " << Xq->Alpha4() << endl;
+	std::cout << "alpha5: " << Xq->Alpha5() << endl;
+	std::cout << "beta1: "  << Xq->Beta1()  << endl;
+	std::cout << "beta2: "  << Xq->Beta2()  << endl;
+	std::cout << "beta3: "  << Xq->Beta3()  << endl;
+
+	std::cout << "Creo states ...  "  << endl;
+	std::vector<Real> states(3,0);
+	std::cout << "Done! "  << endl;
+	std::cout << "\nCreo rhs ...  "  << endl;
+	std::vector<Real> rhs(3,0);
+	std::cout << "Done! "  << endl;
+	std::cout << "\nInizializzo rhs ...  "  << endl;
+	states[0] = 0.00;
+	states[1] = 0.00;
+	states[2] = 0;
+	std::cout << "Done! "  << endl;
+	std::cout << "TCa: " << states[0] << ", TCas: " << states[1] << ", Ts: " << states[2] << std::endl << std::flush;
 
 
+	Real vel(0.0);
+	Real Ca(0.0);
+
+	Real TF(60);
+	Real dt(0.01);
+
+	Real temp;
+	for( Real t = 0; t < TF; t = t + dt ){
+		Ca = std::exp(- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
+		//std::cout << "\ntime: " << t << ",\tCa: " << Ca << std::endl << std::flush;
+		rhs = Xe.computeRhs( states, Ca, vel);
+		states[0] = states[0] + dt * rhs[0];
+		temp = states[1] + dt * rhs[1];
+		if(temp > states[1])std::cout << "\tIncreasing! " ;
+		else std::cout << "\tDecreasing! " ;
+
+		states[1] = temp;
+		states[2] = states[2] + dt * rhs[2];
+		//std::cout << "TCa: " << states[0] << ", TCas: " << states[1] << ", Ts: " << states[2] << std::endl << std::flush;
+
+	}
 
     //! Finalizing Epetra communicator
     MPI_Finalize();
