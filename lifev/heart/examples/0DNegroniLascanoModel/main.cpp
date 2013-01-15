@@ -95,7 +95,7 @@ Int main( Int argc, char** argv )
 	// parameter list in the constructor          //
 	//********************************************//
 	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
-	XbNegroniLascano96  Xe( NLParameterList );
+	XbNegroniLascano96  xb( NLParameterList );
 	std::cout << " Done!" << endl;
 
 
@@ -103,7 +103,7 @@ Int main( Int argc, char** argv )
 	// Show the parameters of the model as well as//
 	// other informations  about the object.      //
 	//********************************************//
-	Xe.showMe();
+	xb.showMe();
 
 
 	//********************************************//
@@ -114,7 +114,7 @@ Int main( Int argc, char** argv )
 	// the vector states                          //
 	//********************************************//
 	std::cout << "Initializing solution vector...";
-	std::vector<Real> states(Xe.Size(),0);
+	std::vector<Real> states(xb.Size(),0);
 	std::vector<Real>& rStates=states;
 	std::cout << " Done!" << endl;
 
@@ -127,7 +127,7 @@ Int main( Int argc, char** argv )
 	// the differential equation.                 //
 	//********************************************//
 	std::cout << "Initializing rhs..." ;
-	std::vector<Real> rhs(Xe.Size(),0);
+	std::vector<Real> rhs(xb.Size(),0);
 	std::vector<Real>& rRhs=rhs;
 	std::cout << " Done! "  << endl;
 
@@ -175,7 +175,7 @@ Int main( Int argc, char** argv )
 		//********************************************//
 		// Compute the rhs using the model equations  //
 		//********************************************//
-		Xe.computeRhs( states, Ca, vel, rhs);
+		xb.computeRhs( states, Ca, vel, rhs);
 
 		//********************************************//
 		// Use forward Euler method to advance the    //

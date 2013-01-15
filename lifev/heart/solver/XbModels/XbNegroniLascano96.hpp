@@ -55,10 +55,8 @@ class XbNegroniLascano96 : public virtual HeartXbModel
 public:
     //! @name Type definitions
     //@{
-
-    typedef VectorEpetra vector_Type;
-
- //@}
+	boost::shared_ptr<VectorEpetra> vector_ptr;
+    //@}
 
 
 
@@ -73,7 +71,6 @@ public:
      * @param list of parameters in an xml file
      */
     XbNegroniLascano96( Teuchos::ParameterList& parameterList );
-
 
     /*!
      * @param XbNegroniLascano96 object
@@ -115,15 +112,18 @@ public:
 
 
     inline const short int& Size() const { return M_numberOfStates; }
+    //@}
+
     //! @name Methods
     //@{
 
-    //const std::vector<*VectorEpetra>& computeRhs( std::vector<*VectorEpetra>& v, VectorEpetra& Ca, VectorEpetra& vel ) ;
-    const std::vector<Real> computeRhs( const std::vector<Real>& v, const Real& Ca, const Real& vel );
-    //virtual void updateRepeated( )=0;
+    //Compute the rhs on a single node or for the 0D case
+    void computeRhs( const std::vector<Real>& v, const Real& Ca, const Real& vel,  std::vector<Real>& rhs);
+    //Compute the rhs on a mesh/ 3D case
+    //inline void Rhs( std::vector<vector_ptr>& v, VectorEpetra& Ca, VectorEpetra& vel, std::vector<vector_ptr>& rhs ){} ;
 
-    //! Update the xb model elvecs
-
+    //! Display information about the model
+    void showMe();
 
     //! Solves the ionic model
     //virtual void solveXbModel( const vector_Type& Calcium,
@@ -237,12 +237,12 @@ XbNegroniLascano96& XbNegroniLascano96::operator=( const XbNegroniLascano96& Xb 
 //
 //
 //}
-const std::vector<Real> XbNegroniLascano96::computeRhs(	const	std::vector<Real>& 	v,
-																const	Real& 			Ca,
-																const	Real& 			vel )
+void XbNegroniLascano96::computeRhs(	const	std::vector<Real>& 	v,
+											const	Real& 			Ca,
+											const	Real& 			vel,
+													std::vector<Real>& rhs )
 {
 
-	std::vector<Real> rhs(3,0);
 	Real Q1 = M_alpha1 * Ca * ( 1.0 - v[0] - v[1] - v[2] ) - M_beta1 * v[0];
 
 	Real TCaEff(1.0);
@@ -256,8 +256,26 @@ const std::vector<Real> XbNegroniLascano96::computeRhs(	const	std::vector<Real>&
 	rhs[1] = Q2 - Q3 - Q5;
 	rhs[2] = Q3 - Q4;
 
-	return rhs;
+}
 
+//void XbNegroniLascano96::computeRhs( std::vector<vector_ptr>& v, VectorEpetra& Ca, VectorEpetra& vel, std::vector<vector_ptr>& rhs ) ;
+//{}
+
+void XbNegroniLascano96::showMe()
+{
+	std::cout << "\n\n\t\tXbNegroniLascano96 Informations\n\n";
+	std::cout << "number of unkowns: "  << this->Size() << std::endl;
+
+	std::cout << "\n\t\tList of model parameters:\n\n";
+	std::cout << "alpha1: " << this->Alpha1() << std::endl;
+	std::cout << "alpha2: " << this->Alpha2() << std::endl;
+	std::cout << "alpha3: " << this->Alpha3() << std::endl;
+	std::cout << "alpha4: " << this->Alpha4() << std::endl;
+	std::cout << "alpha5: " << this->Alpha5() << std::endl;
+	std::cout << "beta1: "  << this->Beta1()  << std::endl;
+	std::cout << "beta2: "  << this->Beta2()  << std::endl;
+	std::cout << "beta3: "  << this->Beta3()  << std::endl;
+	std::cout << "\n\t\t End of XbNegroniLascano96 Informations\n\n\n";
 }
 
 
