@@ -325,7 +325,7 @@ Int main( Int argc, char** argv )
 	// Close exported file.                       //
 	//********************************************//
     exporter.closeFile();
-
+    std::cout << std::endl;
 
     //! Finalizing Epetra communicator
     MPI_Barrier(MPI_COMM_WORLD);
