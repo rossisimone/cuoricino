@@ -9,17 +9,9 @@ save       = 1
 post_dir = ./
 type = hdf5
 
-[electric]
+[discretization]
 
-
-[../time_discretization]
-
-initialtime		= 0
-endtime			= 60
-timestep		= 0.05
-BDF_order		= 1
-
-[../space_discretization]
+[./space]
 mesh_dir        = ./
 mesh_file       = lid16.mesh #leftAtrium.mesh
 mesh_type       = .mesh
@@ -31,3 +23,10 @@ fibers_format =  0  # 1 Ensight 0 BB
 verbose         = 1 # verbose during mesh-reading
 diagonalize     = 1 #0 # weight, 0=off
 
+
+[../time]
+
+initialtime		= 0
+endtime			= 60
+timestep		= 0.01
+BDF_order		= 1

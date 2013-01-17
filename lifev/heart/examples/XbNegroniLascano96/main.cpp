@@ -92,12 +92,15 @@ Real Calcium(const Real& t, const Real& x, const Real& y, const Real& z, const I
 
 Int main( Int argc, char** argv )
 {
-	   //! Initializing Epetra communicator
-	    MPI_Init(&argc, &argv);
-	    Epetra_MpiComm Comm(MPI_COMM_WORLD);
-	    if ( Comm.MyPID() == 0 )
-	        cout << "% using MPI" << endl;
+   //! Initializing Epetra communicator
+	MPI_Init(&argc, &argv);
+	boost::shared_ptr<Epetra_Comm>  Comm( new Epetra_MpiComm(MPI_COMM_WORLD) );
 
+	if ( Comm->MyPID() == 0 ) cout << "% using MPI" << endl;
+
+	//********************************************//
+	// Type definitions                           //
+	//********************************************//
 	typedef RegionMesh<LinearTetra> mesh_Type;
 	typedef FESpace< mesh_Type, MapEpetra > feSpace_Type;
 	typedef boost::shared_ptr<feSpace_Type> feSpacePtr_Type;
@@ -113,84 +116,46 @@ Int main( Int argc, char** argv )
 	//********************************************//
 	// Import mesh.				                  //
 	//********************************************//
+	// Using the datafile and GetPot
+
+	//first create the GetPot
+	GetPot command_line(argc, argv);
+	const string data_file_name = command_line.follow("data", 2, "-f", "--file");
+	GetPot dataFile(data_file_name);
 
 
-
-	//*********************************************//
-	//*********************************************//
-	// OOOOO OOOO   OOOOO OOOOO   OOOOO O   O OOOOO O   O OOOOO OOOOO OOOO
-	//   O   O  O   O   O O       O     O   O O   O OO  O O     O     O   O
-	//   O   O  O   OOOO  OOO     O     OOOOO O   O O O O O  OO OOO   O   O
-	//   O   O  O   O   O O       O     O   O OOOOO O  OO O   O O     O   O
-	//   O   OOOO   OOOOO OOOOO   OOOOO O   O O   O O   O OOOOO OOOOO OOOO
-	//*********************************************//
-	//*********************************************//
-
-	//! Construction of data classes
-//	    UInt ion_model;
-//
-//	    boost::shared_ptr<HeartFunctors> M_heart_fct;
-
-	    /*********************/
-	    //old constructor
-	    GetPot command_line(argc, argv);
-	    const string data_file_name = command_line.follow("data", 2, "-f", "--file");
-	    GetPot dataFile(data_file_name);
-
-	    //! Pointer to access functors
-	    //M_heart_fct.reset(new HeartFunctors( dataFile));
-	    //ion_model=dataFile("electric/physics/ion_model",6);
-	    //M_heart_fct->M_comm.reset(new Epetra_MpiComm( MPI_COMM_WORLD ));
-
-	    if (!Comm.MyPID())
-	    {
-	        std::cout << "My PID = " << Comm.MyPID() << std::endl;
-	    }
-	    /****************************/
+	if (!Comm->MyPID()) std::cout << "My PID = " << Comm->MyPID() << std::endl;
 
 
-	   // HeartIonicData dataIonic(M_heart_fct->M_dataFile);
-
-	    MeshData meshData;
-	    meshData.setup( dataFile, "electric/space_discretization" );
-	    boost::shared_ptr<mesh_Type > fullMeshPtr(new mesh_Type( Comm ) );
-	    readMesh(*fullMeshPtr, meshData);
-	    bool verbose = 1;
-
-
-	    //! Initialization of the FE type and quadrature rules for both the variables
-	    const ReferenceFE*    refFE_u = &feTetraP1;
-	    const QuadratureRule* qR_u = &quadRuleTetra15pt;
-	    const QuadratureRule* bdQr_u = &quadRuleTria3pt;
-		//*********************************************//
-		//*********************************************//
-	    //*********************************************//
-		//*********************************************//
-	    //*********************************************//
-		//*********************************************//
-
-
-
+	//Create the mesh data and read the mesh
+	MeshData meshData;
+	meshData.setup( dataFile,"discretization/space" );
+	boost::shared_ptr<mesh_Type > fullMeshPtr(new mesh_Type( Comm ) );
+	readMesh(*fullMeshPtr, meshData);
+	bool verbose = 1;
 
 	//! Construction of the partitioned mesh
 	MeshPartitioner< mesh_Type >   meshPart(fullMeshPtr, Comm);
 
 
+	//********************************************//
+	// Building map Epetra  to define distributed //
+	// vectors. We need to first construct the FE //
+	// space, which needs the quadrature rules.   //
+	//********************************************//
 
-
-
-    //! Initialization of the FE type and quadrature rules for both the variables
-//        refFE_u = &feTetraP1;
-//        qR_u    = &quadRuleTetra15pt;
-//        bdQr_u  = &quadRuleTria3pt;
-
+	//! Define the quadrature rules
+	const ReferenceFE*    refFE_u = &feTetraP1;
+	const QuadratureRule* qR_u = &quadRuleTetra15pt;
+	const QuadratureRule* bdQr_u = &quadRuleTria3pt;
 
     //! Construction of the FE spaces
-    if (verbose)
-        std::cout << "Building the FE space ... " << std::flush;
+    if (verbose) std::cout << "Building the FE space ... " << std::flush;
     feSpacePtr_Type uFESpacePtr( new feSpace_Type( meshPart, *refFE_u, *qR_u, *bdQr_u, 1, Comm) );
     std::cout << " Done!" << endl;
 
+    //Create the Map
+	MapEpetra localMap(uFESpacePtr->map());
 
 
 
@@ -223,12 +188,6 @@ Int main( Int argc, char** argv )
 	//********************************************//
 	xb.showMe();
 
-
-
-	//********************************************//
-	// Building map Epetra                        //
-	//********************************************//
-	MapEpetra localMap(uFESpacePtr->map());
 
 
 	//********************************************//
@@ -280,14 +239,14 @@ Int main( Int argc, char** argv )
 	// Simulation starts on t=0 and ends on t=TF. //
 	// The timestep is given by dt                //
 	//********************************************//
-	Real TF(60);
-	Real dt(0.01);
+	Real TF = dataFile("discretization/time/endtime",100);
+	Real dt = dataFile("discretization/time/timestep",0.1);
 
 	//********************************************//
 	// Creating the exporter to save the solution //
 	//********************************************//
     //! Setting generic Exporter postprocessing
-    ExporterHDF5< RegionMesh <LinearTetra> > exporter( dataFile, meshPart.meshPartition(), "solution", Comm.MyPID() );
+    ExporterHDF5< RegionMesh <LinearTetra> > exporter( dataFile, meshPart.meshPartition(), "solution", Comm->MyPID() );
 
     boost::shared_ptr<VectorEpetra> state1( new VectorEpetra( ( *( states.at(0).get() ) ), Repeated ) );
     boost::shared_ptr<VectorEpetra> state2( new VectorEpetra( ( *( states.at(1).get() ) ), Repeated ) );
@@ -308,7 +267,9 @@ Int main( Int argc, char** argv )
 
     MPI_Barrier(MPI_COMM_WORLD);
     chronoinitialsettings.stop();
-	//********************************************//
+
+
+    //********************************************//
 	// Time loop starts.                          //
 	//********************************************//
     short int iter=0;
@@ -317,10 +278,9 @@ Int main( Int argc, char** argv )
 		iter++;
 		//********************************************//
 		// Compute Calcium concentration. Here it is  //
-		// given as a function of time.               //
+		// given as a function of time and space.     //
 		//********************************************//
 		uFESpacePtr->interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( Calcium ), *Ca , t);
-		//*Ca = std::exp(- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
 		std::cout << "\r " << t << " ms.       "<< std::flush;
 
 
