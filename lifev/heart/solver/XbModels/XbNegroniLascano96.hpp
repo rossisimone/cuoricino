@@ -40,6 +40,8 @@
 #define _XBNEGRONILASCANO96_H_
 
 #include <lifev/heart/solver/XbModels/HeartXbModel.hpp>
+#include <lifev/core/array/VectorEpetra.hpp>
+
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -55,7 +57,8 @@ class XbNegroniLascano96 : public virtual HeartXbModel
 public:
     //! @name Type definitions
     //@{
-	boost::shared_ptr<VectorEpetra> vector_ptr;
+	typedef boost::shared_ptr<VectorEpetra> vector_ptr;
+
     //@}
 
 
@@ -120,7 +123,7 @@ public:
     //Compute the rhs on a single node or for the 0D case
     void computeRhs( const std::vector<Real>& v, const Real& Ca, const Real& vel,  std::vector<Real>& rhs);
     //Compute the rhs on a mesh/ 3D case
-    //inline void Rhs( std::vector<vector_ptr>& v, VectorEpetra& Ca, VectorEpetra& vel, std::vector<vector_ptr>& rhs ){} ;
+    void computeRhs( const std::vector<vector_ptr>& v, const VectorEpetra& Ca, const VectorEpetra& vel, std::vector<vector_ptr>& rhs );
 
     //! Display information about the model
     void showMe();
@@ -222,21 +225,7 @@ XbNegroniLascano96& XbNegroniLascano96::operator=( const XbNegroniLascano96& Xb 
 // ===================================================
 //! Methods
 // ===================================================
-//const std::vector<*VectorEpetra>& XbNegroniLascano96::computeRhs( std::vector<*VectorEpetra>& v,
-//																			 VectorEpetra& Ca,
-//																			 VectorEpetra& vel )
-//{
-//
-//	vector<Real> v
-//	for( int j = 0; j < Ca.epetraVector().MyLength(); j++){
-//
-//
-//
-//	}
-//
-//
-//
-//}
+
 void XbNegroniLascano96::computeRhs(	const	std::vector<Real>& 	v,
 											const	Real& 			Ca,
 											const	Real& 			vel,
@@ -256,10 +245,37 @@ void XbNegroniLascano96::computeRhs(	const	std::vector<Real>& 	v,
 	rhs[1] = Q2 - Q3 - Q5;
 	rhs[2] = Q3 - Q4;
 
+
 }
 
-//void XbNegroniLascano96::computeRhs( std::vector<vector_ptr>& v, VectorEpetra& Ca, VectorEpetra& vel, std::vector<vector_ptr>& rhs ) ;
-//{}
+void XbNegroniLascano96::computeRhs( 	const std::vector<vector_ptr>& v,
+											const VectorEpetra& Ca,
+											const VectorEpetra& vel,
+										 	std::vector<vector_ptr>& rhs )
+{
+
+	int nodes = Ca.epetraVector().MyLength();
+
+
+	std::vector<Real> 	localVec( 3, 0.0 );
+	std::vector<Real> 	localRhs( 3, 0.0 );
+
+	for( int j = 0; j < nodes; j++ ){
+
+		localVec.at(0) = ( *( v.at(0) ) )[j];
+		localVec.at(1) = ( *( v.at(1) ) )[j];
+		localVec.at(2) = ( *( v.at(2) ) )[j];
+
+		computeRhs( localVec, Ca[j], vel[j], localRhs );
+
+		( *( rhs.at(0) ) )[j] =  localRhs.at(0);
+		( *( rhs.at(1) ) )[j] =  localRhs.at(1);
+		( *( rhs.at(2) ) )[j] =  localRhs.at(2);
+
+	}
+
+}
+
 
 void XbNegroniLascano96::showMe()
 {
@@ -276,6 +292,7 @@ void XbNegroniLascano96::showMe()
 	std::cout << "beta2: "  << this->Beta2()  << std::endl;
 	std::cout << "beta3: "  << this->Beta3()  << std::endl;
 	std::cout << "\n\t\t End of XbNegroniLascano96 Informations\n\n\n";
+
 }
 
 

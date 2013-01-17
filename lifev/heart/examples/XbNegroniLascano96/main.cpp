@@ -52,10 +52,25 @@
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
 
-#include <fstream>
+
 #include <string>
 
-#include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/array/VectorEpetra.hpp>
+#include <lifev/core/array/MapEpetra.hpp>
+#include <lifev/core/mesh/MeshData.hpp>
+#include <lifev/core/mesh/MeshPartitioner.hpp>
+#include <lifev/core/filter/ExporterEnsight.hpp>
+#include <lifev/core/filter/ExporterHDF5.hpp>
+#include <lifev/core/filter/ExporterEmpty.hpp>
+
+#include <lifev/heart/solver/HeartMonodomainSolver.hpp>
+#include <lifev/heart/solver/HeartIonicSolver.hpp>
+
+#include <lifev/core/filter/ExporterEnsight.hpp>
+#ifdef HAVE_HDF5
+#include <lifev/core/filter/ExporterHDF5.hpp>
+#endif
+#include <lifev/core/filter/ExporterEmpty.hpp>
 
 #include <lifev/heart/solver/XbModels/XbNegroniLascano96.hpp>
 #include <lifev/core/LifeV.hpp>
@@ -68,6 +83,13 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
+
+Real Calcium(const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
+	{
+		return ( std::exp(- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) ) * (x * y) );
+	}
+
+
 Int main( Int argc, char** argv )
 {
 	   //! Initializing Epetra communicator
@@ -75,6 +97,102 @@ Int main( Int argc, char** argv )
 	    Epetra_MpiComm Comm(MPI_COMM_WORLD);
 	    if ( Comm.MyPID() == 0 )
 	        cout << "% using MPI" << endl;
+
+	typedef RegionMesh<LinearTetra> mesh_Type;
+	typedef FESpace< mesh_Type, MapEpetra > feSpace_Type;
+	typedef boost::shared_ptr<feSpace_Type> feSpacePtr_Type;
+    typedef boost::shared_ptr<VectorEpetra> vectorPtr_Type;
+
+    //********************************************//
+	// Starts the chronometer.                    //
+	//********************************************//
+	LifeChrono chronoinitialsettings;
+	chronoinitialsettings.start();
+
+
+	//********************************************//
+	// Import mesh.				                  //
+	//********************************************//
+
+
+
+	//*********************************************//
+	//*********************************************//
+	// OOOOO OOOO   OOOOO OOOOO   OOOOO O   O OOOOO O   O OOOOO OOOOO OOOO
+	//   O   O  O   O   O O       O     O   O O   O OO  O O     O     O   O
+	//   O   O  O   OOOO  OOO     O     OOOOO O   O O O O O  OO OOO   O   O
+	//   O   O  O   O   O O       O     O   O OOOOO O  OO O   O O     O   O
+	//   O   OOOO   OOOOO OOOOO   OOOOO O   O O   O O   O OOOOO OOOOO OOOO
+	//*********************************************//
+	//*********************************************//
+
+	//! Construction of data classes
+//	    UInt ion_model;
+//
+//	    boost::shared_ptr<HeartFunctors> M_heart_fct;
+
+	    /*********************/
+	    //old constructor
+	    GetPot command_line(argc, argv);
+	    const string data_file_name = command_line.follow("data", 2, "-f", "--file");
+	    GetPot dataFile(data_file_name);
+
+	    //! Pointer to access functors
+	    //M_heart_fct.reset(new HeartFunctors( dataFile));
+	    //ion_model=dataFile("electric/physics/ion_model",6);
+	    //M_heart_fct->M_comm.reset(new Epetra_MpiComm( MPI_COMM_WORLD ));
+
+	    if (!Comm.MyPID())
+	    {
+	        std::cout << "My PID = " << Comm.MyPID() << std::endl;
+	    }
+	    /****************************/
+
+
+	   // HeartIonicData dataIonic(M_heart_fct->M_dataFile);
+
+	    MeshData meshData;
+	    meshData.setup( dataFile, "electric/space_discretization" );
+	    boost::shared_ptr<mesh_Type > fullMeshPtr(new mesh_Type( Comm ) );
+	    readMesh(*fullMeshPtr, meshData);
+	    bool verbose = 1;
+
+
+	    //! Initialization of the FE type and quadrature rules for both the variables
+	    const ReferenceFE*    refFE_u = &feTetraP1;
+	    const QuadratureRule* qR_u = &quadRuleTetra15pt;
+	    const QuadratureRule* bdQr_u = &quadRuleTria3pt;
+		//*********************************************//
+		//*********************************************//
+	    //*********************************************//
+		//*********************************************//
+	    //*********************************************//
+		//*********************************************//
+
+
+
+
+	//! Construction of the partitioned mesh
+	MeshPartitioner< mesh_Type >   meshPart(fullMeshPtr, Comm);
+
+
+
+
+
+    //! Initialization of the FE type and quadrature rules for both the variables
+//        refFE_u = &feTetraP1;
+//        qR_u    = &quadRuleTetra15pt;
+//        bdQr_u  = &quadRuleTria3pt;
+
+
+    //! Construction of the FE spaces
+    if (verbose)
+        std::cout << "Building the FE space ... " << std::flush;
+    feSpacePtr_Type uFESpacePtr( new feSpace_Type( meshPart, *refFE_u, *qR_u, *bdQr_u, 1, Comm) );
+    std::cout << " Done!" << endl;
+
+
+
 
 
 	//********************************************//
@@ -95,7 +213,7 @@ Int main( Int argc, char** argv )
 	// parameter list in the constructor          //
 	//********************************************//
 	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
-	XbNegroniLascano96  Xe( NLParameterList );
+	XbNegroniLascano96  xb( NLParameterList );
 	std::cout << " Done!" << endl;
 
 
@@ -103,7 +221,14 @@ Int main( Int argc, char** argv )
 	// Show the parameters of the model as well as//
 	// other informations  about the object.      //
 	//********************************************//
-	Xe.showMe();
+	xb.showMe();
+
+
+
+	//********************************************//
+	// Building map Epetra                        //
+	//********************************************//
+	MapEpetra localMap(uFESpacePtr->map());
 
 
 	//********************************************//
@@ -113,10 +238,15 @@ Int main( Int argc, char** argv )
 	// the model. rStates is the reference to the //
 	// the vector states                          //
 	//********************************************//
+
 	std::cout << "Initializing solution vector...";
-	std::vector<Real> states(Xe.Size(),0);
-	std::vector<Real>& rStates=states;
+	//std::vector<vectorPtr_Type> states(xb.Size(), *( new vectorPtr_Type( new VectorEpetra(localMap) ) ) );
+	std::vector<vectorPtr_Type> states;
+	for(int k = 0; k < xb.Size(); ++k ){
+		states.push_back( *(new vectorPtr_Type( new VectorEpetra(localMap) ) ) );
+	}
 	std::cout << " Done!" << endl;
+
 
 
 	//********************************************//
@@ -127,11 +257,11 @@ Int main( Int argc, char** argv )
 	// the differential equation.                 //
 	//********************************************//
 	std::cout << "Initializing rhs..." ;
-	std::vector<Real> rhs(Xe.Size(),0);
-	std::vector<Real>& rRhs=rhs;
+	std::vector<vectorPtr_Type> rhs;
+	for(int k = 0; k < xb.Size(); ++k ){
+		rhs.push_back( *(new vectorPtr_Type( new VectorEpetra(localMap) ) ) );
+	}
 	std::cout << " Done! "  << endl;
-
-
 
 
 	//********************************************//
@@ -139,8 +269,11 @@ Int main( Int argc, char** argv )
 	// the contraction velocity and the Calcium   //
 	// concentration.                             //
 	//********************************************//
-	Real vel(0.0);
-	Real Ca(0.0);
+	boost::shared_ptr<VectorEpetra>  vel( new VectorEpetra(localMap) );
+	*vel = 0;
+	boost::shared_ptr<VectorEpetra>  Ca( new VectorEpetra(localMap) );
+	*Ca = 0.0;
+
 
 
 	//********************************************//
@@ -150,59 +283,92 @@ Int main( Int argc, char** argv )
 	Real TF(60);
 	Real dt(0.01);
 
-
 	//********************************************//
-	// Open the file "output.txt" to save the     //
-	// solution.                                  //
+	// Creating the exporter to save the solution //
 	//********************************************//
-	string filename="output.txt";
-	std::ofstream output("output.txt");
+    //! Setting generic Exporter postprocessing
+    ExporterHDF5< RegionMesh <LinearTetra> > exporter( dataFile, meshPart.meshPartition(), "solution", Comm.MyPID() );
+
+    boost::shared_ptr<VectorEpetra> state1( new VectorEpetra( ( *( states.at(0).get() ) ), Repeated ) );
+    boost::shared_ptr<VectorEpetra> state2( new VectorEpetra( ( *( states.at(1).get() ) ), Repeated ) );
+    boost::shared_ptr<VectorEpetra> state3( new VectorEpetra( ( *( states.at(2).get() ) ), Repeated ) );
+    boost::shared_ptr<VectorEpetra> stateCa( new VectorEpetra( *Ca, Repeated ) );
+
+    exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "TCa", uFESpacePtr,
+                           state1, UInt(0) );
+    exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "TCas", uFESpacePtr,
+                           state2, UInt(0) );
+    exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "Ts", uFESpacePtr,
+                           state3, UInt(0) );
+    exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "Ca", uFESpacePtr,
+                           stateCa, UInt(0) );
 
 
+    exporter.postProcess( 0 );
+
+    MPI_Barrier(MPI_COMM_WORLD);
+    chronoinitialsettings.stop();
 	//********************************************//
 	// Time loop starts.                          //
 	//********************************************//
+    short int iter=0;
 	std::cout << "Time loop starts...\n";
 	for( Real t = 0; t < TF; ){
-
+		iter++;
 		//********************************************//
 		// Compute Calcium concentration. Here it is  //
 		// given as a function of time.               //
 		//********************************************//
-		Ca = std::exp(- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
+		uFESpacePtr->interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( Calcium ), *Ca , t);
+		//*Ca = std::exp(- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
 		std::cout << "\r " << t << " ms.       "<< std::flush;
 
+
+		MPI_Barrier(MPI_COMM_WORLD);
 		//********************************************//
 		// Compute the rhs using the model equations  //
 		//********************************************//
-		Xe.computeRhs( states, Ca, vel, rhs);
+		xb.computeRhs( states, *Ca, *vel, rhs);
 
 		//********************************************//
 		// Use forward Euler method to advance the    //
 		// solution in time.                          //
 		//********************************************//
-		rStates.at(0) = rStates.at(0)  + dt * rRhs.at(0);
-		rStates.at(1) = rStates.at(1)  + dt * rRhs.at(1);
-		rStates.at(2) = rStates.at(2)  + dt * rRhs.at(2);
 
-		//********************************************//
-		// Writes solution on file.                   //
-		//********************************************//
-		output << rStates.at(0) << ", " << rStates.at(1) << ", " << rStates.at(2) << "\n";
+		*( states.at(0) ) = *( states.at(0) ) + dt * ( *( rhs.at(0) ) );
+		*( states.at(1) ) = *( states.at(1) ) + dt * ( *( rhs.at(1) ) );
+		*( states.at(2) ) = *( states.at(2) ) + dt * ( *( rhs.at(2) ) );
 
 		//********************************************//
 		// Update the time.                           //
 		//********************************************//
 		t = t + dt;
+
+
+		//********************************************//
+		// Writes solution on file.                   //
+		//********************************************//
+			if( iter%100 == 0 ){
+				*state1 = *( states.at(0) );
+				*state2 = *( states.at(1) );
+				*state3 = *( states.at(2) );
+				*stateCa = *Ca;
+
+				exporter.postProcess( t );
+			}
+
+			MPI_Barrier(MPI_COMM_WORLD);
+
 		}
-	std::cout << "\n...Time loop ends.\n";
-	std::cout << "Solution written on file: " << filename << "\n";
+
 	//********************************************//
 	// Close exported file.                       //
 	//********************************************//
-	output.close();
+    exporter.closeFile();
+
 
     //! Finalizing Epetra communicator
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     return( EXIT_SUCCESS );
 }
