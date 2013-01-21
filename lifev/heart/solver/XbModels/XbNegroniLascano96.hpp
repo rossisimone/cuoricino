@@ -39,7 +39,7 @@
 #ifndef _XBNEGRONILASCANO96_H_
 #define _XBNEGRONILASCANO96_H_
 
-#include <lifev/heart/solver/XbModels/HeartXbModel.hpp>
+#include <lifev/heart/solver/HeartODEModel.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -51,7 +51,7 @@ namespace LifeV
 //! XbModel - This class implements a mean field model.
 
 
-class XbNegroniLascano96 : public virtual HeartXbModel
+class XbNegroniLascano96 : public virtual HeartODEModel
 {
 
 public:

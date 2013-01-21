@@ -3,6 +3,7 @@ INCLUDE(TribitsAddExecutableAndTest)
 INCLUDE(AddSubdirectories)
 
 ADD_SUBDIRECTORIES(
+  0DAlievPanfilovModel
   0DNegroniLascanoModel
   AlievPanfilov
   basic_example
@@ -10,5 +11,6 @@ ADD_SUBDIRECTORIES(
   integrated_heart
   oneway_EM
   XbNegroniLascano96
+  IonicAlievPanfilov
 #  RiceModel
 )

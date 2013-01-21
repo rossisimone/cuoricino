@@ -1,5 +1,6 @@
 ADD_SUBDIRECTORIES(
 	XbModels
+	IonicModels
 )
 SET(solver_HEADERS
   solver/HeartAlievPanfilov.hpp
@@ -13,6 +14,7 @@ SET(solver_HEADERS
   solver/HeartFunctors.hpp
   solver/HeartMonodomainSolver.hpp
   solver/HeartUpdatedMonodomainSolver.hpp
+  solver/HeartODEModel.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES
