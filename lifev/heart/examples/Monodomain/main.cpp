@@ -124,7 +124,11 @@ Int main( Int argc, char** argv )
 	//********************************************//
 	// Import mesh.				                  //
 	//********************************************//
+	// Using the datafile and GetPot
+
 	if (!Comm->MyPID()) std::cout << "My PID = " << Comm->MyPID() << std::endl;
+
+
 	//Create the mesh data and read and partitioned the mesh
 	boost::shared_ptr< RegionMesh <LinearTetra> > meshPtr( new mesh_Type( Comm ) );
 	std::string meshName = APParameterList.get("mesh_name","lid16.mesh");
@@ -152,8 +156,6 @@ Int main( Int argc, char** argv )
 
     //Create the Map
 	MapEpetra localMap(uFESpacePtr->map());
-
-
 
 
 	//********************************************//
@@ -223,83 +225,83 @@ Int main( Int argc, char** argv )
 	Real TF = APParameterList.get("endTime",1.0);
 	Real dt = APParameterList.get("dt",0.1);
 
-	//********************************************//
-	// Creating the exporter to save the solution //
-	//********************************************//
-    //! Setting generic Exporter postprocessing
-    ExporterHDF5< RegionMesh <LinearTetra> > exporter( dataFile, meshPtr, "solution", Comm->MyPID() );
-
-    boost::shared_ptr<VectorEpetra> V( new VectorEpetra( ( *( unknowns.at(0).get() ) ), Repeated ) );
-    boost::shared_ptr<VectorEpetra> r( new VectorEpetra( ( *( unknowns.at(1).get() ) ), Repeated ) );
-
-
-    exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "V", uFESpacePtr,
-                           V, UInt(0) );
-    exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "r", uFESpacePtr,
-                           r, UInt(0) );
-
-
-
-    exporter.postProcess( 0 );
-
-    MPI_Barrier(MPI_COMM_WORLD);
-    chronoinitialsettings.stop();
-
-
-    cout << "nbdof: " << uFESpacePtr.get()->fe().nbFEDof() << ", nbquad: " << uFESpacePtr.get()->fe().nbQuadPt() << endl ;
-    //********************************************//
-	// Time loop starts.                          //
-	//********************************************//
-    short int iter=0;
-	std::cout << "\nTime loop starts...\n";
-	for( Real t = 0; t < TF; ){
-		iter++;
-		//********************************************//
-		// Compute Calcium concentration. Here it is  //
-		// given as a function of time and space.     //
-		//********************************************//
-		uFESpacePtr->interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( Stimulus ), *Iapp , t);
-		std::cout << "\r " << t << " ms.       "<< std::flush;
-
-
-		MPI_Barrier(MPI_COMM_WORLD);
-		//********************************************//
-		// Compute the rhs using the model equations  //
-		//********************************************//
-		model.computeRhs( unknowns, *Iapp, rhs);
-
-		//********************************************//
-		// Use forward Euler method to advance the    //
-		// solution in time.                          //
-		//********************************************//
-
-		*( unknowns.at(0) ) = *( unknowns.at(0) ) + dt * ( *( rhs.at(0) ) );
-		*( unknowns.at(1) ) = *( unknowns.at(1) ) + dt * ( *( rhs.at(1) ) );
-
-		//********************************************//
-		// Update the time.                           //
-		//********************************************//
-		t = t + dt;
-
-
-		//********************************************//
-		// Writes solution on file.                   //
-		//********************************************//
-			if( iter%100 == 0 ){
-				*V = *( unknowns.at(0) );
-				*r = *( unknowns.at(1) );
-
-				exporter.postProcess( t );
-			}
-
-			MPI_Barrier(MPI_COMM_WORLD);
-
-		}
-
-	//********************************************//
-	// Close exported file.                       //
-	//********************************************//
-    exporter.closeFile();
+//	//********************************************//
+//	// Creating the exporter to save the solution //
+//	//********************************************//
+//    //! Setting generic Exporter postprocessing
+//    ExporterHDF5< RegionMesh <LinearTetra> > exporter( dataFile, meshPtr, "solution", Comm->MyPID() );
+//
+//    boost::shared_ptr<VectorEpetra> V( new VectorEpetra( ( *( unknowns.at(0).get() ) ), Repeated ) );
+//    boost::shared_ptr<VectorEpetra> r( new VectorEpetra( ( *( unknowns.at(1).get() ) ), Repeated ) );
+//
+//
+//    exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "V", uFESpacePtr,
+//                           V, UInt(0) );
+//    exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "r", uFESpacePtr,
+//                           r, UInt(0) );
+//
+//
+//
+//    exporter.postProcess( 0 );
+//
+//    MPI_Barrier(MPI_COMM_WORLD);
+//    chronoinitialsettings.stop();
+//
+//
+//    cout << "nbdof: " << uFESpacePtr.get()->fe().nbFEDof() << ", nbquad: " << uFESpacePtr.get()->fe().nbQuadPt() << endl ;
+//    //********************************************//
+//	// Time loop starts.                          //
+//	//********************************************//
+//    short int iter=0;
+//	std::cout << "\nTime loop starts...\n";
+//	for( Real t = 0; t < TF; ){
+//		iter++;
+//		//********************************************//
+//		// Compute Calcium concentration. Here it is  //
+//		// given as a function of time and space.     //
+//		//********************************************//
+//		uFESpacePtr->interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( Stimulus ), *Iapp , t);
+//		std::cout << "\r " << t << " ms.       "<< std::flush;
+//
+//
+//		MPI_Barrier(MPI_COMM_WORLD);
+//		//********************************************//
+//		// Compute the rhs using the model equations  //
+//		//********************************************//
+//		model.computeRhs( unknowns, *Iapp, rhs);
+//
+//		//********************************************//
+//		// Use forward Euler method to advance the    //
+//		// solution in time.                          //
+//		//********************************************//
+//
+//		*( unknowns.at(0) ) = *( unknowns.at(0) ) + dt * ( *( rhs.at(0) ) );
+//		*( unknowns.at(1) ) = *( unknowns.at(1) ) + dt * ( *( rhs.at(1) ) );
+//
+//		//********************************************//
+//		// Update the time.                           //
+//		//********************************************//
+//		t = t + dt;
+//
+//
+//		//********************************************//
+//		// Writes solution on file.                   //
+//		//********************************************//
+//			if( iter%100 == 0 ){
+//				*V = *( unknowns.at(0) );
+//				*r = *( unknowns.at(1) );
+//
+//				exporter.postProcess( t );
+//			}
+//
+//			MPI_Barrier(MPI_COMM_WORLD);
+//
+//		}
+//
+//	//********************************************//
+//	// Close exported file.                       //
+//	//********************************************//
+//    exporter.closeFile();
     std::cout << std::endl;
 
     //! Finalizing Epetra communicator
