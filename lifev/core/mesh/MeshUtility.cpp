@@ -126,7 +126,7 @@ fillWithFullMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon
     MeshPartitioner< RegionMesh<LinearTetra> > meshPartitioner( fullMesh, Comm );
     mesh = meshPartitioner.meshPartition();
     meshPartChrono.stop();
-    mesh.reset(); //Freeing the global mesh to save memory
+    fullMesh.reset(); //Freeing the global mesh to save memory
     displayer.leaderPrint("Partitioning time: ", meshPartChrono.diff(), " s.\n");
 }
 

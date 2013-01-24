@@ -58,6 +58,7 @@
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/mesh/MeshData.hpp>
+#include <lifev/core/mesh/MeshUtility.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
@@ -110,12 +111,20 @@ Int main( Int argc, char** argv )
 	LifeChrono chronoinitialsettings;
 	chronoinitialsettings.start();
 
+	//********************************************//
+	// Import parameters from an xml list. Use    //
+	// Teuchos to create a list from a given file //
+	// in the execution directory.                //
+	//********************************************//
+
+	std::cout << "Importing parameters list...";
+    Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
+	std::cout << " Done!" << endl;
 
 	//********************************************//
 	// Import mesh.				                  //
 	//********************************************//
 	// Using the datafile and GetPot
-
 	//first create the GetPot
 	GetPot command_line(argc, argv);
 	const string data_file_name = command_line.follow("data", 2, "-f", "--file");
@@ -125,15 +134,14 @@ Int main( Int argc, char** argv )
 	if (!Comm->MyPID()) std::cout << "My PID = " << Comm->MyPID() << std::endl;
 
 
-	//Create the mesh data and read the mesh
-	MeshData meshData;
-	meshData.setup( dataFile,"discretization/space" );
-	boost::shared_ptr<mesh_Type > fullMeshPtr(new mesh_Type( Comm ) );
-	readMesh(*fullMeshPtr, meshData);
-	bool verbose = 1;
+//	//Create the mesh data and read and partitioned the mesh
+	boost::shared_ptr< RegionMesh <LinearTetra> > meshPtr( new mesh_Type( Comm ) );
+	std::string meshName = APParameterList.get("mesh_name","lid16.mesh");
+	std::string meshPath = APParameterList.get("mesh_path","./");
 
-	//! Construction of the partitioned mesh
-	MeshPartitioner< mesh_Type >   meshPart(fullMeshPtr, Comm);
+	//	std::string meshName = dataFile("discretization/space/mesh_file"," lid16.mesh");
+//	std::string meshPath = dataFile("discretization/space/mesh_path","/usr/scratch/srossi/lifev/lifev-heart/lifev/heart/data/mesh/inria/");
+	MeshUtility::fillWithFullMesh( meshPtr, meshName, meshPath );
 
 
 	//********************************************//
@@ -148,25 +156,15 @@ Int main( Int argc, char** argv )
 	const QuadratureRule* bdQr_u = &quadRuleTria3pt;
 
     //! Construction of the FE spaces
-    if (verbose) std::cout << "Building the FE space ... " << std::flush;
-    feSpacePtr_Type uFESpacePtr( new feSpace_Type( meshPart, *refFE_u, *qR_u, *bdQr_u, 1, Comm) );
+    std::cout << "Building the FE space ... " << std::flush;
+    feSpacePtr_Type uFESpacePtr( new feSpace_Type( meshPtr, *refFE_u, *qR_u, *bdQr_u, 1, Comm) );
     std::cout << " Done!" << endl;
+
 
     //Create the Map
 	MapEpetra localMap(uFESpacePtr->map());
 
 
-
-
-	//********************************************//
-	// Import parameters from an xml list. Use    //
-	// Teuchos to create a list from a given file //
-	// in the execution directory.                //
-	//********************************************//
-
-	std::cout << "Importing parameters list...";
-    Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
-	std::cout << " Done!" << endl;
 
 
 	//********************************************//
@@ -233,14 +231,14 @@ Int main( Int argc, char** argv )
 	// Simulation starts on t=0 and ends on t=TF. //
 	// The timestep is given by dt                //
 	//********************************************//
-	Real TF = dataFile("discretization/time/endtime",100);
-	Real dt = dataFile("discretization/time/timestep",0.1);
+	Real TF = APParameterList.get("endTime",1.0);
+	Real dt = APParameterList.get("dt",0.1);
 
 	//********************************************//
 	// Creating the exporter to save the solution //
 	//********************************************//
     //! Setting generic Exporter postprocessing
-    ExporterHDF5< RegionMesh <LinearTetra> > exporter( dataFile, meshPart.meshPartition(), "solution", Comm->MyPID() );
+    ExporterHDF5< RegionMesh <LinearTetra> > exporter( dataFile, meshPtr, "solution", Comm->MyPID() );
 
     boost::shared_ptr<VectorEpetra> V( new VectorEpetra( ( *( unknowns.at(0).get() ) ), Repeated ) );
     boost::shared_ptr<VectorEpetra> r( new VectorEpetra( ( *( unknowns.at(1).get() ) ), Repeated ) );

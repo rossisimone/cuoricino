@@ -12,7 +12,8 @@ type = hdf5
 [discretization]
 
 [./space]
-mesh_dir        = ./
+mesh_dir        = /usr/scratch/srossi/lifev/lifev-heart/lifev/heart/data/mesh/inria/
+mesh_path		= /usr/scratch/srossi/lifev/lifev-heart/lifev/heart/data/mesh/inria/
 mesh_file       = lid16.mesh #leftAtrium.mesh
 mesh_type       = .mesh
 hasFibers = 0
