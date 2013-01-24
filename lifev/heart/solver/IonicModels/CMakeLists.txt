@@ -1,5 +1,6 @@
 SET( IonicModels_HEADERS
-  IonicModels/AlievPanfilov.hpp
+  IonicModels/IonicAlievPanfilov.hpp
+  IonicModels/IonicMinimalModel.hpp
 CACHE INTERNAL "")
 
 
