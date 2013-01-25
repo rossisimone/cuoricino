@@ -50,8 +50,8 @@
 #include <lifev/core/mesh/MeshData.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/navier_stokes/solver/OseenData.hpp>
+#include <lifev/navier_stokes/fem/TimeAdvanceBDFNavierStokes.hpp>
 #include <lifev/core/fem/FESpace.hpp>
-#include <lifev/core/fem/TimeAdvanceBDFNavierStokes.hpp>
 #ifdef HAVE_HDF5
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #endif
@@ -446,7 +446,7 @@ Cylinder::run()
 
     if (verbose) std::cout << "Calling the fluid constructor ... ";
 
-    bcH.setOffset("Inlet", totalVelDof + totalPressDof);
+    bcH.setOffset( "Inlet", totalVelDof + totalPressDof - 1 );
 
     OseenSolver< mesh_Type > fluid (oseenData,
                                     *uFESpacePtr,
