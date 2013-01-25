@@ -682,8 +682,8 @@ ElectroMech::run()
     timeAdvance->shiftRight( solid.displacement() );
 
     *disp = solid.displacement();
-    *vel  = timeAdvance->velocity();
-    *acc  = timeAdvance->acceleration();
+    *vel  = timeAdvance->firstDerivative();
+    *acc  = timeAdvance->secondDerivative();
 
 
     displMech=solid.displacement();
