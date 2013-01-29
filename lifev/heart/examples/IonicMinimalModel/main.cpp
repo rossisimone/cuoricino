@@ -63,6 +63,8 @@
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
+#include <lifev/heart/solver/HeartMonodomainSolver.hpp>
+#include <lifev/heart/solver/HeartIonicSolver.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5

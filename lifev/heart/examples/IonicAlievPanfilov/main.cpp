@@ -64,6 +64,8 @@
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
+#include <lifev/heart/solver/HeartMonodomainSolver.hpp>
+#include <lifev/heart/solver/HeartIonicSolver.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
@@ -77,6 +79,8 @@
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
+
+#include <lifev/eta/expression/Integrate.hpp>
 
 using std::cout;
 using std::endl;
@@ -227,7 +231,9 @@ Int main( Int argc, char** argv )
 	// Creating the exporter to save the solution //
 	//********************************************//
     //! Setting generic Exporter postprocessing
-    ExporterHDF5< RegionMesh <LinearTetra> > exporter( dataFile, meshPtr, "solution", Comm->MyPID() );
+    ExporterHDF5< RegionMesh <LinearTetra> > exporter;
+    exporter.setMeshProcId( meshPtr, Comm->MyPID() );
+    exporter.setPrefix("solution");
 
     boost::shared_ptr<VectorEpetra> V( new VectorEpetra( ( *( unknowns.at(0).get() ) ), Repeated ) );
     boost::shared_ptr<VectorEpetra> r( new VectorEpetra( ( *( unknowns.at(1).get() ) ), Repeated ) );
