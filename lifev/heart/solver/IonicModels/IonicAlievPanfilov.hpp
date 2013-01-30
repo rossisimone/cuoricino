@@ -240,14 +240,17 @@ void IonicAlievPanfilov::computeRhs( 	const std::vector<vector_ptr>& v,
 
 	for( int j = 0; j < nodes; j++ ){
 
-		localVec.at(0) = ( *( v.at(0) ) )[j];
-		localVec.at(1) = ( *( v.at(1) ) )[j];
+		if( Iapp.blockMap().MyGID(j) ){
 
-		computeRhs( localVec, Iapp[j], localRhs );
+			localVec.at(0) = ( *( v.at(0) ) )[j];
+			localVec.at(1) = ( *( v.at(1) ) )[j];
 
-		( *( rhs.at(0) ) )[j] =  localRhs.at(0);
-		( *( rhs.at(1) ) )[j] =  localRhs.at(1);
+			computeRhs( localVec, Iapp[j], localRhs );
 
+			( *( rhs.at(0) ) )[j] =  localRhs.at(0);
+			( *( rhs.at(1) ) )[j] =  localRhs.at(1);
+
+		}
 	}
 
 }

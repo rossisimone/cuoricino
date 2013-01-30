@@ -108,13 +108,13 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus(const Real& t, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus(const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 	{
-	return ( std::exp(- 0.01 * ( t + x - 0.15 ) * ( t + x - 0.15 ) ) );
+	return ( std::exp(- 10 * ( ( x - 0.5 ) * (  x - 0.5 ) + ( y - 0.5 ) * ( y - 0.5 ) ) ) );
 	}
 Real fZero( const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/ )
 {
-    return 50.0;
+    return 0.0;
 }
 
 
@@ -213,51 +213,37 @@ Int main( Int argc, char** argv )
     (*massMatrix).spy("mass");
     (*stiffnessMatrix).spy("stiffness");
      std::cout << " done ! " << std::endl;
-
+     *stiffnessMatrix *= 1e-2;
+     *stiffnessMatrix += *massMatrix;
      VectorEpetra rhs(uSpace->map(), Repeated);
-     rhs *= 0.0;
+     rhs = 1.0;
+     rhs = (*massMatrix) * rhs;
 
 
      // Boundary conditions
-     BCHandler bcH;
-     BCFunctionBase uZero(fZero);
-     bcH.addBC( "perimeter",   	20,		Essential,	Full,	uZero,  1 );
-     bcH.addBC( "bottom",   2, 	Essential, 	Full,   uZero, 	1 );
-     bcH.addBC( "top",    	1,  	Essential, 	Full,   uZero, 	1 );
+     //BCHandler bcH;
+     //BCFunctionBase uZero(fZero);
+     //bcH.addBC( "perimeter",   	20,		Essential,	Full,	uZero,  1 );
+     //bcH.addBC( "bottom",   2, 	Essential, 	Full,   uZero, 	1 );
+     //bcH.addBC( "top",    	1,  	Essential, 	Full,   uZero, 	1 );
 
 
 
-     bcH.bcUpdate( *meshPtr, uFESpace->feBd(), uFESpace->dof() );
+     //bcH.bcUpdate( *meshPtr, uFESpace->feBd(), uFESpace->dof() );
 
-     VectorEpetra rhsbc(rhs, Unique);
-     boost::shared_ptr<VectorEpetra> rhsbcptr( new VectorEpetra( rhsbc, Unique ) );
+     //VectorEpetra rhsbc(rhs, Unique);
+     boost::shared_ptr<VectorEpetra> rhsptr( new VectorEpetra( rhs, Unique ) );
 
-     bcManage(*stiffnessMatrix,  *rhsbcptr, *uFESpace->mesh(), uFESpace->dof(), bcH, uFESpace->feBd(), 1.0, 0.0);
+     //bcManage(*stiffnessMatrix,  *rhsbcptr, *uFESpace->mesh(), uFESpace->dof(), bcH, uFESpace->feBd(), 1.0, 0.0);
 
-	 //rhs.spy("rhs1");
-     //rhs = rhsbc;
-//     rhs = (*rhsbcptr);
-  //   (*stiffnessMatrix).spy("stiffnessBC");
-
-	 //rhs.spy("rhs2");
 
      boost::shared_ptr<VectorEpetra> Sol( new VectorEpetra( uFESpace->map() ) );
-     Sol->spy("Sol1");
-//     SolverAztecOO solverType;
-//     LinearSolver solver;
-//     solver.setCommunicator(Comm);
-//     solver.setSolverType(solverType);
-//     solver.setRightHandSide(rhsbcptr);
-//     solver.setOperator(stiffnessMatrix);
+
+
   	GetPot command_line(argc, argv);
   	const string data_file_name = command_line.follow("data", 2, "-f", "--file");
   	GetPot dataFile(data_file_name);
-     //solver.setDataFromGetPot(dataFile,"solver");
-//     solver.setPreconditionerFromGetPot(dataFile,"prec");
-////     VectorEpetra sol(uFESpace->map(), Unique);
-//
-//     //*stiffnessMatrix += *massMatrix;     solver.setMatrix( *stiffnessMatrix );
-//     solver.solve(Sol);
+
 
     std::cout << "Setting up SolverAztecOO... " << std::flush;
     SolverAztecOO linearSolver1;
@@ -267,22 +253,36 @@ Int main( Int argc, char** argv )
     linearSolver1.setupPreconditioner(dataFile, "prec");
     std::cout << "done" << std::endl;
     linearSolver1.setMatrix( *stiffnessMatrix );
-    linearSolver1.solveSystem( *rhsbcptr, *Sol, stiffnessMatrix );
 
 
 
-     Sol->spy("Sol2");
-//     boost::shared_ptr<VectorEpetra> SOL(new VectorEpetra( *Sol ) );
+
 
      ExporterHDF5< RegionMesh <LinearTetra> > exporter;
 	 exporter.setMeshProcId( meshPtr, Comm->MyPID() );
 	 exporter.setPrefix("solution");
 
-	 //boost::shared_ptr<VectorEpetra> saveSol( new VectorEpetra( sol ), Repeated );
 	 exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "u", uFESpace, Sol, UInt(0) );
 
 
-	 exporter.postProcess( 0 );
+
+	uFESpace->interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( Stimulus ), *Sol , 0);
+
+
+		exporter.postProcess( 0 );
+
+
+	for( Real t = 0; t <  0.1; ){
+
+
+			*rhsptr = (*massMatrix) * (*Sol);
+			linearSolver1.solveSystem( *rhsptr, *Sol, stiffnessMatrix );
+
+			t=t+0.01;
+
+			exporter.postProcess( t );
+
+	}
 //	//********************************************//
 //	// Building map Epetra  to define distributed //
 //	// vectors. We need to first construct the FE //
