@@ -418,13 +418,19 @@ void IonicMinimalModel::computeRhs( 	const std::vector<vector_ptr>& v,
 	std::vector<Real> 	localVec( M_numberOfEquations, 0.0 );
 	std::vector<Real> 	localRhs( M_numberOfEquations, 0.0 );
 
-	for( int j = 0; j < nodes; j++ ){
+	int j(0);
 
-		for( int k = 0; k < M_numberOfEquations; k++ ) 	localVec.at(k) = ( *( v.at(k) ) )[j];
+	for( int k = 0; k < nodes; k++ ){
 
-		computeRhs( localVec, Iapp[j], localRhs );
+		j = Iapp.blockMap().GID(k);
 
-		for( int k = 0; k < M_numberOfEquations; k++ ) 	( *( rhs.at(k) ) )[j] =  localRhs.at(k);
+		if( j != -1 ){
+			for( int i = 0; i < M_numberOfEquations; i++ ) 	localVec.at(i) = ( *( v.at(i) ) )[j];
+
+			computeRhs( localVec, Iapp[j], localRhs );
+
+			for( int i = 0; i < M_numberOfEquations; i++ ) 	( *( rhs.at(i) ) )[j] =  localRhs.at(i);
+		}
 
 	}
 

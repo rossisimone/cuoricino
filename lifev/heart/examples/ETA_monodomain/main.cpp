@@ -217,7 +217,7 @@ Int main( Int argc, char** argv )
 	//********************************************//
 	Real TF = APParameterList.get("endTime",1.0);
 	Real dt = APParameterList.get("dt",0.1);
-	Real D  = APParameterList.get("diffusion",0.1);
+	Real D  = APParameterList.get("diffusion",0.001);
 	int n  = APParameterList.get("nf" , 1);
     stiffnessMatrix->globalAssemble();
     massMatrix->globalAssemble();
