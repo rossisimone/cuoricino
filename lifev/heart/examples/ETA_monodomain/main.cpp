@@ -427,22 +427,21 @@ Int main( Int argc, char** argv )
 //
 //		}
 
-    int c = APParameterList.get("c", 1);
 
 	for( Real t = 0; t <  TF; ){
 
 			//MPI_Barrier(MPI_COMM_WORLD);
-			if(n==1){
+
 				model.computeRhs( unknowns, *Iapp, rhs);
 
 				*( unknowns.at(0) ) = *( unknowns.at(0) ) + dt * ( *( rhs.at(0) ) );
 				*( unknowns.at(1) ) = *( unknowns.at(1) ) + dt * ( *( rhs.at(1) ) );
-			}
+
 			//MPI_Barrier(MPI_COMM_WORLD);
-			if(c==1){
+
 			*rhsptr = (*massMatrix) * (*Sol);
 			linearSolver1.solveSystem( *rhsptr, *Sol, stiffnessMatrix );
-			}
+
 			t = t + dt;
 			//MPI_Barrier(MPI_COMM_WORLD);
 			exporter.postProcess( t );
