@@ -110,7 +110,7 @@ using namespace LifeV;
 
 Real Stimulus(const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 	{
-	return ( std::exp(- 10 * ( ( x - 0.5 ) * (  x - 0.5 ) + ( y - 0.5 ) * ( y - 0.5 ) ) ) );
+		return ( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
 	}
 Real fZero( const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/ )
 {
@@ -120,8 +120,11 @@ Real fZero( const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real&
 
 Int main( Int argc, char** argv )
 {
+
    //! Initializing Epetra communicator
 	MPI_Init(&argc, &argv);
+	LifeChrono timer;
+	timer.start();
 	boost::shared_ptr<Epetra_Comm>  Comm( new Epetra_MpiComm(MPI_COMM_WORLD) );
 
 	if ( Comm->MyPID() == 0 ) cout << "% using MPI" << endl;
@@ -208,16 +211,23 @@ Int main( Int argc, char** argv )
 
     std::cout << " -- Closing the matrix ... " << std::flush;
 
+	//********************************************//
+	// Simulation starts on t=0 and ends on t=TF. //
+	// The timestep is given by dt                //
+	//********************************************//
+	Real TF = APParameterList.get("endTime",1.0);
+	Real dt = APParameterList.get("dt",0.1);
+	Real D  = APParameterList.get("diffusion",0.1);
+	int n  = APParameterList.get("nf" , 1);
     stiffnessMatrix->globalAssemble();
     massMatrix->globalAssemble();
-    (*massMatrix).spy("mass");
-    (*stiffnessMatrix).spy("stiffness");
      std::cout << " done ! " << std::endl;
-     *stiffnessMatrix *= 1e-2;
-     *stiffnessMatrix += *massMatrix;
-     VectorEpetra rhs(uSpace->map(), Repeated);
-     rhs = 1.0;
-     rhs = (*massMatrix) * rhs;
+     *stiffnessMatrix *= D;
+     *massMatrix *= 1.0 / dt;
+     *stiffnessMatrix += (*massMatrix);
+     VectorEpetra Grhs(uSpace->map(), Repeated);
+     Grhs = 0.0;
+     Grhs = (*massMatrix) * Grhs;
 
 
      // Boundary conditions
@@ -232,12 +242,12 @@ Int main( Int argc, char** argv )
      //bcH.bcUpdate( *meshPtr, uFESpace->feBd(), uFESpace->dof() );
 
      //VectorEpetra rhsbc(rhs, Unique);
-     boost::shared_ptr<VectorEpetra> rhsptr( new VectorEpetra( rhs, Unique ) );
+     boost::shared_ptr<VectorEpetra> rhsptr( new VectorEpetra( Grhs, Unique ) );
 
      //bcManage(*stiffnessMatrix,  *rhsbcptr, *uFESpace->mesh(), uFESpace->dof(), bcH, uFESpace->feBd(), 1.0, 0.0);
 
 
-     boost::shared_ptr<VectorEpetra> Sol( new VectorEpetra( uFESpace->map() ) );
+     boost::shared_ptr<VectorEpetra> Sol( new VectorEpetra( uSpace->map() ) );
 
 
   	GetPot command_line(argc, argv);
@@ -272,49 +282,21 @@ Int main( Int argc, char** argv )
 		exporter.postProcess( 0 );
 
 
-	for( Real t = 0; t <  0.1; ){
-
-
-			*rhsptr = (*massMatrix) * (*Sol);
-			linearSolver1.solveSystem( *rhsptr, *Sol, stiffnessMatrix );
-
-			t=t+0.01;
-
-			exporter.postProcess( t );
-
-	}
 //	//********************************************//
 //	// Building map Epetra  to define distributed //
 //	// vectors. We need to first construct the FE //
 //	// space, which needs the quadrature rules.   //
 //	//********************************************//
-//
-//	//! Define the quadrature rules
-//	const ReferenceFE*    refFE_u = &feTetraP1;
-//	const QuadratureRule* qR_u = &quadRuleTetra15pt;
-//	const QuadratureRule* bdQr_u = &quadRuleTria3pt;
-//
-//    //! Construction of the FE spaces
-//    std::cout << "Building the FE space ... " << std::flush;
-//    feSpacePtr_Type uFESpacePtr( new feSpace_Type( meshPtr, *refFE_u, *qR_u, *bdQr_u, 1, Comm) );
-//    std::cout << " Done!" << endl;
-//
-//
-//    //Create the Map
-//	MapEpetra localMap(uFESpacePtr->map());
-//
-//
-//
-//
-//	//********************************************//
-//	// Creates a new model object representing the//
-//	// model from Negroni and Lascano 1996. The   //
-//	// model input are the parameters. Pass  the  //
-//	// parameter list in the constructor          //
-//	//********************************************//
-//	std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
-//	IonicAlievPanfilov  model( APParameterList );
-//	std::cout << " Done!" << endl;
+
+	//********************************************//
+	// Creates a new model object representing the//
+	// model from Negroni and Lascano 1996. The   //
+	// model input are the parameters. Pass  the  //
+	// parameter list in the constructor          //
+	//********************************************//
+	std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
+	IonicAlievPanfilov  model( APParameterList );
+	std::cout << " Done!" << endl;
 //
 //
 //	//********************************************//
@@ -325,53 +307,50 @@ Int main( Int argc, char** argv )
 //
 //
 //
-//	//********************************************//
-//	// Initialize the solution to 0. The model    //
-//	// consist of three state variables. Xe.Size()//
-//	// returns the number of state variables of   //
-//	// the model. rStates is the reference to the //
-//	// the vector states                          //
-//	//********************************************//
-//
-//	std::cout << "Initializing solution vector...";
-//	std::vector<vectorPtr_Type> unknowns;
-//	for(int k = 0; k < model.Size(); ++k ){
-//		unknowns.push_back( *(new vectorPtr_Type( new VectorEpetra(localMap) ) ) );
-//	}
-//	std::cout << " Done!" << endl;
-//
-//
-//
-//	//********************************************//
-//	// Initialize the rhs to 0. The rhs is the    //
-//	// vector containing the numerical values of  //
-//	// the time derivatives of the state          //
-//	// variables, that is, the right hand side of //
-//	// the differential equation.                 //
-//	//********************************************//
-//	std::cout << "Initializing rhs..." ;
-//	std::vector<vectorPtr_Type> rhs;
-//	for(int k = 0; k < model.Size(); ++k ){
-//		rhs.push_back( *(new vectorPtr_Type( new VectorEpetra(localMap) ) ) );
-//	}
-//	std::cout << " Done! "  << endl;
+	//********************************************//
+	// Initialize the solution to 0. The model    //
+	// consist of three state variables. Xe.Size()//
+	// returns the number of state variables of   //
+	// the model. rStates is the reference to the //
+	// the vector states                          //
+	//********************************************//
+
+	std::cout << "Initializing solution vector...";
+	std::vector<vectorPtr_Type> unknowns;
+	unknowns.push_back( Sol );
+	for(int k = 1; k < model.Size(); ++k ){
+		unknowns.push_back( *(new vectorPtr_Type( new VectorEpetra(uSpace->map()) ) ) );
+	}
+	std::cout << " Done!" << endl;
 //
 //
-//	//********************************************//
-//	// The model needs as external informations   //
-//	// the contraction velocity and the Calcium   //
-//	// concentration.                             //
-//	//********************************************//
-//	boost::shared_ptr<VectorEpetra>  Iapp( new VectorEpetra(localMap) );
-//	*Iapp = 0;
+//
+	//********************************************//
+	// Initialize the rhs to 0. The rhs is the    //
+	// vector containing the numerical values of  //
+	// the time derivatives of the state          //
+	// variables, that is, the right hand side of //
+	// the differential equation.                 //
+	//********************************************//
+	std::cout << "Initializing rhs..." ;
+	std::vector<vectorPtr_Type> rhs;
+	rhs.push_back( rhsptr );
+	for(int k = 1; k < model.Size(); ++k ){
+		rhs.push_back( *(new vectorPtr_Type( new VectorEpetra(uSpace->map()) ) ) );
+	}
+	std::cout << " Done! "  << endl;
 //
 //
-//	//********************************************//
-//	// Simulation starts on t=0 and ends on t=TF. //
-//	// The timestep is given by dt                //
-//	//********************************************//
-//	Real TF = APParameterList.get("endTime",1.0);
-//	Real dt = APParameterList.get("dt",0.1);
+	//********************************************//
+	// The model needs as external informations   //
+	// the contraction velocity and the Calcium   //
+	// concentration.                             //
+	//********************************************//
+	boost::shared_ptr<VectorEpetra>  Iapp( new VectorEpetra(uSpace->map()) );
+	*Iapp = 0;
+//
+//
+
 //
 //	//********************************************//
 //	// Creating the exporter to save the solution //
@@ -394,7 +373,7 @@ Int main( Int argc, char** argv )
 //
 //    exporter.postProcess( 0 );
 //
-//    MPI_Barrier(MPI_COMM_WORLD);
+
 //    chronoinitialsettings.stop();
 //
 //
@@ -448,13 +427,37 @@ Int main( Int argc, char** argv )
 //
 //		}
 
+    int c = APParameterList.get("c", 1);
+
+	for( Real t = 0; t <  TF; ){
+
+			//MPI_Barrier(MPI_COMM_WORLD);
+			if(n==1){
+				model.computeRhs( unknowns, *Iapp, rhs);
+
+				*( unknowns.at(0) ) = *( unknowns.at(0) ) + dt * ( *( rhs.at(0) ) );
+				*( unknowns.at(1) ) = *( unknowns.at(1) ) + dt * ( *( rhs.at(1) ) );
+			}
+			//MPI_Barrier(MPI_COMM_WORLD);
+			if(c==1){
+			*rhsptr = (*massMatrix) * (*Sol);
+			linearSolver1.solveSystem( *rhsptr, *Sol, stiffnessMatrix );
+			}
+			t = t + dt;
+			//MPI_Barrier(MPI_COMM_WORLD);
+			exporter.postProcess( t );
+
+	}
+
+
 	//********************************************//
 	// Close exported file.                       //
 	//********************************************//
     //exporter.closeFile();
 	 exporter.closeFile();
     std::cout << std::endl;
-
+    timer.stop();
+    std::cout << "Time: "<< timer.diff() << ", on rank: " << Comm->MyPID() <<std::endl;
     //! Finalizing Epetra communicator
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
