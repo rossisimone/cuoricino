@@ -179,7 +179,7 @@ verbose         = 1
 
 
 [../solver]
-solver          = lu    #cg , gmres, cgs, tfqmr, bicgstab, slu, symmlq, fixed_pt, lu
+solver          = gmres    #cg , gmres, cgs, tfqmr, bicgstab, slu, symmlq, fixed_pt, lu
 scaling         = none
 output          = all # all, warnings , none , last
 conv            = rhs
