@@ -212,7 +212,7 @@ XbNegroniLascano96& XbNegroniLascano96::operator=( const XbNegroniLascano96& Xb 
 	M_beta2  =  Xb.M_beta2;
 	M_beta3  =  Xb.M_beta3;
 
-	M_numberOfStates = Xb.M_numberOfStates;
+	M_numberOfEquations = Xb.M_numberOfEquations;
 
 	return 		*this;
 }

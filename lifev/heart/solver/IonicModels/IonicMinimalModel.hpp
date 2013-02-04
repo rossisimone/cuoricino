@@ -55,7 +55,6 @@ namespace LifeV
 {
 //! XbModel - This class implements a mean field model.
 
-
 class IonicMinimalModel : public virtual HeartIonicModel
 {
 
@@ -452,7 +451,7 @@ void IonicMinimalModel::computeRhs( 	const std::vector<vectorPtr_Type>& v,
 
 	for( int k = 0; k < nodes; k++ ){
 
-		j = Iapp.blockMap().GID(k);
+		j = ( *(v.at(1) ) ).blockMap().GID(k);
 
 			for( int i = 0; i < M_numberOfEquations; i++ ) 	localVec.at(i) = ( *( v.at(i) ) )[j];
 

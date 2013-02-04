@@ -369,7 +369,7 @@ void IonicAlievPanfilov::computePotentialRhs( 	const std::vector<vectorPtr_Type>
 		}
 
 		//assembly
-		for ( UInt i = 0 ; i < uFESpace().fe().nbFEDof() ; i++ ) {
+		for ( UInt i = 0 ; i < uFESpace.fe().nbFEDof() ; i++ ) {
 			Int  ig = uFESpace.dof().localToGlobalMap( eleIDu, i );
 			( *( rhs.at(0) ) ).sumIntoGlobalValues (ig,  elvec_Iion.vec()[i] );
 		}

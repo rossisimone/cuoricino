@@ -124,8 +124,9 @@ HeartIonicModel::HeartIonicModel( const HeartIonicModel &Ionic ):
 // ===================================================
 //! Methods
 // ===================================================
-HeartIonicModel& HeartIonicModel::operator =( const HeartIonicModel &Ionic )
+HeartIonicModel& HeartIonicModel::operator =( const HeartIonicModel& Ionic )
 {
+	M_numberOfEquations = Ionic.M_numberOfEquations;
 	return 		*this;
 }
 

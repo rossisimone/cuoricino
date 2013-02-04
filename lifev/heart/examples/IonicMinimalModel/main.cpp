@@ -81,7 +81,7 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus(const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
+Real Stimulus(const Real& t, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 	{
 	return ( 4.0 * std::exp(- 0.01 * ( t - 100 * x ) * ( t - 100 * x ) ) );
 	}

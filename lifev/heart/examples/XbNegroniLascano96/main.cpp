@@ -84,7 +84,7 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Calcium(const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
+Real Calcium(const Real& t, const Real& x, const Real& y, const Real&/*z*/, const ID& /*i*/)
 	{
 		return ( std::exp(- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) ) * (x * y) );
 	}

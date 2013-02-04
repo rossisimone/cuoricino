@@ -108,7 +108,7 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus(const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus(const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 	{
 		return ( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
 	}
@@ -218,7 +218,6 @@ Int main( Int argc, char** argv )
 	Real TF = APParameterList.get("endTime",1.0);
 	Real dt = APParameterList.get("dt",0.1);
 	Real D  = APParameterList.get("diffusion",0.001);
-	int n  = APParameterList.get("nf" , 1);
     stiffnessMatrix->globalAssemble();
     massMatrix->globalAssemble();
      std::cout << " done ! " << std::endl;
