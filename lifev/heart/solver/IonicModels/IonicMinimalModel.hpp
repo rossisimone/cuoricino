@@ -39,7 +39,7 @@
 #ifndef _IONICMINIMALMODEL_H_
 #define _IONICMINIMALMODEL_H_
 
-#include <lifev/heart/solver/HeartODEModel.hpp>
+#include <lifev/heart/solver/IonicModels/HeartIonicModel.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/VectorElemental.hpp>
 #include <lifev/core/fem/FESpace.hpp>
@@ -56,14 +56,16 @@ namespace LifeV
 //! XbModel - This class implements a mean field model.
 
 
-class IonicMinimalModel : public virtual HeartODEModel
+class IonicMinimalModel : public virtual HeartIonicModel
 {
 
 public:
     //! @name Type definitions
     //@{
-	typedef boost::shared_ptr<VectorEpetra> vector_ptr;
-	typedef RegionMesh<LinearTetra> mesh_Type;
+	typedef HeartIonicModel 						super;
+	typedef boost::shared_ptr<VectorEpetra> 		vectorPtr_Type;
+	typedef boost::shared_ptr<VectorElemental> 	elvecPtr_Type;
+	typedef RegionMesh<LinearTetra> 				mesh_Type;
     //@}
 
 
@@ -161,7 +163,7 @@ public:
 
 
 
-    inline const short int& Size() const { return M_numberOfEquations; }
+    //inline const short int& Size() const { return M_numberOfEquations; }
     //@}
 
     //! @name Methods
@@ -169,14 +171,22 @@ public:
 
     inline static Real Heaviside( const Real& x) { if( x > 0 ) return 1.0; else return 0.0;}
     //Compute the rhs on a single node or for the 0D case
-    void computeRhs( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
-    //Compute the rhs on a mesh/ 3D case
-    void computeRhs( const std::vector<vector_ptr>& v, const VectorEpetra& Iapp, std::vector<vector_ptr>& rhs );
+    void computeRhs( const std::vector<Real>& v, std::vector<Real>& rhs);
 
-   // compute the rhs with state variable interpolation
-//    void IonicMinimalModel::computeRhsSVI(  	const std::vector<vector_ptr>& v,
-//    																	std::vector<vector_ptr>& rhs ,
-//    																	FESpace<mesh_Type, MapEpetra>& uFESpace );
+    void computeRhs( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
+
+    //Compute the rhs on a mesh/ 3D case
+    void computeRhs( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
+
+    void computeRhs( const std::vector<vectorPtr_Type>& v, const VectorEpetra& Iapp, std::vector<vectorPtr_Type>& rhs );
+
+    // compute the rhs with state variable interpolation
+    Real computeLocalPotentialRhs( const std::vector<Real>& v, const Real& Iapp);
+
+    void computePotentialRhs(  	const std::vector<vectorPtr_Type>& v,
+ 									const VectorEpetra& Iapp,
+ 									std::vector<vectorPtr_Type>& rhs,
+ 									FESpace<mesh_Type, MapEpetra>& uFESpace );
 
     //! Display information about the model
     //void showMe();
@@ -221,7 +231,7 @@ private:
 
 
     //! Xb states == equivalent to the number of equations
-    short int M_numberOfEquations;
+    //short int M_numberOfEquations;
 
     //@}
 
@@ -231,6 +241,7 @@ private:
 //! Constructors
 // ===================================================
 IonicMinimalModel::IonicMinimalModel()	:
+		super 	    ( 4     ),
 		M_uo    	( 0. 	),
 		M_uu    	( 1.61 	),
 		M_tetav 	( 0.3 	),
@@ -258,13 +269,12 @@ IonicMinimalModel::IonicMinimalModel()	:
 		M_us    	( 0.9087),
 		M_tausi 	( 3.3849),
 		M_tauwinf	( 0.01 	),
-		M_winfstar 	( 0.5 	),
-		M_numberOfEquations( 4 )
+		M_winfstar 	( 0.5 	)
 {
 }
 
 IonicMinimalModel::IonicMinimalModel( Teuchos::ParameterList& parameterList 	)	:
-		M_numberOfEquations( 4 )
+	super 	    ( 4 )
 {
     M_uo		=  parameterList.get("uo", 		0.0		);
     M_uu		=  parameterList.get("uu", 		1.61	);
@@ -336,8 +346,6 @@ IonicMinimalModel::IonicMinimalModel( const IonicMinimalModel& model )
 // ===================================================
 IonicMinimalModel& IonicMinimalModel::operator=( const IonicMinimalModel& model )
 {
-	//M_verbose	= model.M_verbose;
-
 	M_uo		=  model.M_uo;
 	M_uu		=  model.M_uu;
 	M_tetav		=  model.M_tetav;
@@ -376,6 +384,27 @@ IonicMinimalModel& IonicMinimalModel::operator=( const IonicMinimalModel& model 
 // ===================================================
 //! Methods
 // ===================================================
+void IonicMinimalModel::computeRhs(	const	std::vector<Real>& 	v,
+												std::vector<Real>& rhs )
+{
+
+	Real U = v[0];
+	Real V = v[1];
+	Real W = v[2];
+	Real S = v[3];
+
+	Real tauvm = ( 1.0 - Heaviside( U - M_tetavm ) )* M_tauv1 + Heaviside( U - M_tetavm ) * M_tauv2;
+	Real tauwm = M_tauw1 + ( M_tauw2  - M_tauw1  ) * ( 1.0 + std::tanh( M_kw  * ( U - M_uw  ) ) ) / 2.0;
+	Real taus  = ( 1.0 - Heaviside( U - M_tetaw ) ) * M_taus1 + Heaviside( U - M_tetaw ) * M_taus2;
+
+	Real vinf  = Heaviside( M_tetavm - U );
+	Real winf  = ( 1.0 - Heaviside( U - M_tetao ) ) * ( 1.0 - U / M_tauwinf ) + Heaviside( U - M_tetao ) * M_winfstar;
+
+	rhs[0] = ( 1.0 - Heaviside( U - M_tetav ) ) * ( vinf - V ) / tauvm - Heaviside( U - M_tetav ) * V / M_tauvp;
+	rhs[1] = ( 1.0 - Heaviside( U - M_tetaw ) ) * ( winf - W ) / tauwm - Heaviside( U - M_tetaw ) * W / M_tauwp;
+	rhs[2] = ( ( 1.0 + std::tanh( M_ks * ( U - M_us ) ) ) / 2.0 - S ) / taus;
+
+}
 
 void IonicMinimalModel::computeRhs(	const	std::vector<Real>& 	v,
 										const	Real& 			Iapp,
@@ -407,9 +436,38 @@ void IonicMinimalModel::computeRhs(	const	std::vector<Real>& 	v,
 
 }
 
-void IonicMinimalModel::computeRhs( 	const std::vector<vector_ptr>& v,
+
+
+void IonicMinimalModel::computeRhs( 	const std::vector<vectorPtr_Type>& v,
+										 	std::vector<vectorPtr_Type>& rhs )
+{
+
+	int nodes = ( *(v.at(1) ) ).epetraVector().MyLength();
+
+
+	std::vector<Real> 	localVec( M_numberOfEquations, 0.0 );
+	std::vector<Real> 	localRhs( M_numberOfEquations - 1, 0.0 );
+
+	int j(0);
+
+	for( int k = 0; k < nodes; k++ ){
+
+		j = Iapp.blockMap().GID(k);
+
+			for( int i = 0; i < M_numberOfEquations; i++ ) 	localVec.at(i) = ( *( v.at(i) ) )[j];
+
+			computeRhs( localVec, localRhs );
+
+			for( int i = 1; i < M_numberOfEquations; i++ ) 	( *( rhs.at(i) ) )[j] =  localRhs.at(i-1);
+
+	}
+
+}
+
+
+void IonicMinimalModel::computeRhs( 	const std::vector<vectorPtr_Type>& v,
 											const VectorEpetra& Iapp,
-										 	std::vector<vector_ptr>& rhs )
+										 	std::vector<vectorPtr_Type>& rhs )
 {
 
 	int nodes = Iapp.epetraVector().MyLength();
@@ -424,35 +482,118 @@ void IonicMinimalModel::computeRhs( 	const std::vector<vector_ptr>& v,
 
 		j = Iapp.blockMap().GID(k);
 
-		if( j != -1 ){
 			for( int i = 0; i < M_numberOfEquations; i++ ) 	localVec.at(i) = ( *( v.at(i) ) )[j];
 
 			computeRhs( localVec, Iapp[j], localRhs );
 
 			for( int i = 0; i < M_numberOfEquations; i++ ) 	( *( rhs.at(i) ) )[j] =  localRhs.at(i);
-		}
 
 	}
 
 }
 
 
+Real IonicMinimalModel::computeLocalPotentialRhs( const std::vector<Real>& v, const Real& Iapp)
+{
+	Real dPotential(0.0);
 
-//void IonicMinimalModel::showMe()
-//{
-//	std::cout << "\n\n\t\tIonicMinimalModel Informations\n\n";
-//	std::cout << "number of unkowns: "  << this->Size() << std::endl;
-//
-//	std::cout << "\n\t\tList of model parameters:\n\n";
-//	std::cout << "mu1: " << this->Mu1() << std::endl;
-//	std::cout << "mu2: " << this->Mu2() << std::endl;
-//	std::cout << "k: " << this->K() << std::endl;
-//	std::cout << "a: " << this->A() << std::endl;
-//	std::cout << "epsilon: " << this->Epsilon() << std::endl;
-//
-//	std::cout << "\n\t\t End of IonicMinimalModel Informations\n\n\n";
-//
-//}
+	Real U = v[0];
+	Real V = v[1];
+	Real W = v[2];
+	Real S = v[3];
+
+	Real tauso = M_tauso1+ ( M_tauso2 - M_tauso1 ) * ( 1.0 + std::tanh( M_kso * ( U - M_uso ) ) ) / 2.0;
+	Real tauo  = ( 1.0 - Heaviside( U - M_tetao ) ) * M_tauo1 + Heaviside( U - M_tetao ) * M_tauo2;
+
+	Real Jfi   = - V * Heaviside( U - M_tetav ) * ( U - M_tetav ) * ( M_uu - U ) / M_taufi;
+	Real Jso   = ( U - M_uo ) * ( 1.0 - Heaviside( U - M_tetaw )  ) / tauo + Heaviside( U - M_tetaw ) / tauso;
+	Real Jsi   = - Heaviside( U - M_tetaw ) * W * W / M_tausi;
+
+	dPotential = - ( Jfi + Jso + Jsi ) + Iapp;
+
+	return dPotential;
+}
+
+
+void IonicMinimalModel::computePotentialRhs( 	const std::vector<vectorPtr_Type>& v,
+													const VectorEpetra& Iapp,
+													std::vector<vectorPtr_Type>& rhs,
+													FESpace<mesh_Type, MapEpetra>& uFESpace )
+{
+
+	std::vector<Real> U(4, 0.0);
+	Real I(0.0);
+
+	std::vector<vectorPtr_Type>      URepPtr;
+	for( int k = 0; k < M_numberOfEquations; k++ )
+		URepPtr.push_back( *( new vectorPtr_Type( new VectorEpetra(  *( v.at(k) ) 	, Repeated ) ) ) );
+
+	VectorEpetra 	IappRep( Iapp		, Repeated );
+
+
+	std::vector<elvecPtr_Type>      elvecPtr;
+	for( int k = 0; k < M_numberOfEquations; k++ )
+		elvecPtr.push_back( *( new elvecPtr_Type( new VectorElemental(  uFESpace.fe().nbFEDof(), 1  ) ) ) );
+
+	VectorElemental elvec_Iapp( uFESpace.fe().nbFEDof(), 1 );
+	VectorElemental elvec_Iion( uFESpace.fe().nbFEDof(), 1 );
+
+	for (UInt iVol=0; iVol< uFESpace.mesh()->numVolumes(); ++iVol){
+
+		uFESpace.fe().updateJacQuadPt( uFESpace.mesh()->volumeList( iVol ) );
+
+
+		for( int k = 0; k < M_numberOfEquations; k++ )
+			( *( elvecPtr.at(k) ) ).zero();
+		elvec_Iapp.zero();
+		elvec_Iion.zero();
+
+		UInt eleIDu = uFESpace.fe().currentLocalId();
+		UInt nbNode = ( UInt ) uFESpace.fe().nbFEDof();
+
+		//! Filling local elvec_u with potential values in the nodes
+		for ( UInt iNode = 0 ; iNode < nbNode ; iNode++ ){
+
+			Int  ig = uFESpace.dof().localToGlobalMap( eleIDu, iNode );
+
+			for( int k = 0; k < M_numberOfEquations; k++ )
+				( *( elvecPtr.at(k) ) ).vec()[iNode] =( *( URepPtr.at(k) ) )[ig];
+
+			elvec_Iapp.vec()[ iNode ] = IappRep[ig];
+
+		}
+
+		//compute the local vector
+		for ( UInt ig = 0; ig < uFESpace.fe().nbQuadPt();ig++ ){
+
+			for( int k = 0; k < M_numberOfEquations; k++ ) U.at(k) = 0;
+			I = 0;
+
+			for ( UInt i = 0;i < uFESpace.fe().nbFEDof(); i++ ){
+
+				for( int k = 0; k < M_numberOfEquations; k++ )
+					U.at(k) +=  ( *( elvecPtr.at(k) ) )(i) *  uFESpace.fe().phi( i, ig );
+
+				I += elvec_Iapp(i) * uFESpace.fe().phi( i, ig );
+
+			}
+
+			for ( UInt i = 0;i < uFESpace.fe().nbFEDof();i++ ){
+
+				elvec_Iion( i ) += computeLocalPotentialRhs(U, I) * uFESpace.fe().phi( i, ig ) * uFESpace.fe().weightDet( ig );
+
+			}
+
+		}
+
+		//assembly
+		for ( UInt i = 0 ; i < uFESpace.fe().nbFEDof(); i++ ) {
+			Int  ig = uFESpace.dof().localToGlobalMap( eleIDu, i );
+		    ( *( rhs.at(0) ) ).sumIntoGlobalValues (ig,  elvec_Iion.vec()[i] );
+		}
+	}
+}
+
 
 
 }

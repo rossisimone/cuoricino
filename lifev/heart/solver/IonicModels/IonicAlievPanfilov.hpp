@@ -39,7 +39,7 @@
 #ifndef _IONICALIEVPANFILOV_H_
 #define _IONICALIEVPANFILOV_H_
 
-#include <lifev/heart/solver/HeartODEModel.hpp>
+#include <lifev/heart/solver/IonicModels/HeartIonicModel.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/VectorElemental.hpp>
 #include <lifev/core/fem/FESpace.hpp>
@@ -56,13 +56,14 @@ namespace LifeV
 //! XbModel - This class implements a mean field model.
 
 
-class IonicAlievPanfilov : public virtual HeartODEModel
+class IonicAlievPanfilov : public virtual HeartIonicModel
 {
 
 public:
     //! @name Type definitions
     //@{
-	typedef boost::shared_ptr<VectorEpetra> vector_ptr;
+	typedef HeartIonicModel super;
+	typedef boost::shared_ptr<VectorEpetra> vectorPtr_Type;
 	typedef RegionMesh<LinearTetra> mesh_Type;
     //@}
 
@@ -113,21 +114,28 @@ public:
     inline void setEpsilon	( const Real &epsilon )	{ this->M_epsilon 	= epsilon; 	}
 
 
-    inline const short int& Size() const { return M_numberOfEquations; }
+   // inline const short int& Size() const { return M_numberOfEquations; }
     //@}
 
     //! @name Methods
     //@{
 
     //Compute the rhs on a single node or for the 0D case
+    void computeRhs( const std::vector<Real>& v, std::vector<Real>& rhs);
+
     void computeRhs( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
+
     //Compute the rhs on a mesh/ 3D case
-    void computeRhs( const std::vector<vector_ptr>& v, const VectorEpetra& Iapp, std::vector<vector_ptr>& rhs );
+    void computeRhs( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
+
+    void computeRhs( const std::vector<vectorPtr_Type>& v, const VectorEpetra& Iapp, std::vector<vectorPtr_Type>& rhs );
+
 
    // compute the rhs with state variable interpolation
-    void IonicAlievPanfilov::computeRhsSVI(  	const std::vector<vector_ptr>& v,
-    																	std::vector<vector_ptr>& rhs ,
-    																	FESpace<mesh_Type, MapEpetra>& uFESpace );
+    void computePotentialRhs(  	const std::vector<vectorPtr_Type>& v,
+						const VectorEpetra& Iapp,
+						std::vector<vectorPtr_Type>& rhs,
+						FESpace<mesh_Type, MapEpetra>& uFESpace );
 
     //! Display information about the model
     void showMe();
@@ -148,10 +156,7 @@ private:
     Real M_a;
 
 
-    //! Xb states == equivalent to the number of equations
-    short int M_numberOfEquations;
-
-    //@}
+   //@}
 
 }; // class IonicAlievPanfilov
 
@@ -159,17 +164,17 @@ private:
 //! Constructors
 // ===================================================
 IonicAlievPanfilov::IonicAlievPanfilov()	:
-    M_mu1 		( 0.0 ),
+	super 		( 2   ),
+	M_mu1 		( 0.0 ),
     M_mu2 		( 0.0 ),
     M_k 		( 0.0 ),
     M_a 		( 0.0 ),
-    M_epsilon	( 0.0 ),
-    M_numberOfEquations( 2 )
+    M_epsilon	( 0.0 )
 {
 }
 
 IonicAlievPanfilov::IonicAlievPanfilov( Teuchos::ParameterList& parameterList 	)	:
-		M_numberOfEquations( 2 )
+    super 		( 2 )
 {
 	M_mu1 		=  parameterList.get("mu1", 0.0);
 	M_mu2 		=  parameterList.get("mu2", 0.0);
@@ -180,7 +185,6 @@ IonicAlievPanfilov::IonicAlievPanfilov( Teuchos::ParameterList& parameterList 	)
 
 IonicAlievPanfilov::IonicAlievPanfilov( const IonicAlievPanfilov& model )
 {
-	//M_verbose	= model.M_verbose;
 
 	M_mu1 		=  model.M_mu1;
 	M_mu2		=  model.M_mu2;
@@ -196,8 +200,6 @@ IonicAlievPanfilov::IonicAlievPanfilov( const IonicAlievPanfilov& model )
 // ===================================================
 IonicAlievPanfilov& IonicAlievPanfilov::operator=( const IonicAlievPanfilov& model )
 {
-	//M_verbose	= model.M_verbose;
-
 	M_mu1 		=  model.M_mu1;
 	M_mu2		=  model.M_mu2;
 	M_k 		=  model.M_k;
@@ -213,7 +215,18 @@ IonicAlievPanfilov& IonicAlievPanfilov::operator=( const IonicAlievPanfilov& mod
 // ===================================================
 //! Methods
 // ===================================================
+//Only gating variables
+void IonicAlievPanfilov::computeRhs(	const	std::vector<Real>& 	v,
+													std::vector<Real>& rhs )
+{
 
+	Real dr = - ( M_epsilon + M_mu1 * v[1] / ( M_mu2 + v[0] ) ) * ( v[1] + M_k * v[0] * ( v[0] - M_a  - 1.0 ) );
+
+	rhs[0] = dr;
+
+}
+
+//Potential and gating variables
 void IonicAlievPanfilov::computeRhs(	const	std::vector<Real>& 	v,
 											const	Real& 			Iapp,
 													std::vector<Real>& rhs )
@@ -227,9 +240,38 @@ void IonicAlievPanfilov::computeRhs(	const	std::vector<Real>& 	v,
 
 }
 
-void IonicAlievPanfilov::computeRhs( 	const std::vector<vector_ptr>& v,
+//Only gating variables
+void IonicAlievPanfilov::computeRhs( 	const std::vector<vectorPtr_Type>& v,
+										 	std::vector<vectorPtr_Type>& rhs )
+{
+
+	int nodes = ( *(v.at(1) ) ).epetraVector().MyLength();
+
+
+	std::vector<Real> 	localVec( 2, 0.0 );
+	std::vector<Real> 	localRhs( 1, 0.0 );
+
+	int j(0);
+
+	for( int k = 0; k < nodes; k++ ){
+
+		j = ( *(v.at(1) ) ).blockMap().GID(k);
+
+		localVec.at(0) = ( *( v.at(0) ) )[j];
+		localVec.at(1) = ( *( v.at(1) ) )[j];
+
+		computeRhs( localVec, localRhs );
+
+		( *( rhs.at(1) ) )[j] =  localRhs.at(0);
+
+	}
+
+}
+
+//Potential and gating variables
+void IonicAlievPanfilov::computeRhs( 	const std::vector<vectorPtr_Type>& v,
 											const VectorEpetra& Iapp,
-										 	std::vector<vector_ptr>& rhs )
+										 	std::vector<vectorPtr_Type>& rhs )
 {
 
 	int nodes = Iapp.epetraVector().MyLength();
@@ -243,44 +285,51 @@ void IonicAlievPanfilov::computeRhs( 	const std::vector<vector_ptr>& v,
 	for( int k = 0; k < nodes; k++ ){
 
 		j = Iapp.blockMap().GID(k);
-		if( j != -1 ){
 
+		localVec.at(0) = ( *( v.at(0) ) )[j];
+		localVec.at(1) = ( *( v.at(1) ) )[j];
 
-			localVec.at(0) = ( *( v.at(0) ) )[j];
-			localVec.at(1) = ( *( v.at(1) ) )[j];
+		computeRhs( localVec, Iapp[j], localRhs );
 
-			computeRhs( localVec, Iapp[j], localRhs );
+		( *( rhs.at(0) ) )[j] =  localRhs.at(0);
+		( *( rhs.at(1) ) )[j] =  localRhs.at(1);
 
-			( *( rhs.at(0) ) )[j] =  localRhs.at(0);
-			( *( rhs.at(1) ) )[j] =  localRhs.at(1);
-
-		}
 	}
 
 }
 
-void IonicAlievPanfilov::computeRhsSVI(  	const std::vector<vector_ptr>& v,
-												std::vector<vector_ptr>& rhs,
-                                                FESpace<mesh_Type, MapEpetra>& uFESpace )
+
+
+
+
+
+void IonicAlievPanfilov::computePotentialRhs( 	const std::vector<vectorPtr_Type>& v,
+													const VectorEpetra& Iapp,
+													std::vector<vectorPtr_Type>& rhs,
+													FESpace<mesh_Type, MapEpetra>& uFESpace )
 {
 
 	Real V(0.0);
 	Real r(0.0);
+	Real I(0.0);
 
-	VectorEpetra	VRep( *( v.at(0) ) , Repeated);
-	VectorEpetra	rRep( *( v.at(1) ) , Repeated);
+	VectorEpetra	VRep( *( v.at(0) ) 	, Repeated);
+	VectorEpetra	rRep( *( v.at(1) ) 	, Repeated);
+	VectorEpetra 	IappRep( Iapp		, Repeated );
 
 	VectorElemental elvec_V( uFESpace.fe().nbFEDof(), 1 );
-	VectorElemental elvec_Iion( uFESpace.fe().nbFEDof(), 1 );
+	VectorElemental elvec_Iapp( uFESpace.fe().nbFEDof(), 1 );
 	VectorElemental elvec_r( uFESpace.fe().nbFEDof(), 1 );
+	VectorElemental elvec_Iion( uFESpace.fe().nbFEDof(), 1 );
 
 	for (UInt iVol=0; iVol< uFESpace.mesh()->numVolumes(); ++iVol){
 
 		uFESpace.fe().updateJacQuadPt( uFESpace.mesh()->volumeList( iVol ) );
 
 		elvec_V.zero();
-		elvec_Iion.zero();
+		elvec_Iapp.zero();
 		elvec_r.zero();
+		elvec_Iion.zero();
 
 		UInt eleIDu = uFESpace.fe().currentLocalId();
 		UInt nbNode = ( UInt ) uFESpace.fe().nbFEDof();
@@ -290,6 +339,7 @@ void IonicAlievPanfilov::computeRhsSVI(  	const std::vector<vector_ptr>& v,
 
 			Int  ig = uFESpace.dof().localToGlobalMap( eleIDu, iNode );
 			elvec_V.vec()[ iNode ] = VRep[ig];
+			elvec_Iapp.vec()[ iNode ] = IappRep[ig];
 			elvec_r.vec()[ iNode ] = rRep[ig];
 
 		}
@@ -299,18 +349,19 @@ void IonicAlievPanfilov::computeRhsSVI(  	const std::vector<vector_ptr>& v,
 
 			V = 0;
 			r = 0;
-
+			I = 0;
 
 			for ( UInt i = 0;i < uFESpace.fe().nbFEDof();i++ ){
 
 				V += elvec_V(i) * uFESpace.fe().phi( i, ig );
 				r += elvec_r(i) * uFESpace.fe().phi( i, ig );
+				I += elvec_Iapp(i) * uFESpace.fe().phi( i, ig );
 
 			}
 
 			for ( UInt i = 0;i < uFESpace.fe().nbFEDof();i++ ){
 
-				elvec_Iion( i ) += ( - M_k * V * ( V - M_a ) * ( V - 1.0 ) - r * V ) *
+				elvec_Iion( i ) += ( - M_k * V * ( V - M_a ) * ( V - 1.0 ) - r * V + I) *
 									uFESpace.fe().phi( i, ig ) * uFESpace.fe().weightDet( ig );
 
 			}
@@ -318,13 +369,10 @@ void IonicAlievPanfilov::computeRhsSVI(  	const std::vector<vector_ptr>& v,
 		}
 
 		//assembly
-//		for ( UInt i = 0 ; i < uFESpace().fe().nbFEDof() ; i++ ) {
-//
-//			Int  ig = electricModel.potentialFESpace().dof().localToGlobalMap( eleIDu, i );
-//		    rhs.sumIntoGlobalValues (ig, ( elvec_Iapp.vec()[i] +
-//		                                          elvec_Iapp.vec()[i+nbNode]) /
-//		                                     (1+data.conductivityRatio()) + data.volumeSurfaceRatio() * elvec_Iion.vec()[i] );
-//		}
+		for ( UInt i = 0 ; i < uFESpace().fe().nbFEDof() ; i++ ) {
+			Int  ig = uFESpace.dof().localToGlobalMap( eleIDu, i );
+			( *( rhs.at(0) ) ).sumIntoGlobalValues (ig,  elvec_Iion.vec()[i] );
+		}
 	}
 }
 

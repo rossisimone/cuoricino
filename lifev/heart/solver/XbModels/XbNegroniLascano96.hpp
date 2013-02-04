@@ -39,7 +39,7 @@
 #ifndef _XBNEGRONILASCANO96_H_
 #define _XBNEGRONILASCANO96_H_
 
-#include <lifev/heart/solver/HeartODEModel.hpp>
+#include <lifev/heart/solver/XbModels/HeartXbModel.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -51,13 +51,14 @@ namespace LifeV
 //! XbModel - This class implements a mean field model.
 
 
-class XbNegroniLascano96 : public virtual HeartODEModel
+class XbNegroniLascano96 : public virtual HeartXbModel
 {
 
 public:
     //! @name Type definitions
     //@{
-	typedef boost::shared_ptr<VectorEpetra> vector_ptr;
+	typedef HeartXbModel super;
+	typedef boost::shared_ptr<VectorEpetra> vectorPtr_Type;
 
     //@}
 
@@ -114,7 +115,6 @@ public:
     inline void setBeta3 	( const Real &beta3  ) { this->M_beta3 	=  beta3; 	}
 
 
-    inline const short int& Size() const { return M_numberOfStates; }
     //@}
 
     //! @name Methods
@@ -123,7 +123,7 @@ public:
     //Compute the rhs on a single node or for the 0D case
     void computeRhs( const std::vector<Real>& v, const Real& Ca, const Real& vel,  std::vector<Real>& rhs);
     //Compute the rhs on a mesh/ 3D case
-    void computeRhs( const std::vector<vector_ptr>& v, const VectorEpetra& Ca, const VectorEpetra& vel, std::vector<vector_ptr>& rhs );
+    void computeRhs( const std::vector<vectorPtr_Type>& v, const VectorEpetra& Ca, const VectorEpetra& vel, std::vector<vectorPtr_Type>& rhs );
 
     //! Display information about the model
     void showMe();
@@ -149,7 +149,7 @@ private:
 
 
     //! Xb states == equivalent to the number of equations
-    short int M_numberOfStates;
+    //short int M_numberOfStates;
 
     //@}
 
@@ -159,6 +159,7 @@ private:
 //! Constructors
 // ===================================================
 XbNegroniLascano96::XbNegroniLascano96()	:
+	super	 ( 3   ),
     M_alpha1 ( 0.0 ),
     M_alpha2 ( 0.0 ),
     M_alpha3 ( 0.0 ),
@@ -166,13 +167,12 @@ XbNegroniLascano96::XbNegroniLascano96()	:
     M_alpha5 ( 0.0 ),
     M_beta1  ( 0.0 ),
     M_beta2  ( 0.0 ),
-    M_beta3  ( 0.0 ),
-	M_numberOfStates( 3 )
+    M_beta3  ( 0.0 )
 {
 }
 
 XbNegroniLascano96::XbNegroniLascano96( Teuchos::ParameterList& parameterList 	)	:
-	M_numberOfStates( 3 )
+	super	 ( 3   )
 {
 	M_alpha1 =  parameterList.get("alpha1", 0.0);
 	M_alpha2 =  parameterList.get("alpha2", 0.0);
@@ -186,8 +186,6 @@ XbNegroniLascano96::XbNegroniLascano96( Teuchos::ParameterList& parameterList 	)
 
 XbNegroniLascano96::XbNegroniLascano96( const XbNegroniLascano96& Xb )
 {
-	//M_verbose	= Xb.M_verbose;
-
 	M_alpha1 =  Xb.M_alpha1;
 	M_alpha2 =  Xb.M_alpha2;
 	M_alpha3 =  Xb.M_alpha3;
@@ -197,7 +195,7 @@ XbNegroniLascano96::XbNegroniLascano96( const XbNegroniLascano96& Xb )
 	M_beta2  =  Xb.M_beta2;
 	M_beta3  =  Xb.M_beta3;
 
-	M_numberOfStates = Xb.M_numberOfStates;
+	M_numberOfEquations = Xb.M_numberOfEquations;
 }
 
 // ===================================================
@@ -205,8 +203,6 @@ XbNegroniLascano96::XbNegroniLascano96( const XbNegroniLascano96& Xb )
 // ===================================================
 XbNegroniLascano96& XbNegroniLascano96::operator=( const XbNegroniLascano96& Xb )
 {
-	//M_verbose	= Xb.M_verbose;
-
 	M_alpha1 =  Xb.M_alpha1;
 	M_alpha2 =  Xb.M_alpha2;
 	M_alpha3 =  Xb.M_alpha3;
@@ -248,10 +244,10 @@ void XbNegroniLascano96::computeRhs(	const	std::vector<Real>& 	v,
 
 }
 
-void XbNegroniLascano96::computeRhs( 	const std::vector<vector_ptr>& v,
+void XbNegroniLascano96::computeRhs( 	const std::vector<vectorPtr_Type>& v,
 											const VectorEpetra& Ca,
 											const VectorEpetra& vel,
-										 	std::vector<vector_ptr>& rhs )
+										 	std::vector<vectorPtr_Type>& rhs )
 {
 
 	int nodes = Ca.epetraVector().MyLength();
@@ -260,7 +256,11 @@ void XbNegroniLascano96::computeRhs( 	const std::vector<vector_ptr>& v,
 	std::vector<Real> 	localVec( 3, 0.0 );
 	std::vector<Real> 	localRhs( 3, 0.0 );
 
-	for( int j = 0; j < nodes; j++ ){
+	int j(0);
+
+	for( int k = 0; k < nodes; k++ ){
+
+		j = Ca.blockMap().GID(k);
 
 		localVec.at(0) = ( *( v.at(0) ) )[j];
 		localVec.at(1) = ( *( v.at(1) ) )[j];

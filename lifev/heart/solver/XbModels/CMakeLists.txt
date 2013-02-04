@@ -1,4 +1,5 @@
 SET( XbModels_HEADERS
+  XbModels/HeartXbModel.hpp
   XbModels/XbNegroniLascano96.hpp
 CACHE INTERNAL "")
 
