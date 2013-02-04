@@ -67,7 +67,7 @@
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
 #include <lifev/core/algorithm/LinearSolver.hpp>
-#include <lifev/heart/solver/HeartMonodomainSolver.hpp>
+#include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
 #include <lifev/heart/solver/HeartIonicSolver.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
@@ -77,9 +77,8 @@
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
 #include <lifev/heart/solver/IonicModels/IonicAlievPanfilov.hpp>
+#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/LifeV.hpp>
-
-#include <lifev/core/algorithm/PreconditionerAztecOO.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -265,14 +264,6 @@ Int main( Int argc, char** argv )
     std::cout << "done" << std::endl;
     linearSolver1.setMatrix( *stiffnessMatrix );
 
-    LinearSolver linearSolver2;
-    linearSolver2.setCommunicator( Comm );
-    linearSolver2.setSolverType( linearSolver2.AztecOO );
-    linearSolver2.setTolerance( 1e-10 );
-    linearSolver2.setOperator( stiffnessMatrix );
-    boost::shared_ptr<PreconditionerAztecOO> prec;
-    prec->resetPreconditioner();
-    linearSolver2.setPreconditioner( prec );
 
 
 
@@ -358,43 +349,48 @@ Int main( Int argc, char** argv )
 	boost::shared_ptr<VectorEpetra>  Iapp( new VectorEpetra(uSpace->map()) );
 	*Iapp = 0;
 
+	typedef HeartETAMonodomainSolver< RegionMesh<LinearTetra> > monodomainSolver_Type;
+	typedef boost::shared_ptr<HeartETAMonodomainSolver< RegionMesh<LinearTetra> > > monodomainSolverPtr_Type;
+	monodomainSolverPtr_Type mono1( new monodomainSolver_Type ( new IonicAlievPanfilov() ) );
+	monodomainSolverPtr_Type mono2( new monodomainSolver_Type ( new IonicMinimalModel() ) );
+	//mono->M_ionicModel->showMe();
+	mono1->M_ionicModel->showMe();
+	mono2->M_ionicModel->showMe();
+
+	//boost::shared_ptr<monodomainSolver> mono( new monodomainSolver() );
 
 
-	for( Real t = 0; t <  TF; ){
-
-			//MPI_Barrier(MPI_COMM_WORLD);
-
-			typedef HeartIonicModel super;
-			model.super::computeRhs(unknowns, *Iapp, rhs);
-
-			*( unknowns.at(0) ) = *( unknowns.at(0) ) + dt * ( *( rhs.at(0) ) );
-			*( unknowns.at(1) ) = *( unknowns.at(1) ) + dt * ( *( rhs.at(1) ) );
-
-			//MPI_Barrier(MPI_COMM_WORLD);
-
-			*rhsptr = (*massMatrix) * (*Sol);
-
-//			linearSolver2.setRightHandSide( rhsptr );
-//			linearSolver2.solve( Sol );
-			linearSolver1.solveSystem( *rhsptr, *Sol, stiffnessMatrix );
-
-			t = t + dt;
-			//MPI_Barrier(MPI_COMM_WORLD);
-			exporter.postProcess( t );
-
-	}
-
-
-	//********************************************//
-	// Close exported file.                       //
-	//********************************************//
-    //exporter.closeFile();
+//	for( Real t = 0; t <  TF; ){
+//
+//			//MPI_Barrier(MPI_COMM_WORLD);
+//
+//				model.computeRhs( unknowns, *Iapp, rhs);
+//
+//				*( unknowns.at(0) ) = *( unknowns.at(0) ) + dt * ( *( rhs.at(0) ) );
+//				*( unknowns.at(1) ) = *( unknowns.at(1) ) + dt * ( *( rhs.at(1) ) );
+//
+//			//MPI_Barrier(MPI_COMM_WORLD);
+//
+//			*rhsptr = (*massMatrix) * (*Sol);
+//			linearSolver1.solveSystem( *rhsptr, *Sol, stiffnessMatrix );
+//
+//			t = t + dt;
+//			//MPI_Barrier(MPI_COMM_WORLD);
+//			exporter.postProcess( t );
+//
+//	}
+//
+//
+//	//********************************************//
+//	// Close exported file.                       //
+//	//********************************************//
+//    //exporter.closeFile();
 	 exporter.closeFile();
-    std::cout << std::endl;
+//    std::cout << std::endl;
     timer.stop();
     std::cout << "Time: "<< timer.diff() << ", on rank: " << Comm->MyPID() <<std::endl;
     //! Finalizing Epetra communicator
-    MPI_Barrier(MPI_COMM_WORLD);
+//    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     return( EXIT_SUCCESS );
 }

@@ -13,6 +13,7 @@ SET(solver_HEADERS
   solver/HeartBidomainSolver.hpp
   solver/HeartFunctors.hpp
   solver/HeartMonodomainSolver.hpp
+  solver/HeartETAMonodomainSolver.hpp
   solver/HeartUpdatedMonodomainSolver.hpp
   solver/HeartODEModel.hpp
 CACHE INTERNAL "")

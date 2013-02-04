@@ -15,6 +15,7 @@ SET(array_HEADERS
   array/MatrixEpetraStructured.hpp
   array/VectorEpetraStructuredView.hpp
   array/ArraySimple.hpp
+  array/MatrixSmall.hpp
   array/VectorElemental.hpp
   array/RNMOperator.hpp
   array/MatrixContainer.hpp

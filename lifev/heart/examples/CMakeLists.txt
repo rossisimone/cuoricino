@@ -8,6 +8,7 @@ ADD_SUBDIRECTORIES(
   AlievPanfilov
   basic_example
   ETA_monodomain
+  ETA_MonodomainSolver
   integrated_heart
   oneway_EM
   XbNegroniLascano96

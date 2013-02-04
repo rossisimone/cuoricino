@@ -1,17 +1,15 @@
-
 INCLUDE(TribitsAddExecutableAndTest)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
 TRIBITS_ADD_EXECUTABLE(
-  0DNegroniLascanoModel
-  SOURCES main.cpp
+  ETA_MonodomainSolver
+  SOURCES main.cpp 
 )
 
-TRIBITS_COPY_FILES_TO_BINARY_DIR(data_heart_0DNegroniLascanoModel_data
+TRIBITS_COPY_FILES_TO_BINARY_DIR(data_heart_ETA_MonodomainSolver_data
   CREATE_SYMLINK
-  SOURCE_FILES NegroniLascano96Parameters.xml
+  SOURCE_FILES data AlievPanfilovParameters.xml
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
-
 

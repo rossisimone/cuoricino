@@ -272,8 +272,8 @@ Int main( Int argc, char** argv )
 		//********************************************//
 		// Compute the rhs using the model equations  //
 		//********************************************//
-		model.computeRhs( unknowns, *Iapp, rhs);
-
+		typedef HeartIonicModel super;
+		model.super::computeRhs(unknowns, *Iapp, rhs);
 		//********************************************//
 		// Use forward Euler method to advance the    //
 		// solution in time.                          //
