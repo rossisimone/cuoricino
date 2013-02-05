@@ -46,12 +46,16 @@
 #include <Epetra_SerialComm.h>
 #endif
 
+
+#include <lifev/core/filter/ExporterEnsight.hpp>
+#ifdef HAVE_HDF5
+#include <lifev/core/filter/ExporterHDF5.hpp>
+#endif
+#include <lifev/core/filter/ExporterEmpty.hpp>
+
 #include <lifev/core/array/MatrixElemental.hpp>
 #include <lifev/core/array/MatrixSmall.hpp>
-#include <lifev/core/array/VectorElemental.hpp>
-#include <lifev/core/fem/AssemblyElemental.hpp>
-#include <lifev/core/fem/Assembly.hpp>
-#include <lifev/core/fem/BCManage.hpp>
+
 #include <lifev/core/algorithm/SolverAztecOO.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
@@ -60,12 +64,10 @@
 #include <lifev/core/fem/GeometricMap.hpp>
 #include <lifev/heart/solver/IonicModels/HeartIonicModel.hpp>
 
-#include <lifev/heart/solver/HeartMonodomainData.hpp>
 #include <lifev/core/util/LifeChrono.hpp>
 #include <boost/shared_ptr.hpp>
 #include <lifev/core/fem/FESpace.hpp>
-#include <lifev/heart/solver/HeartStiffnessFibers.hpp>
-#include <lifev/core/fem/TimeAdvanceBDF.hpp>
+
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -74,6 +76,7 @@
 #include <lifev/eta/fem/ETFESpace.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
 
+#include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/core/algorithm/Preconditioner.hpp>
 
 namespace LifeV
@@ -91,20 +94,34 @@ public:
     //! @name Type definitions
     //@{
 
+	typedef HeartIonicModel 										superIonicModel;
 	 typedef boost::shared_ptr<HeartIonicModel> 				ionicModelPtr_Type;
+	 //stypedef typename Mesh				meth_Type;
 	 typedef RegionMesh<LinearTetra> 							mesh_Type;
 	 typedef boost::shared_ptr< RegionMesh <LinearTetra> > 	 	meshPtr_Type;
 
 	 typedef VectorEpetra											vector_Type;
 	 typedef boost::shared_ptr<VectorEpetra> 				    vectorPtr_Type;
+	 typedef std::vector<vectorPtr_Type>							vectorOfPtr_Type;
+
 	 typedef MatrixEpetra<Real> 									matrix_Type;
 	 typedef boost::shared_ptr<matrix_Type>						matrixPtr_Type;
 	 typedef boost::shared_ptr<Epetra_Comm>						commPtr_Type;
 
+	 typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 > 						 	ETFESpace_Type;
 	 typedef boost::shared_ptr<ETFESpace< mesh_Type, MapEpetra, 3, 1 > > 	ETFESpacePtr_Type;
-	 typedef FESpace< mesh_Type, MapEpetra > 					 		  	feSpace_Type;
+	 typedef FESpace< mesh_Type, MapEpetra >					 		  	feSpace_Type;
 	 typedef boost::shared_ptr<feSpace_Type> 						 			feSpacePtr_Type;
 
+	 typedef boost::shared_ptr<LinearSolver>						linearSolverPtr_Type;
+
+	 typedef ExporterHDF5< RegionMesh <LinearTetra> >			exporter_Type;
+	 typedef boost::shared_ptr<exporter_Type>						exporterPtr_Type;
+
+	typedef LifeV::Preconditioner             basePrec_Type;
+	typedef boost::shared_ptr<basePrec_Type>  basePrecPtr_Type;
+	typedef LifeV::PreconditionerIfpack       prec_Type;
+	typedef boost::shared_ptr<prec_Type>      precPtr_Type;
 	 //    typedef HeartMonodomainData data_type;
 //    typedef Real ( *Function ) ( const Real& t,
 //                                 const Real& x,
@@ -140,8 +157,9 @@ public:
      * @param bcHandler boundary conditions for potential
      * @param Epetra communicator
      */
+	// HeartETAMonodomainSolver();
 
-	HeartETAMonodomainSolver( HeartIonicModel* model);
+	HeartETAMonodomainSolver( std::string meshName, std::string meshPath, HeartIonicModel* model);
 //    HeartETAMonodomainSolver(  const data_type& dataType,
 //                      	  	  	  FESpace<Mesh, MapEpetra>& uFESpace,
 //                      	  	  	  BCHandler& bcHandler,
@@ -155,76 +173,24 @@ public:
     //! @name Methods
     //@{
 
-//    //! Updates sources, bc treatment and solve the monodomain system
-//    virtual void PDEiterate( bcHandlerRaw_Type& bch );
-//
-//    //! Sets up the system solver
-//    virtual void setup        ( const GetPot& dataFile );
-//
-//    //! Builds time independent parts of PDE system
-//    virtual void buildSystem();
-//
-//    //! Updates time dependent parts of PDE system
-//    virtual void updatePDESystem(Real alpha, vector_Type&  sourceVec);
-//
-//    //! Updates time dependent parts of PDE system
-//    virtual void updatePDESystem( vector_Type& sourceVec );
-//
-//    //! Initialize
-//    void initialize( const source_Type& );
-//    void initialize( const Function&  );
-//    void initialize( const vector_Type& );
-//
-//    //! Returns the local solution vector
-//    const vector_Type& solutionTransmembranePotential() const {return M_solutionTransmembranePotential;}
-//
-//    const vector_Type& fiberVector() const {return M_fiberVector;}
-//
-//    //! Returns the local residual vector
-//    const vector_Type& residual() const {return M_residual;}
-//
-//    //! Returns u FE space
-//    FESpace<Mesh, MapEpetra>& potentialFESpace() {return M_uFESpace;}
-//
-//    //! Setting of the boundary conditions
-//    void setBC( BCHandler &BCh_u )
-//    {
-//        M_BChandlerElectric = &BCh_u; M_setBC = true;
-//    }
-//
-//    //! Postprocessing
-//    void postProcessing(bool _writeMesh = false);
-//
-//    void resetPreconditioner() {M_resetPreconditioner = true;}
-//
-//    //! Return maps
-//    Epetra_Map const& getRepeatedMapEpetra() const { return *M_localMap.map(Repeated); }
-//
-//    Epetra_Map const& getRepeatedMapEpetraVec() const { return *M_localMapVector.map(Repeated); }
-//
-//    MapEpetra const& getMap() const { return M_localMap; }
-//
-//    void recomputeMatrix(bool const recomp){M_recomputeMatrix = recomp;}
-//
-//    matrix_Type& massMatrix() { return *M_massMatrix; }
-//
-//    //@}
-//protected:
 
-    //MatrixSmall<3,3>	M_conductivityTensor;
-    //Inverse of the ratio (\chi) surface per unit volume
-    Real 				M_volumeSurfaceRatio;
+    //@}
+
+    Real 				M_surfaceVolumeRatio;
     Real				M_membraneCapacitance;
 
     ionicModelPtr_Type	M_ionicModel;
+
     commPtr_Type 		M_comm;
 	meshPtr_Type		M_meshPtr;
 	ETFESpacePtr_Type   M_ETFESpacePtr;
 	feSpacePtr_Type		M_feSpacePtr;
 	matrixPtr_Type		M_massMatrix;
 	matrixPtr_Type		M_stiffnessMatrix;
+	matrixPtr_Type		M_globalMatrix;
 
 	Real				M_initialTime;
+	Real				M_endTime;
 	Real				M_timeStep;
 	Real				M_diffusionCoeff;
 
@@ -232,85 +198,19 @@ public:
 	vectorPtr_Type			M_rhsPtrUnique;
 	vectorPtr_Type			M_potential;
 
+	linearSolverPtr_Type	M_linearSolver;
+
+	//exporterPtr_Type		M_exporter;
+
+	vectorOfPtr_Type		M_globalSolution;
+	vectorOfPtr_Type		M_globalRhs;
 
 
 
 
-//	//! Solves PDE system
-//    void solveSystem (  matrixPtr_Type matrFull, vector_Type&   rhsFull );
-//
-//    //! Apply BC
-//    void applyBoundaryConditions( matrix_Type& matrix, vector_Type& rhs, bcHandlerRaw_Type& BCh );
-//
-//    //! Data
-//    const data_type&               M_data;
-//
-//    //! u FE space
-//    FESpace<Mesh, MapEpetra>&      M_uFESpace;
-//
-//    //! MPI communicator
-//    //Epetra_Comm*                   M_comm;
-//    const boost::shared_ptr<Epetra_Comm> M_comm;
-//    Int                            M_me;
-//
-//    //! Monodomain BC
-//    BCHandler*                     M_BChandlerElectric;
-//    bool                           M_setBC;
-//
-//    //! Map
-//    MapEpetra                      M_localMap;
-//    MapEpetra                      M_localMapVector;
-//
-//    //! mass matrix
-//    matrixPtr_Type                 M_massMatrix;
-//
-//    //! Stiff matrix: D*stiff
-//    matrixPtr_Type                 M_stiffnessMatrix;
-//
-//    matrixPtr_Type                 M_matrNoBC;
-//
-//    //! Right hand side for the PDE
-//    vector_Type                    M_rhsNoBC;
-//
-//    //! Global solution _u
-//    vector_Type                    M_solutionTransmembranePotential;
-//
-//    //! Local fibers vector
-//    vector_Type                    M_fiberVector;
-//
-//    //! residual
-//    vector_Type                    M_residual;
-//
-//    //! Solver
-//    SolverType                     M_linearSolver;
-//
-//    preconditioner_Type            M_preconditioner;
-//
-//    Real                         M_diagonalize;
-//
-//    //! Boolean that indicates if output is sent to cout
-//    bool                           M_verbose;
-//
-//    //! Boolean that indicates if the matrix is updated for the current iteration
-//    bool                           M_updated;
-//
-//    //! Boolean that indicates if the precond has to be recomputed
-//    bool                           M_reusePreconditioner;
-//    bool                           M_resetPreconditioner;
-//
-//    //! Integer storing the max number of solver iteration with prec recomputing
-//    Int                            M_maxIteration;
-//
-//    //! Boolean that indicates if the matrix has to be recomputed
-//    bool                           M_recomputeMatrix;
-//
-//private:
-//
-//    //! Elementary matrices
-//    MatrixElemental                        M_stiffnessElementaryMatrix;
-//    MatrixElemental                        M_massElementaryMatrix;
-//    Real 						   massCoefficient;
-//    UInt dim_u() const           { return M_uFESpace.dim(); }
+
+
+
 
 }; // class MonodomainSolver
 
@@ -322,12 +222,144 @@ public:
 // ===================================================
 //! Constructors
 // ===================================================
+//template<typename Mesh, typename SolverType>
+//HeartETAMonodomainSolver<Mesh, SolverType>::HeartETAMonodomainSolver():
+//{
+//}
+
 template<typename Mesh, typename SolverType>
-HeartETAMonodomainSolver<Mesh, SolverType>::HeartETAMonodomainSolver( HeartIonicModel* model ):
-M_volumeSurfaceRatio(0.0),
-M_membraneCapacitance(0.0),
-M_ionicModel(model)
+HeartETAMonodomainSolver<Mesh, SolverType>::HeartETAMonodomainSolver( std::string meshName, std::string meshPath, HeartIonicModel* model):
+	M_surfaceVolumeRatio(2400.0),//cm^-1
+	M_membraneCapacitance(1.0),//uF
+	M_diffusionCoeff(1e-4),
+	M_ionicModel(model),
+	M_initialTime(0.0),
+	M_timeStep(0.01),
+	M_endTime(100.0),
+	M_comm( new Epetra_MpiComm(MPI_COMM_WORLD) ),
+	M_meshPtr( new mesh_Type( M_comm ) ),
+	M_linearSolver ( new LinearSolver() ),
+//	M_exporter ( new exporter_Type() ),
+	M_globalSolution ( *(new vectorOfPtr_Type() ) ),
+	M_globalRhs ( *(new vectorOfPtr_Type() ) )
 {
+
+	//partitioning the mesh
+	MeshUtility::fillWithFullMesh( M_meshPtr, meshName, meshPath );
+
+
+	M_ETFESpacePtr = ( new ETFESpace_Type( M_meshPtr, &feTetraP1, M_comm) );
+	//	M_feSpacePtr (new FESpace< mesh_Type, MapEpetra >(M_meshPtr, "P1", 1, M_comm) ),
+	//	M_feSpacePtr ( new feSpace_Type(M_meshPtr, "P1", 1, M_comm)  ),
+	//	M_massMatrix ( new matrix_Type( M_ETFESpacePtr->map() ) ),
+	//	M_stiffnessMatrix ( new matrix_Type( M_ETFESpacePtr->map() ) ),
+	//	M_globalMatrix ( new matrix_Type( M_ETFESpacePtr->map() ) ),
+	//	M_rhsPtr ( new vector_Type( M_ETFESpacePtr->map(), Repeated ) ),
+	//	M_rhsPtrUnique ( new vector_Type( *(M_rhsPtr), Unique ) ),
+	//	M_potential ( new vector_Type( M_ETFESpacePtr->map() ) ),
+
+
+
+
+//		cout << "\n Ho passato il punto 1.\n";
+//		//***********************//
+//		//  Setup Mass Matrix    //
+//		//***********************//
+//		{
+//		   using namespace ExpressionAssembly;
+//
+//		   integrate(  elements( M_ETFESpacePtr -> mesh() ),
+//					   quadRuleTetra4pt,
+//					   M_ETFESpacePtr,
+//					   M_ETFESpacePtr,
+//					   phi_i*phi_j
+//				   )
+//				   >> M_massMatrix;
+//
+//		}
+//		M_massMatrix -> globalAssemble();
+//
+//		//***********************//
+//		//Setup Stiffness Matrix //
+//		//***********************//
+//		{
+//		   using namespace ExpressionAssembly;
+//
+//		   integrate(  elements( M_ETFESpacePtr -> mesh() ),
+//					   quadRuleTetra4pt,
+//					   M_ETFESpacePtr,
+//					   M_ETFESpacePtr,
+//					   dot( grad(phi_i) , grad(phi_j) )
+//			   )
+//			   >> M_stiffnessMatrix;
+//
+//		}
+//		M_stiffnessMatrix -> globalAssemble();
+//
+//		//***********************//
+//		//Setup Global    Matrix //
+//		//***********************//
+//		(*M_globalMatrix) = (*M_stiffnessMatrix);
+//		(*M_globalMatrix) *= M_diffusionCoeff;
+//		(*M_globalMatrix) += ( (*M_massMatrix) * ( 1.0 / M_timeStep ) );
+//
+//		cout << "\n Ho passato il punto 2.\n";
+//
+//		//***********************//
+//		//  Setup Linear Solver  //
+//		//***********************//
+//		Int argc;
+//		char** argv;
+//		GetPot command_line(argc, argv);
+//		const string data_file_name = command_line.follow("data", 2, "-f", "--file");
+//		GetPot dataFile(data_file_name);
+//
+//		prec_Type* precRawPtr;
+//		basePrecPtr_Type precPtr;
+//		precRawPtr = new prec_Type;
+//		precRawPtr->setDataFromGetPot( dataFile, "prec" );
+//		precPtr.reset( precRawPtr );
+//
+//		Teuchos::RCP< Teuchos::ParameterList > solverParamList = Teuchos::rcp ( new Teuchos::ParameterList );
+//		solverParamList = Teuchos::getParametersFromXmlFile( "SolverParamList.xml" );
+//
+//		M_linearSolver -> setCommunicator( M_comm );
+//		M_linearSolver -> setParameters( *solverParamList );
+//		M_linearSolver -> setPreconditioner( precPtr );
+//		M_linearSolver -> setOperator( M_globalMatrix );
+//
+//	//	delete precRawPtr;
+//	//	delete precPtr;
+//
+//
+//		cout << "\n Ho passato il punto 3.\n";
+//
+//
+//		//***********************//
+//		//  Setup Exporter       //
+//		//***********************//
+//	//	M_exporter -> setMeshProcId( M_meshPtr, M_comm -> MyPID() );
+//	//	M_exporter -> setPrefix( "solution" );
+//	//
+//	//	M_exporter -> addVariable( ExporterData<mesh_Type>::ScalarField,  "potential", M_feSpacePtr, M_potential, UInt(0) );
+//
+//		//**************************//
+//		//  Setup Initial condition //
+//		//**************************//
+//		(*M_potential) = 0.5;
+//
+//		M_globalSolution.push_back( M_potential );
+//		for(int k = 1; k < model -> Size(); ++k )
+//			M_globalSolution.push_back( *(new vectorPtr_Type( new VectorEpetra( M_ETFESpacePtr -> map() ) ) ) );
+//
+//		M_globalRhs.push_back( M_rhsPtr );
+//		for(int k = 1; k < model -> Size(); ++k )
+//			M_globalRhs.push_back( *(new vectorPtr_Type( new VectorEpetra( M_ETFESpacePtr -> map() ) ) ) );
+//
+//
+//		cout << "\n Ho passato il punto 4.\n";
+
+
 }
 //	template<typename Mesh, typename SolverType>
 //	HeartMonodomainSolver<Mesh, SolverType>::

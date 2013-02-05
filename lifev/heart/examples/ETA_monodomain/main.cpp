@@ -139,6 +139,10 @@ Int main( Int argc, char** argv )
 	typedef boost::shared_ptr<feSpace_Type> feSpacePtr_Type;
     typedef boost::shared_ptr<VectorEpetra> vectorPtr_Type;
     typedef MatrixEpetra<Real> matrix_Type;
+    typedef LifeV::Preconditioner             basePrec_Type;
+    typedef boost::shared_ptr<basePrec_Type>  basePrecPtr_Type;
+    typedef LifeV::PreconditionerIfpack       prec_Type;
+    typedef boost::shared_ptr<prec_Type>      precPtr_Type;
     //********************************************//
 	// Starts the chronometer.                    //
 	//********************************************//
@@ -265,15 +269,34 @@ Int main( Int argc, char** argv )
     std::cout << "done" << std::endl;
     linearSolver1.setMatrix( *stiffnessMatrix );
 
+	std::cout << "\n LinearSolver2" << endl;
+
     LinearSolver linearSolver2;
     linearSolver2.setCommunicator( Comm );
     linearSolver2.setSolverType( linearSolver2.AztecOO );
     linearSolver2.setTolerance( 1e-10 );
     linearSolver2.setOperator( stiffnessMatrix );
-    boost::shared_ptr<PreconditionerAztecOO> prec;
-    prec->resetPreconditioner();
-    linearSolver2.setPreconditioner( prec );
+	std::cout << "\n LinearSolver2: Prec!" << endl;
 
+	prec_Type* precRawPtr;
+	basePrecPtr_Type precPtr;
+	precRawPtr = new prec_Type;
+	precRawPtr->setDataFromGetPot( dataFile, "prec" );
+
+	precPtr.reset( precRawPtr );
+	Teuchos::RCP< Teuchos::ParameterList > belosList3 = Teuchos::rcp ( new Teuchos::ParameterList );
+	belosList3 = Teuchos::getParametersFromXmlFile( "SolverParamList3.xml" );
+
+	LinearSolver linearSolver3;
+	linearSolver3.setCommunicator( Comm );
+	linearSolver3.setParameters( *belosList3 );
+	linearSolver3.setPreconditioner( precPtr );
+	linearSolver3.setOperator( stiffnessMatrix );
+
+	linearSolver2.setPreconditionerFromGetPot(dataFile, "prec");
+//    linearSolver2.setPreconditioner( linearSolver1.preconditioner() );
+
+	std::cout << "\n Done!" << endl;
 
 
 
@@ -290,6 +313,7 @@ Int main( Int argc, char** argv )
 
 		exporter.postProcess( 0 );
 
+		 std::cout << "\n PostProcess done!" << endl;
 
 //	//********************************************//
 //	// Building map Epetra  to define distributed //
@@ -359,7 +383,7 @@ Int main( Int argc, char** argv )
 	*Iapp = 0;
 
 
-
+	std::cout << "\nStarting the time loop! "  << endl;
 	for( Real t = 0; t <  TF; ){
 
 			//MPI_Barrier(MPI_COMM_WORLD);
@@ -374,9 +398,15 @@ Int main( Int argc, char** argv )
 
 			*rhsptr = (*massMatrix) * (*Sol);
 
-//			linearSolver2.setRightHandSide( rhsptr );
-//			linearSolver2.solve( Sol );
-			linearSolver1.solveSystem( *rhsptr, *Sol, stiffnessMatrix );
+			std::cout << "\n Updating solver rhs! "  << endl;
+
+			linearSolver3.setRightHandSide( rhsptr );
+
+			std::cout << "\n Solving! "  << endl;
+
+			linearSolver3.solve( Sol );
+
+//			linearSolver1.solveSystem( *rhsptr, *Sol, stiffnessMatrix );
 
 			t = t + dt;
 			//MPI_Barrier(MPI_COMM_WORLD);
