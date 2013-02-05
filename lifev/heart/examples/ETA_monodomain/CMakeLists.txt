@@ -9,7 +9,7 @@ TRIBITS_ADD_EXECUTABLE(
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_heart_ETA_monodomain_data
   CREATE_SYMLINK
-  SOURCE_FILES data AlievPanfilovParameters.xml SolverParamList3.xml
+  SOURCE_FILES data AlievPanfilovParameters.xml
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

@@ -160,14 +160,12 @@ Int main( Int argc, char** argv )
 	typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov > 		monodomainSolver_Type;
 	typedef boost::shared_ptr< monodomainSolver_Type > 	monodomainSolverPtr_Type;
 
-	cout << "\n Ho passato il punto 0.\n";
 	GetPot command_line(argc, argv);
-	cout << "\n Ho passato il punto 1.\n";
 	const string data_file_name = command_line.follow("data", 2, "-f", "--file");
-	cout << "\n Ho passato il punto 2.\n";
 	GetPot dataFile(data_file_name);
 
-	monodomainSolverPtr_Type mono1( new monodomainSolver_Type( meshName, meshPath, dataFile, model ) );
+	monodomainSolverPtr_Type mono2( new monodomainSolver_Type( meshName, meshPath, dataFile, model ) );
+
 	//monodomainSolverPtr_Type mono1( new monodomainSolver_Type ( new IonicAlievPanfilov() ) );
 	std::cout << " Done!" << endl;
 	//********************************************//
