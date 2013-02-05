@@ -162,22 +162,22 @@ private:
 // ===================================================
 IonicAlievPanfilov::IonicAlievPanfilov()	:
 	super 		( 2   ),
-	M_mu1 		( 0.0 ),
-    M_mu2 		( 0.0 ),
-    M_k 		( 0.0 ),
-    M_a 		( 0.0 ),
-    M_epsilon	( 0.0 )
+	M_mu1 		( 0.12 ),
+    M_mu2 		( 0.3 ),
+    M_k 		( 8.0 ),
+    M_a 		( 0.1 ),
+    M_epsilon	( 0.01 )
 {
 }
 
 IonicAlievPanfilov::IonicAlievPanfilov( Teuchos::ParameterList& parameterList 	)	:
     super 		( 2 )
 {
-	M_mu1 		=  parameterList.get("mu1", 0.0);
-	M_mu2 		=  parameterList.get("mu2", 0.0);
-	M_k 		=  parameterList.get("k", 0.0);
-	M_a 		=  parameterList.get("a", 0.0);
-	M_epsilon 	=  parameterList.get("epsilon", 0.0);
+	M_mu1 		=  parameterList.get("mu1", 0.12);
+	M_mu2 		=  parameterList.get("mu2", 0.3);
+	M_k 		=  parameterList.get("k", 8.0);
+	M_a 		=  parameterList.get("a", 0.1);
+	M_epsilon 	=  parameterList.get("epsilon", 0.01);
 }
 
 IonicAlievPanfilov::IonicAlievPanfilov( const IonicAlievPanfilov& model )

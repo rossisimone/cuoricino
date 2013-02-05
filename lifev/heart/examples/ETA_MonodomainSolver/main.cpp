@@ -130,8 +130,6 @@ Int main( Int argc, char** argv )
 //	chronoinitialsettings.start();
 
 	typedef RegionMesh<LinearTetra> 						mesh_Type;
-	typedef HeartETAMonodomainSolver< mesh_Type > 		monodomainSolver_Type;
-	typedef boost::shared_ptr< monodomainSolver_Type > 	monodomainSolverPtr_Type;
 
 	boost::shared_ptr<Epetra_Comm>  Comm( new Epetra_MpiComm(MPI_COMM_WORLD) );
 
@@ -152,15 +150,24 @@ Int main( Int argc, char** argv )
 	// parameter list in the constructor          //
 	//********************************************//
 	std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
-	IonicAlievPanfilov  model( APParameterList );
-	boost::shared_ptr<IonicAlievPanfilov>  model2( new IonicAlievPanfilov( APParameterList ) );
+	boost::shared_ptr<IonicAlievPanfilov>  model( new IonicAlievPanfilov( APParameterList ) );
 	std::cout << " Done!" << endl;
 
 
 	std::string meshName = APParameterList.get("mesh_name","lid16.mesh");
 	std::string meshPath = APParameterList.get("mesh_path","./");
 	std::cout << "Building Constructor forMonodomain Solver... ";
-	monodomainSolverPtr_Type mono1( new monodomainSolver_Type( meshName, meshPath, model2 ) );
+	typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov > 		monodomainSolver_Type;
+	typedef boost::shared_ptr< monodomainSolver_Type > 	monodomainSolverPtr_Type;
+
+	cout << "\n Ho passato il punto 0.\n";
+	GetPot command_line(argc, argv);
+	cout << "\n Ho passato il punto 1.\n";
+	const string data_file_name = command_line.follow("data", 2, "-f", "--file");
+	cout << "\n Ho passato il punto 2.\n";
+	GetPot dataFile(data_file_name);
+
+	monodomainSolverPtr_Type mono1( new monodomainSolver_Type( meshName, meshPath, dataFile, model ) );
 	//monodomainSolverPtr_Type mono1( new monodomainSolver_Type ( new IonicAlievPanfilov() ) );
 	std::cout << " Done!" << endl;
 	//********************************************//
