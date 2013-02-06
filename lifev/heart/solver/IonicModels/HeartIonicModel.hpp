@@ -58,6 +58,9 @@ public:
 	typedef boost::shared_ptr<VectorEpetra> 		vectorPtr_Type;
 	typedef boost::shared_ptr<VectorElemental> 	elvecPtr_Type;
 	typedef RegionMesh<LinearTetra> 				mesh_Type;
+
+	typedef MatrixEpetra<Real> 					matrix_Type;
+		 typedef boost::shared_ptr<matrix_Type>	matrixPtr_Type;
 	//@}
 
     //! @name Constructors & Destructor
@@ -107,10 +110,15 @@ public:
       // compute the rhs with state variable interpolation
    virtual Real computeLocalPotentialRhs( const std::vector<Real>& v, const Real& Iapp)=0;
 
-   virtual void computePotentialRhs(	const std::vector<vectorPtr_Type>& v,
- 										const VectorEpetra& 				Iapp,
- 										std::vector<vectorPtr_Type>& 		rhs,
- 										FESpace<mesh_Type, MapEpetra>&	uFESpace );
+   virtual void computePotentialRhsICI(	const std::vector<vectorPtr_Type>& v,
+ 											const VectorEpetra& 				Iapp,
+ 											std::vector<vectorPtr_Type>& 		rhs,
+ 											matrix_Type&						massMatrix );
+
+   virtual void computePotentialRhsSVI(	const std::vector<vectorPtr_Type>& v,
+ 											const VectorEpetra& 				Iapp,
+ 											std::vector<vectorPtr_Type>& 		rhs,
+ 											FESpace<mesh_Type, MapEpetra>&	uFESpace );
     //@}
 
    virtual void showMe()=0;
@@ -209,7 +217,34 @@ void HeartIonicModel::computeRhs( 	const std::vector<vectorPtr_Type>& v,
 
 }
 
-void HeartIonicModel::computePotentialRhs( 	const std::vector<vectorPtr_Type>& v,
+void HeartIonicModel::computePotentialRhsICI( 	const std::vector<vectorPtr_Type>& v,
+													const VectorEpetra& Iapp,
+													std::vector<vectorPtr_Type>& rhs,
+													matrix_Type&					massMatrix  )
+{
+	int nodes = ( *(v.at(0) ) ).epetraVector().MyLength();
+
+
+	std::vector<Real> 	localVec( M_numberOfEquations, 0.0 );
+
+	int j(0);
+
+	for( int k = 0; k < nodes; k++ ){
+
+			j = ( *(v.at(0) ) ).blockMap().GID(k);
+
+			for( int i = 0; i < M_numberOfEquations; i++ ) 	localVec.at(i) = ( *( v.at(i) ) )[j];
+
+			( *( rhs.at(0) ) )[j] =  computeLocalPotentialRhs( localVec, Iapp[j] );
+
+	}
+
+	( *( rhs.at(0) ) ) = massMatrix * ( *( rhs.at(0) ) );
+
+}
+
+
+void HeartIonicModel::computePotentialRhsSVI( 	const std::vector<vectorPtr_Type>& v,
 													const VectorEpetra& Iapp,
 													std::vector<vectorPtr_Type>& rhs,
 													FESpace<mesh_Type, MapEpetra>& uFESpace )
@@ -217,6 +252,7 @@ void HeartIonicModel::computePotentialRhs( 	const std::vector<vectorPtr_Type>& v
 
 	std::vector<Real> U(M_numberOfEquations, 0.0);
 	Real I(0.0);
+	( *( rhs.at(0) ) ) *= 0.0;
 
 	std::vector<vectorPtr_Type>      URepPtr;
 	for( int k = 0; k < M_numberOfEquations; k++ )

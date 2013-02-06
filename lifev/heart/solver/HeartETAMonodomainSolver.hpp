@@ -37,6 +37,8 @@
 #ifndef _HEARTETAMONODOMAINSOLVER_H_
 #define _HEARTETAMONODOMAINSOLVER_H_
 
+
+
 #ifdef EPETRA_MPI
 #include <mpi.h>
 #include <Epetra_MpiComm.h>
@@ -77,6 +79,7 @@
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/core/algorithm/Preconditioner.hpp>
 
+
 namespace LifeV
 {
 
@@ -87,6 +90,7 @@ class HeartETAMonodomainSolver
 {
 
 public:
+
 
     //! @name Type definitions
     //@{
@@ -110,7 +114,7 @@ public:
 
 	 typedef boost::shared_ptr<LinearSolver>						linearSolverPtr_Type;
 
-	 typedef ExporterHDF5< RegionMesh <LinearTetra> >			exporter_Type;
+	 typedef ExporterHDF5< mesh_Type >			exporter_Type;
 	 typedef boost::shared_ptr<exporter_Type>						exporterPtr_Type;
 
 	typedef LifeV::Preconditioner            	basePrec_Type;
@@ -123,8 +127,13 @@ public:
 	typedef boost::shared_ptr<IonicModel>	ionicModelPtr_Type;
 
 	typedef Teuchos::ParameterList				list_Type;
-	//Teuchos::RCP< Teuchos::ParameterList >
-	 //    typedef HeartMonodomainData data_type;
+
+    typedef boost::function< Real(const Real& t,
+    								const Real& x,
+    								const Real& y,
+    								const Real& z,
+    								const ID&   i ) > 	function_Type;
+
 //    typedef Real ( *Function ) ( const Real& t,
 //                                 const Real& x,
 //                                 const Real& y,
@@ -212,7 +221,10 @@ public:
     inline const Real endTime() 				const { return M_endTime; 				}
     inline const Real diffusionCoeff()		const { return M_diffusionCoeff; 		}
 
-    inline const ionicModelPtr_Type 	ionicModelPtr		()	const { return M_ionicModelPtr; 			}
+    inline const std::string elementsOrder()	const { return M_elementsOrder; 		}
+
+
+    inline const ionicModelPtr_Type 	ionicModelPtr		()	const { return M_ionicModelPtr; 		}
     inline const commPtr_Type 			commPtr				()	const { return M_commPtr; 				}
     inline const meshPtr_Type			meshPtr				()	const { return M_meshPtr; 				}
     inline const ETFESpacePtr_Type 	ETFESpacePtr		()	const { return M_ETFESpacePtr; 		}
@@ -223,6 +235,7 @@ public:
     inline const vectorPtr_Type		rhsPtr				()	const { return M_rhsPtr; 				}
     inline const vectorPtr_Type		rhsPtrUnique		()	const { return M_rhsPtrUnique; 		}
     inline const vectorPtr_Type		potentialPtr		()	const { return M_potentialPtr; 		}
+    inline const vectorPtr_Type		appliedCurrentPtr	()	const { return M_appliedCurrentPtr;	}
     inline const linearSolverPtr_Type	linearSolverPtr	()	const { return M_linearSolverPtr; 		}
     inline const vectorOfPtr_Type&		globalSolution		()	const { return M_globalSolution; 		}
     inline const vectorOfPtr_Type&		globalRhs			()	const { return M_globalRhs; 			}
@@ -236,20 +249,42 @@ public:
     inline void setDiffusionCoeff		( const Real & p ) { this -> M_diffusionCoeff = p;  	}
 
 
-    inline void setIonicModelPtr 		( const ionicModelPtr_Type 	p 		)	 { this -> M_ionicModelPtr.reset( p ); 		}
-    inline void setCommPtr				( const commPtr_Type 		p		)	 { this -> M_commPtr.reset( p ); 			}
-    inline void setMeshPtr 				( const meshPtr_Type		p		)	 { this -> M_meshPtr.reset( p ); 			}
-    inline void setETFESpacePtr 			( const ETFESpacePtr_Type 	p		)	 { this -> M_ETFESpacePtr.reset( p ); 		}
-    inline void setFeSpacePtr			( const feSpacePtr_Type		p		)	 { this -> M_feSpacePtr.reset( p ); 		}
-    inline void etMassMatrixPtr			( const matrixPtr_Type		p		)	 { this -> M_massMatrixPtr.reset( p ); 		}
-    inline void setStiffnessMatrixPtr	( const matrixPtr_Type		p		)	 { this -> M_stiffnessMatrixPtr.reset( p );	}
-    inline void setGlobalMatrixPtr		( const matrixPtr_Type		p		)	 { this -> M_globalMatrixPtr.reset( p );	}
-    inline void setRhsPtr					( const vectorPtr_Type		p		)	 { this -> M_rhsPtr.reset( p ); 			}
-    inline void setRhsPtrUnique			( const vectorPtr_Type		p		)	 { this -> M_rhsPtrUnique.reset( p ); 		}
-    inline void setPotentialPtr			( const vectorPtr_Type		p		)	 { this -> M_potentialPtr.reset( p ); 		}
-    inline void setLinearSolverPtr		( const linearSolverPtr_Type	p	)	 { this -> M_linearSolverPtr.reset( p );	}
-    inline void setGlobalSolution		( const vectorOfPtr_Type&	p		)	 { this -> M_globalSolution	= p; 			}
-    inline void setGlobalRhs				( const vectorOfPtr_Type&	p		)	 { this -> M_globalRhs 		= p; 			}
+    inline void setIonicModelPtr 		( const ionicModelPtr_Type 	p 		)	 { this -> M_ionicModelPtr = p ; 		}
+    inline void setCommPtr				( const commPtr_Type 		p		)	 { this -> M_commPtr = p ; 				}
+    inline void setMeshPtr 				( const meshPtr_Type		p		)	 { this -> M_meshPtr = p ; 				}
+    inline void setETFESpacePtr 			( const ETFESpacePtr_Type 	p		)	 { this -> M_ETFESpacePtr = p ; 		}
+    inline void setFeSpacePtr			( const feSpacePtr_Type		p		)	 { this -> M_feSpacePtr = p ; 			}
+    inline void setMassMatrixPtr			( const matrixPtr_Type		p		)	 { this -> M_massMatrixPtr = p ; 		}
+    inline void setStiffnessMatrixPtr	( const matrixPtr_Type		p		)	 { this -> M_stiffnessMatrixPtr = p ;	}
+    inline void setGlobalMatrixPtr		( const matrixPtr_Type		p		)	 { this -> M_globalMatrixPtr = p ;		}
+    inline void setRhsPtr					( const vectorPtr_Type		p		)	 { this -> M_rhsPtr = p ; 				}
+    inline void setRhsPtrUnique			( const vectorPtr_Type		p		)	 { this -> M_rhsPtrUnique = p ;
+    																				   this -> M_globalRhs .at(0) = M_rhsPtrUnique; }
+    inline void setPotentialPtr			( const vectorPtr_Type		p		)	 { this -> M_potentialPtr = p ;
+    																				   this -> M_globalSolution.at(0) = M_potentialPtr; }
+    inline void setAppliedCurrentPtr		( const vectorPtr_Type		p		)	 { this -> M_appliedCurrentPtr = p ;	}
+    inline void setLinearSolverPtr		( const linearSolverPtr_Type	p	)	 { this -> M_linearSolverPtr = p ;		}
+    inline void setGlobalSolution		( const vectorOfPtr_Type&	p		)	 { this -> M_globalSolution	= p; 		}
+    inline void setGlobalRhs				( const vectorOfPtr_Type&	p		)	 { this -> M_globalRhs 		= p; 		}
+
+
+    inline void copyIonicModel 		( const ionicModelPtr_Type 	p	)	 { (*(M_ionicModelPtr) ) = *p ; 	}
+    inline void copyComm				( const commPtr_Type 		p	)	 { (*(M_commPtr) ) = *p ; 			}
+    inline void copyMesh 				( const meshPtr_Type		p	)	 { (*(M_meshPtr) ) = *p ; 			}
+    inline void copyETFESpace 		( const ETFESpacePtr_Type 	p	)	 { (*(M_ETFESpacePtr) ) = *p ; 		}
+    inline void copyFeSpace			( const feSpacePtr_Type		p	)	 { (*(M_feSpacePtr) ) = *p ; 		}
+    inline void copyMassMatrix		( const matrixPtr_Type		p	)	 { (*(M_massMatrixPtr) ) = *p ; 	}
+    inline void copyStiffnessMatrix	( const matrixPtr_Type		p	)	 { (*(M_stiffnessMatrixPtr) ) = *p ;}
+    inline void copyGlobalMatrix		( const matrixPtr_Type		p	)	 { (*(M_globalMatrixPtr) ) = *p ;	}
+    inline void copyRhs				( const vectorPtr_Type		p	)	 { (*(M_rhsPtr) ) = *p ; 			}
+    inline void copyRhsUnique		( const vectorPtr_Type		p	)	 { (*(M_rhsPtrUnique) ) = *p ; 		}
+    inline void copyPotential		( const vectorPtr_Type		p	)	 { (*(M_potentialPtr) ) = *p ; 		}
+    inline void copyAppliedCurrent	( const vectorPtr_Type		p	)	 { (*(M_appliedCurrentPtr) ) = *p ;	}
+    inline void copyLinearSolver		( const linearSolverPtr_Type p	)	 { (*(M_linearSolverPtr) ) = *p ;	}
+    inline void copyGlobalSolution	( const vectorOfPtr_Type&	p	)	 { for(int j = 0; j < M_ionicModelPtr -> Size(); j++ ) 	( *( M_globalSolution.at(j) ) )	= (*(p.at(j) ) ); }
+    inline void copyGlobalRhs		( const vectorOfPtr_Type&	p	)	 { for(int j = 0; j < M_ionicModelPtr -> Size(); j++ ) 	( *( M_globalRhs.at(j) ) )	= (*(p.at(j) ) ); }
+
+    //    inline void setGlobalRhs				( const vectorOfPtr_Type&	p		)	 { this -> M_globalRhs 		= p; 			}
 
     void setup( GetPot& dataFile, short int ionicSize);
 
@@ -262,13 +297,71 @@ public:
     void setupLinearSolver( GetPot dataFile );
     void setupLinearSolver( GetPot dataFile, list_Type list );
 
-    void initializePotential();
-    void initializePotential(Real k);
+    void inline initializePotential() 				{ (*M_potentialPtr) 	*= 0; }
+    void inline initializePotential(Real k)			{ (*M_potentialPtr)  	 = k; }
+    void inline initializeAppliedCurrent()  		{ (*M_appliedCurrentPtr)*= 0; }
+    void inline initializeAppliedCurrent(Real k)	{ (*M_appliedCurrentPtr) = k; }
 
     void setupGlobalSolution(short int ionicSize);
+    void setupGlobalRhs(short int ionicSize);
+
     void setParameters(list_Type 	list);
 
-    void partitionMesh( std::string	meshName, std::string 	meshPath);
+    void inline partitionMesh( std::string	meshName, std::string 	meshPath)
+    							{ 	MeshUtility::fillWithFullMesh( M_meshPtr, meshName, meshPath ); }
+
+    void inline setPotentialFromFunction( function_Type f )
+    							{ M_feSpacePtr -> interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( f ), *M_potentialPtr , 0); }
+    void inline setAppliedCurrentFromFunction( function_Type f )
+    							{ 	M_feSpacePtr -> interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( f ), *M_appliedCurrentPtr , 0); }
+
+    void solveOneReactionStepFE();
+
+    void inline updateRhs() {	 (*M_rhsPtrUnique) += (*M_massMatrixPtr) * (*M_potentialPtr) * ( 1.0 / M_timeStep ); }
+
+    void solveOneDiffusionStepBE();
+
+    void solveOneSplittingStep();
+    void solveSplitting();
+
+    void solveOneSplittingStep( exporter_Type& exporter, Real t );
+    void solveSplitting( exporter_Type& exporter );
+
+    void setupPotentialExporter(exporter_Type& exporter);
+    void setupExporter(exporter_Type& exporter);
+
+    void setupPotentialExporter(exporter_Type& exporter, std::string fileName);
+    void setupExporter(exporter_Type& exporter, std::string fileName);
+
+   // void setupPotentialRhsExporter(exporter_Type& exporter, std::string fileName);
+   // void setupRhsExporter(exporter_Type& exporter, std::string fileName);
+
+
+    void solveOneStepGatingVariablesFE();
+
+    void computeRhsSVI();
+
+    void computeRhsICI();
+
+    void solveOneICIStep();
+
+    void solveOneSVIStep();
+
+    void solveICI();
+
+    void solveSVI();
+
+    void solveOneICIStep(exporter_Type& exporter, Real t);
+
+    void solveOneSVIStep(exporter_Type& exporter, Real t);
+
+    void solveICI(exporter_Type& exporter);
+
+    void solveSVI(exporter_Type& exporter);
+
+    void inline exportSolution(exporter_Type& exporter, Real t) { exporter.postProcess(t); }
+
+    void inline exportRhs(exporter_Type& exporter, Real t) { exporter.postProcess(t); }
     //@}
 
 private:
@@ -301,6 +394,7 @@ private:
 	vectorPtr_Type			M_rhsPtr;
 	vectorPtr_Type			M_rhsPtrUnique;
 	vectorPtr_Type			M_potentialPtr;
+	vectorPtr_Type			M_appliedCurrentPtr;
 
 	linearSolverPtr_Type	M_linearSolverPtr;
 
@@ -309,7 +403,7 @@ private:
 	vectorOfPtr_Type		M_globalSolution;
 	vectorOfPtr_Type		M_globalRhs;
 
-
+	std::string				M_elementsOrder;
 
 
 
@@ -335,32 +429,6 @@ HeartETAMonodomainSolver()
 }
 
 
-//template<typename Mesh, typename IonicModel>
-//HeartETAMonodomainSolver<Mesh, IonicModel>::
-//HeartETAMonodomainSolver( commPtr_Type 	comm	)
-//{
-//	setParameters();
-//	init(comm);
-//}
-//
-//template<typename Mesh, typename IonicModel>
-//HeartETAMonodomainSolver<Mesh, IonicModel>::
-//HeartETAMonodomainSolver(ionicModelPtr_Type model)
-//{
-//	setParameters();
-//	init(model);
-//}
-//
-//template<typename Mesh, typename IonicModel>
-//HeartETAMonodomainSolver<Mesh, IonicModel>::
-//HeartETAMonodomainSolver(	ionicModelPtr_Type 	model,
-//								commPtr_Type		comm	):
-//	M_ionicModelPtr(model)
-//{
-//	setParameters();
-//	init(comm);
-//}
-
 template<typename Mesh, typename IonicModel>
 HeartETAMonodomainSolver<Mesh, IonicModel>::
 HeartETAMonodomainSolver( 	list_Type list,
@@ -383,9 +451,6 @@ HeartETAMonodomainSolver( 	list_Type 			list,
 	init(comm);
 	setup(list.get("meshName", "lid16.mesh"), list.get("meshPath", "./"), dataFile, M_ionicModelPtr -> Size() );
 }
-
-
-
 
 template<typename Mesh, typename IonicModel>
 HeartETAMonodomainSolver<Mesh, IonicModel>::
@@ -443,15 +508,15 @@ setup(GetPot& dataFile, short int ionicSize)
 {
 
 	M_ETFESpacePtr.reset( new ETFESpace_Type( M_meshPtr, &feTetraP1, M_commPtr) );
-	M_feSpacePtr.reset(new FESpace< mesh_Type, MapEpetra >(M_meshPtr, "P1", 1, M_commPtr) );
-	M_feSpacePtr.reset ( new feSpace_Type(M_meshPtr, "P1", 1, M_commPtr)  );
+	M_feSpacePtr.reset(new FESpace< mesh_Type, MapEpetra >(M_meshPtr, M_elementsOrder, 1, M_commPtr) );
+	M_feSpacePtr.reset ( new feSpace_Type(M_meshPtr, M_elementsOrder, 1, M_commPtr)  );
 	M_massMatrixPtr.reset ( new matrix_Type( M_ETFESpacePtr->map() ) );
 	M_stiffnessMatrixPtr.reset ( new matrix_Type( M_ETFESpacePtr->map() ) );
 	M_globalMatrixPtr.reset ( new matrix_Type( M_ETFESpacePtr->map() ) );
 	M_rhsPtr.reset ( new vector_Type( M_ETFESpacePtr->map(), Repeated ) );
 	M_rhsPtrUnique.reset ( new vector_Type( *(M_rhsPtr), Unique ) );
 	M_potentialPtr.reset ( new vector_Type( M_ETFESpacePtr->map() ) );
-
+	M_appliedCurrentPtr.reset ( new vector_Type( M_ETFESpacePtr->map() ) );
 	//***********************//
 	//  Setup Mass Matrix    //
 	//***********************//
@@ -478,9 +543,10 @@ setup(GetPot& dataFile, short int ionicSize)
 	//**************************//
 	//  Setup Initial condition //
 	//**************************//
-	initializePotential(0.5);
-
+	initializePotential(0.0);
+	initializeAppliedCurrent(0.0);
 	setupGlobalSolution(ionicSize);
+	setupGlobalRhs(ionicSize);
 }
 
 template<typename Mesh, typename IonicModel>
@@ -574,20 +640,6 @@ setupLinearSolver( GetPot dataFile, list_Type list )
 	M_linearSolverPtr -> setOperator( M_globalMatrixPtr );
 }
 
-template<typename Mesh, typename IonicModel>
-void HeartETAMonodomainSolver<Mesh,  IonicModel>::
-initializePotential()
-{
-	(*M_potentialPtr) *= 0;
-}
-
-template<typename Mesh, typename IonicModel>
-void HeartETAMonodomainSolver<Mesh,  IonicModel>::
-initializePotential(Real k)
-{
-	(*M_potentialPtr) = k;
-}
-
 
 template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
@@ -596,11 +648,15 @@ setupGlobalSolution(short int ionicSize)
 	M_globalSolution.push_back( M_potentialPtr );
 	for(int k = 1; k <  ionicSize; ++k )
 		M_globalSolution.push_back( *(new vectorPtr_Type( new VectorEpetra( M_ETFESpacePtr -> map() ) ) ) );
+}
 
-	M_globalRhs.push_back( M_rhsPtr );
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh,  IonicModel>::
+setupGlobalRhs(short int ionicSize)
+{
+	M_globalRhs.push_back( M_rhsPtrUnique );
 	for(int k = 1; k < ionicSize; ++k )
 		M_globalRhs.push_back( *(new vectorPtr_Type( new VectorEpetra( M_ETFESpacePtr -> map() ) ) ) );
-
 }
 
 template<typename Mesh, typename IonicModel>
@@ -653,6 +709,7 @@ setParameters()
 	M_initialTime		 = 0.0;
 	M_endTime			 = 100.0;
 	M_timeStep			 = 0.01;
+	M_elementsOrder		 = "P1";
 
 }
 
@@ -666,14 +723,234 @@ setParameters(list_Type list)
 	M_initialTime		 = list.get("initialTime", 0.0 );
 	M_endTime			 = list.get("endTime", 100.0 );
 	M_timeStep			 = list.get("diffusionCoeff", 0.01 );
+	M_elementsOrder		 = list.get("elementsOrder", "P1" );
 
 }
 
 template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
-partitionMesh( std::string	meshName, std::string 	meshPath)
+solveOneReactionStepFE()
 {
-	MeshUtility::fillWithFullMesh( M_meshPtr, meshName, meshPath );
+	M_ionicModelPtr -> superIonicModel::computeRhs( M_globalSolution, *M_appliedCurrentPtr, M_globalRhs);
+
+	for( UInt i = 0; i < M_ionicModelPtr -> Size() ; i++ )
+		*( M_globalSolution.at(i) ) = *( M_globalSolution.at(i) ) + M_timeStep * ( *( M_globalRhs.at(i) ) );
+
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneDiffusionStepBE()
+{
+	M_linearSolverPtr -> setRightHandSide( M_rhsPtrUnique );
+	M_linearSolverPtr -> solve( M_potentialPtr );
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneSplittingStep()
+{
+		solveOneReactionStepFE();
+		(*M_rhsPtrUnique)*=0;
+		updateRhs();
+		solveOneDiffusionStepBE();
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneSplittingStep(exporter_Type& exporter, Real t)
+{
+		solveOneSplittingStep();
+		exportSolution(exporter, t);
+}
+
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveSplitting()
+{
+	for( Real t = M_initialTime; t < M_endTime; )
+	{
+		solveOneSplittingStep();
+		t = t + M_timeStep;
+	}
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveSplitting(exporter_Type& exporter)
+{
+	for( Real t = M_initialTime; t < M_endTime; )
+	{
+		t = t + M_timeStep;
+		solveOneSplittingStep(exporter, t);
+
+	}
+}
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+setupPotentialExporter(exporter_Type& exporter)
+{
+	exporter.setMeshProcId( M_meshPtr, M_commPtr -> MyPID() );
+	exporter.setPrefix("Potential");
+	exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "Potential", M_feSpacePtr, M_potentialPtr, UInt(0) );
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+setupExporter(exporter_Type& exporter)
+{
+	exporter.setMeshProcId( M_meshPtr, M_commPtr -> MyPID() );
+	exporter.setPrefix("Solution");
+	std::string variableName;
+	for( int i = 0; i < M_ionicModelPtr -> Size() ; i++ ){
+		variableName = "Variable" + boost::lexical_cast<std::string>( i );
+		exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  variableName, M_feSpacePtr, M_globalSolution.at(i), UInt(0) );
+	}
+}
+
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+setupPotentialExporter(exporter_Type& exporter, std::string fileName)
+{
+	exporter.setMeshProcId( M_meshPtr, M_commPtr -> MyPID() );
+	exporter.setPrefix(fileName);
+	exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  "Potential", M_feSpacePtr, M_potentialPtr, UInt(0) );
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+setupExporter(exporter_Type& exporter, std::string fileName)
+{
+	exporter.setMeshProcId( M_meshPtr, M_commPtr -> MyPID() );
+	exporter.setPrefix(fileName);
+	std::string variableName;
+	for( int i = 0; i < M_ionicModelPtr -> Size() ; i++ ){
+		variableName = "Variable" + boost::lexical_cast<std::string>( i );
+		exporter.addVariable( ExporterData<mesh_Type>::ScalarField,  variableName, M_feSpacePtr, M_globalSolution.at(i), UInt(0) );
+	}
+}
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneStepGatingVariablesFE()
+{
+	M_ionicModelPtr -> superIonicModel::computeRhs( M_globalSolution, M_globalRhs);
+
+	for( UInt i = 1; i < M_ionicModelPtr -> Size() ; i++ )
+		*( M_globalSolution.at(i) ) = *( M_globalSolution.at(i) ) + M_timeStep * ( *( M_globalRhs.at(i) ) );
+
+}
+
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+computeRhsICI()
+{
+	M_ionicModelPtr -> superIonicModel::computePotentialRhsICI( M_globalSolution, (*M_appliedCurrentPtr), M_globalRhs, (*M_massMatrixPtr) );
+	updateRhs();
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+computeRhsSVI()
+{
+	M_ionicModelPtr -> superIonicModel::computePotentialRhsSVI( M_globalSolution, (*M_appliedCurrentPtr), M_globalRhs, (*M_feSpacePtr) );
+	updateRhs();
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneICIStep()
+{
+	computeRhsICI();
+	M_linearSolverPtr -> setRightHandSide( M_rhsPtrUnique );
+	M_linearSolverPtr -> solve( M_potentialPtr );
+}
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneSVIStep()
+{
+	computeRhsSVI();
+	M_linearSolverPtr -> setRightHandSide( M_rhsPtrUnique );
+	M_linearSolverPtr -> solve( M_potentialPtr );
+}
+
+
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveICI()
+{
+	for( Real t = M_initialTime; t < M_endTime; )
+	{
+		solveOneICIStep();
+		t = t + M_timeStep;
+	}
+}
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveSVI()
+{
+	for( Real t = M_initialTime; t < M_endTime; )
+	{
+		solveOneSVIStep();
+		t = t + M_timeStep;
+	}
+}
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneICIStep(exporter_Type& exporter, Real t)
+{
+	solveOneICIStep();
+	exportSolution(exporter, t);
+}
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneSVIStep(exporter_Type& exporter, Real t)
+{
+	solveOneSVIStep();
+	exportSolution(exporter, t);
+}
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveICI(exporter_Type& exporter)
+{
+	for( Real t = M_initialTime; t < M_endTime; )
+	{
+		t = t + M_timeStep;
+		solveOneICIStep( exporter, t);
+	}
+}
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveSVI(exporter_Type& exporter)
+{
+	for( Real t = M_initialTime; t < M_endTime; )
+	{
+		t = t + M_timeStep;
+		solveOneSVIStep( exporter, t);
+	}
 }
 
 

@@ -143,6 +143,14 @@ Int main( Int argc, char** argv )
     typedef boost::shared_ptr<basePrec_Type>  basePrecPtr_Type;
     typedef LifeV::PreconditionerIfpack       prec_Type;
     typedef boost::shared_ptr<prec_Type>      precPtr_Type;
+
+    typedef boost::function< Real(const Real& /*t*/,
+    								const Real&   x,
+    								const Real&   y,
+    								const Real& /*z*/,
+    								const ID&   /*i*/ ) > 	function_Type;
+
+    function_Type f = &Stimulus;
     //********************************************//
 	// Starts the chronometer.                    //
 	//********************************************//
@@ -261,22 +269,22 @@ Int main( Int argc, char** argv )
 
 
     std::cout << "Setting up SolverAztecOO... " << std::flush;
-    SolverAztecOO linearSolver1;
-    linearSolver1.setCommunicator( Comm );
-    linearSolver1.setDataFromGetPot( dataFile, "solver" );
-    linearSolver1.setTolerance( 1e-10 );
-    linearSolver1.setupPreconditioner(dataFile, "prec");
-    std::cout << "done" << std::endl;
-    linearSolver1.setMatrix( *stiffnessMatrix );
-
-	std::cout << "\n LinearSolver2" << endl;
-
-    LinearSolver linearSolver2;
-    linearSolver2.setCommunicator( Comm );
-    linearSolver2.setSolverType( linearSolver2.AztecOO );
-    linearSolver2.setTolerance( 1e-10 );
-    linearSolver2.setOperator( stiffnessMatrix );
-	std::cout << "\n LinearSolver2: Prec!" << endl;
+//    SolverAztecOO linearSolver1;
+//    linearSolver1.setCommunicator( Comm );
+//    linearSolver1.setDataFromGetPot( dataFile, "solver" );
+//    linearSolver1.setTolerance( 1e-10 );
+//    linearSolver1.setupPreconditioner(dataFile, "prec");
+//    std::cout << "done" << std::endl;
+//    linearSolver1.setMatrix( *stiffnessMatrix );
+//
+//	std::cout << "\n LinearSolver2" << endl;
+//
+//    LinearSolver linearSolver2;
+//    linearSolver2.setCommunicator( Comm );
+//    linearSolver2.setSolverType( linearSolver2.AztecOO );
+//    linearSolver2.setTolerance( 1e-10 );
+//    linearSolver2.setOperator( stiffnessMatrix );
+//	std::cout << "\n LinearSolver2: Prec!" << endl;
 
 	prec_Type* precRawPtr;
 	basePrecPtr_Type precPtr;
@@ -293,7 +301,7 @@ Int main( Int argc, char** argv )
 	linearSolver3.setPreconditioner( precPtr );
 	linearSolver3.setOperator( stiffnessMatrix );
 
-	linearSolver2.setPreconditionerFromGetPot(dataFile, "prec");
+//	linearSolver2.setPreconditionerFromGetPot(dataFile, "prec");
 //    linearSolver2.setPreconditioner( linearSolver1.preconditioner() );
 
 	std::cout << "\n Done!" << endl;
@@ -308,7 +316,8 @@ Int main( Int argc, char** argv )
 
 
 
-	uFESpace->interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( Stimulus ), *Sol , 0);
+//	uFESpace->interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( Stimulus ), *Sol , 0);
+	uFESpace->interpolate( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type >( f ), *Sol , 0);
 
 
 		exporter.postProcess( 0 );

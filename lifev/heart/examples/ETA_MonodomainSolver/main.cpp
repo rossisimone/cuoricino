@@ -130,6 +130,13 @@ Int main( Int argc, char** argv )
 //	chronoinitialsettings.start();
 
 	typedef RegionMesh<LinearTetra> 						mesh_Type;
+    typedef boost::function< Real(const Real& /*t*/,
+    								const Real&   x,
+    								const Real&   y,
+    								const Real& /*z*/,
+    								const ID&   /*i*/ ) > 	function_Type;
+
+    function_Type f = &Stimulus;
 
 	boost::shared_ptr<Epetra_Comm>  Comm( new Epetra_MpiComm(MPI_COMM_WORLD) );
 
@@ -164,11 +171,64 @@ Int main( Int argc, char** argv )
 	const string data_file_name = command_line.follow("data", 2, "-f", "--file");
 	GetPot dataFile(data_file_name);
 
-	monodomainSolverPtr_Type mono2( new monodomainSolver_Type( meshName, meshPath, dataFile, model ) );
+	monodomainSolverPtr_Type splitting( new monodomainSolver_Type( meshName, meshPath, dataFile, model ) );
+	monodomainSolverPtr_Type ici( new monodomainSolver_Type( dataFile, model, splitting ->  meshPtr() ) );
+	monodomainSolverPtr_Type svi( new monodomainSolver_Type( dataFile, model, splitting ->  meshPtr() ) );
 
 	//monodomainSolverPtr_Type mono1( new monodomainSolver_Type ( new IonicAlievPanfilov() ) );
 	std::cout << " Done!" << endl;
-	//********************************************//
+
+
+	cout << "\nInitializing potential:  " ;
+	splitting -> setPotentialFromFunction( f );
+	ici -> copyPotential( splitting -> potentialPtr() );
+	svi -> setPotentialFromFunction( f );
+
+	cout << "Done! \n" ;
+
+	splitting -> setTimeStep( APParameterList.get("dt",0.01) );
+	splitting -> setEndTime ( APParameterList.get("endTime",60.0) );
+	splitting -> setDiffusionCoeff( APParameterList.get("diffusion",0.001) );
+
+	cout << "\nSplitting diffusion coefficient: " << splitting -> diffusionCoeff();
+	ici -> setTimeStep( splitting -> timeStep() );
+	ici -> setEndTime( splitting -> endTime() );
+	ici -> setDiffusionCoeff( splitting -> diffusionCoeff() );
+	cout << "\nICI diffusion coefficient: " << ici -> diffusionCoeff();
+
+	svi -> setTimeStep( splitting -> timeStep() );
+	svi -> setEndTime( splitting -> endTime() );
+	svi -> setDiffusionCoeff( splitting -> diffusionCoeff() );
+	cout << "\nSVI diffusion coefficient: " << svi -> diffusionCoeff();
+
+
+	splitting -> setupGlobalMatrix();
+	ici -> setupGlobalMatrix();
+	svi -> setupGlobalMatrix();
+
+	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
+
+    splitting -> setupExporter( exporterSplitting, "Splitting" );
+    ici -> setupExporter( exporterICI, "ICI" );
+    svi -> setupExporter( exporterSVI, "SVI" );
+
+    splitting -> exportSolution( exporterSplitting, 0);
+    ici -> exportSolution( exporterICI, 0);
+    svi -> exportSolution( exporterSVI, 0);
+
+
+    cout << "\nstart solving:  " ;
+    splitting 	-> solveSplitting( exporterSplitting );
+    ici 		-> solveICI( exporterICI );
+    svi 		-> solveSVI( exporterSVI );
+
+    exporterSplitting.closeFile();
+    exporterICI.closeFile();
+    exporterSVI.closeFile();
+
+    //********************************************//
 	// Import mesh.				                  //
 	//********************************************//
 //	if (!Comm->MyPID()) std::cout << "My PID = " << Comm->MyPID() << std::endl;
