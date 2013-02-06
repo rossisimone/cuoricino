@@ -894,8 +894,9 @@ solveICI()
 {
 	for( Real t = M_initialTime; t < M_endTime; )
 	{
-		solveOneICIStep();
 		t = t + M_timeStep;
+		solveOneStepGatingVariablesFE();
+		solveOneICIStep();
 	}
 }
 
@@ -906,8 +907,9 @@ solveSVI()
 {
 	for( Real t = M_initialTime; t < M_endTime; )
 	{
-		solveOneSVIStep();
 		t = t + M_timeStep;
+		solveOneStepGatingVariablesFE();
+		solveOneSVIStep();
 	}
 }
 
@@ -937,6 +939,7 @@ solveICI(exporter_Type& exporter)
 	for( Real t = M_initialTime; t < M_endTime; )
 	{
 		t = t + M_timeStep;
+		solveOneStepGatingVariablesFE();
 		solveOneICIStep( exporter, t);
 	}
 }
@@ -949,6 +952,7 @@ solveSVI(exporter_Type& exporter)
 	for( Real t = M_initialTime; t < M_endTime; )
 	{
 		t = t + M_timeStep;
+		solveOneStepGatingVariablesFE();
 		solveOneSVIStep( exporter, t);
 	}
 }
