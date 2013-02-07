@@ -2,22 +2,20 @@
 #      Data file for the nonlinear Bidomain equations
 
 [exporter]
-type       = hdf5#ensight
-
-[ensight]
-multimesh  = false
-save       = 1
-#post_dir = ./
-
+type       = hdf5
 
 [solid]
         [./physics]
-        density   = 0.0               # 0 kills the inertial term
+        density   = 1.0               # 0 kills the inertial term
         young     = 3.0E6
         poisson   = 0.3
         rho       = 1.0
+<<<<<<< Updated upstream
         solidType 		= neoHookean
 	material_flag = 1
+=======
+        solidType 		= linearVenantKirchhoff #neoHookean
+>>>>>>> Stashed changes
 
         [../time_discretization]
         initialtime = 0.01
@@ -28,7 +26,7 @@ save       = 1
         verbose   = 1
         [../space_discretization]
         mesh_dir  = ./
-        mesh_file = lid16.mesh #meshIUTAMfine.mesh #heartJean.mesh #biventrRescaled.mesh #heart13628Rescaled.mesh #ellipsoid5272.mesh #ellissoide29560.mesh #canineHeart2.mesh
+        mesh_file = canineHeart2.mesh # rousseauMeshRescaled.mesh #lid16.mesh #meshIUTAMfine.mesh #heartJean.mesh #biventrRescaled.mesh #heart13628Rescaled.mesh #ellipsoid5272.mesh #ellissoide29560.mesh #canineHeart2.mesh
         order     = P1
         [../newton]
         maxiter = 1
@@ -62,8 +60,8 @@ save       = 1
 [electric]
         [./physics]
         test_case       = 2             # in particular for b.c. condition
-        ion_model       = 1		        # 1: RM 	2: LR    3: MS
-        D               = 0.001#0.01256    #0.0156 slab 0.1256 elli
+        ion_model       = 4		        # 1: RM 2: LR 3: MS 4:minimal
+        D               = 0.012 #0.01256    #0.0156 slab 0.1256 elli
         u0              =-84.0
         beta = 0.5 # elli 0.5
 
@@ -86,10 +84,10 @@ save       = 1
         #sigmat		=  0.00699		#O^-1cm^-1
 
 
-        stim_center_1 	= '1.9 2.14 0.17'
+        stim_center_1 	= '1.9 2.0 0.17'
         stim_radius_1 	= 1.5
         stim_start_1 	= 0
-        stim_stop_1 	= 1
+        stim_stop_1 	= 3
         stim_value_1 	= 100
         stim_period_1 	= 750 #450
 
@@ -109,7 +107,7 @@ save       = 1
 
         [../space_discretization]
         mesh_dir        = ./Mesh/
-        mesh_file       = lid16.mesh #heartJean.mesh #biventrRescaled.mesh #heart13628Rescaled.mesh #ellipsoid5272.mesh #ellissoide29560.mesh #canineHeart2.mesh
+        mesh_file       = canineHeart2.mesh #rousseauMeshRescaled.mesh #lid16.mesh #heartJean.mesh #biventrRescaled.mesh #heart13628Rescaled.mesh #ellipsoid5272.mesh #ellissoide29560.mesh #canineHeart2.mesh
         mesh_type       = .mesh
         has_fibers      = 0
         fibers_dir = ./Mesh/
