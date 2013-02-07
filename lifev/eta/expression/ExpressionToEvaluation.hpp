@@ -63,6 +63,8 @@
 #include <lifev/eta/expression/ExpressionMeas.hpp>
 #include <lifev/eta/expression/ExpressionPosition.hpp>
 
+#include <lifev/eta/expression/ExpressionRotateMatrix.hpp>
+
 #include <lifev/eta/expression/EvaluationPhiI.hpp>
 #include <lifev/eta/expression/EvaluationPhiJ.hpp>
 #include <lifev/eta/expression/EvaluationDphiI.hpp>
@@ -88,6 +90,8 @@
 #include <lifev/eta/expression/EvaluationHK.hpp>
 #include <lifev/eta/expression/EvaluationMeas.hpp>
 #include <lifev/eta/expression/EvaluationPosition.hpp>
+
+#include <lifev/eta/expression/EvaluationRotateMatrix.hpp>
 
 namespace LifeV
 {
@@ -389,6 +393,18 @@ private:
 	~ExpressionToEvaluation();
 };
 
+
+// Specialized for an interpolated gradient
+template<typename MeshType, typename MapType, UInt FESpaceDim, UInt FEFieldDim, UInt testDim, UInt solutionDim, UInt spaceDim>
+class ExpressionToEvaluation<
+ExpressionRotateMatrix<MeshType,MapType,FESpaceDim,FEFieldDim>,testDim,solutionDim,spaceDim>
+{
+public:
+	typedef EvaluationRotateMatrix<MeshType,MapType,FESpaceDim,FEFieldDim> evaluation_Type;
+private:
+	ExpressionToEvaluation();
+	~ExpressionToEvaluation();
+};
 
 // \endcond
 

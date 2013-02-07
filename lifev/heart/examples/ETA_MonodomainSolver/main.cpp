@@ -175,58 +175,94 @@ Int main( Int argc, char** argv )
 	monodomainSolverPtr_Type ici( new monodomainSolver_Type( dataFile, model, splitting ->  meshPtr() ) );
 	monodomainSolverPtr_Type svi( new monodomainSolver_Type( dataFile, model, splitting ->  meshPtr() ) );
 
-	//monodomainSolverPtr_Type mono1( new monodomainSolver_Type ( new IonicAlievPanfilov() ) );
-	std::cout << " Done!" << endl;
+//	//monodomainSolverPtr_Type mono1( new monodomainSolver_Type ( new IonicAlievPanfilov() ) );
+//	std::cout << " Done!" << endl;
+//
+//
+//	cout << "\nInitializing potential:  " ;
+//	splitting -> setPotentialFromFunction( f );
+//	ici -> copyPotential( splitting -> potentialPtr() );
+//	svi -> setPotentialFromFunction( f );
+//
+//	cout << "Done! \n" ;
+//
+//	splitting -> setTimeStep( APParameterList.get("dt",0.01) );
+//	splitting -> setEndTime ( APParameterList.get("endTime",60.0) );
+//	splitting -> setDiffusionCoeff( APParameterList.get("diffusion",0.001) );
+//
+//	cout << "\nSplitting diffusion coefficient: " << splitting -> diffusionCoeff();
+//	ici -> setTimeStep( splitting -> timeStep() );
+//	ici -> setEndTime( splitting -> endTime() );
+//	ici -> setDiffusionCoeff( splitting -> diffusionCoeff() );
+//	cout << "\nICI diffusion coefficient: " << ici -> diffusionCoeff();
+//
+//	svi -> setTimeStep( splitting -> timeStep() );
+//	svi -> setEndTime( splitting -> endTime() );
+//	svi -> setDiffusionCoeff( splitting -> diffusionCoeff() );
+//	cout << "\nSVI diffusion coefficient: " << svi -> diffusionCoeff();
+//
+//
+//	splitting -> setupGlobalMatrix();
+//	ici -> setupGlobalMatrix();
+//	svi -> setupGlobalMatrix();
+//
+//	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+//    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
+//    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
+//
+//    splitting -> setupExporter( exporterSplitting, "Splitting" );
+//    ici -> setupExporter( exporterICI, "ICI" );
+//    svi -> setupExporter( exporterSVI, "SVI" );
+//
+//    splitting -> exportSolution( exporterSplitting, 0);
+//    ici -> exportSolution( exporterICI, 0);
+//    svi -> exportSolution( exporterSVI, 0);
+//
+//
+//    cout << "\nstart solving:  " ;
+//    //splitting 	-> solveSplitting( exporterSplitting );
+//    //ici 		-> solveICI( exporterICI );
+//    //svi 		-> solveSVI( exporterSVI );
+//
+//    exporterSplitting.closeFile();
+//    exporterICI.closeFile();
+//    exporterSVI.closeFile();
 
 
-	cout << "\nInitializing potential:  " ;
-	splitting -> setPotentialFromFunction( f );
-	ici -> copyPotential( splitting -> potentialPtr() );
-	svi -> setPotentialFromFunction( f );
+    boost::shared_ptr<ETFESpace< mesh_Type, MapEpetra, 3, 3 > > Space3D
+        ( new ETFESpace< mesh_Type, MapEpetra, 3, 3 >(ici ->  meshPtr(),&( ici -> feSpacePtr() ->refFE() ), Comm));
 
-	cout << "Done! \n" ;
+    VectorEpetra fibers( Space3D -> map(), Repeated);
+    VectorEpetra fibersUnique( Space3D -> map(), Unique);
 
-	splitting -> setTimeStep( APParameterList.get("dt",0.01) );
-	splitting -> setEndTime ( APParameterList.get("endTime",60.0) );
-	splitting -> setDiffusionCoeff( APParameterList.get("diffusion",0.001) );
+    int nodes = fibers.epetraVector().MyLength();
+    int dim = nodes / 3;
 
-	cout << "\nSplitting diffusion coefficient: " << splitting -> diffusionCoeff();
-	ici -> setTimeStep( splitting -> timeStep() );
-	ici -> setEndTime( splitting -> endTime() );
-	ici -> setDiffusionCoeff( splitting -> diffusionCoeff() );
-	cout << "\nICI diffusion coefficient: " << ici -> diffusionCoeff();
+    fibers *= 0;
+    cout << "\nlocal nodes: " << nodes << ", one component nodes: " << dim << " but " << nodes /3 << endl;
+    int j(0);
+    for( int k(0); k < dim; k++ ){
+    	j = fibers.blockMap().GID(k);
+    	fibers[k + 2 *dim ] = 1;
+    }
 
-	svi -> setTimeStep( splitting -> timeStep() );
-	svi -> setEndTime( splitting -> endTime() );
-	svi -> setDiffusionCoeff( splitting -> diffusionCoeff() );
-	cout << "\nSVI diffusion coefficient: " << svi -> diffusionCoeff();
+    fibers.spy("fiberVec");
 
-
-	splitting -> setupGlobalMatrix();
-	ici -> setupGlobalMatrix();
-	svi -> setupGlobalMatrix();
-
-	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
-
-    splitting -> setupExporter( exporterSplitting, "Splitting" );
-    ici -> setupExporter( exporterICI, "ICI" );
-    svi -> setupExporter( exporterSVI, "SVI" );
-
-    splitting -> exportSolution( exporterSplitting, 0);
-    ici -> exportSolution( exporterICI, 0);
-    svi -> exportSolution( exporterSVI, 0);
-
-
-    cout << "\nstart solving:  " ;
-    splitting 	-> solveSplitting( exporterSplitting );
-    ici 		-> solveICI( exporterICI );
-    svi 		-> solveSVI( exporterSVI );
-
-    exporterSplitting.closeFile();
-    exporterICI.closeFile();
-    exporterSVI.closeFile();
+//	boost::shared_ptr<MatrixEpetra> M_matrixPtr.reset ( new MatrixEpetra( ici -> ETFESpacePtr() ->map() ) );
+//	{
+//	   using namespace ExpressionAssembly;
+//
+//	   integrate(  elements( M_ETFESpacePtr -> mesh() ),
+//				   quadRuleTetra4pt,
+//				   M_ETFESpacePtr,
+//				   M_ETFESpacePtr,
+//				   dot( grad(phi_i) , grad(phi_j) )
+//		   )
+//		   >> M_matriPtr;
+//
+//	}
+//	M_matrixPtr -> globalAssemble();
+//
 
     //********************************************//
 	// Import mesh.				                  //
