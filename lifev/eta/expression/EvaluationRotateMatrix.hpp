@@ -232,10 +232,10 @@ public:
 	{
 		zero();
 
-		UInt totalDOF(M_vector.epetraVector().MyLength() / 3 );
 
 
-//		int const nbq( M_quadrature->nbQuadPt() );
+		UInt locDOF(M_vector.epetraVector().MyLength() / 3 );
+
 		std::vector<Real> u_x(M_quadrature->nbQuadPt(),0);
 		std::vector<Real> u_y(M_quadrature->nbQuadPt(),0);
 		std::vector<Real> u_z(M_quadrature->nbQuadPt(),0);
@@ -254,12 +254,15 @@ public:
 			{
 				UInt globalID(M_fespace->dof().localToGlobalMap(iElement,i));
 
-               	u_x[q] += M_currentFE.phi(i,q) * M_vector[globalID];
-               	u_y[q] += M_currentFE.phi(i,q) * M_vector[globalID + totalDOF];
-               	u_z[q] += M_currentFE.phi(i,q) * M_vector[globalID + 2 * totalDOF];
+		       	u_x[q] += M_currentFE.phi(i,q) * M_vector[globalID];
+              	u_y[q] += M_currentFE.phi(i,q) * M_vector[globalID + locDOF];
+               	u_z[q] += M_currentFE.phi(i,q) * M_vector[globalID + 2 * locDOF ];
 
 			}
+		}
 
+		for (UInt i(0); i< M_fespace->refFE().nbDof(); ++i)
+		{
 			for (UInt q(0); q< M_quadrature->nbQuadPt(); ++q)
 			{
 				a_l[0] = u_x[q];
@@ -386,7 +389,7 @@ private:
 	QuadratureRule* M_quadrature;
 
     //! Structure for the computations
-	ETCurrentFE<3,3> M_currentFE;
+	ETCurrentFE<3,1> M_currentFE;
 
     //! Storage for the temporary values
 	std::vector<return_Type> M_rotatedMatrix;

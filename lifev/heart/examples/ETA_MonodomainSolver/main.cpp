@@ -56,6 +56,8 @@
 #include <fstream>
 #include <string>
 
+#include <lifev/core/array/VectorSmall.hpp>
+
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
@@ -229,40 +231,70 @@ Int main( Int argc, char** argv )
 //    exporterSVI.closeFile();
 
 
-    boost::shared_ptr<ETFESpace< mesh_Type, MapEpetra, 3, 3 > > Space3D
-        ( new ETFESpace< mesh_Type, MapEpetra, 3, 3 >(ici ->  meshPtr(),&( ici -> feSpacePtr() ->refFE() ), Comm));
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+        ( new FESpace< mesh_Type, MapEpetra >(ici ->  meshPtr(), "P1", 3, Comm) );
+        //new ETFESpace< mesh_Type, MapEpetra, 3, 3 >(ici ->  meshPtr(),&( ici -> feSpacePtr() ->refFE() ), Comm));
 
-    VectorEpetra fibers( Space3D -> map(), Repeated);
-    VectorEpetra fibersUnique( Space3D -> map(), Unique);
+    VectorEpetra v1( Space3D -> map() );
+    VectorEpetra v2( ici -> ETFESpacePtr() -> map());
 
-    int nodes = fibers.epetraVector().MyLength();
-    int dim = nodes / 3;
+    int n1 = v1.epetraVector().MyLength();
+    int d1 = n1 / 3;
 
-    fibers *= 0;
-    cout << "\nlocal nodes: " << nodes << ", one component nodes: " << dim << " but " << nodes /3 << endl;
-    int j(0);
-    for( int k(0); k < dim; k++ ){
-    	j = fibers.blockMap().GID(k);
-    	fibers[k + 2 *dim ] = 1;
-    }
+    int n2 = v2.epetraVector().MyLength();
+    v1 *= 0;
+	v2 = 1;
 
-    fibers.spy("fiberVec");
+    cout << "\nn1: " << n1 << ", d1: " << d1 << ", n2: " << n2  << endl;
+	cout << "\n";
+	int iter(0);
+	for( int k(0); k<d1; k++){
+		iter++;
+	int j = v1.blockMap().GID(k+2*d1);
+	v1[j]=1.0;
+	}
 
-//	boost::shared_ptr<MatrixEpetra> M_matrixPtr.reset ( new MatrixEpetra( ici -> ETFESpacePtr() ->map() ) );
-//	{
-//	   using namespace ExpressionAssembly;
-//
-//	   integrate(  elements( M_ETFESpacePtr -> mesh() ),
-//				   quadRuleTetra4pt,
-//				   M_ETFESpacePtr,
-//				   M_ETFESpacePtr,
-//				   dot( grad(phi_i) , grad(phi_j) )
-//		   )
-//		   >> M_matriPtr;
-//
-//	}
-//	M_matrixPtr -> globalAssemble();
-//
+	cout << "\n";
+	v1.spy("v1");
+	ExporterHDF5< RegionMesh <LinearTetra> > exp;
+	exp.setMeshProcId( ici -> meshPtr(), Comm -> MyPID() );
+	exp.setPrefix("vecs");
+	boost::shared_ptr<VectorEpetra> f1( new VectorEpetra( v1 ) );
+	boost::shared_ptr<VectorEpetra> f2( new VectorEpetra( v2 ) );
+
+	exp.addVariable( ExporterData<mesh_Type>::VectorField,  "v1", Space3D, f1, UInt(0) );
+	exp.addVariable( ExporterData<mesh_Type>::ScalarField,  "v2", ici -> feSpacePtr(), f2, UInt(0) );
+
+	exp.postProcess(0);
+	exp.closeFile();
+
+
+
+	typedef VectorSmall<3> diagonalMatrix_Type;
+	diagonalMatrix_Type diff;
+	diff[0] = 1.0;
+	diff[1] = 10.0;
+	diff[2] = 10.0;
+
+	( *(ici -> massMatrixPtr() ) ) *= 0;
+
+	ici -> massMatrixPtr() -> spy("mass");
+	{
+	   using namespace ExpressionAssembly;
+
+	   integrate(  elements( ici -> ETFESpacePtr() -> mesh() ),
+				   quadRuleTetra4pt,
+				   ici -> ETFESpacePtr(),
+				   ici -> ETFESpacePtr(),
+				   dot( rotate( ici -> ETFESpacePtr(), v1, diff  ) * grad(phi_i) , grad(phi_j) )
+		   )
+		   >> ici -> massMatrixPtr();
+
+	}
+	ici -> massMatrixPtr() -> globalAssemble();
+	ici -> massMatrixPtr() -> spy("massafter");
+
+
 
     //********************************************//
 	// Import mesh.				                  //
