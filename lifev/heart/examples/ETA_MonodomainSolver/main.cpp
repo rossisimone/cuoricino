@@ -182,19 +182,21 @@ Int main( Int argc, char** argv )
 //
 //
 //	cout << "\nInitializing potential:  " ;
-//	splitting -> setPotentialFromFunction( f );
-//	ici -> copyPotential( splitting -> potentialPtr() );
+	splitting -> setPotentialFromFunction( f );
+	ici -> copyPotential( splitting -> potentialPtr() );
 //	svi -> setPotentialFromFunction( f );
 //
 //	cout << "Done! \n" ;
 //
-//	splitting -> setTimeStep( APParameterList.get("dt",0.01) );
-//	splitting -> setEndTime ( APParameterList.get("endTime",60.0) );
+	splitting -> setTimeStep( APParameterList.get("dt",0.01) );
+	splitting -> setEndTime ( APParameterList.get("endTime",60.0) );
 //	splitting -> setDiffusionCoeff( APParameterList.get("diffusion",0.001) );
-//
+	ici -> setParameters( APParameterList );
+
+	//
 //	cout << "\nSplitting diffusion coefficient: " << splitting -> diffusionCoeff();
-//	ici -> setTimeStep( splitting -> timeStep() );
-//	ici -> setEndTime( splitting -> endTime() );
+	//ici -> setTimeStep( splitting -> timeStep() );
+	//ici -> setEndTime( splitting -> endTime() );
 //	ici -> setDiffusionCoeff( splitting -> diffusionCoeff() );
 //	cout << "\nICI diffusion coefficient: " << ici -> diffusionCoeff();
 //
@@ -203,96 +205,84 @@ Int main( Int argc, char** argv )
 //	svi -> setDiffusionCoeff( splitting -> diffusionCoeff() );
 //	cout << "\nSVI diffusion coefficient: " << svi -> diffusionCoeff();
 //
-//
+
+//	MatrixEpetra constDiffusionMatrix = ici -> diffusionCoeff() * (*(ici -> stiffnessMatrixPtr() ) );
+
 //	splitting -> setupGlobalMatrix();
-//	ici -> setupGlobalMatrix();
-//	svi -> setupGlobalMatrix();
+
+	ici -> setupMassMatrix();
+	ici -> setupStiffnessMatrix();
+	ici -> setupGlobalMatrix();
+
+	//	svi -> setupGlobalMatrix();
 //
-//	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-//    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
+	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
 //    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
 //
-//    splitting -> setupExporter( exporterSplitting, "Splitting" );
-//    ici -> setupExporter( exporterICI, "ICI" );
+    splitting -> setupExporter( exporterSplitting, "Splitting" );
+    ici -> setupExporter( exporterICI, "ICI" );
 //    svi -> setupExporter( exporterSVI, "SVI" );
 //
-//    splitting -> exportSolution( exporterSplitting, 0);
-//    ici -> exportSolution( exporterICI, 0);
+    splitting -> exportSolution( exporterSplitting, 0);
+    ici -> exportSolution( exporterICI, 0);
 //    svi -> exportSolution( exporterSVI, 0);
 //
 //
 //    cout << "\nstart solving:  " ;
-//    //splitting 	-> solveSplitting( exporterSplitting );
-//    //ici 		-> solveICI( exporterICI );
+//    splitting 	-> solveSplitting( exporterSplitting );
+   ici 		-> solveICI( exporterICI );
 //    //svi 		-> solveSVI( exporterSVI );
 //
-//    exporterSplitting.closeFile();
-//    exporterICI.closeFile();
+    exporterSplitting.closeFile();
+    exporterICI.closeFile();
 //    exporterSVI.closeFile();
 
 
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
         ( new FESpace< mesh_Type, MapEpetra >(ici ->  meshPtr(), "P1", 3, Comm) );
-        //new ETFESpace< mesh_Type, MapEpetra, 3, 3 >(ici ->  meshPtr(),&( ici -> feSpacePtr() ->refFE() ), Comm));
+//        //new ETFESpace< mesh_Type, MapEpetra, 3, 3 >(ici ->  meshPtr(),&( ici -> feSpacePtr() ->refFE() ), Comm));
+//
+//    VectorEpetra v1( Space3D -> map() );
+////    VectorEpetra v2( ici -> ETFESpacePtr() -> map());
+////
+//    int n1 = v1.epetraVector().MyLength();
+//    int d1 = n1 / 3;
+////
+////    int n2 = v2.epetraVector().MyLength();
+//    v1 *= 0;
+////	v2 = 1;
+////
+////    cout << "\nn1: " << n1 << ", d1: " << d1 << ", n2: " << n2  << endl;
+////	cout << "\n";
+////	int iter(0);
+//	for( int k(0); k<d1; k++){
+////		iter++;
+//	int j = v1.blockMap().GID(k+d1);
+//	v1[j]=1.0;
+//	}
+//
+//	cout << "\n";
 
-    VectorEpetra v1( Space3D -> map() );
-    VectorEpetra v2( ici -> ETFESpacePtr() -> map());
 
-    int n1 = v1.epetraVector().MyLength();
-    int d1 = n1 / 3;
-
-    int n2 = v2.epetraVector().MyLength();
-    v1 *= 0;
-	v2 = 1;
-
-    cout << "\nn1: " << n1 << ", d1: " << d1 << ", n2: " << n2  << endl;
-	cout << "\n";
-	int iter(0);
-	for( int k(0); k<d1; k++){
-		iter++;
-	int j = v1.blockMap().GID(k+2*d1);
-	v1[j]=1.0;
-	}
-
-	cout << "\n";
-	v1.spy("v1");
 	ExporterHDF5< RegionMesh <LinearTetra> > exp;
 	exp.setMeshProcId( ici -> meshPtr(), Comm -> MyPID() );
 	exp.setPrefix("vecs");
-	boost::shared_ptr<VectorEpetra> f1( new VectorEpetra( v1 ) );
-	boost::shared_ptr<VectorEpetra> f2( new VectorEpetra( v2 ) );
 
-	exp.addVariable( ExporterData<mesh_Type>::VectorField,  "v1", Space3D, f1, UInt(0) );
-	exp.addVariable( ExporterData<mesh_Type>::ScalarField,  "v2", ici -> feSpacePtr(), f2, UInt(0) );
+	exp.addVariable( ExporterData<mesh_Type>::VectorField,  "v1", Space3D, ici -> fiberPtr(), UInt(0) );
 
 	exp.postProcess(0);
 	exp.closeFile();
 
 
 
-	typedef VectorSmall<3> diagonalMatrix_Type;
-	diagonalMatrix_Type diff;
-	diff[0] = 1.0;
-	diff[1] = 10.0;
-	diff[2] = 10.0;
 
-	( *(ici -> massMatrixPtr() ) ) *= 0;
 
-	ici -> massMatrixPtr() -> spy("mass");
-	{
-	   using namespace ExpressionAssembly;
 
-	   integrate(  elements( ici -> ETFESpacePtr() -> mesh() ),
-				   quadRuleTetra4pt,
-				   ici -> ETFESpacePtr(),
-				   ici -> ETFESpacePtr(),
-				   dot( rotate( ici -> ETFESpacePtr(), v1, diff  ) * grad(phi_i) , grad(phi_j) )
-		   )
-		   >> ici -> massMatrixPtr();
 
-	}
-	ici -> massMatrixPtr() -> globalAssemble();
-	ici -> massMatrixPtr() -> spy("massafter");
+
+
+
 
 
 

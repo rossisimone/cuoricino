@@ -146,7 +146,7 @@ private:
   required to work within the Evaluation trees.
  */
 template<typename MeshType, typename MapType>
-class EvaluationRotateMatrix<MeshType,MapType,3,3>
+class EvaluationRotateMatrix<MeshType,MapType,3,1>
 {
 
 public:
@@ -158,7 +158,7 @@ public:
     typedef MatrixSmall<3,3> return_Type;
 
     //! Type of the FESpace to be used in this class
-	typedef ETFESpace<MeshType,MapType,3,3> fespace_Type;
+	typedef ETFESpace<MeshType,MapType,3,1> fespace_Type;
 
     //! Type of the pointer on the FESpace
 	typedef boost::shared_ptr<fespace_Type> fespacePtr_Type;
@@ -191,10 +191,11 @@ public:
     //@{
 
     //! Copy constructor
-    EvaluationRotateMatrix(const EvaluationRotateMatrix<MeshType,MapType,3,3>& evaluation)
+    EvaluationRotateMatrix(const EvaluationRotateMatrix<MeshType,MapType,3,1>& evaluation)
 	:
 		M_fespace		( evaluation.M_fespace),
 		M_vector		( evaluation.M_vector, Repeated),
+		M_matrix		( evaluation.M_matrix ),
 		M_quadrature	( 0 ),
         M_currentFE		( evaluation.M_currentFE),
 		M_rotatedMatrix	( evaluation.M_rotatedMatrix)
@@ -206,10 +207,11 @@ public:
 	}
 
 	//! Expression-based constructor
-        explicit EvaluationRotateMatrix(const ExpressionInterpolateGradient<MeshType,MapType,3,3>& expression)
+        explicit EvaluationRotateMatrix(const ExpressionRotateMatrix<MeshType,MapType,3,1>& expression)
 	:
 		M_fespace( expression.fespace()),
 		M_vector( expression.vector(),Repeated ),
+		M_matrix		( expression.matrix() ),
 		M_quadrature(0),
 		M_currentFE(M_fespace->refFE(),M_fespace->geoMap()),
 		M_rotatedMatrix(0)
@@ -232,9 +234,7 @@ public:
 	{
 		zero();
 
-
-
-		UInt locDOF(M_vector.epetraVector().MyLength() / 3 );
+		UInt locDOF(M_fespace->dof().numTotalDof() );
 
 		std::vector<Real> u_x(M_quadrature->nbQuadPt(),0);
 		std::vector<Real> u_y(M_quadrature->nbQuadPt(),0);
@@ -273,7 +273,7 @@ public:
 				a_l[1] = a_l[1] / norm;
 				a_l[2] = a_l[2] / norm;
 				for( UInt j(0); j < 3; j++){			///////  D = sigma_t * I + (sigma_l-sigma_t) * a_l * a_l^T
-					M_rotatedMatrix[q][j][j] = transversalComponent;
+					M_rotatedMatrix[q][j][j] += transversalComponent;
 
 					for( UInt k(0); k < 3; k++){
 						M_rotatedMatrix[q][j][k] += (longitudinalComponent - transversalComponent ) * a_l[j] * a_l[k];
@@ -281,6 +281,8 @@ public:
 				}
 			}
 		}
+
+
 	}
 
 
@@ -398,17 +400,17 @@ private:
 
 template<typename MeshType, typename MapType >
 const flag_Type
-EvaluationRotateMatrix<MeshType,MapType,3,3>::
+EvaluationRotateMatrix<MeshType,MapType,3,1>::
 S_globalUpdateFlag=ET_UPDATE_NONE;
 
 template<typename MeshType, typename MapType>
 const flag_Type
-EvaluationRotateMatrix<MeshType,MapType,3,3>::
+EvaluationRotateMatrix<MeshType,MapType,3,1>::
 S_testUpdateFlag=ET_UPDATE_NONE;
 
 template<typename MeshType, typename MapType>
 const flag_Type
-EvaluationRotateMatrix<MeshType,MapType,3,3>::
+EvaluationRotateMatrix<MeshType,MapType,3,1>::
 S_solutionUpdateFlag=ET_UPDATE_NONE;
 
 

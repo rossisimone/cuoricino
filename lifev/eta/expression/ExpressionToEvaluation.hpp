@@ -400,7 +400,7 @@ class ExpressionToEvaluation<
 ExpressionRotateMatrix<MeshType,MapType,FESpaceDim,FEFieldDim>,testDim,solutionDim,spaceDim>
 {
 public:
-	typedef EvaluationRotateMatrix<MeshType,MapType,3,3> evaluation_Type;
+	typedef EvaluationRotateMatrix<MeshType,MapType,FESpaceDim,FEFieldDim> evaluation_Type;
 private:
 	ExpressionToEvaluation();
 	~ExpressionToEvaluation();

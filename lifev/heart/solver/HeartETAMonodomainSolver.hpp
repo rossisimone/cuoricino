@@ -32,6 +32,14 @@
   @author Simone Rossi <simone.rossi@epfl.ch>
 
   @last update 02-2013
+
+  This class provides interfaces to solve the monodomain equation
+  ( reaction diffusion equation ) using the ETA framework.
+  The solution can be performed using three different methods:
+  -operator splitting method (at this point available only with forward Euler
+  	  for the reaction step and backward Euler for the diffusion step. );
+  -Ionic Currents Interpolation (at this point only forward Euler);
+  -State Variable interpolation (at this point only forward Euler).
  */
 
 #ifndef _HEARTETAMONODOMAINSOLVER_H_
@@ -88,6 +96,15 @@ namespace LifeV
 template< typename Mesh, typename IonicModel >
 class HeartETAMonodomainSolver
 {
+
+
+	//!Monodomain Solver
+	/*!
+	   The monodomain equation reads
+	   \f \Chi
+
+	*/
+
 
 public:
 
@@ -214,12 +231,12 @@ public:
     //! @name Methods
     //@{
 
-    inline const Real surfaceVolumeRatio()	const { return M_surfaceVolumeRatio; 	}
-    inline const Real membraneCapacitance() 	const { return M_membraneCapacitance; 	}
-    inline const Real initialTime() 			const { return M_initialTime; 			}
-    inline const Real timeStep() 				const { return M_timeStep; 			}
-    inline const Real endTime() 				const { return M_endTime; 				}
-    inline const Real diffusionCoeff()		const { return M_diffusionCoeff; 		}
+    inline const Real& surfaceVolumeRatio()	const { return M_surfaceVolumeRatio; 	}
+    inline const Real& membraneCapacitance() 	const { return M_membraneCapacitance; 	}
+    inline const Real& initialTime() 			const { return M_initialTime; 			}
+    inline const Real& timeStep() 				const { return M_timeStep; 			}
+    inline const Real& endTime() 				const { return M_endTime; 				}
+    inline const VectorSmall<3>& diffusionTensor()		const { return M_diffusionTensor; 		}
 
     inline const std::string elementsOrder()	const { return M_elementsOrder; 		}
 
@@ -235,6 +252,7 @@ public:
     inline const vectorPtr_Type		rhsPtr				()	const { return M_rhsPtr; 				}
     inline const vectorPtr_Type		rhsPtrUnique		()	const { return M_rhsPtrUnique; 		}
     inline const vectorPtr_Type		potentialPtr		()	const { return M_potentialPtr; 		}
+    inline const vectorPtr_Type		fiberPtr		    ()	const { return M_fiberPtr; 		}
     inline const vectorPtr_Type		appliedCurrentPtr	()	const { return M_appliedCurrentPtr;	}
     inline const linearSolverPtr_Type	linearSolverPtr	()	const { return M_linearSolverPtr; 		}
     inline const vectorOfPtr_Type&		globalSolution		()	const { return M_globalSolution; 		}
@@ -246,7 +264,7 @@ public:
     inline void setInitialTime 			( const Real & p ) { this -> M_initialTime = p;  		}
     inline void setTimeStep 				( const Real & p ) { this -> M_timeStep = p;  			}
     inline void setEndTime 				( const Real & p ) { this -> M_endTime = p;  			}
-    inline void setDiffusionCoeff		( const Real & p ) { this -> M_diffusionCoeff = p;  	}
+    inline void setDiffusionTensor		( const VectorSmall<3> & p ) { this -> M_diffusionTensor = p;  	}
 
 
     inline void setIonicModelPtr 		( const ionicModelPtr_Type 	p 		)	 { this -> M_ionicModelPtr = p ; 		}
@@ -267,6 +285,7 @@ public:
     inline void setGlobalSolution		( const vectorOfPtr_Type&	p		)	 { this -> M_globalSolution	= p; 		}
     inline void setGlobalRhs				( const vectorOfPtr_Type&	p		)	 { this -> M_globalRhs 		= p; 		}
 
+    inline void setFiberPtr			( const vectorPtr_Type		p		)	 { this -> M_fiberPtr = p ; }
 
     inline void copyIonicModel 		( const ionicModelPtr_Type 	p	)	 { (*(M_ionicModelPtr) ) = *p ; 	}
     inline void copyComm				( const commPtr_Type 		p	)	 { (*(M_commPtr) ) = *p ; 			}
@@ -279,6 +298,7 @@ public:
     inline void copyRhs				( const vectorPtr_Type		p	)	 { (*(M_rhsPtr) ) = *p ; 			}
     inline void copyRhsUnique		( const vectorPtr_Type		p	)	 { (*(M_rhsPtrUnique) ) = *p ; 		}
     inline void copyPotential		( const vectorPtr_Type		p	)	 { (*(M_potentialPtr) ) = *p ; 		}
+    inline void copyFiber				( const vectorPtr_Type		p	)	 { (*(M_fiberPtr) ) = *p ; 		}
     inline void copyAppliedCurrent	( const vectorPtr_Type		p	)	 { (*(M_appliedCurrentPtr) ) = *p ;	}
     inline void copyLinearSolver		( const linearSolverPtr_Type p	)	 { (*(M_linearSolverPtr) ) = *p ;	}
     inline void copyGlobalSolution	( const vectorOfPtr_Type&	p	)	 { for(int j = 0; j < M_ionicModelPtr -> Size(); j++ ) 	( *( M_globalSolution.at(j) ) )	= (*(p.at(j) ) ); }
@@ -292,7 +312,9 @@ public:
 
     void setupMassMatrix();
     void setupStiffnessMatrix();
+    void setupStiffnessMatrix(VectorEpetra& fiber, VectorSmall<3> diffusion);
     void setupGlobalMatrix();
+
 
     void setupLinearSolver( GetPot dataFile );
     void setupLinearSolver( GetPot dataFile, list_Type list );
@@ -389,7 +411,8 @@ private:
 	Real				M_initialTime;
 	Real				M_endTime;
 	Real				M_timeStep;
-	Real				M_diffusionCoeff;
+
+	VectorSmall<3>		M_diffusionTensor;
 
 	vectorPtr_Type			M_rhsPtr;
 	vectorPtr_Type			M_rhsPtrUnique;
@@ -406,7 +429,7 @@ private:
 	std::string				M_elementsOrder;
 
 
-
+	vectorPtr_Type			M_fiberPtr;
 
 
 
@@ -517,20 +540,39 @@ setup(GetPot& dataFile, short int ionicSize)
 	M_rhsPtrUnique.reset ( new vector_Type( *(M_rhsPtr), Unique ) );
 	M_potentialPtr.reset ( new vector_Type( M_ETFESpacePtr->map() ) );
 	M_appliedCurrentPtr.reset ( new vector_Type( M_ETFESpacePtr->map() ) );
+
+
+	/*************************/
+	// INITIALIZE FIBERS   ***/
+	/************************/
+	boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+        ( new FESpace< mesh_Type, MapEpetra >( M_meshPtr, "P1", 3, M_commPtr) );
+
+    M_fiberPtr.reset( new vector_Type( Space3D -> map() ) );
+
+    int n1 = (*M_fiberPtr).epetraVector().MyLength();
+    int d1 = n1 / 3;
+    (*M_fiberPtr) *= 0;
+	int j(0);
+	for( int k(0); k<d1; k++){
+	j = (*M_fiberPtr).blockMap().GID(k+d1);
+	(*M_fiberPtr)[j]=1.0;
+	}
+
 	//***********************//
 	//  Setup Mass Matrix    //
 	//***********************//
-	setupMassMatrix();
+	//setupMassMatrix();
 
 	//***********************//
 	//Setup Stiffness Matrix //
 	//***********************//
-	setupStiffnessMatrix();
+	//setupStiffnessMatrix( *M_fiberPtr, M_diffusionTensor );
 
 	//***********************//
 	//Setup Global    Matrix //
 	//***********************//
-	setupGlobalMatrix();
+	//setupGlobalMatrix();
 
 
 
@@ -589,7 +631,7 @@ setupStiffnessMatrix()
 				   quadRuleTetra4pt,
 				   M_ETFESpacePtr,
 				   M_ETFESpacePtr,
-				   dot( grad(phi_i) , grad(phi_j) )
+				   dot(  rotate( M_ETFESpacePtr, *M_fiberPtr, M_diffusionTensor ) * grad(phi_i) , grad(phi_j) )
 		   )
 		   >> M_stiffnessMatrixPtr;
 
@@ -599,10 +641,30 @@ setupStiffnessMatrix()
 
 template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
+setupStiffnessMatrix(VectorEpetra& fiber, VectorSmall<3> diffusion)
+{
+	{
+	   using namespace ExpressionAssembly;
+
+	   integrate(  elements( M_ETFESpacePtr -> mesh() ),
+				   quadRuleTetra4pt,
+				   M_ETFESpacePtr,
+				   M_ETFESpacePtr,
+				   dot( rotate( M_ETFESpacePtr, fiber, diffusion ) * grad(phi_i) , grad(phi_j) )
+		   )
+		   >> M_stiffnessMatrixPtr;
+
+	}
+	M_stiffnessMatrixPtr -> globalAssemble();
+}
+
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupGlobalMatrix()
 {
 	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
-	(*M_globalMatrixPtr) *= M_diffusionCoeff;
+	//(*M_globalMatrixPtr) *= M_diffusionTensor;
 	(*M_globalMatrixPtr) += ( (*M_massMatrixPtr) * ( 1.0 / M_timeStep ) );
 }
 
@@ -705,7 +767,9 @@ setParameters()
 {
 	M_surfaceVolumeRatio = 2400.0;
 	M_membraneCapacitance= 1.0;
-	M_diffusionCoeff	 = 0.001;
+	M_diffusionTensor[0] = 0.001;
+	M_diffusionTensor[1] = 0.001;
+	M_diffusionTensor[2] = 0.001;
 	M_initialTime		 = 0.0;
 	M_endTime			 = 100.0;
 	M_timeStep			 = 0.01;
@@ -719,7 +783,9 @@ setParameters(list_Type list)
 {
 	M_surfaceVolumeRatio = list.get("surfaceVolumeRatio", 2400.0  );
 	M_membraneCapacitance= list.get("membraneCapacitance", 1.0 );
-	M_diffusionCoeff	 = list.get("diffusionCoeff", 0.001 );
+	M_diffusionTensor[0] = list.get("longitudinalDiffusion", 0.001 );
+	M_diffusionTensor[1] = list.get("transversalDiffusion", 0.001 );
+	M_diffusionTensor[2] = M_diffusionTensor[1];
 	M_initialTime		 = list.get("initialTime", 0.0 );
 	M_endTime			 = list.get("endTime", 100.0 );
 	M_timeStep			 = list.get("diffusionCoeff", 0.01 );
