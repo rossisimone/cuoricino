@@ -8,7 +8,7 @@
 	<Parameter name="dt" type="double" value="0.01"  />
 	<Parameter name="endTime" type="double" value="60.0"  />
 	<Parameter name="mesh_name" type="string" value="lid16.mesh"  />
-	<Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/lifev/lifev-heart/lifev/heart/data/mesh/inria/"  />
+	<Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
 </ParameterList>
 
 	

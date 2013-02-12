@@ -7,7 +7,6 @@ ADD_SUBDIRECTORIES(
   0DNegroniLascanoModel
   AlievPanfilov
   basic_example
-  ETA_monodomain
   ETA_MonodomainSolver
   integrated_heart
   oneway_EM
