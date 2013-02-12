@@ -7,6 +7,7 @@ SET(expression_HEADERS
 	expression/EvaluationDphiI.hpp
 	expression/EvaluationDphiJ.hpp
 	expression/EvaluationFunctor.hpp
+	expression/EvaluationMatrix.hpp
 	expression/EvaluationHK.hpp
 	expression/EvaluationInterpolateGradient.hpp
 	expression/EvaluationInterpolateValue.hpp
@@ -15,6 +16,7 @@ SET(expression_HEADERS
 	expression/EvaluationPhiJ.hpp
 	expression/EvaluationPosition.hpp
 	expression/EvaluationProduct.hpp
+	expression/EvaluationRotateMatrix.hpp	
 	expression/EvaluationScalar.hpp
 	expression/EvaluationSubstraction.hpp
 	expression/EvaluationVector.hpp
@@ -34,7 +36,9 @@ SET(expression_HEADERS
 	expression/ExpressionPhiI.hpp
 	expression/ExpressionPhiJ.hpp
 	expression/ExpressionPosition.hpp
+	expression/ExpressionMatrix.hpp
 	expression/ExpressionProduct.hpp
+	expression/ExpressionRotateMatrix.hpp	
 	expression/ExpressionScalar.hpp
 	expression/ExpressionSubstraction.hpp
 	expression/ExpressionToEvaluation.hpp

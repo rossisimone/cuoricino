@@ -36,34 +36,19 @@
 
 #include <lifev/core/operator/SolverOperator.hpp>
 
-// Tell the compiler to ignore specific kind of warnings:
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-#pragma GCC diagnostic ignored "-Wextra"
-
-#include <Teuchos_RCPBoostSharedPtrConversions.hpp>
-
-// Tell the compiler to ignore specific kind of warnings:
-#pragma GCC diagnostic warning "-Wunused-variable"
-#pragma GCC diagnostic warning "-Wunused-parameter"
-#pragma GCC diagnostic warning "-Wextra"
-
 namespace LifeV
 {
 
 namespace Operators
 {
 
-SolverOperator::SolverOperator( boost::shared_ptr<Epetra_Comm> comm ):
+SolverOperator::SolverOperator():
 	M_name( "SolverOperator" ),
 	M_useTranspose( false ),
 	M_lossOfAccuracy( undefined ),
     M_converged( undefined ),
     M_numIterations( 0 ),
-    M_numCumulIterations( 0 ),
-    M_tolerance( -1. ),
-    M_printSubiterationCount( false ),
-    M_comm( comm )
+    M_tolerance( -1. )
 { }
 
 SolverOperator::~SolverOperator()
@@ -110,18 +95,6 @@ void SolverOperator::setTolerance( const Real& tolerance )
 	M_tolerance = tolerance;
 }
 
-void SolverOperator::setUsedForPreconditioning( const bool& enable )
-{
-	M_printSubiterationCount = enable;
-}
-
-void SolverOperator::resetSolver()
-{
-    doResetSolver();
-    M_prec.reset();
-    M_oper.reset();
-}
-
 int SolverOperator::Apply( const vector_Type& X, vector_Type& Y ) const
 {
 	ASSERT_PRE( X.Map().SameAs( M_oper->OperatorDomainMap() ), "X and domain map do no coincide \n" );
@@ -137,16 +110,8 @@ int SolverOperator::ApplyInverse( const vector_Type& X, vector_Type& Y ) const
 
 	if ( M_useTranspose )
 		return -1;
-	int result = doApplyInverse( X, Y );
 
-	M_numCumulIterations += M_numIterations;
-
-    if( M_comm->MyPID() == 0 && M_printSubiterationCount )
-    {
-	    std::cout << "> " << numIterations() << " subiterations" << std::endl;
-    }
-
-	return result;
+	return doApplyInverse( X, Y );
 }
 
 } // Namespace Operators

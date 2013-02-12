@@ -1,0 +1,12 @@
+<!-- Model Parameters -->
+<ParameterList name="Negroni Lascano 96: Parameter list">
+	<Parameter name="alpha1" type="double" value="0.0039"/>
+	<Parameter name="alpha2" type="double" value="0.0013"/>
+	<Parameter name="alpha3" type="double" value="0.08"  />
+	<Parameter name="alpha4" type="double" value="0.04"  />
+	<Parameter name="alpha5" type="double" value="9000"  />
+	<Parameter name="beta1"  type="double" value="0.03"  />
+	<Parameter name="beta2"  type="double" value="0.0013"/>
+	<Parameter name="beta3"  type="double" value="1.56"  />
+</ParameterList>
+	

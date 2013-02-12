@@ -388,7 +388,7 @@ problem::run()
     feSpace->interpolate( static_cast<FESpace_type::function_Type>( v0 ), *vExact , 0);
 
     *U = timeAdvance->solution();
-    *V = timeAdvance->firstDerivative();
+    *V = timeAdvance->velocity();
 
     for (Real time = dt; time <= T; time += dt)
     {
@@ -420,7 +420,7 @@ problem::run()
         feSpace->interpolate( static_cast<FESpace_type::function_Type>( uexact ), *Exact , time);
         feSpace->interpolate( static_cast<FESpace_type::function_Type>( v0 ), *vExact , time);
         *U =  timeAdvance->solution();
-        *V  =timeAdvance->firstDerivative();
+        *V  =timeAdvance->velocity();
 
         //postProcess
         exporter->postProcess(time);

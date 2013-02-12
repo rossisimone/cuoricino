@@ -74,6 +74,7 @@ INCLUDE(TribitsListHelpers)
 
 SET( LifeV_PACKAGES_AND_DIRS_AND_CLASSIFICATIONS
   Core                  lifev/core                        PS
+  ETA                   lifev/eta                         EX
   LevelSet              lifev/level_set                   PS
   Darcy                 lifev/darcy                       PS
   NavierStokes          lifev/navier_stokes               PS
@@ -85,7 +86,6 @@ SET( LifeV_PACKAGES_AND_DIRS_AND_CLASSIFICATIONS
   ZeroDimensional       lifev/zero_dimensional            EX
   Multiscale            lifev/multiscale                  EX
   Dummy                 lifev/dummy                       EX
-  ETA                   lifev/eta                         EX
 )
 
 

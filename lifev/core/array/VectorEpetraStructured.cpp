@@ -41,40 +41,58 @@ namespace LifeV {
 // ===================================================
 
 VectorEpetraStructured::
-VectorEpetraStructured( const map_type& map, const mapType_type& mapType )
-    : VectorEpetra( map, mapType ),
-      M_blockStructure( map )
+VectorEpetraStructured( const map_type& map, const mapType_type& mapType)
+    : VectorEpetra(map,mapType),
+      M_blockSize(1,map.map(Unique)->NumGlobalElements()),
+      M_blockFirstIndex(1,0)
 {}
 
 VectorEpetraStructured::
-VectorEpetraStructured( const mapVector_type& mapVector, const mapType_type& mapType )
-    : VectorEpetra( mapType ),
-      M_blockStructure( mapVector )
+VectorEpetraStructured( const mapVector_type& mapVector, const mapType_type& mapType)
+    : VectorEpetra(mapType),
+      M_blockSize(mapVector.nbMap()),
+      M_blockFirstIndex(mapVector.nbMap())
 {
-    ASSERT( mapVector.nbMap() > 0 , "Map vector empty, impossible to construct a VectorBlockMonolithicEpetra!" );
+    ASSERT( mapVector.nbMap() > 0 , "Map vector empty, impossible to construct a VectorBlockMonolithicEpetra!");
 
-    map_type myMap( mapVector.totalMap() );
+    map_type myMap(mapVector.totalMap());
+
+	M_blockSize[0]=mapVector.mapSize(0);
+	M_blockFirstIndex[0]=0;
+
+	UInt totalSize(M_blockSize[0]);
+
+	for (UInt i(1); i<mapVector.nbMap(); ++i)
+	{
+		M_blockSize[i]=mapVector.mapSize(i);
+		M_blockFirstIndex[i]=totalSize;
+
+		totalSize+= M_blockSize[i];
+	}
 
     // Set the global map
-    this->setMap( myMap );
+    this->setMap(myMap);
 }
 
 VectorEpetraStructured::
-VectorEpetraStructured( const VectorEpetraStructured& vector )
-    : VectorEpetra( vector ),
-      M_blockStructure( vector.M_blockStructure )
+VectorEpetraStructured( const VectorEpetraStructured& vector)
+    : VectorEpetra(vector),
+      M_blockSize(vector.M_blockSize),
+      M_blockFirstIndex(vector.M_blockFirstIndex)
 {}
 
 VectorEpetraStructured::
-VectorEpetraStructured( const VectorEpetraStructured& vector, const mapType_type& mapType )
-    : VectorEpetra( vector, mapType ),
-      M_blockStructure( vector.M_blockStructure )
+VectorEpetraStructured( const VectorEpetraStructured& vector, const mapType_type& mapType)
+    : VectorEpetra(vector,mapType),
+      M_blockSize(vector.M_blockSize),
+      M_blockFirstIndex(vector.M_blockFirstIndex)
 {}
 
 VectorEpetraStructured::
-VectorEpetraStructured( const VectorEpetraStructured& vector, const mapType_type& mapType, const combine_type& combineMode )
-    : VectorEpetra( vector, mapType, combineMode ),
-      M_blockStructure( vector.M_blockStructure )
+VectorEpetraStructured( const VectorEpetraStructured& vector, const mapType_type& mapType, const combine_type& combineMode)
+    : VectorEpetra(vector,mapType,combineMode),
+      M_blockSize(vector.M_blockSize),
+      M_blockFirstIndex(vector.M_blockFirstIndex)
 {}
 
 // ===================================================
@@ -83,63 +101,68 @@ VectorEpetraStructured( const VectorEpetraStructured& vector, const mapType_type
 
 void
 VectorEpetraStructured::
-setBlockStructure( const std::vector<UInt>& blockSizes )
+setBlockStructure( const std::vector<UInt>& blockSizes)
 {
-    M_blockStructure.setBlockStructure( blockSizes );
+    M_blockSize = blockSizes;
 
-    ASSERT( M_blockStructure.totalSize() == static_cast<UInt>( this->size() ), " Incompatible block structure (global size does not match) " );
+    M_blockFirstIndex.resize(M_blockSize.size());
+
+    UInt currentSize(0);
+    for (UInt i(0); i< M_blockSize.size(); ++i)
+    {
+        M_blockFirstIndex[i] = currentSize;
+        currentSize += M_blockSize[i];
+    }
 }
 
 void
 VectorEpetraStructured::
-setBlockStructure( const mapVector_type& mapVector )
+setBlockStructure( const mapVector_type& mapVector)
 {
-    M_blockStructure.setBlockStructure( mapVector );
+    ASSERT( mapVector.nbMap() > 0 , "Map vector empty, impossible to set the block structure");
 
-    ASSERT( M_blockStructure.totalSize() == static_cast<UInt>( this->size() ), " Incompatible block structure (global size does not match) " );
-}
+    M_blockSize.resize(mapVector.nbMap());
+    M_blockFirstIndex.resize(mapVector.nbMap());
 
-void
-VectorEpetraStructured::
-setBlockStructure( const VectorBlockStructure& blockStructure )
-{
-    M_blockStructure.setBlockStructure( blockStructure );
+	UInt totalSize(0);
+
+	for (UInt i(0); i<mapVector.nbMap(); ++i)
+	{
+		M_blockSize[i]=mapVector.mapSize(i);
+		M_blockFirstIndex[i]=totalSize;
+
+		totalSize+= M_blockSize[i];
+	}
+
+    ASSERT( totalSize == static_cast<UInt>(this->size())," Incompatible block structure (global size does not match) ");
 }
 
 // ===================================================
 // Get Methods
 // ===================================================
 
-UInt
-VectorEpetraStructured::
-blockSize( const UInt& index ) const
-{
-    return M_blockStructure.blockSize( index );
-}
-
 void
 VectorEpetraStructured::
 blockView( const UInt& index, block_type& blockView )
 {
-    blockView.setup( M_blockStructure.blockFirstIndex( index ), M_blockStructure.blockSize( index ), this );
+    ASSERT( index < M_blockFirstIndex.size(), "Invalid block index");
+    ASSERT( index < M_blockSize.size(), "Invalid block index");
+
+    blockView.setup( M_blockFirstIndex[index], M_blockSize[index], this);
 }
 
 VectorEpetraStructured::block_ptrType
 VectorEpetraStructured::
-block( const UInt& index )
+block( const UInt& index)
 {
-    block_ptrType vectorBlockView( new block_type );
+    ASSERT( index < M_blockFirstIndex.size(), "Invalid block index");
+    ASSERT( index < M_blockSize.size(), "Invalid block index");
 
-    vectorBlockView->setup( M_blockStructure.blockFirstIndex( index ), M_blockStructure.blockSize( index ), this );
+    block_ptrType vectorBlockView(new block_type);
+
+    vectorBlockView->setup( M_blockFirstIndex[index], M_blockSize[index], this);
 
     return vectorBlockView;
-}
-
-VectorBlockStructure
-VectorEpetraStructured::
-blockStructure() const
-{
-    return M_blockStructure;
 }
 
 

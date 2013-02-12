@@ -62,6 +62,11 @@
 namespace LifeV
 {
 
+// Predeclaration
+class LinearTetra;
+template <typename GeoShapeType, typename MCType >
+class RegionMesh;
+
 namespace MeshUtility
 {
 /*
@@ -2635,6 +2640,46 @@ void assignRegionMarkerID ( RegionMeshType & mesh, const RegionFunctorType& fun 
     }
 
 } // assignRegionMarkerID
+
+//! Read and partitioned a *.mesh file
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+void fillWithFullMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
+					   const std::string& meshName,
+					   const std::string& ressourcesPath = "./Ressources/" );
+
+//! Read a partitioned mesh
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+void fillWithPartitionedMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
+							  const std::string& meshName,
+							  const std::string& ressourcesPath = "./Ressources/" );
+
+//! Build a mesh from a partitioned mesh
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+void fillWithStructuredMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
+							 markerID_Type regionFlag,
+							 const UInt& m_x,
+							 const UInt& m_y,
+							 const UInt& m_z,
+							 bool verbose=false,
+							 const Real& l_x=1.0,
+							 const Real& l_y=1.0,
+							 const Real& l_z=1.0,
+							 const Real& t_x=0.0,
+							 const Real& t_y=0.0,
+							 const Real& t_z=0.0 );
+
+//! Print informations about the mesh
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+void printMeshInfos( boost::shared_ptr<RegionMesh<LinearTetra, defaultMarkerCommon_Type > > mesh );
+
 
 } // namespace MeshUtility
 

@@ -1,7 +1,6 @@
 SET(operator_HEADERS
   operator/AztecooOperator.hpp
   operator/BelosOperator.hpp
-  operator/ConfinedOperator.hpp
   operator/LinearOperator.hpp
   operator/SolverOperator.hpp
 CACHE INTERNAL "")
@@ -9,7 +8,6 @@ CACHE INTERNAL "")
 SET(operator_SOURCES
   operator/AztecooOperator.cpp
   operator/BelosOperator.cpp
-  operator/ConfinedOperator.cpp
   operator/SolverOperator.cpp
 CACHE INTERNAL "")
 

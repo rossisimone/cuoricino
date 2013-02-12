@@ -123,7 +123,7 @@ FSIMonolithicGI::evalResidual( vector_Type&       res,
     moveMesh( *mmRep );
 
     //here should use extrapolationFirstDerivative instead of velocity
-    vector_Type meshVelocityRepeated ( this->M_ALETimeAdvance->nextFirstDerivative( *meshDisp ), Repeated );
+    vector_Type meshVelocityRepeated ( this->M_ALETimeAdvance->nextVelocity( *meshDisp ), Repeated );
     vector_Type interpolatedMeshVelocity(this->M_uFESpace->map());
 
     interpolateVelocity( meshVelocityRepeated, interpolatedMeshVelocity );
@@ -367,7 +367,7 @@ void FSIMonolithicGI::shapeDerivatives( FSIOperator::fluidPtr_Type::value_type::
 
     vectorPtr_Type meshVelRep( new vector_Type( M_mmFESpace->map(), Repeated ) );
 
-    *meshVelRep = M_ALETimeAdvance->firstDerivative();
+    *meshVelRep = M_ALETimeAdvance->velocity();
 
     //When this class is used, the convective term is used implictly
     un.subset( *M_uk, 0 );

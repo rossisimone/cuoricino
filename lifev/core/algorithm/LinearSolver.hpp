@@ -197,9 +197,6 @@ public:
     //! Print informations about the solver
     void showMe( std::ostream& output = std::cout ) const;
 
-    //! Setup the solver operator to be used
-    void setupSolverOperator();
-
     //@}
 
     //! @name Set Method
@@ -248,12 +245,6 @@ public:
       @param preconditionerPtr  Preconditioner to be set of type Epetra_Operator
      */
     void setPreconditioner( operatorPtr_Type preconditionerPtr );
-
-    //! Method to set a matrix on which the preconditioner should be created
-    /*!
-      @param baseMatrixPtr  matrix on which the preconditioner should be created
-     */
-    void setBaseMatrixForPreconditioner( matrixPtr_Type baseMatrixPtr );
 
     //! Method to setup the solver using Teuchos::ParameterList
     /*!
@@ -348,6 +339,9 @@ private:
 
     //! @name Private Methods
     //@{
+
+    //! Setup the solver operator to be used
+    void setupSolverOperator();
 
     //@}
 

@@ -293,10 +293,10 @@ public:
   void extrapolationFirstDerivative(feVector_Type& extrapolation) const;
 
   //! Return the current velocity
-  feVectorType firstDerivative()  const;
+  feVectorType velocity()  const;
 
   //!Return the current acceleration
-  feVectorType secondDerivative() const;
+  feVectorType acceleration() const;
 
   //@}
 
@@ -638,7 +638,7 @@ TimeAdvanceBDF<feVectorType>::extrapolationFirstDerivative(feVector_Type& extrap
 
 template<typename feVectorType>
 feVectorType
-TimeAdvanceBDF<feVectorType>::firstDerivative() const
+TimeAdvanceBDF<feVectorType>::velocity() const
 {
   return (*this->M_unknowns[0])
     * this->M_alpha[ 0 ] / this->M_timeStep
@@ -647,7 +647,7 @@ TimeAdvanceBDF<feVectorType>::firstDerivative() const
 
 template<typename feVectorType>
 feVectorType
-TimeAdvanceBDF<feVectorType>::secondDerivative() const
+TimeAdvanceBDF<feVectorType>::acceleration() const
 {
   return (*this->M_unknowns[0]) * this->M_xi[ 0 ]/(this->M_timeStep*this->M_timeStep) -  ( *this->M_rhsContribution[1] );
 }

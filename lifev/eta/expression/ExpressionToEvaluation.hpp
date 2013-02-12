@@ -51,6 +51,8 @@
 
 #include <lifev/eta/expression/ExpressionScalar.hpp>
 #include <lifev/eta/expression/ExpressionVector.hpp>
+#include <lifev/eta/expression/ExpressionMatrix.hpp>
+
 
 #include <lifev/eta/expression/ExpressionInterpolateValue.hpp>
 #include <lifev/eta/expression/ExpressionInterpolateGradient.hpp>
@@ -60,6 +62,8 @@
 #include <lifev/eta/expression/ExpressionHK.hpp>
 #include <lifev/eta/expression/ExpressionMeas.hpp>
 #include <lifev/eta/expression/ExpressionPosition.hpp>
+
+#include <lifev/eta/expression/ExpressionRotateMatrix.hpp>
 
 #include <lifev/eta/expression/EvaluationPhiI.hpp>
 #include <lifev/eta/expression/EvaluationPhiJ.hpp>
@@ -76,6 +80,7 @@
 
 #include <lifev/eta/expression/EvaluationScalar.hpp>
 #include <lifev/eta/expression/EvaluationVector.hpp>
+#include <lifev/eta/expression/EvaluationMatrix.hpp>
 
 #include <lifev/eta/expression/EvaluationInterpolateValue.hpp>
 #include <lifev/eta/expression/EvaluationInterpolateGradient.hpp>
@@ -85,6 +90,8 @@
 #include <lifev/eta/expression/EvaluationHK.hpp>
 #include <lifev/eta/expression/EvaluationMeas.hpp>
 #include <lifev/eta/expression/EvaluationPosition.hpp>
+
+#include <lifev/eta/expression/EvaluationRotateMatrix.hpp>
 
 namespace LifeV
 {
@@ -205,6 +212,17 @@ class ExpressionToEvaluation<ExpressionVector<VectorDim>,testDim,solutionDim,spa
 {
 public:
 	typedef EvaluationVector<VectorDim> evaluation_Type;
+private:
+	ExpressionToEvaluation();
+	~ExpressionToEvaluation();
+};
+
+// Specialized for matrix
+template<UInt testDim, UInt solutionDim, UInt spaceDim, UInt MatrixDim1, UInt MatrixDim2>
+class ExpressionToEvaluation<ExpressionMatrix<MatrixDim1, MatrixDim2>,testDim,solutionDim,spaceDim>
+{
+public:
+  typedef EvaluationMatrix<MatrixDim1, MatrixDim2> evaluation_Type;
 private:
 	ExpressionToEvaluation();
 	~ExpressionToEvaluation();
@@ -375,6 +393,18 @@ private:
 	~ExpressionToEvaluation();
 };
 
+
+// Specialized for an interpolated gradient
+template<typename MeshType, typename MapType, UInt FESpaceDim, UInt FEFieldDim, UInt testDim, UInt solutionDim, UInt spaceDim>
+class ExpressionToEvaluation<
+ExpressionRotateMatrix<MeshType,MapType,FESpaceDim,FEFieldDim>,testDim,solutionDim,spaceDim>
+{
+public:
+	typedef EvaluationRotateMatrix<MeshType,MapType,FESpaceDim,FEFieldDim> evaluation_Type;
+private:
+	ExpressionToEvaluation();
+	~ExpressionToEvaluation();
+};
 
 // \endcond
 

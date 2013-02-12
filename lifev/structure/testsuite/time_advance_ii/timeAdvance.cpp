@@ -386,8 +386,8 @@ problem::run()
     feSpace->interpolate( static_cast<FESpace_type::function_Type>( a0 ),     *wExact, 0 );
 
     *U = timeAdvance->solution();
-    *V = timeAdvance->firstDerivative();
-    *W = timeAdvance->secondDerivative();
+    *V = timeAdvance->velocity();
+    *W = timeAdvance->acceleration();
 
 
     exporter->postProcess( 0 );
@@ -429,8 +429,8 @@ problem::run()
         feSpace->interpolate( static_cast<FESpace_type::function_Type>( a0 ),     *wExact, time );
 
         *U =  timeAdvance->solution();
-        *V = timeAdvance->firstDerivative();
-        *W = timeAdvance->secondDerivative();
+        *V = timeAdvance->velocity();
+        *W = timeAdvance->acceleration();
 
         //postProcess
         exporter->postProcess( time );
