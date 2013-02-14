@@ -1,0 +1,12 @@
+
+INCLUDE(TribitsAddExecutableAndTest)
+
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
+
+TRIBITS_ADD_EXECUTABLE(
+  0DMinimalModel
+  SOURCES main.cpp
+)
+
+
+

@@ -4,7 +4,7 @@ INCLUDE(TribitsAddExecutableAndTest)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
 TRIBITS_ADD_EXECUTABLE(
-  0DAlievPanfilovModel
+  0DAlievPanfilov
   SOURCES main.cpp
 )
 

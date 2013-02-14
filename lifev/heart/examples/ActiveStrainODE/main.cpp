@@ -25,10 +25,10 @@
 //@HEADER
 
 /*!
-    @file
-    @brief 0D test with the Negroni Lascano model of 1996.
+    @file Example to show the solution of the ODE for the active strain
+    @brief
 
-    @date 01−2013
+    @date 02−2013
     @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
@@ -111,62 +111,21 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
-{
-    return ( 0.5 + 0.5 * ( std::tanh ( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
-}
+Real Stimulus(const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+	{
+		return ( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
+	}
 
 
 
-Int main ( Int argc, char** argv )
+Int main( Int argc, char** argv )
 {
 
     //! Initializing Epetra communicator
-    MPI_Init (&argc, &argv);
-    boost::shared_ptr<Epetra_Comm>  Comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "% using MPI" << endl;
-    }
+	MPI_Init(&argc, &argv);
+	boost::shared_ptr<Epetra_Comm>  Comm( new Epetra_MpiComm(MPI_COMM_WORLD) );
+	if ( Comm->MyPID() == 0 ) cout << "% using MPI" << endl;
 
-    //********************************************//
-    // Starts the chronometer.                    //
-    //********************************************//
-    //  LifeChrono chronoinitialsettings;
-    //  chronoinitialsettings.start();
-
-    typedef RegionMesh<LinearTetra>                         mesh_Type;
-    typedef boost::function < Real (const Real& /*t*/,
-                                    const Real &   x,
-                                    const Real &   y,
-                                    const Real& /*z*/,
-                                    const ID&   /*i*/ ) >   function_Type;
-
-    typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov >       monodomainSolver_Type;
-    typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
-
-    //********************************************//
-    // Import parameters from an xml list. Use    //
-    // Teuchos to create a list from a given file //
-    // in the execution directory.                //
-    //********************************************//
-
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Importing parameters list...";
-    }
-    Teuchos::ParameterList APParameterList = * ( Teuchos::getParametersFromXmlFile ( "AlievPanfilovParameters.xml" ) );
-    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << " Done!" << endl;
-    }
-
-    //********************************************//
-    // Creates a new model object representing the//
-    // model from Aliev and Panfilov 1996.  The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
     //********************************************//
 	// Starts the chronometer.                    //
 	//********************************************//
@@ -285,43 +244,37 @@ Int main ( Int argc, char** argv )
     ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
 
-    splitting -> setupExporter ( exporterSplitting, "Splitting" );
-    ici -> setupExporter ( exporterICI, "ICI" );
-    svi -> setupExporter ( exporterSVI, "SVI" );
+    splitting -> setupExporter( exporterSplitting, "Splitting" );
+    ici -> setupExporter( exporterICI, "ICI" );
+    svi -> setupExporter( exporterSVI, "SVI" );
 
-    splitting -> exportSolution ( exporterSplitting, 0);
-    ici -> exportSolution ( exporterICI, 0);
-    svi -> exportSolution ( exporterSVI, 0);
+    splitting -> exportSolution( exporterSplitting, 0);
+    ici -> exportSolution( exporterICI, 0);
+    svi -> exportSolution( exporterSVI, 0);
 
 
     //********************************************//
-    // Solving the system                         //
-    //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nstart solving:  " ;
-    }
-    splitting   -> solveSplitting ( exporterSplitting );
+	// Solving the system                         //
+	//********************************************//
+    if ( Comm->MyPID() == 0 ) cout << "\nstart solving:  " ;
+    splitting 	-> solveSplitting( exporterSplitting );
     exporterSplitting.closeFile();
 
-    ici         -> solveICI ( exporterICI );
+    ici 		-> solveICI( exporterICI );
     exporterICI.closeFile();
 
-    svi         -> solveSVI ( exporterSVI );
+    svi 		-> solveSVI( exporterSVI );
     exporterSVI.closeFile();
 
 
-    //********************************************//
-    // Saving Fiber direction to file             //
-    //********************************************//
+	//********************************************//
+	// Saving Fiber direction to file             //
+	//********************************************//
     svi -> exportFiberDirection();
 
 
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
-    }
-    MPI_Barrier (MPI_COMM_WORLD);
+    if ( Comm->MyPID() == 0 ) cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
-    return ( EXIT_SUCCESS );
+    return( EXIT_SUCCESS );
 }

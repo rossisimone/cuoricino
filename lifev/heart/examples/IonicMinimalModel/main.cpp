@@ -53,17 +53,23 @@
 
 
 
+#include <fstream>
 #include <string>
 
+#include <lifev/core/array/VectorSmall.hpp>
+
 #include <lifev/core/array/VectorEpetra.hpp>
+#include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/mesh/MeshData.hpp>
+#include <lifev/core/mesh/MeshUtility.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
-#include <lifev/heart/solver/HeartMonodomainSolver.hpp>
+#include <lifev/core/algorithm/LinearSolver.hpp>
+#include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
 #include <lifev/heart/solver/HeartIonicSolver.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
@@ -72,8 +78,32 @@
 #endif
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
+#include <lifev/heart/solver/IonicModels/IonicAlievPanfilov.hpp>
 #include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/LifeV.hpp>
+
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include "Teuchos_XMLParameterListHelpers.hpp"
+// ---------------------------------------------------------------
+// In order to use the ETA framework, a special version of the
+// FESpace structure must be used. It is called ETFESpace and
+// has basically the same role as the FESpace.
+// ---------------------------------------------------------------
+
+#include <lifev/eta/fem/ETFESpace.hpp>
+#include <lifev/eta/expression/Integrate.hpp>
+
+
+// ---------------------------------------------------------------
+// The most important file to include is the Integrate.hpp file
+// which contains all the definitions required to perform the
+// different integrations.
+// ---------------------------------------------------------------
+
+//#include <lifev/eta/expression/Integrate.hpp>
+//
+//#include <lifev/eta/expression/ExpressionDot.hpp>
 
 
 using std::cout;
@@ -81,250 +111,151 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus (const Real& t, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
-{
-    return ( 4.0 * std::exp (- 0.01 * ( t - 100 * x ) * ( t - 100 * x ) ) );
-}
+Real Stimulus(const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+	{
+		return ( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
+	}
 
 
-Int main ( Int argc, char** argv )
+
+Int main( Int argc, char** argv )
 {
+
     //! Initializing Epetra communicator
-    MPI_Init (&argc, &argv);
-    boost::shared_ptr<Epetra_Comm>  Comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
-
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "% using MPI" << endl;
-    }
+	MPI_Init(&argc, &argv);
+	boost::shared_ptr<Epetra_Comm>  Comm( new Epetra_MpiComm(MPI_COMM_WORLD) );
+	if ( Comm->MyPID() == 0 ) cout << "% using MPI" << endl;
 
     //********************************************//
-    // Type definitions                           //
-    //********************************************//
-    typedef RegionMesh<LinearTetra> mesh_Type;
-    typedef FESpace< mesh_Type, MapEpetra > feSpace_Type;
-    typedef boost::shared_ptr<feSpace_Type> feSpacePtr_Type;
-    typedef boost::shared_ptr<VectorEpetra> vectorPtr_Type;
+	// Starts the chronometer.                    //
+	//********************************************//
+//	LifeChrono chronoinitialsettings;
+//	chronoinitialsettings.start();
+
+	typedef RegionMesh<LinearTetra> 						mesh_Type;
+    typedef boost::function< Real(const Real& /*t*/,
+    								const Real&   x,
+    								const Real&   y,
+    								const Real& /*z*/,
+    								const ID&   /*i*/ ) > 	function_Type;
+
+	typedef HeartETAMonodomainSolver< mesh_Type, IonicMinimalModel > 		monodomainSolver_Type;
+	typedef boost::shared_ptr< monodomainSolver_Type > 	monodomainSolverPtr_Type;
+
+		//********************************************//
+	// Import parameters from an xml list. Use    //
+	// Teuchos to create a list from a given file //
+	// in the execution directory.                //
+	//********************************************//
+
+	if ( Comm->MyPID() == 0 )  std::cout << "Importing parameters list...";
+ //   Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
+    Teuchos::ParameterList monodomainList = *( Teuchos::getParametersFromXmlFile( "MonodomainSolverParamList.xml" ) );
+    if ( Comm->MyPID() == 0 )  std::cout << " Done!" << endl;
+
+	//********************************************//
+	// Creates a new model object representing the//
+	// model from Aliev and Panfilov 1996.  The   //
+	// model input are the parameters. Pass  the  //
+	// parameter list in the constructor          //
+	//********************************************//
+    if ( Comm->MyPID() == 0 ) std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
+	boost::shared_ptr<IonicMinimalModel>  model( new IonicMinimalModel() );
+	if ( Comm->MyPID() == 0 ) std::cout << " Done!" << endl;
+
+
+	//********************************************//
+	// In the parameter list we need to specify   //
+	// the mesh name and the mesh path.           //
+	//********************************************//
+	std::string meshName = monodomainList.get("mesh_name","lid16.mesh");
+	std::string meshPath = monodomainList.get("mesh_path","./");
+
+	//********************************************//
+	// We need the GetPot datafile for to setup   //
+	// the preconditioner.                        //
+	//********************************************//
+	GetPot command_line(argc, argv);
+	const string data_file_name = command_line.follow("data", 2, "-f", "--file");
+	GetPot dataFile(data_file_name);
+
+	//********************************************//
+	// We create three solvers to solve with:     //
+	// 1) Operator Splitting method               //
+	// 2) Ionic Current Interpolation             //
+	// 3) State Variable Interpolation            //
+	//********************************************//
+	if ( Comm->MyPID() == 0 )  std::cout << "Building Monodomain Solvers... ";
+
+	monodomainSolverPtr_Type splitting( new monodomainSolver_Type( meshName, meshPath, dataFile, model ) );
+	if ( Comm->MyPID() == 0 )  std::cout << " Splitting solver done... ";
+
+
+	//********************************************//
+	// Setting up the initial condition form      //
+	// a given function.                          //
+	//********************************************//
+	if ( Comm->MyPID() == 0 )  cout << "\nInitializing potential:  " ;
+
+	function_Type f = &Stimulus;
+	splitting -> setPotentialFromFunction( f );
+
+	//setting up initial conditions
+	*( splitting -> globalSolution().at(1) ) = 1.0;
+	*( splitting -> globalSolution().at(2) ) = 1.0;
+	*( splitting -> globalSolution().at(3) ) = 0.021553043080281;
+
+	if ( Comm->MyPID() == 0 ) cout << "Done! \n" ;
+
+	//********************************************//
+	// Setting up the time data                   //
+	//********************************************//
+	splitting -> setParameters( monodomainList );
+
+	//********************************************//
+	// Create a fiber direction                   //
+	//********************************************//
+	VectorSmall<3> fibers;
+	fibers[0]=  monodomainList.get("fiber_X", std::sqrt(2) / 2.0 );
+	fibers[1]=  monodomainList.get("fiber_Y", std::sqrt(2) / 2.0 );
+	fibers[2]=  monodomainList.get("fiber_Z", 0.0 );
+
+	splitting ->setupFibers(fibers);
+
+	//********************************************//
+	// Create the global matrix: mass + stiffness //
+	//********************************************//
+	splitting -> setupLumpedMassMatrix();
+	splitting -> setupStiffnessMatrix();
+	splitting -> setupGlobalMatrix();
+
+	//********************************************//
+	// Creating exporters to save the solution    //
+	//********************************************//
+	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+
+    splitting -> setupExporter( exporterSplitting, "Splitting" );
+
+    splitting -> exportSolution( exporterSplitting, 0);
 
     //********************************************//
-    // Starts the chronometer.                    //
-    //********************************************//
-    LifeChrono chronoinitialsettings;
-    chronoinitialsettings.start();
+	// Solving the system                         //
+	//********************************************//
+    if ( Comm->MyPID() == 0 ) cout << "\nstart solving:  " ;
 
 
-    //********************************************//
-    // Import mesh.                               //
-    //********************************************//
-    // Using the datafile and GetPot
-
-    //first create the GetPot
-    GetPot command_line (argc, argv);
-    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
-    GetPot dataFile (data_file_name);
+	splitting 	-> solveSplitting( exporterSplitting );
+    exporterSplitting.closeFile();
 
 
-    if (!Comm->MyPID() )
-    {
-        std::cout << "My PID = " << Comm->MyPID() << std::endl;
-    }
+	//********************************************//
+	// Saving Fiber direction to file             //
+	//********************************************//
+    splitting -> exportFiberDirection();
 
 
-    //Create the mesh data and read the mesh
-    MeshData meshData;
-    meshData.setup ( dataFile, "discretization/space" );
-    boost::shared_ptr<mesh_Type > fullMeshPtr (new mesh_Type ( Comm ) );
-    readMesh (*fullMeshPtr, meshData);
-    bool verbose = 1;
-
-    //! Construction of the partitioned mesh
-    MeshPartitioner< mesh_Type >   meshPart (fullMeshPtr, Comm);
-
-
-    //********************************************//
-    // Building map Epetra  to define distributed //
-    // vectors. We need to first construct the FE //
-    // space, which needs the quadrature rules.   //
-    //********************************************//
-
-    //! Define the quadrature rules
-    const ReferenceFE*    refFE_u = &feTetraP1;
-    const QuadratureRule* qR_u = &quadRuleTetra15pt;
-    const QuadratureRule* bdQr_u = &quadRuleTria3pt;
-
-    //! Construction of the FE spaces
-    if (verbose)
-    {
-        std::cout << "Building the FE space ... " << std::flush;
-    }
-    feSpacePtr_Type uFESpacePtr ( new feSpace_Type ( meshPart, *refFE_u, *qR_u, *bdQr_u, 1, Comm) );
-    std::cout << " Done!" << endl;
-
-    //Create the Map
-    MapEpetra localMap (uFESpacePtr->map() );
-
-
-
-
-    //********************************************//
-    // Creates a new model object representing the//
-    // model from Negroni and Lascano 1996. The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
-    //********************************************//
-    std::cout << "Building Constructor for Aliev Panfilov Model with default parameters ... ";
-    IonicMinimalModel  model;
-    std::cout << " Done!" << endl;
-
-
-    //********************************************//
-    // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
-    //********************************************//
-
-    std::cout << "Initializing solution vector...";
-    std::vector<vectorPtr_Type> unknowns;
-    for (int k = 0; k < model.Size(); ++k )
-    {
-        unknowns.push_back ( * (new vectorPtr_Type ( new VectorEpetra (localMap) ) ) );
-    }
-    ( * ( unknowns.at (0) ) ) = 0;
-    ( * ( unknowns.at (1) ) ) = 1;
-    ( * ( unknowns.at (2) ) ) = 1;
-    ( * ( unknowns.at (3) ) ) = 0.021553043080281;
-
-    std::cout << " Done!" << endl;
-
-
-
-    //********************************************//
-    // Initialize the rhs to 0. The rhs is the    //
-    // vector containing the numerical values of  //
-    // the time derivatives of the state          //
-    // variables, that is, the right hand side of //
-    // the differential equation.                 //
-    //********************************************//
-    std::cout << "Initializing rhs..." ;
-    std::vector<vectorPtr_Type> rhs;
-    for (int k = 0; k < model.Size(); ++k )
-    {
-        rhs.push_back ( * (new vectorPtr_Type ( new VectorEpetra (localMap) ) ) );
-    }
-    std::cout << " Done! "  << endl;
-
-
-    //********************************************//
-    // The model needs as external informations   //
-    // the contraction velocity and the Calcium   //
-    // concentration.                             //
-    //********************************************//
-    boost::shared_ptr<VectorEpetra>  Iapp ( new VectorEpetra (localMap) );
-    *Iapp = 0;
-
-
-    //********************************************//
-    // Simulation starts on t=0 and ends on t=TF. //
-    // The timestep is given by dt                //
-    //********************************************//
-    Real TF = dataFile ("discretization/time/endtime", 100);
-    Real dt = dataFile ("discretization/time/timestep", 0.1);
-
-    //********************************************//
-    // Creating the exporter to save the solution //
-    //********************************************//
-    //! Setting generic Exporter postprocessing
-    ExporterHDF5< RegionMesh <LinearTetra> > exporter ( dataFile, meshPart.meshPartition(), "solution", Comm->MyPID() );
-
-    boost::shared_ptr<VectorEpetra> U ( new VectorEpetra ( ( * ( unknowns.at (0).get() ) ), Repeated ) );
-    boost::shared_ptr<VectorEpetra> V ( new VectorEpetra ( ( * ( unknowns.at (1).get() ) ), Repeated ) );
-    boost::shared_ptr<VectorEpetra> W ( new VectorEpetra ( ( * ( unknowns.at (2).get() ) ), Repeated ) );
-    boost::shared_ptr<VectorEpetra> S ( new VectorEpetra ( ( * ( unknowns.at (3).get() ) ), Repeated ) );
-
-    exporter.addVariable ( ExporterData<mesh_Type>::ScalarField,  "U", uFESpacePtr,
-                           U, UInt (0) );
-    exporter.addVariable ( ExporterData<mesh_Type>::ScalarField,  "V", uFESpacePtr,
-                           V, UInt (0) );
-    exporter.addVariable ( ExporterData<mesh_Type>::ScalarField,  "W", uFESpacePtr,
-                           W, UInt (0) );
-    exporter.addVariable ( ExporterData<mesh_Type>::ScalarField,  "S", uFESpacePtr,
-                           S, UInt (0) );
-
-
-
-    exporter.postProcess ( 0 );
-
-    MPI_Barrier (MPI_COMM_WORLD);
-    chronoinitialsettings.stop();
-
-
-    cout << "nbdof: " << uFESpacePtr.get()->fe().nbFEDof() << ", nbquad: " << uFESpacePtr.get()->fe().nbQuadPt() << endl ;
-    //********************************************//
-    // Time loop starts.                          //
-    //********************************************//
-    short int iter = 0;
-    std::cout << "\nTime loop starts...\n";
-    for ( Real t = 0; t < TF; )
-    {
-        iter++;
-        //********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time and space.     //
-        //********************************************//
-        uFESpacePtr->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( Stimulus ), *Iapp , t);
-        std::cout << "\r " << t << " ms.       " << std::flush;
-
-
-        MPI_Barrier (MPI_COMM_WORLD);
-        //********************************************//
-        // Compute the rhs using the model equations  //
-        //********************************************//
-        //model.computeRhs( unknowns, *Iapp, rhs);
-        typedef HeartIonicModel super;
-        model.super::computeRhs (unknowns, *Iapp, rhs);
-        //********************************************//
-        // Use forward Euler method to advance the    //
-        // solution in time.                          //
-        //********************************************//
-
-        for ( int k = 0; k < model.Size(); k++)
-        {
-            * ( unknowns.at (k) ) = * ( unknowns.at (k) ) + dt * ( * ( rhs.at (k) ) );
-        }
-
-        //********************************************//
-        // Update the time.                           //
-        //********************************************//
-        t = t + dt;
-
-
-        //********************************************//
-        // Writes solution on file.                   //
-        //********************************************//
-        if ( iter % 100 == 0 )
-        {
-            *U = * ( unknowns.at (0) );
-            *V = * ( unknowns.at (1) );
-            *W = * ( unknowns.at (2) );
-            *S = * ( unknowns.at (3) );
-
-            exporter.postProcess ( t );
-        }
-
-        MPI_Barrier (MPI_COMM_WORLD);
-
-    }
-
-    //********************************************//
-    // Close exported file.                       //
-    //********************************************//
-    exporter.closeFile();
-    std::cout << std::endl;
-
-    //! Finalizing Epetra communicator
-    MPI_Barrier (MPI_COMM_WORLD);
+    if ( Comm->MyPID() == 0 ) cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     return ( EXIT_SUCCESS );
 }

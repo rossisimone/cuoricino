@@ -4,7 +4,9 @@ INCLUDE(AddSubdirectories)
 
 ADD_SUBDIRECTORIES(
   0DAlievPanfilovModel
+  0DMinimalModel
   0DNegroniLascanoModel
+#  ActiveStrainODE
   AlievPanfilov
   basic_example
   ETA_MonodomainSolver
