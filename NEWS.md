@@ -1,4 +1,52 @@
-# -*- readme-debian -*-
+LifeV 3.4.4:
+============
+Bug fixes in ExporterVTK:
+
+* the pvdu and vtu files names should be stored in the pvd (and pvdu)
+  file(s) without the postDir. Otherwise paraview will look for them
+  in postDir/postDir (path is relative to the leading file for paraview)
+* the update of the CurrentFE (during the points map computation) should
+  be done with the newer method, otherwise we don't store correctly the
+  z-coordinate of 2D entities which do not lie on the xy plane (and
+  similarly for 1D entities which do not lie on the x axis).
+
+LifeV 3.4.3:
+============
+
+Removed old files from autotools.
+
+LifeV 3.4.2:
+============
+
+Update of the Lifev-tutorial (FSI part unchanged)
+
+
+LifeV 3.4.1:
+============
+
+* Rewriting the content of the LinearSolver class to be cleaner
+* Bug fix (in some circumstances there were seg. faults)
+* Adding a new "preconditioner" which is basically using a LinearSolver object
+  as a preconditioner (to perform subiterations)
+* Introduction of the concept of matrices and vectors structure… you can now
+  store the structure as an object. This is useful to work with
+  MatrixEpetraStructured.
+* New functions in MatrixEpetraStructuredUtility.hpp to be able to exploit block
+  structure using EpetraMatrix (typically if you do not have a
+  MatrixEpetraStructured).
+* New wrapper for operator (ConfinedOperator). You can apply an operator only on
+   a chosen section of a vector.
+
+
+LifeV 3.4.0:
+============
+
+Implementation of a physical solver for structural mechanics problems using an
+abstract class to handle the constitutive laws that are currently available.
+Moreover, these laws have been inserted in the FSI framework (partitioned and
+monolithic) together with the TimeAdvance classes to have high order in time
+discretization in the case of FSI problems.
+
 
 LifeV 3.2.0:
 ============
