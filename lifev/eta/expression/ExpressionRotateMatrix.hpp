@@ -82,7 +82,7 @@ namespace ExpressionAssembly
 */
 template<typename MeshType, typename MapType, UInt SpaceDim, UInt FieldDim>
 class ExpressionRotateMatrix
-	: public ExpressionBase<ExpressionRotateMatrix < MeshType,MapType,SpaceDim,FieldDim > >
+    : public ExpressionBase<ExpressionRotateMatrix < MeshType, MapType, SpaceDim, FieldDim > >
 {
 public:
 
@@ -90,18 +90,18 @@ public:
     //@{
 
     // Base class, used only to make the code cleaner
-	typedef ExpressionBase<ExpressionRotateMatrix < MeshType,MapType,SpaceDim,FieldDim > > base_Type;
+    typedef ExpressionBase<ExpressionRotateMatrix < MeshType, MapType, SpaceDim, FieldDim > > base_Type;
 
     //! Type of the finite element space
-	typedef ETFESpace<MeshType,MapType,SpaceDim,FieldDim> fespace_Type;
+    typedef ETFESpace<MeshType, MapType, SpaceDim, FieldDim> fespace_Type;
 
     //! Type for the pointer on the finite element space
-	typedef boost::shared_ptr<fespace_Type> fespacePtr_Type;
+    typedef boost::shared_ptr<fespace_Type> fespacePtr_Type;
 
     //! Data vector type
-	typedef VectorEpetra vector_Type;
+    typedef VectorEpetra vector_Type;
 
-	typedef VectorSmall<3> diagonalMatrix_Type;
+    typedef VectorSmall<3> diagonalMatrix_Type;
     //@}
 
 
@@ -109,15 +109,15 @@ public:
     //@{
 
     //! Constructor using the finite element space and the data vector
-	ExpressionRotateMatrix(fespacePtr_Type fespace, const vector_Type& vector, const diagonalMatrix_Type matrix)
-	: base_Type(), M_fespace(fespace), M_vector(vector), M_matrix(matrix) {}
+    ExpressionRotateMatrix (fespacePtr_Type fespace, const vector_Type& vector, const diagonalMatrix_Type matrix)
+        : base_Type(), M_fespace (fespace), M_vector (vector), M_matrix (matrix) {}
 
     //! Copy constructor
-	ExpressionRotateMatrix(const ExpressionRotateMatrix<MeshType,MapType,SpaceDim,FieldDim>& expr)
-	: base_Type(), M_fespace(expr.M_fespace), M_vector(expr.M_vector), M_matrix(expr.M_matrix) {}
+    ExpressionRotateMatrix (const ExpressionRotateMatrix<MeshType, MapType, SpaceDim, FieldDim>& expr)
+        : base_Type(), M_fespace (expr.M_fespace), M_vector (expr.M_vector), M_matrix (expr.M_matrix) {}
 
     //! Destructor
-    ~ExpressionRotateMatrix(){}
+    ~ExpressionRotateMatrix() {}
 
     //@}
 
@@ -126,8 +126,10 @@ public:
     //@{
 
     //! Display method
-	static void display(std::ostream& out= std::cout)
-	{ out << "rotate diagonal matrix[" << FieldDim << "] ";}
+    static void display (std::ostream& out = std::cout)
+    {
+        out << "rotate diagonal matrix[" << FieldDim << "] ";
+    }
 
     //@}
 
@@ -136,13 +138,22 @@ public:
     //@{
 
     //! Getter for the finite element space
-	fespacePtr_Type fespace() const { return M_fespace; }
+    fespacePtr_Type fespace() const
+    {
+        return M_fespace;
+    }
 
     //! Getter for the data vector
-	const vector_Type vector() const { return M_vector; }
+    const vector_Type vector() const
+    {
+        return M_vector;
+    }
 
-	//! Getter for the diagonal matrix
-	diagonalMatrix_Type matrix() const { return M_matrix; }
+    //! Getter for the diagonal matrix
+    diagonalMatrix_Type matrix() const
+    {
+        return M_matrix;
+    }
 
     // @}
 
@@ -157,12 +168,12 @@ private:
     //@}
 
     // Storage for the finite element space
-	fespacePtr_Type M_fespace;
+    fespacePtr_Type M_fespace;
 
     // Storage for the data vector
-	vector_Type M_vector;
+    vector_Type M_vector;
 
-	diagonalMatrix_Type M_matrix;
+    diagonalMatrix_Type M_matrix;
 };
 
 //! Simple function to be used in the construction of an expression
@@ -187,13 +198,13 @@ private:
 
 */
 template<typename MeshType, typename MapType, UInt SpaceDim, UInt FieldDim>
-inline ExpressionRotateMatrix<MeshType,MapType,SpaceDim,FieldDim>
-rotate(
-	boost::shared_ptr< ETFESpace<MeshType,MapType,SpaceDim,FieldDim> > fespace,
-	const VectorEpetra& vector, const VectorSmall<3>& matrix
+inline ExpressionRotateMatrix<MeshType, MapType, SpaceDim, FieldDim>
+rotate (
+    boost::shared_ptr< ETFESpace<MeshType, MapType, SpaceDim, FieldDim> > fespace,
+    const VectorEpetra& vector, const VectorSmall<3>& matrix
 )
 {
-	return ExpressionRotateMatrix<MeshType,MapType,SpaceDim,FieldDim>(fespace,vector,matrix);
+    return ExpressionRotateMatrix<MeshType, MapType, SpaceDim, FieldDim> (fespace, vector, matrix);
 }
 
 

@@ -42,16 +42,18 @@
 
 #include <lifev/core/array/VectorEpetra.hpp>
 
-namespace LifeV{
-class HeartODEModel{
+namespace LifeV
+{
+class HeartODEModel
+{
 
 public:
     //! @name Type definitions
     //@{
 
-	typedef VectorEpetra vector_Type;
+    typedef VectorEpetra vector_Type;
 
-	//@}
+    //@}
 
     //! @name Constructors & Destructor
     //@{
@@ -60,9 +62,9 @@ public:
     /*!
      * @param Epetra communicator
      */
-	HeartODEModel();
+    HeartODEModel();
 
-	HeartODEModel( const HeartODEModel &ODE );
+    HeartODEModel ( const HeartODEModel& ODE );
 
     //! Destructor
     virtual ~HeartODEModel() {};
@@ -83,7 +85,7 @@ public:
     //! @name Overloads
     //@{
 
-    HeartODEModel& operator=( const HeartODEModel &ODE );
+    HeartODEModel& operator= ( const HeartODEModel& ODE );
 
     //@}
 
@@ -104,16 +106,16 @@ HeartODEModel::HeartODEModel()
 
 
 
-HeartODEModel::HeartODEModel( const HeartODEModel &ODE )
+HeartODEModel::HeartODEModel ( const HeartODEModel& ODE )
 {
 }
 
 // ===================================================
 //! Methods
 // ===================================================
-HeartODEModel& HeartODEModel::operator =( const HeartODEModel &ODE )
+HeartODEModel& HeartODEModel::operator = ( const HeartODEModel& ODE )
 {
-	return 		*this;
+    return      *this;
 }
 
 }

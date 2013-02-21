@@ -71,27 +71,27 @@ namespace LifeV
 typedef FSIOperator::fluid_Type fluid;
 typedef FSIOperator::solid_Type solid;
 
-FSIOperator::fluidBchandlerPtr_Type BCh_harmonicExtension(FSIOperator &_oper)
+FSIOperator::fluidBchandlerPtr_Type BCh_harmonicExtension (FSIOperator& _oper)
 {
 
-    BCFunctionBase bcf(fZero);
+    BCFunctionBase bcf (fZero);
 
-    FSISolver::fluidBchandlerPtr_Type BCh_he(new FSIOperator::fluidBchandler_Type );
+    FSISolver::fluidBchandlerPtr_Type BCh_he (new FSIOperator::fluidBchandler_Type );
 
-    BCh_he->addBC("HE1", INLET,          Essential,         Full, bcf, 3);
-    BCh_he->addBC("HE2", OUTLET,         Essential,         Full, bcf, 3);
-    BCh_he->addBC("HE3", TOPCARDIUM,     Essential,         Full, bcf, 3);
-    BCh_he->addBC("HE4", INLETRING,      EssentialVertices, Full, bcf, 3);
-    BCh_he->addBC("HE5", OUTLETRING,     EssentialVertices, Full, bcf, 3);
-    BCh_he->addBC("HE6", TOPCARDIUMRING, EssentialVertices, Full, bcf, 3);
-    BCh_he->addBC("HE7", AORTICROOT,     EssentialVertices, Full, bcf, 3);
+    BCh_he->addBC ("HE1", INLET,          Essential,         Full, bcf, 3);
+    BCh_he->addBC ("HE2", OUTLET,         Essential,         Full, bcf, 3);
+    BCh_he->addBC ("HE3", TOPCARDIUM,     Essential,         Full, bcf, 3);
+    BCh_he->addBC ("HE4", INLETRING,      EssentialVertices, Full, bcf, 3);
+    BCh_he->addBC ("HE5", OUTLETRING,     EssentialVertices, Full, bcf, 3);
+    BCh_he->addBC ("HE6", TOPCARDIUMRING, EssentialVertices, Full, bcf, 3);
+    BCh_he->addBC ("HE7", AORTICROOT,     EssentialVertices, Full, bcf, 3);
 
     if (_oper.data().method() == "monolithicGE")
     {
-        FSIMonolithicGE *MOper = dynamic_cast<FSIMonolithicGE *>(&_oper);
-        MOper->setStructureDispToHarmonicExtension(_oper.lambdaFluidRepeated());
-        BCh_he->addBC("Interface", SOLIDINTERFACE, Essential, Full,
-                      *MOper->bcvStructureDispToHarmonicExtension(), 3);
+        FSIMonolithicGE* MOper = dynamic_cast<FSIMonolithicGE*> (&_oper);
+        MOper->setStructureDispToHarmonicExtension (_oper.lambdaFluidRepeated() );
+        BCh_he->addBC ("Interface", SOLIDINTERFACE, Essential, Full,
+                       *MOper->bcvStructureDispToHarmonicExtension(), 3);
     }
     else if (_oper.data().method() == "monolithicGI")
     {
@@ -102,10 +102,10 @@ FSIOperator::fluidBchandlerPtr_Type BCh_harmonicExtension(FSIOperator &_oper)
 }
 
 
-FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFlux( bool /*AorticValveisOpen*/, bool /*MitralValveisOpen*/ )
+FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFlux ( bool /*AorticValveisOpen*/, bool /*MitralValveisOpen*/ )
 {
 
-    FSIOperator::fluidBchandlerPtr_Type BCh_fluid( new FSIOperator::fluidBchandler_Type );
+    FSIOperator::fluidBchandlerPtr_Type BCh_fluid ( new FSIOperator::fluidBchandler_Type );
 
     /* Defective version of outflow b.c. (unstable) */
     // BCFunctionBase out_flux (LifeV::FlowConditions::outFlux);
@@ -114,47 +114,52 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFlux( bool /*AorticValveisOpen
     return BCh_fluid;
 }
 
-FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid(FSIOperator &_oper )
+FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid (FSIOperator& _oper )
 {
     if (! _oper.isFluid() )
+    {
         return FSIOperator::fluidBchandlerPtr_Type();
+    }
 
-    FSIOperator::fluidBchandlerPtr_Type BCh_fluid( new FSIOperator::fluidBchandler_Type );
+    FSIOperator::fluidBchandlerPtr_Type BCh_fluid ( new FSIOperator::fluidBchandler_Type );
 
     BCFunctionBase bcNoSlip (fZero);
     BCFunctionBase mitral_flow (u_mitral );
 
     /*  Note: cannot fix both fluid and structure on a coupled interface ring */
-    BCh_fluid->addBC("FL1", INLET,      Essential, Full,   mitral_flow, 3);
-    BCh_fluid->addBC("FL3", TOPCARDIUM, EssentialVertices, Full,   bcNoSlip,    3);
-    BCh_fluid->addBC("FL4", INLETRING,  Essential, Full,   bcNoSlip,    3);
-    BCh_fluid->addBC("FL5", OUTLETRING, Essential, Full,   bcNoSlip,    3);
-    BCh_fluid->addBC("FL6", AORTICROOT, EssentialVertices, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC ("FL1", INLET,      Essential, Full,   mitral_flow, 3);
+    BCh_fluid->addBC ("FL3", TOPCARDIUM, EssentialVertices, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC ("FL4", INLETRING,  Essential, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC ("FL5", OUTLETRING, Essential, Full,   bcNoSlip,    3);
+    BCh_fluid->addBC ("FL6", AORTICROOT, EssentialVertices, Full,   bcNoSlip,    3);
 
     /* Dirichlet version of outflow b.c. (stable?) */
     BCFunctionBase out_profile (LifeV::FlowConditions::outProfile);
-    BCh_fluid->addBC("FL2", OUTLET, Essential, Full, out_profile, 3);
+    BCh_fluid->addBC ("FL2", OUTLET, Essential, Full, out_profile, 3);
 
     return BCh_fluid;
 }
 
-FSIOperator::solidBchandlerPtr_Type BCh_monolithicSolid(FSIOperator &_oper)
+FSIOperator::solidBchandlerPtr_Type BCh_monolithicSolid (FSIOperator& _oper)
 {
 
     if (! _oper.isSolid() )
+    {
         return FSIOperator::solidBchandlerPtr_Type();
+    }
 
     // Boundary conditions for the solid displacement
-    FSIOperator::solidBchandlerPtr_Type BCh_solid( new FSIOperator::solidBchandler_Type );
+    FSIOperator::solidBchandlerPtr_Type BCh_solid ( new FSIOperator::solidBchandler_Type );
 
-    BCFunctionBase bcf(fZero);
-    BCFunctionBase aroundheart(FlowConditions::fextvessel);
+    BCFunctionBase bcf (fZero);
+    BCFunctionBase aroundheart (FlowConditions::fextvessel);
 
-    std::vector<LifeV::ID> zComp(1); zComp[0] = 3;
+    std::vector<LifeV::ID> zComp (1);
+    zComp[0] = 3;
 
-    BCh_solid->addBC("OuterWall", OUTERWALL, Natural,           Normal, aroundheart);
-    BCh_solid->addBC("Top",       TOP,       EssentialVertices, Full,   bcf,         3);
-    BCh_solid->addBC("InnerRing", INNERRING, EssentialVertices, Full,   bcf,         3);
+    BCh_solid->addBC ("OuterWall", OUTERWALL, Natural,           Normal, aroundheart);
+    BCh_solid->addBC ("Top",       TOP,       EssentialVertices, Full,   bcf,         3);
+    BCh_solid->addBC ("InnerRing", INNERRING, EssentialVertices, Full,   bcf,         3);
 
     return BCh_solid;
 }

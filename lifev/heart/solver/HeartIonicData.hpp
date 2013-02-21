@@ -50,8 +50,8 @@ namespace LifeV
 
 */
 class HeartIonicData:
-        public MeshData,
-        public TimeData
+    public MeshData,
+    public TimeData
 {
 public:
 
@@ -62,9 +62,9 @@ public:
     HeartIonicData();
 
 
-    HeartIonicData( const GetPot& dataFile );
+    HeartIonicData ( const GetPot& dataFile );
 
-    HeartIonicData( const HeartIonicData& dataIonic );
+    HeartIonicData ( const HeartIonicData& dataIonic );
 
     virtual ~HeartIonicData() {}
     //@}
@@ -75,7 +75,7 @@ public:
 
 
 
-    HeartIonicData& operator=( const HeartIonicData& dataIonic );
+    HeartIonicData& operator= ( const HeartIonicData& dataIonic );
 
     //@}
 
@@ -83,7 +83,7 @@ public:
     //@{
 
     //! output: show the data used for the simulation
-    void showMe( std::ostream& output = std::cout );
+    void showMe ( std::ostream& output = std::cout );
 
     //@}
 
@@ -92,78 +92,222 @@ public:
     //@{
 
     //!external setup: set all the data for the simulation
-    void setup( const GetPot& dataFile );
+    void setup ( const GetPot& dataFile );
 
-    const Real& RMCParameterA() const { return M_RMCParameterA; }
+    const Real& RMCParameterA() const
+    {
+        return M_RMCParameterA;
+    }
 
-    const Real& RMCParameterB() const { return M_RMCParameterB; }
+    const Real& RMCParameterB() const
+    {
+        return M_RMCParameterB;
+    }
 
-    const Real& RMCParameterC1() const { return M_RMCParameterC1; }
+    const Real& RMCParameterC1() const
+    {
+        return M_RMCParameterC1;
+    }
 
-    const Real& RMCParameterC2() const { return M_RMCParameterC2; }
+    const Real& RMCParameterC2() const
+    {
+        return M_RMCParameterC2;
+    }
 
-    const Real& RMCParameterD() const { return M_RMCParameterD; }
+    const Real& RMCParameterD() const
+    {
+        return M_RMCParameterD;
+    }
 
-    const Real& RMCTimeUnit() const { return M_RMCTimeUnit; }
+    const Real& RMCTimeUnit() const
+    {
+        return M_RMCTimeUnit;
+    }
 
-    const Real& RMCPotentialAmplitude() const { return M_RMCPotentialAmplitude; }
+    const Real& RMCPotentialAmplitude() const
+    {
+        return M_RMCPotentialAmplitude;
+    }
 
-    const Real& RMCRestPotential() const { return M_RMCRestPotential; }
+    const Real& RMCRestPotential() const
+    {
+        return M_RMCRestPotential;
+    }
 
-    const Real& RMCInitialRepolarization() const { return M_RMCInitialRepolarization; }
+    const Real& RMCInitialRepolarization() const
+    {
+        return M_RMCInitialRepolarization;
+    }
 
-    const Real& MSTauIn() const { return M_MSTauIn; }
+    const Real& MSTauIn() const
+    {
+        return M_MSTauIn;
+    }
 
-    const Real& MSTauOut() const { return M_MSTauOut; }
+    const Real& MSTauOut() const
+    {
+        return M_MSTauOut;
+    }
 
-    const Real& MSTauOpen() const { return M_MSTauOpen; }
+    const Real& MSTauOpen() const
+    {
+        return M_MSTauOpen;
+    }
 
-    const Real& MSTauClose() const { return M_MSTauClose; }
+    const Real& MSTauClose() const
+    {
+        return M_MSTauClose;
+    }
 
-    const Real& MSCriticalPotential() const { return M_MSCriticalPotential; }
+    const Real& MSCriticalPotential() const
+    {
+        return M_MSCriticalPotential;
+    }
 
-    const Real& MSPotentialMinimum() const { return M_MSPotentialMinimum; }
+    const Real& MSPotentialMinimum() const
+    {
+        return M_MSPotentialMinimum;
+    }
 
-    const Real& MSPotentialMaximum() const { return M_MSPotentialMaximum; }
+    const Real& MSPotentialMaximum() const
+    {
+        return M_MSPotentialMaximum;
+    }
 
-    const Real& MSReactionAmplitude() const { return M_MSReactionAmplitude; }
+    const Real& MSReactionAmplitude() const
+    {
+        return M_MSReactionAmplitude;
+    }
 
-    const Real& MSInitialTime() const { return M_MSInitialTime; }
+    const Real& MSInitialTime() const
+    {
+        return M_MSInitialTime;
+    }
 
-    const Real& MSTend() const { return M_MSTend; }
+    const Real& MSTend() const
+    {
+        return M_MSTend;
+    }
 
-    const Real& MSBDForder() const { return M_MSBDForder; }
+    const Real& MSBDForder() const
+    {
+        return M_MSBDForder;
+    }
 
-    const bool& MSHasHeterogeneousTauClose() const { return M_MSHasHeterogeneousTauClose; }
+    const bool& MSHasHeterogeneousTauClose() const
+    {
+        return M_MSHasHeterogeneousTauClose;
+    }
 
     //Epicardial parameters for the Minimal model
-    const Real& MinimalEpitheta0() const { return M_MinimalEpitheta0; }
-    const Real& MinimalEpitheta1() const { return M_MinimalEpitheta1; }
-    const Real& MinimalEpitheta2() const { return M_MinimalEpitheta2; }
-    const Real& MinimalEpitheta1minus() const { return M_MinimalEpitheta1minus; }
-    const Real& MinimalEpitau301() const { return M_MinimalEpitau301;}
-    const Real& MinimalEpitau302() const { return M_MinimalEpitau302;}
-    const Real& MinimalEpitau31() const { return M_MinimalEpitau31;}
-    const Real& MinimalEpitau32() const { return M_MinimalEpitau32;}
-    const Real& MinimalEpitau01() const { return M_MinimalEpitau01;}
-    const Real& MinimalEpitau02() const { return M_MinimalEpitau02;}
-    const Real& MinimalEpiwStar2inf() const { return M_MinimalEpiwStar2inf;}
-    const Real& MinimalEpivv() const { return M_MinimalEpivv;}
-    const Real& MinimalEpitau11minus() const { return M_MinimalEpitau11minus;}
-    const Real& MinimalEpitau12minus() const { return M_MinimalEpitau12minus;}
-    const Real& MinimalEpitau1plus() const { return M_MinimalEpitau1plus;}
-    const Real& MinimalEpitau21minus() const { return M_MinimalEpitau21minus;}
-    const Real& MinimalEpitau22minus() const { return M_MinimalEpitau22minus;}
-    const Real& MinimalEpitau2plus() const { return M_MinimalEpitau2plus;}
-    const Real& MinimalEpik2minus() const { return M_MinimalEpik2minus;}
-    const Real& MinimalEpiv2minus() const { return M_MinimalEpiv2minus;}
-    const Real& MinimalEpitauFi() const { return M_MinimalEpitauFi;}
-    const Real& MinimalEpik30() const { return M_MinimalEpik30;}
-    const Real& MinimalEpiv30() const { return  M_MinimalEpiv30;}
-    const Real& MinimalEpik3() const { return M_MinimalEpik3;}
-    const Real& MinimalEpiv3() const { return M_MinimalEpiv3;}
-    const Real& MinimalEpitauSi() const { return M_MinimalEpitauSi;}
-    const Real& MinimalEpitau2inf() const { return M_MinimalEpitau2inf;}
+    const Real& MinimalEpitheta0() const
+    {
+        return M_MinimalEpitheta0;
+    }
+    const Real& MinimalEpitheta1() const
+    {
+        return M_MinimalEpitheta1;
+    }
+    const Real& MinimalEpitheta2() const
+    {
+        return M_MinimalEpitheta2;
+    }
+    const Real& MinimalEpitheta1minus() const
+    {
+        return M_MinimalEpitheta1minus;
+    }
+    const Real& MinimalEpitau301() const
+    {
+        return M_MinimalEpitau301;
+    }
+    const Real& MinimalEpitau302() const
+    {
+        return M_MinimalEpitau302;
+    }
+    const Real& MinimalEpitau31() const
+    {
+        return M_MinimalEpitau31;
+    }
+    const Real& MinimalEpitau32() const
+    {
+        return M_MinimalEpitau32;
+    }
+    const Real& MinimalEpitau01() const
+    {
+        return M_MinimalEpitau01;
+    }
+    const Real& MinimalEpitau02() const
+    {
+        return M_MinimalEpitau02;
+    }
+    const Real& MinimalEpiwStar2inf() const
+    {
+        return M_MinimalEpiwStar2inf;
+    }
+    const Real& MinimalEpivv() const
+    {
+        return M_MinimalEpivv;
+    }
+    const Real& MinimalEpitau11minus() const
+    {
+        return M_MinimalEpitau11minus;
+    }
+    const Real& MinimalEpitau12minus() const
+    {
+        return M_MinimalEpitau12minus;
+    }
+    const Real& MinimalEpitau1plus() const
+    {
+        return M_MinimalEpitau1plus;
+    }
+    const Real& MinimalEpitau21minus() const
+    {
+        return M_MinimalEpitau21minus;
+    }
+    const Real& MinimalEpitau22minus() const
+    {
+        return M_MinimalEpitau22minus;
+    }
+    const Real& MinimalEpitau2plus() const
+    {
+        return M_MinimalEpitau2plus;
+    }
+    const Real& MinimalEpik2minus() const
+    {
+        return M_MinimalEpik2minus;
+    }
+    const Real& MinimalEpiv2minus() const
+    {
+        return M_MinimalEpiv2minus;
+    }
+    const Real& MinimalEpitauFi() const
+    {
+        return M_MinimalEpitauFi;
+    }
+    const Real& MinimalEpik30() const
+    {
+        return M_MinimalEpik30;
+    }
+    const Real& MinimalEpiv30() const
+    {
+        return  M_MinimalEpiv30;
+    }
+    const Real& MinimalEpik3() const
+    {
+        return M_MinimalEpik3;
+    }
+    const Real& MinimalEpiv3() const
+    {
+        return M_MinimalEpiv3;
+    }
+    const Real& MinimalEpitauSi() const
+    {
+        return M_MinimalEpitauSi;
+    }
+    const Real& MinimalEpitau2inf() const
+    {
+        return M_MinimalEpitau2inf;
+    }
 
     //@}
 
@@ -172,7 +316,7 @@ public:
 
     //! FE space order
     std::string wOrder() const;
-*/
+    */
 
     UInt M_subiter;
     //Rice MODEL
@@ -214,7 +358,7 @@ private:
     bool        M_MSHasHeterogeneousTauClose;
 
 
-        //Epicardial parameters for the Minimal model
+    //Epicardial parameters for the Minimal model
     Real M_MinimalEpitheta0;
     Real M_MinimalEpitheta1;
     Real M_MinimalEpitheta2;
@@ -226,10 +370,10 @@ private:
     Real M_MinimalEpitau01;
     Real M_MinimalEpitau02;
     Real M_MinimalEpiwStar2inf, M_MinimalEpivv,
-        M_MinimalEpitau11minus, M_MinimalEpitau12minus, M_MinimalEpitau1plus,
-        M_MinimalEpitau21minus, M_MinimalEpitau22minus, M_MinimalEpitau2plus, M_MinimalEpik2minus, M_MinimalEpiv2minus,
-        M_MinimalEpitauFi, M_MinimalEpik30, M_MinimalEpiv30, M_MinimalEpik3,
-        M_MinimalEpiv3, M_MinimalEpitauSi;
+         M_MinimalEpitau11minus, M_MinimalEpitau12minus, M_MinimalEpitau1plus,
+         M_MinimalEpitau21minus, M_MinimalEpitau22minus, M_MinimalEpitau2plus, M_MinimalEpik2minus, M_MinimalEpiv2minus,
+         M_MinimalEpitauFi, M_MinimalEpik30, M_MinimalEpiv30, M_MinimalEpik3,
+         M_MinimalEpiv3, M_MinimalEpitauSi;
     Real M_MinimalEpitau2inf;
 
 

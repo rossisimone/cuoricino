@@ -54,8 +54,8 @@ using namespace LifeV;
 //////////////////////////////////////////////////////////////////////////////
 
 
-template< typename Mesh,
-	  typename SolverType = LifeV::SolverAztecOO >
+template < typename Mesh,
+         typename SolverType = LifeV::SolverAztecOO >
 class HeartAlievPanfilov : public virtual HeartIonicSolver<Mesh, SolverType>
 {
 public:
@@ -63,91 +63,103 @@ public:
     //! @name Type definitions
     //@{
 
-	typedef typename HeartIonicSolver<Mesh, SolverType>::data_Type	data_Type;
-	typedef typename HeartIonicSolver<Mesh, SolverType>::vector_Type	 vector_Type;
-	typedef typename HeartIonicSolver<Mesh, SolverType>::function_Type 	function_Type;
+    typedef typename HeartIonicSolver<Mesh, SolverType>::data_Type  data_Type;
+    typedef typename HeartIonicSolver<Mesh, SolverType>::vector_Type     vector_Type;
+    typedef typename HeartIonicSolver<Mesh, SolverType>::function_Type  function_Type;
 
-	//@}
+    //@}
 
 
     //! @name Constructors & Destructor
     //@{
 
-	//! Constructor
-	/*!
-	 * @param dataType
-	 * @param mesh
-	 * @param recovery FE space
-	 * @param Epetra communicator
-	 */
-	HeartAlievPanfilov( const data_Type& dataType,
-            		 const Mesh& mesh,
-            		 FESpace<Mesh, MapEpetra>& uFEspace,
-            		 Epetra_Comm& comm );
+    //! Constructor
+    /*!
+     * @param dataType
+     * @param mesh
+     * @param recovery FE space
+     * @param Epetra communicator
+     */
+    HeartAlievPanfilov ( const data_Type& dataType,
+                         const Mesh& mesh,
+                         FESpace<Mesh, MapEpetra>& uFEspace,
+                         Epetra_Comm& comm );
 
-	//! Destructor
-	virtual ~HeartAlievPanfilov();
+    //! Destructor
+    virtual ~HeartAlievPanfilov();
 
-	//@}
+    //@}
 
 
 
     //! @name Methods
     //@{
 
-	inline const vector_Type& getPotential() const {return M_potential;}
-	inline const vector_Type& getRecoveryVariable() const {return M_recoveryVariable;}
+    inline const vector_Type& getPotential() const
+    {
+        return M_potential;
+    }
+    inline const vector_Type& getRecoveryVariable() const
+    {
+        return M_recoveryVariable;
+    }
 
 
-	void updateRepeated( );
+    void updateRepeated( );
 
-	//! Update the ionic model elvecs
-	void updateElementSolution( UInt eleID );
+    //! Update the ionic model elvecs
+    void updateElementSolution ( UInt eleID );
 
-	//! Solves the ionic model
-	void solveIonicModel( const vector_Type& u, const Real timeStep );
-
-
-	//! Solves the ionic model
-	void solveIonicModel( HeartFunctors& data, const Real timeStep, Real t );
-
-	inline Real applyStimulus() { return M_stimulus; };
-	inline void setStimulus(Real stim) { M_stimulus = stim; }
-
-	//! Computes the ionic currents
-	//! for the PDE righthand side
-	void computeIonicCurrent( Real Capacitance,
-	                             VectorElemental& elvec,
-	                             VectorElemental& elvec_u,
-	                             FESpace<Mesh, MapEpetra>& uFESpace );
-
-	//const vector_Type& solutionGatingW() const {return M_solutionGatingW;}
-
-	//! Initialize
-	void initialize( );
-
-	void updatePotential( const VectorEpetra& V );
-
-	//@}
+    //! Solves the ionic model
+    void solveIonicModel ( const vector_Type& u, const Real timeStep );
 
 
-	//recovery variable r of the Aliev-Panfilov model
-	vector_Type                 M_recoveryVariable;
-	//intermediate potential of the Aliev-Panfilov model
-	vector_Type                 M_potential;
-	//copy for parallel computations
-    vector_Type				    M_recoveryVariableRepeated;
+    //! Solves the ionic model
+    void solveIonicModel ( HeartFunctors& data, const Real timeStep, Real t );
+
+    inline Real applyStimulus()
+    {
+        return M_stimulus;
+    };
+    inline void setStimulus (Real stim)
+    {
+        M_stimulus = stim;
+    }
+
+    //! Computes the ionic currents
+    //! for the PDE righthand side
+    void computeIonicCurrent ( Real Capacitance,
+                               VectorElemental& elvec,
+                               VectorElemental& elvec_u,
+                               FESpace<Mesh, MapEpetra>& uFESpace );
+
+    //const vector_Type& solutionGatingW() const {return M_solutionGatingW;}
+
+    //! Initialize
+    void initialize( );
+
+    void updatePotential ( const VectorEpetra& V );
+
+    //@}
+
+
     //recovery variable r of the Aliev-Panfilov model
-  	vector_Type                 M_potentialRepeated;
+    vector_Type                 M_recoveryVariable;
+    //intermediate potential of the Aliev-Panfilov model
+    vector_Type                 M_potential;
+    //copy for parallel computations
+    vector_Type                 M_recoveryVariableRepeated;
+    //recovery variable r of the Aliev-Panfilov model
+    vector_Type                 M_potentialRepeated;
     //Vector on the element
-    VectorElemental 		    M_elvec;
+    VectorElemental             M_elvec;
     //order for time integration
-    UInt				        M_BDForder;
+    UInt                        M_BDForder;
     //dunno!
     TimeAdvanceBDF<vector_Type> M_BDFr;
     TimeAdvanceBDF<vector_Type> M_BDFV;
     //set stimulus
-    Real						M_stimulus;
+    Real                        M_stimulus;
 
 };
 
@@ -157,21 +169,21 @@ public:
 // ===================================================
 template<typename Mesh, typename SolverType>
 HeartAlievPanfilov<Mesh, SolverType>::
-HeartAlievPanfilov( const data_Type& dataType,
-                 const Mesh& mesh,
-                 FESpace<Mesh, MapEpetra>& uFEspace,
-                 Epetra_Comm& comm ):
-    HeartIonicSolver<Mesh, SolverType>( dataType, mesh, uFEspace, comm),
+HeartAlievPanfilov ( const data_Type& dataType,
+                     const Mesh& mesh,
+                     FESpace<Mesh, MapEpetra>& uFEspace,
+                     Epetra_Comm& comm ) :
+    HeartIonicSolver<Mesh, SolverType> ( dataType, mesh, uFEspace, comm),
     M_recoveryVariable ( HeartIonicSolver<Mesh, SolverType>::M_localMap ),
     M_potential ( HeartIonicSolver<Mesh, SolverType>::M_localMap ),
-    M_recoveryVariableRepeated( M_recoveryVariable, Repeated ),
-    M_potentialRepeated( M_potential, Repeated ),
+    M_recoveryVariableRepeated ( M_recoveryVariable, Repeated ),
+    M_potentialRepeated ( M_potential, Repeated ),
     M_elvec ( HeartIonicSolver<Mesh, SolverType>::M_uFESpace.fe().nbFEDof(), 1 ),
-    M_BDForder( HeartIonicSolver<Mesh, SolverType>::M_data.MSBDForder() ),
-    M_stimulus( 10.0 )//,
+    M_BDForder ( HeartIonicSolver<Mesh, SolverType>::M_data.MSBDForder() ),
+    M_stimulus ( 10.0 ) //,
 {
-  M_BDFr.setup( M_BDForder );
-  M_BDFV.setup( M_BDForder );
+    M_BDFr.setup ( M_BDForder );
+    M_BDFV.setup ( M_BDForder );
 }
 
 template<typename Mesh, typename SolverType>
@@ -187,119 +199,131 @@ HeartAlievPanfilov<Mesh, SolverType>::
 template<typename Mesh, typename SolverType>
 void HeartAlievPanfilov<Mesh, SolverType>::updateRepeated( )
 {
-	M_recoveryVariableRepeated=M_recoveryVariable;
-	M_potentialRepeated=M_potential;
+    M_recoveryVariableRepeated = M_recoveryVariable;
+    M_potentialRepeated = M_potential;
 }
 
 
 template<typename Mesh, typename SolverType>
-void HeartAlievPanfilov<Mesh, SolverType>::updateElementSolution( UInt eleID )
+void HeartAlievPanfilov<Mesh, SolverType>::updateElementSolution ( UInt eleID )
 {
-	M_elvec.zero();
-	UInt ig;
+    M_elvec.zero();
+    UInt ig;
     //! Filling local elvec_r with recovery variable values in the nodes
     for ( UInt iNode = 0 ; iNode < HeartIonicSolver<Mesh, SolverType>::M_uFESpace.fe().nbFEDof() ; iNode++ )
     {
-        ig = HeartIonicSolver<Mesh, SolverType>::M_uFESpace.dof().localToGlobalMap( eleID, iNode );
-        M_elvec.vec()[ iNode ] = M_recoveryVariableRepeated[ig];
-        M_elvec.vec()[ iNode ] = M_potentialRepeated[ig];
+        ig = HeartIonicSolver<Mesh, SolverType>::M_uFESpace.dof().localToGlobalMap ( eleID, iNode );
+        M_elvec.vec() [ iNode ] = M_recoveryVariableRepeated[ig];
+        M_elvec.vec() [ iNode ] = M_potentialRepeated[ig];
     }
 }
 
 template<typename Mesh, typename SolverType>
-void HeartAlievPanfilov<Mesh, SolverType>::solveIonicModel( const vector_Type& u, const Real timeStep )
+void HeartAlievPanfilov<Mesh, SolverType>::solveIonicModel ( const vector_Type& u, const Real timeStep )
 {
 
-	Real epsilon = 0.01;
-	Real mu1     = 0.12;
-	Real mu2     = 0.30;
-	Real k       = 8.00;
-	Real b       = 0.10;
+    Real epsilon = 0.01;
+    Real mu1     = 0.12;
+    Real mu2     = 0.30;
+    Real k       = 8.00;
+    Real b       = 0.10;
 
-	Real aux     = 0.0;
-	Real dr      = 0.0;
+    Real aux     = 0.0;
+    Real dr      = 0.0;
 
-	M_BDFr.updateRHSContribution(timeStep);
-	//vector_Type M_time_der=M_BDFr.rhsContributionFirstDerivative();
+    M_BDFr.updateRHSContribution (timeStep);
+    //vector_Type M_time_der=M_BDFr.rhsContributionFirstDerivative();
 
-	HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
-	for ( Int i = 0 ; i < u.epetraVector().MyLength() ; ++i )
-	{
-		Int ig=u.blockMap().MyGlobalElements()[i];
-
-
-		aux = epsilon + mu1 * M_BDFr.solution()[ig] / ( mu2 + u[ig] );
-		dr  = - aux * ( M_BDFr.solution()[ig] + k * u[ig] * ( u[ig] - b - 1.0 ) );
-		M_recoveryVariable[ig]=M_BDFr.solution()[ig] + timeStep * dr;
-	}
-	M_BDFr.shiftRight(M_recoveryVariable);
-
-	HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
-
-}
-
-
-template<typename Mesh, typename SolverType>
-void HeartAlievPanfilov<Mesh, SolverType>::solveIonicModel( HeartFunctors& data, const Real timeStep, Real t )
-{
-
-	//Real dt = timeStep / iter;
-
-	Real epsilon = 0.01;
-	Real mu1     = 0.12;
-	Real mu2     = 0.30;
-	Real k       = 8.00;
-	Real b       = 0.10;
-
-	Real auxr     = 0.0;
-	Real dr      = 0.0;
-
-	Real dV      = 0.0;
-
-	HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
-
-
-	for ( Int i = 0 ; i < M_potential.epetraVector().MyLength() ; ++i )
-	{
-		Int ig=M_potential.blockMap().MyGlobalElements()[i];
-
-		auxr = epsilon + mu1 * M_recoveryVariable[ig] / ( mu2 + M_potential[ig] );
-		dr   = - auxr * ( M_recoveryVariable[ig] + k * M_potential[ig] * ( M_potential[ig] - b - 1.0 ) );
-		M_recoveryVariable[ig]=M_recoveryVariable[ig] + timeStep * dr;
-
-		dV = - k * M_potential[ig] * ( M_potential[ig] - b ) * ( M_potential[ig] - 1.0 ) - M_recoveryVariable[ig] * M_potential[ig];
-
-		if( t >= data.M_stimulusStart1 && t <= data.M_stimulusStop1 && ig == 1 ) dV += data.M_stimulusValue1;
-		if( t >= data.M_stimulusStart1 && t <= data.M_stimulusStop1 && ig == 4 ) dV += data.M_stimulusValue1;
-		if( t >= data.M_stimulusStart1 && t <= data.M_stimulusStop1 && ig ==63 ) dV += data.M_stimulusValue1;
-		if( t >= data.M_stimulusStart1 && t <= data.M_stimulusStop1 && ig ==274) dV += data.M_stimulusValue1;
-
-		M_potential[ig] = M_potential[ig] + timeStep * dV;
-	}
-
-
-	HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
-
-}
-
-
-template<typename Mesh, typename SolverType>
-void HeartAlievPanfilov<Mesh, SolverType>::computeIonicCurrent(  Real,
-                                                         VectorElemental& elvec,
-                                                         VectorElemental& elvec_u,
-                                                         FESpace<Mesh, MapEpetra>& uFESpace )
-{
-
-	Real k       = 8.00;
-	Real b       = 0.10;
-    for ( UInt ig = 0; ig < uFESpace.fe().nbQuadPt();ig++ )
+    HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
+    for ( Int i = 0 ; i < u.epetraVector().MyLength() ; ++i )
     {
-    	for ( UInt i = 0;i < uFESpace.fe().nbFEDof();i++ )
-    	{
-    		elvec( i ) += ( - k * elvec_u( i ) * ( elvec_u( i ) - b ) * ( elvec_u( i ) - 1.0 )
-    					    - M_elvec( i ) * elvec_u( i ) ) *
-    					    uFESpace.fe().phi( i, ig ) * uFESpace.fe().weightDet( ig );
-    	}
+        Int ig = u.blockMap().MyGlobalElements() [i];
+
+
+        aux = epsilon + mu1 * M_BDFr.solution() [ig] / ( mu2 + u[ig] );
+        dr  = - aux * ( M_BDFr.solution() [ig] + k * u[ig] * ( u[ig] - b - 1.0 ) );
+        M_recoveryVariable[ig] = M_BDFr.solution() [ig] + timeStep * dr;
+    }
+    M_BDFr.shiftRight (M_recoveryVariable);
+
+    HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
+
+}
+
+
+template<typename Mesh, typename SolverType>
+void HeartAlievPanfilov<Mesh, SolverType>::solveIonicModel ( HeartFunctors& data, const Real timeStep, Real t )
+{
+
+    //Real dt = timeStep / iter;
+
+    Real epsilon = 0.01;
+    Real mu1     = 0.12;
+    Real mu2     = 0.30;
+    Real k       = 8.00;
+    Real b       = 0.10;
+
+    Real auxr     = 0.0;
+    Real dr      = 0.0;
+
+    Real dV      = 0.0;
+
+    HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
+
+
+    for ( Int i = 0 ; i < M_potential.epetraVector().MyLength() ; ++i )
+    {
+        Int ig = M_potential.blockMap().MyGlobalElements() [i];
+
+        auxr = epsilon + mu1 * M_recoveryVariable[ig] / ( mu2 + M_potential[ig] );
+        dr   = - auxr * ( M_recoveryVariable[ig] + k * M_potential[ig] * ( M_potential[ig] - b - 1.0 ) );
+        M_recoveryVariable[ig] = M_recoveryVariable[ig] + timeStep * dr;
+
+        dV = - k * M_potential[ig] * ( M_potential[ig] - b ) * ( M_potential[ig] - 1.0 ) - M_recoveryVariable[ig] * M_potential[ig];
+
+        if ( t >= data.M_stimulusStart1 && t <= data.M_stimulusStop1 && ig == 1 )
+        {
+            dV += data.M_stimulusValue1;
+        }
+        if ( t >= data.M_stimulusStart1 && t <= data.M_stimulusStop1 && ig == 4 )
+        {
+            dV += data.M_stimulusValue1;
+        }
+        if ( t >= data.M_stimulusStart1 && t <= data.M_stimulusStop1 && ig == 63 )
+        {
+            dV += data.M_stimulusValue1;
+        }
+        if ( t >= data.M_stimulusStart1 && t <= data.M_stimulusStop1 && ig == 274)
+        {
+            dV += data.M_stimulusValue1;
+        }
+
+        M_potential[ig] = M_potential[ig] + timeStep * dV;
+    }
+
+
+    HeartIonicSolver<Mesh, SolverType>::M_comm->Barrier();
+
+}
+
+
+template<typename Mesh, typename SolverType>
+void HeartAlievPanfilov<Mesh, SolverType>::computeIonicCurrent (  Real,
+                                                                  VectorElemental& elvec,
+                                                                  VectorElemental& elvec_u,
+                                                                  FESpace<Mesh, MapEpetra>& uFESpace )
+{
+
+    Real k       = 8.00;
+    Real b       = 0.10;
+    for ( UInt ig = 0; ig < uFESpace.fe().nbQuadPt(); ig++ )
+    {
+        for ( UInt i = 0; i < uFESpace.fe().nbFEDof(); i++ )
+        {
+            elvec ( i ) += ( - k * elvec_u ( i ) * ( elvec_u ( i ) - b ) * ( elvec_u ( i ) - 1.0 )
+                             - M_elvec ( i ) * elvec_u ( i ) ) *
+                           uFESpace.fe().phi ( i, ig ) * uFESpace.fe().weightDet ( ig );
+        }
     }
 }
 
@@ -308,20 +332,20 @@ template<typename Mesh, typename SolverType>
 void HeartAlievPanfilov<Mesh, SolverType>::
 initialize( )
 {
-	M_recoveryVariable.epetraVector().PutScalar(0.0);
-	M_potential.epetraVector().PutScalar(0.0);
-	M_BDFr.setInitialCondition(M_recoveryVariable);
-	M_BDFV.setInitialCondition(M_potential);
-	M_BDFr.showMe();
-	M_BDFV.showMe();
+    M_recoveryVariable.epetraVector().PutScalar (0.0);
+    M_potential.epetraVector().PutScalar (0.0);
+    M_BDFr.setInitialCondition (M_recoveryVariable);
+    M_BDFV.setInitialCondition (M_potential);
+    M_BDFr.showMe();
+    M_BDFV.showMe();
 }
 
 
 template<typename Mesh, typename SolverType>
 void HeartAlievPanfilov<Mesh, SolverType>::
-updatePotential( const VectorEpetra& V )
+updatePotential ( const VectorEpetra& V )
 {
-	this->M_potential = V;
+    this->M_potential = V;
 }
 
 

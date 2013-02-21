@@ -111,165 +111,201 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus(const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
-	{
-		return ( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
-	}
+Real Stimulus (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+{
+    return ( 0.5 + 0.5 * ( std::tanh ( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
+}
 
 
 
-Int main( Int argc, char** argv )
+Int main ( Int argc, char** argv )
 {
 
     //! Initializing Epetra communicator
-	MPI_Init(&argc, &argv);
-	boost::shared_ptr<Epetra_Comm>  Comm( new Epetra_MpiComm(MPI_COMM_WORLD) );
-	if ( Comm->MyPID() == 0 ) cout << "% using MPI" << endl;
+    MPI_Init (&argc, &argv);
+    boost::shared_ptr<Epetra_Comm>  Comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "% using MPI" << endl;
+    }
 
     //********************************************//
-	// Starts the chronometer.                    //
-	//********************************************//
-//	LifeChrono chronoinitialsettings;
-//	chronoinitialsettings.start();
+    // Starts the chronometer.                    //
+    //********************************************//
+    //  LifeChrono chronoinitialsettings;
+    //  chronoinitialsettings.start();
 
-	typedef RegionMesh<LinearTetra> 						mesh_Type;
-    typedef boost::function< Real(const Real& /*t*/,
-    								const Real&   x,
-    								const Real&   y,
-    								const Real& /*z*/,
-    								const ID&   /*i*/ ) > 	function_Type;
+    typedef RegionMesh<LinearTetra>                         mesh_Type;
+    typedef boost::function < Real (const Real& /*t*/,
+                                    const Real &   x,
+                                    const Real &   y,
+                                    const Real& /*z*/,
+                                    const ID&   /*i*/ ) >   function_Type;
 
-	typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov > 		monodomainSolver_Type;
-	typedef boost::shared_ptr< monodomainSolver_Type > 	monodomainSolverPtr_Type;
+    typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov >       monodomainSolver_Type;
+    typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
 
-		//********************************************//
-	// Import parameters from an xml list. Use    //
-	// Teuchos to create a list from a given file //
-	// in the execution directory.                //
-	//********************************************//
+    //********************************************//
+    // Import parameters from an xml list. Use    //
+    // Teuchos to create a list from a given file //
+    // in the execution directory.                //
+    //********************************************//
 
-	if ( Comm->MyPID() == 0 )  std::cout << "Importing parameters list...";
-    Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
-    Teuchos::ParameterList monodomainList = *( Teuchos::getParametersFromXmlFile( "MonodomainSolverParamList.xml" ) );
-    if ( Comm->MyPID() == 0 )  std::cout << " Done!" << endl;
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Importing parameters list...";
+    }
+    Teuchos::ParameterList APParameterList = * ( Teuchos::getParametersFromXmlFile ( "AlievPanfilovParameters.xml" ) );
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Done!" << endl;
+    }
 
-	//********************************************//
-	// Creates a new model object representing the//
-	// model from Aliev and Panfilov 1996.  The   //
-	// model input are the parameters. Pass  the  //
-	// parameter list in the constructor          //
-	//********************************************//
-    if ( Comm->MyPID() == 0 ) std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
-	boost::shared_ptr<IonicAlievPanfilov>  model( new IonicAlievPanfilov( APParameterList ) );
-	if ( Comm->MyPID() == 0 ) std::cout << " Done!" << endl;
-
-
-	//********************************************//
-	// In the parameter list we need to specify   //
-	// the mesh name and the mesh path.           //
-	//********************************************//
-	std::string meshName = monodomainList.get("mesh_name","lid16.mesh");
-	std::string meshPath = monodomainList.get("mesh_path","./");
-
-	//********************************************//
-	// We need the GetPot datafile for to setup   //
-	// the preconditioner.                        //
-	//********************************************//
-	GetPot command_line(argc, argv);
-	const string data_file_name = command_line.follow("data", 2, "-f", "--file");
-	GetPot dataFile(data_file_name);
-
-	//********************************************//
-	// We create three solvers to solve with:     //
-	// 1) Operator Splitting method               //
-	// 2) Ionic Current Interpolation             //
-	// 3) State Variable Interpolation            //
-	//********************************************//
-	if ( Comm->MyPID() == 0 )  std::cout << "Building Monodomain Solvers... ";
-
-	monodomainSolverPtr_Type splitting( new monodomainSolver_Type( meshName, meshPath, dataFile, model ) );
-	if ( Comm->MyPID() == 0 )  std::cout << " Splitting solver done... ";
-	monodomainSolverPtr_Type ici( new monodomainSolver_Type( dataFile, model, splitting ->  meshPtr() ) );
-	if ( Comm->MyPID() == 0 )  std::cout << " ICI solver done!\n. ";
+    //********************************************//
+    // Creates a new model object representing the//
+    // model from Aliev and Panfilov 1996.  The   //
+    // model input are the parameters. Pass  the  //
+    // parameter list in the constructor          //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
+    }
+    boost::shared_ptr<IonicAlievPanfilov>  model ( new IonicAlievPanfilov ( APParameterList ) );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Done!" << endl;
+    }
 
 
-	//********************************************//
-	// Setting up the initial condition form      //
-	// a given function.                          //
-	//********************************************//
-	if ( Comm->MyPID() == 0 )  cout << "\nInitializing potential:  " ;
+    //********************************************//
+    // In the parameter list we need to specify   //
+    // the mesh name and the mesh path.           //
+    //********************************************//
+    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
+    std::string meshPath = monodomainList.get ("mesh_path", "./");
 
-	function_Type f = &Stimulus;
-	splitting -> setPotentialFromFunction( f );
-	ici -> copyPotential( splitting -> potentialPtr() );
-	if ( Comm->MyPID() == 0 ) cout << "Done! \n" ;
+    //********************************************//
+    // We need the GetPot datafile for to setup   //
+    // the preconditioner.                        //
+    //********************************************//
+    GetPot command_line (argc, argv);
+    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+    GetPot dataFile (data_file_name);
 
-	//********************************************//
-	// Setting up the time data                   //
-	//********************************************//
-	splitting -> setParameters( monodomainList );
-	ici -> setParameters( monodomainList );
+    //********************************************//
+    // We create three solvers to solve with:     //
+    // 1) Operator Splitting method               //
+    // 2) Ionic Current Interpolation             //
+    // 3) State Variable Interpolation            //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Building Monodomain Solvers... ";
+    }
 
-	//********************************************//
-	// Create a fiber direction                   //
-	//********************************************//
-	VectorSmall<3> fibers;
-	fibers[0]=  monodomainList.get("fiber_X", std::sqrt(2) / 2.0 );
-	fibers[1]=  monodomainList.get("fiber_Y", std::sqrt(2) / 2.0 );
-	fibers[2]=  monodomainList.get("fiber_Z", 0.0 );
+    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Splitting solver done... ";
+    }
+    monodomainSolverPtr_Type ici ( new monodomainSolver_Type ( dataFile, model, splitting ->  meshPtr() ) );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " ICI solver done!\n. ";
+    }
 
-	splitting ->setupFibers(fibers);
-	ici -> setFiberPtr( splitting -> fiberPtr() );
 
-	//********************************************//
-	// Create the global matrix: mass + stiffness //
-	//********************************************//
-	splitting -> setupGlobalMatrix();
-	ici -> setupGlobalMatrix();
+    //********************************************//
+    // Setting up the initial condition form      //
+    // a given function.                          //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nInitializing potential:  " ;
+    }
 
-	//********************************************//
-	// Setting up the SVI solver                  //
-	//********************************************//
-	monodomainSolverPtr_Type svi( new monodomainSolver_Type( *ici ) );
+    function_Type f = &Stimulus;
+    splitting -> setPotentialFromFunction ( f );
+    ici -> copyPotential ( splitting -> potentialPtr() );
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "Done! \n" ;
+    }
 
-	//********************************************//
-	// Creating exporters to save the solution    //
-	//********************************************//
-	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+    //********************************************//
+    // Setting up the time data                   //
+    //********************************************//
+    splitting -> setParameters ( monodomainList );
+    ici -> setParameters ( monodomainList );
+
+    //********************************************//
+    // Create a fiber direction                   //
+    //********************************************//
+    VectorSmall<3> fibers;
+    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2) / 2.0 );
+    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2) / 2.0 );
+    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+
+    splitting ->setupFibers (fibers);
+    ici -> setFiberPtr ( splitting -> fiberPtr() );
+
+    //********************************************//
+    // Create the global matrix: mass + stiffness //
+    //********************************************//
+    splitting -> setupGlobalMatrix();
+    ici -> setupGlobalMatrix();
+
+    //********************************************//
+    // Setting up the SVI solver                  //
+    //********************************************//
+    monodomainSolverPtr_Type svi ( new monodomainSolver_Type ( *ici ) );
+
+    //********************************************//
+    // Creating exporters to save the solution    //
+    //********************************************//
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
     ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
 
-    splitting -> setupExporter( exporterSplitting, "Splitting" );
-    ici -> setupExporter( exporterICI, "ICI" );
-    svi -> setupExporter( exporterSVI, "SVI" );
+    splitting -> setupExporter ( exporterSplitting, "Splitting" );
+    ici -> setupExporter ( exporterICI, "ICI" );
+    svi -> setupExporter ( exporterSVI, "SVI" );
 
-    splitting -> exportSolution( exporterSplitting, 0);
-    ici -> exportSolution( exporterICI, 0);
-    svi -> exportSolution( exporterSVI, 0);
+    splitting -> exportSolution ( exporterSplitting, 0);
+    ici -> exportSolution ( exporterICI, 0);
+    svi -> exportSolution ( exporterSVI, 0);
 
 
     //********************************************//
-	// Solving the system                         //
-	//********************************************//
-    if ( Comm->MyPID() == 0 ) cout << "\nstart solving:  " ;
-    splitting 	-> solveSplitting( exporterSplitting );
+    // Solving the system                         //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nstart solving:  " ;
+    }
+    splitting   -> solveSplitting ( exporterSplitting );
     exporterSplitting.closeFile();
 
-    ici 		-> solveICI( exporterICI );
+    ici         -> solveICI ( exporterICI );
     exporterICI.closeFile();
 
-    svi 		-> solveSVI( exporterSVI );
+    svi         -> solveSVI ( exporterSVI );
     exporterSVI.closeFile();
 
 
-	//********************************************//
-	// Saving Fiber direction to file             //
-	//********************************************//
+    //********************************************//
+    // Saving Fiber direction to file             //
+    //********************************************//
     svi -> exportFiberDirection();
 
 
-    if ( Comm->MyPID() == 0 ) cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
-    MPI_Barrier(MPI_COMM_WORLD);
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+    }
+    MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();
-    return( EXIT_SUCCESS );
+    return ( EXIT_SUCCESS );
 }

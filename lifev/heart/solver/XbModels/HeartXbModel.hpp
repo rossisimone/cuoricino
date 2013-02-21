@@ -42,13 +42,15 @@
 
 #include <lifev/core/array/VectorEpetra.hpp>
 
-namespace LifeV{
-class HeartXbModel{
+namespace LifeV
+{
+class HeartXbModel
+{
 
 public:
     //! @name Type definitions
     //@{
-	//@}
+    //@}
 
     //! @name Constructors & Destructor
     //@{
@@ -57,11 +59,11 @@ public:
     /*!
      * @param Epetra communicator
      */
-	HeartXbModel();
+    HeartXbModel();
 
-	HeartXbModel(int n);
+    HeartXbModel (int n);
 
-	HeartXbModel( const HeartXbModel &Xb );
+    HeartXbModel ( const HeartXbModel& Xb );
 
     //! Destructor
     virtual ~HeartXbModel() {};
@@ -75,12 +77,15 @@ public:
 
     //!
     //Compute the rhs on a single node or for the 0D case
-    inline const short int& Size() const { return M_numberOfEquations; }
+    inline const short int& Size() const
+    {
+        return M_numberOfEquations;
+    }
     //@}
 
     //! @name Overloads
     //@{
-    HeartXbModel& operator=( const HeartXbModel &Xb );
+    HeartXbModel& operator= ( const HeartXbModel& Xb );
 
     //@}
 
@@ -97,29 +102,29 @@ protected:
 // ===================================================
 //! Constructors
 // ===================================================
-HeartXbModel::HeartXbModel():
-		M_numberOfEquations(0)
+HeartXbModel::HeartXbModel() :
+    M_numberOfEquations (0)
 {
 }
 
-HeartXbModel::HeartXbModel( int n ):
-		M_numberOfEquations(n)
+HeartXbModel::HeartXbModel ( int n ) :
+    M_numberOfEquations (n)
 {
 }
 
 
 
-HeartXbModel::HeartXbModel( const HeartXbModel &Xb ):
-		M_numberOfEquations( Xb.Size() )
+HeartXbModel::HeartXbModel ( const HeartXbModel& Xb ) :
+    M_numberOfEquations ( Xb.Size() )
 {
 }
 
 // ===================================================
 //! Methods
 // ===================================================
-HeartXbModel& HeartXbModel::operator =( const HeartXbModel &Xb )
+HeartXbModel& HeartXbModel::operator = ( const HeartXbModel& Xb )
 {
-	return 		*this;
+    return      *this;
 }
 
 }

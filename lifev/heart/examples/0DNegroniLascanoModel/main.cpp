@@ -68,141 +68,144 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
-Int main( Int argc, char** argv )
+Int main ( Int argc, char** argv )
 {
-	   //! Initializing Epetra communicator
-	    MPI_Init(&argc, &argv);
-	    Epetra_MpiComm Comm(MPI_COMM_WORLD);
-	    if ( Comm.MyPID() == 0 )
-	        cout << "% using MPI" << endl;
+    //! Initializing Epetra communicator
+    MPI_Init (&argc, &argv);
+    Epetra_MpiComm Comm (MPI_COMM_WORLD);
+    if ( Comm.MyPID() == 0 )
+    {
+        cout << "% using MPI" << endl;
+    }
 
 
-	//********************************************//
-	// Import parameters from an xml list. Use    //
-	// Teuchos to create a list from a given file //
-	// in the execution directory.                //
-	//********************************************//
+    //********************************************//
+    // Import parameters from an xml list. Use    //
+    // Teuchos to create a list from a given file //
+    // in the execution directory.                //
+    //********************************************//
 
-	std::cout << "Importing parameters list...";
-    Teuchos::ParameterList NLParameterList = *( Teuchos::getParametersFromXmlFile( "NegroniLascano96Parameters.xml" ) );
-	std::cout << " Done!" << endl;
-
-
-	//********************************************//
-	// Creates a new model object representing the//
-	// model from Negroni and Lascano 1996. The   //
-	// model input are the parameters. Pass  the  //
-	// parameter list in the constructor          //
-	//********************************************//
-	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
-	XbNegroniLascano96  xb( NLParameterList );
-	std::cout << " Done!" << endl;
+    std::cout << "Importing parameters list...";
+    Teuchos::ParameterList NLParameterList = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
+    std::cout << " Done!" << endl;
 
 
-	//********************************************//
-	// Show the parameters of the model as well as//
-	// other informations  about the object.      //
-	//********************************************//
-	xb.showMe();
+    //********************************************//
+    // Creates a new model object representing the//
+    // model from Negroni and Lascano 1996. The   //
+    // model input are the parameters. Pass  the  //
+    // parameter list in the constructor          //
+    //********************************************//
+    std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
+    XbNegroniLascano96  xb ( NLParameterList );
+    std::cout << " Done!" << endl;
 
 
-	//********************************************//
-	// Initialize the solution to 0. The model    //
-	// consist of three state variables. Xe.Size()//
-	// returns the number of state variables of   //
-	// the model. rStates is the reference to the //
-	// the vector states                          //
-	//********************************************//
-	std::cout << "Initializing solution vector...";
-	std::vector<Real> states(xb.Size(),0);
-	std::vector<Real>& rStates=states;
-	std::cout << " Done!" << endl;
+    //********************************************//
+    // Show the parameters of the model as well as//
+    // other informations  about the object.      //
+    //********************************************//
+    xb.showMe();
 
 
-	//********************************************//
-	// Initialize the rhs to 0. The rhs is the    //
-	// vector containing the numerical values of  //
-	// the time derivatives of the state          //
-	// variables, that is, the right hand side of //
-	// the differential equation.                 //
-	//********************************************//
-	std::cout << "Initializing rhs..." ;
-	std::vector<Real> rhs(xb.Size(),0);
-	std::vector<Real>& rRhs=rhs;
-	std::cout << " Done! "  << endl;
+    //********************************************//
+    // Initialize the solution to 0. The model    //
+    // consist of three state variables. Xe.Size()//
+    // returns the number of state variables of   //
+    // the model. rStates is the reference to the //
+    // the vector states                          //
+    //********************************************//
+    std::cout << "Initializing solution vector...";
+    std::vector<Real> states (xb.Size(), 0);
+    std::vector<Real>& rStates = states;
+    std::cout << " Done!" << endl;
+
+
+    //********************************************//
+    // Initialize the rhs to 0. The rhs is the    //
+    // vector containing the numerical values of  //
+    // the time derivatives of the state          //
+    // variables, that is, the right hand side of //
+    // the differential equation.                 //
+    //********************************************//
+    std::cout << "Initializing rhs..." ;
+    std::vector<Real> rhs (xb.Size(), 0);
+    std::vector<Real>& rRhs = rhs;
+    std::cout << " Done! "  << endl;
 
 
 
 
-	//********************************************//
-	// The model needs as external informations   //
-	// the contraction velocity and the Calcium   //
-	// concentration.                             //
-	//********************************************//
-	Real vel(0.0);
-	Real Ca(0.0);
+    //********************************************//
+    // The model needs as external informations   //
+    // the contraction velocity and the Calcium   //
+    // concentration.                             //
+    //********************************************//
+    Real vel (0.0);
+    Real Ca (0.0);
 
 
-	//********************************************//
-	// Simulation starts on t=0 and ends on t=TF. //
-	// The timestep is given by dt                //
-	//********************************************//
-	Real TF(60);
-	Real dt(0.01);
+    //********************************************//
+    // Simulation starts on t=0 and ends on t=TF. //
+    // The timestep is given by dt                //
+    //********************************************//
+    Real TF (60);
+    Real dt (0.01);
 
 
-	//********************************************//
-	// Open the file "output.txt" to save the     //
-	// solution.                                  //
-	//********************************************//
-	string filename="output.txt";
-	std::ofstream output("output.txt");
+    //********************************************//
+    // Open the file "output.txt" to save the     //
+    // solution.                                  //
+    //********************************************//
+    string filename = "output.txt";
+    std::ofstream output ("output.txt");
 
 
-	//********************************************//
-	// Time loop starts.                          //
-	//********************************************//
-	std::cout << "Time loop starts...\n";
-	for( Real t = 0; t < TF; ){
+    //********************************************//
+    // Time loop starts.                          //
+    //********************************************//
+    std::cout << "Time loop starts...\n";
+    for ( Real t = 0; t < TF; )
+    {
 
-		//********************************************//
-		// Compute Calcium concentration. Here it is  //
-		// given as a function of time.               //
-		//********************************************//
-		Ca = std::exp(- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
-		std::cout << "\r " << t << " ms.       "<< std::flush;
+        //********************************************//
+        // Compute Calcium concentration. Here it is  //
+        // given as a function of time.               //
+        //********************************************//
+        Ca = std::exp (- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
+        std::cout << "\r " << t << " ms.       " << std::flush;
 
-		//********************************************//
-		// Compute the rhs using the model equations  //
-		//********************************************//
-		xb.computeRhs( states, Ca, vel, rhs);
+        //********************************************//
+        // Compute the rhs using the model equations  //
+        //********************************************//
+        xb.computeRhs ( states, Ca, vel, rhs);
 
-		//********************************************//
-		// Use forward Euler method to advance the    //
-		// solution in time.                          //
-		//********************************************//
-		rStates.at(0) = rStates.at(0)  + dt * rRhs.at(0);
-		rStates.at(1) = rStates.at(1)  + dt * rRhs.at(1);
-		rStates.at(2) = rStates.at(2)  + dt * rRhs.at(2);
+        //********************************************//
+        // Use forward Euler method to advance the    //
+        // solution in time.                          //
+        //********************************************//
+        rStates.at (0) = rStates.at (0)  + dt * rRhs.at (0);
+        rStates.at (1) = rStates.at (1)  + dt * rRhs.at (1);
+        rStates.at (2) = rStates.at (2)  + dt * rRhs.at (2);
 
-		//********************************************//
-		// Writes solution on file.                   //
-		//********************************************//
-		output << rStates.at(0) << ", " << rStates.at(1) << ", " << rStates.at(2) << "\n";
+        //********************************************//
+        // Writes solution on file.                   //
+        //********************************************//
+        output << rStates.at (0) << ", " << rStates.at (1) << ", " << rStates.at (2) << "\n";
 
-		//********************************************//
-		// Update the time.                           //
-		//********************************************//
-		t = t + dt;
-		}
-	std::cout << "\n...Time loop ends.\n";
-	std::cout << "Solution written on file: " << filename << "\n";
-	//********************************************//
-	// Close exported file.                       //
-	//********************************************//
-	output.close();
+        //********************************************//
+        // Update the time.                           //
+        //********************************************//
+        t = t + dt;
+    }
+    std::cout << "\n...Time loop ends.\n";
+    std::cout << "Solution written on file: " << filename << "\n";
+    //********************************************//
+    // Close exported file.                       //
+    //********************************************//
+    output.close();
 
     //! Finalizing Epetra communicator
     MPI_Finalize();
-    return( EXIT_SUCCESS );
+    return ( EXIT_SUCCESS );
 }

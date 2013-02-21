@@ -44,7 +44,7 @@ namespace LifeV
 // ===================================================
 // Constructors & Destructor
 // ===================================================
-HeartMonodomainData::HeartMonodomainData(   boost::shared_ptr<HeartFunctors> heart ) :
+HeartMonodomainData::HeartMonodomainData (   boost::shared_ptr<HeartFunctors> heart ) :
     MeshData                        ( heart-> M_dataFile, "electric/space_discretization" ),
     TimeData                        ( heart-> M_dataFile, "electric/time_discretization" ),
     M_reducedConductivityBox        ( heart-> reducedConductivityBox() ),
@@ -77,7 +77,7 @@ HeartMonodomainData::HeartMonodomainData() :
 {
 }
 
-HeartMonodomainData::HeartMonodomainData( const HeartMonodomainData& dataMonodomain ) :
+HeartMonodomainData::HeartMonodomainData ( const HeartMonodomainData& dataMonodomain ) :
     MeshData                        ( dataMonodomain ),
     TimeData                        ( dataMonodomain ),
     M_hasFibers                     ( dataMonodomain.M_hasFibers ),
@@ -103,14 +103,14 @@ HeartMonodomainData::HeartMonodomainData( const HeartMonodomainData& dataMonodom
 // Methods
 // ===================================================
 HeartMonodomainData&
-HeartMonodomainData::operator=( const HeartMonodomainData& dataMonodomain )
+HeartMonodomainData::operator= ( const HeartMonodomainData& dataMonodomain )
 {
     if ( this != &dataMonodomain )
     {
         M_hasFibers                     = dataMonodomain.M_hasFibers;
         M_heartDiffusionFactor          = dataMonodomain.M_heartDiffusionFactor;
         M_diffusivity                   = dataMonodomain.M_diffusivity;
-	M_beta                          = dataMonodomain.M_beta;
+        M_beta                          = dataMonodomain.M_beta;
         M_longitudinalConductivity      = dataMonodomain.M_longitudinalConductivity;
         M_membraneCapacitance           = dataMonodomain.M_membraneCapacitance;
         M_transversalConductivity       = dataMonodomain.M_transversalConductivity;
@@ -129,39 +129,39 @@ HeartMonodomainData::operator=( const HeartMonodomainData& dataMonodomain )
 
 
 void
-HeartMonodomainData::setup(  const GetPot& dataFile )
+HeartMonodomainData::setup (  const GetPot& dataFile )
 {
-    M_volumeSurfaceRatio           = dataFile("electric/physics/Chi", 1e3);   // [1e-3 1/cm]    ColliPavarinoTaccardi2005
-    M_membraneCapacitance          = dataFile("electric/physics/Cm", 1e-3);	  // [1e-3 mF/cm2]  ColliPavarinoTaccardi2005
-    M_beta = dataFile("electric/physics/beta" , -0.25);
-    M_diffusivity = dataFile("electric/physics/D" , 5.7e-4);  // 5.7e-4 [1/Ohm/cm]              sigmal/3 + sigmat*2/3
-    M_longitudinalConductivity = dataFile("electric/physics/sigmal", 1.2e-3);  // 1.2e-3  [1/Ohm/cm]   sigmal_i*sigmal_e/(sigmal_i+sigmal_e)    ColliPavarinoTaccardi2005
-    M_transversalConductivity  = dataFile("electric/physics/sigmat", 2.56e-4); // 2.56e-4 [1/Ohm/cm]   sigmat_i*sigmat_e/(sigmat_i+sigmat_e)    ColliPavarinoTaccardi2005
+    M_volumeSurfaceRatio           = dataFile ("electric/physics/Chi", 1e3);  // [1e-3 1/cm]    ColliPavarinoTaccardi2005
+    M_membraneCapacitance          = dataFile ("electric/physics/Cm", 1e-3);  // [1e-3 mF/cm2]  ColliPavarinoTaccardi2005
+    M_beta = dataFile ("electric/physics/beta" , -0.25);
+    M_diffusivity = dataFile ("electric/physics/D" , 5.7e-4); // 5.7e-4 [1/Ohm/cm]              sigmal/3 + sigmat*2/3
+    M_longitudinalConductivity = dataFile ("electric/physics/sigmal", 1.2e-3); // 1.2e-3  [1/Ohm/cm]   sigmal_i*sigmal_e/(sigmal_i+sigmal_e)    ColliPavarinoTaccardi2005
+    M_transversalConductivity  = dataFile ("electric/physics/sigmat", 2.56e-4); // 2.56e-4 [1/Ohm/cm]   sigmat_i*sigmat_e/(sigmat_i+sigmat_e)    ColliPavarinoTaccardi2005
 
-    M_conductivityRatio            =  dataFile("electric/physics/lambda", 0.66667); // 0.66667 [adim]       sigmal_e/sigmal_i
-    M_heartDiffusionFactor         = dataFile("electric/physics/heartDiffusionFunctor",0);
-    M_postProcessingDirectory      = dataFile("electric/miscellaneous/post_dir","./");
-    M_uOrder                       = dataFile( "electric/space_discretization/u_order", "P1");
-    M_hasFibers                    = dataFile( "electric/space_discretization/hasFibers", 0);
+    M_conductivityRatio            =  dataFile ("electric/physics/lambda", 0.66667); // 0.66667 [adim]       sigmal_e/sigmal_i
+    M_heartDiffusionFactor         = dataFile ("electric/physics/heartDiffusionFunctor", 0);
+    M_postProcessingDirectory      = dataFile ("electric/miscellaneous/post_dir", "./");
+    M_uOrder                       = dataFile ( "electric/space_discretization/u_order", "P1");
+    M_hasFibers                    = dataFile ( "electric/space_discretization/hasFibers", 0);
 
     if ( M_hasFibers )
     {
-        std::string fibersDirectory = dataFile( "electric/space_discretization/fibers_dir", this->meshDir().c_str() );
+        std::string fibersDirectory = dataFile ( "electric/space_discretization/fibers_dir", this->meshDir().c_str() );
         std::string fibersFile = this -> meshFile();
-        fibersFile.replace( fibersFile.find(".mesh"), 5, "fibers" );
-        M_fibersFile = fibersDirectory + dataFile( "electric/space_discretization/fibers_file", fibersFile.c_str() );
+        fibersFile.replace ( fibersFile.find (".mesh"), 5, "fibers" );
+        M_fibersFile = fibersDirectory + dataFile ( "electric/space_discretization/fibers_file", fibersFile.c_str() );
         std::cout << "Fibers File: " << M_fibersFile << std::endl;
     }
     else
     {
-        M_fibersFile="";
+        M_fibersFile = "";
         std::cout << "Fibers not included!" << std::endl;
     }
 }
 
 
 void
-HeartMonodomainData::showMe( std::ostream& output )
+HeartMonodomainData::showMe ( std::ostream& output )
 {
     output << "\n*** Values for data [fluid/time_discretization]\n\n";
     output << "endtime   = " << endTime() << std::endl;

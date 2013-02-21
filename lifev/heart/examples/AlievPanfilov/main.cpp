@@ -68,20 +68,22 @@
 
 using namespace LifeV;
 
-Int main( Int argc, char** argv )
+Int main ( Int argc, char** argv )
 {
     //! Initializing Epetra communicator
-    MPI_Init(&argc, &argv);
-    Epetra_MpiComm Comm(MPI_COMM_WORLD);
+    MPI_Init (&argc, &argv);
+    Epetra_MpiComm Comm (MPI_COMM_WORLD);
     if ( Comm.MyPID() == 0 )
+    {
         cout << "% using MPI" << endl;
+    }
 
     typedef RegionMesh<LinearTetra> mesh_Type;
     typedef FESpace< mesh_Type, MapEpetra > feSpace_Type;
     typedef boost::shared_ptr<feSpace_Type> feSpacePtr_Type;
 
-    typedef HeartMonodomainSolver< RegionMesh<LinearTetra> >::vector_Type  	vector_Type;
-    typedef boost::shared_ptr<vector_Type> 					vectorPtr_Type;
+    typedef HeartMonodomainSolver< RegionMesh<LinearTetra> >::vector_Type   vector_Type;
+    typedef boost::shared_ptr<vector_Type>                  vectorPtr_Type;
 
     LifeChrono chronoinitialsettings;
     LifeChrono chronototaliterations;
@@ -98,28 +100,28 @@ Int main( Int argc, char** argv )
 
     /*********************/
     //old constructor
-    GetPot command_line(argc, argv);
-    const string data_file_name = command_line.follow("data", 2, "-f", "--file");
-    GetPot dataFile(data_file_name);
+    GetPot command_line (argc, argv);
+    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+    GetPot dataFile (data_file_name);
 
     //! Pointer to access functors
-    M_heart_fct.reset(new HeartFunctors( dataFile));
-    ion_model=dataFile("electric/physics/ion_model",6);
-    M_heart_fct->M_comm.reset(new Epetra_MpiComm( MPI_COMM_WORLD ));
+    M_heart_fct.reset (new HeartFunctors ( dataFile) );
+    ion_model = dataFile ("electric/physics/ion_model", 6);
+    M_heart_fct->M_comm.reset (new Epetra_MpiComm ( MPI_COMM_WORLD ) );
 
-    if (!M_heart_fct->M_comm->MyPID())
+    if (!M_heart_fct->M_comm->MyPID() )
     {
         std::cout << "My PID = " << M_heart_fct->M_comm->MyPID() << std::endl;
     }
     /****************************/
 
 
-    HeartIonicData dataIonic(M_heart_fct->M_dataFile);
+    HeartIonicData dataIonic (M_heart_fct->M_dataFile);
 
     MeshData meshData;
-    meshData.setup(M_heart_fct->M_dataFile, "electric/space_discretization");
-    boost::shared_ptr<mesh_Type > fullMeshPtr(new mesh_Type( M_heart_fct->M_comm ) );
-    readMesh(*fullMeshPtr, meshData);
+    meshData.setup (M_heart_fct->M_dataFile, "electric/space_discretization");
+    boost::shared_ptr<mesh_Type > fullMeshPtr (new mesh_Type ( M_heart_fct->M_comm ) );
+    readMesh (*fullMeshPtr, meshData);
     bool verbose = (M_heart_fct->M_comm->MyPID() == 0);
 
 
@@ -129,102 +131,124 @@ Int main( Int argc, char** argv )
 
 
     //! Construction of the partitioned mesh
-    MeshPartitioner< mesh_Type >   meshPart(fullMeshPtr, M_heart_fct->M_comm);
+    MeshPartitioner< mesh_Type >   meshPart (fullMeshPtr, M_heart_fct->M_comm);
 
     //! Initialization of the FE type and quadrature rules for both the variables
-        refFE_u = &feTetraP1;
-        qR_u    = &quadRuleTetra15pt;
-        bdQr_u  = &quadRuleTria3pt;
+    refFE_u = &feTetraP1;
+    qR_u    = &quadRuleTetra15pt;
+    bdQr_u  = &quadRuleTria3pt;
 
 
     //! Construction of the FE spaces
     if (verbose)
+    {
         std::cout << "Building the potential FE space ... " << std::flush;
+    }
 
-    feSpacePtr_Type uFESpacePtr( new feSpace_Type( meshPart,
-                                                   *refFE_u,
-                                                   *qR_u,
-                                                   *bdQr_u,
-                                                   1,
-                                                   M_heart_fct->M_comm) );
+    feSpacePtr_Type uFESpacePtr ( new feSpace_Type ( meshPart,
+                                                     *refFE_u,
+                                                     *qR_u,
+                                                     *bdQr_u,
+                                                     1,
+                                                     M_heart_fct->M_comm) );
 
 
     if (verbose)
+    {
         std::cout << "ok." << std::endl;
+    }
 
-    UInt totalUDof  = uFESpacePtr->map().map(Unique)->NumGlobalElements();
-    if (verbose) std::cout << "Total Potential DOF = " << totalUDof << std::endl;
+    UInt totalUDof  = uFESpacePtr->map().map (Unique)->NumGlobalElements();
+    if (verbose)
+    {
+        std::cout << "Total Potential DOF = " << totalUDof << std::endl;
+    }
 
-    if (verbose) std::cout << "Calling the ionic model constructor ... ";
+    if (verbose)
+    {
+        std::cout << "Calling the ionic model constructor ... ";
+    }
     boost::shared_ptr< HeartAlievPanfilov < mesh_Type > > ionicModel;
 
-        if (verbose) std::cout<<"Ion Model = Aliev-Panfilov"<<std::endl<<std::flush;
-        ionicModel.reset(new HeartAlievPanfilov< mesh_Type >(dataIonic,
-                                                            *meshPart.meshPartition(),
-                                                            *uFESpacePtr,
-                                                            *M_heart_fct->M_comm));
+    if (verbose)
+    {
+        std::cout << "Ion Model = Aliev-Panfilov" << std::endl << std::flush;
+    }
+    ionicModel.reset (new HeartAlievPanfilov< mesh_Type > (dataIonic,
+                                                           *meshPart.meshPartition(),
+                                                           *uFESpacePtr,
+                                                           *M_heart_fct->M_comm) );
 
 
 
-    if (verbose) std::cout << "ok." << std::endl;
+    if (verbose)
+    {
+        std::cout << "ok." << std::endl;
+    }
 
     ionicModel->initialize( );
 
 
-    std::cout<<"buildsystem ok"<<std::endl;
+    std::cout << "buildsystem ok" << std::endl;
     //! Initialization
     Real dt     = dataIonic.timeStep();
     Real t0     = 0;
     Real tFinal = dataIonic.endTime();
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier (MPI_COMM_WORLD);
 
-    if (verbose) std::cout << "Setting the initial solution ... " << std::endl << std::endl;
-    dataIonic.setTime(t0);
+    if (verbose)
+    {
+        std::cout << "Setting the initial solution ... " << std::endl << std::endl;
+    }
+    dataIonic.setTime (t0);
 
-    if (verbose) std::cout << " ok "<< std::endl;
+    if (verbose)
+    {
+        std::cout << " ok " << std::endl;
+    }
 
     //! Setting generic Exporter postprocessing
     boost::shared_ptr< Exporter<mesh_Type > > exporter;
-    std::string const exporterType =  M_heart_fct->M_dataFile( "exporter/type", "ensight");
+    std::string const exporterType =  M_heart_fct->M_dataFile ( "exporter/type", "ensight");
 #ifdef HAVE_HDF5
-    if (exporterType.compare("hdf5") == 0)
+    if (exporterType.compare ("hdf5") == 0)
     {
-        exporter.reset( new ExporterHDF5<mesh_Type > ( M_heart_fct->M_dataFile,
-                                                       "heart_ionicModel" ) );
-        exporter->setPostDir( "./" ); // This is a test to see if M_post_dir is working
-        exporter->setMeshProcId( meshPart.meshPartition(), M_heart_fct->M_comm->MyPID() );
+        exporter.reset ( new ExporterHDF5<mesh_Type > ( M_heart_fct->M_dataFile,
+                                                        "heart_ionicModel" ) );
+        exporter->setPostDir ( "./" ); // This is a test to see if M_post_dir is working
+        exporter->setMeshProcId ( meshPart.meshPartition(), M_heart_fct->M_comm->MyPID() );
     }
     else
 #endif
     {
-        if (exporterType.compare("none") == 0)
+        if (exporterType.compare ("none") == 0)
         {
-            exporter.reset( new ExporterEmpty<mesh_Type > ( M_heart_fct->M_dataFile,
-                                                            meshPart.meshPartition(),
-                                                            "heart",
-                                                            M_heart_fct->M_comm->MyPID()) );
+            exporter.reset ( new ExporterEmpty<mesh_Type > ( M_heart_fct->M_dataFile,
+                                                             meshPart.meshPartition(),
+                                                             "heart",
+                                                             M_heart_fct->M_comm->MyPID() ) );
         }
         else
         {
-            exporter.reset( new ExporterEnsight<mesh_Type > ( M_heart_fct->M_dataFile,
-                                                              meshPart.meshPartition(),
-                                                              "heart",
-                                                              M_heart_fct->M_comm->MyPID()) );
+            exporter.reset ( new ExporterEnsight<mesh_Type > ( M_heart_fct->M_dataFile,
+                                                               meshPart.meshPartition(),
+                                                               "heart",
+                                                               M_heart_fct->M_comm->MyPID() ) );
         }
     }
 
 
-    vectorPtr_Type Uptr( new vector_Type(ionicModel->getPotential(), Repeated ) );
-    vectorPtr_Type rptr( new vector_Type(ionicModel->getRecoveryVariable(), Repeated ) );
-    exporter->addVariable( ExporterData<mesh_Type>::ScalarField,  "potential", uFESpacePtr,
-                           Uptr, UInt(0) );
-    exporter->addVariable( ExporterData<mesh_Type>::ScalarField,  "recovery variable", uFESpacePtr,
-                           rptr, UInt(0) );
+    vectorPtr_Type Uptr ( new vector_Type (ionicModel->getPotential(), Repeated ) );
+    vectorPtr_Type rptr ( new vector_Type (ionicModel->getRecoveryVariable(), Repeated ) );
+    exporter->addVariable ( ExporterData<mesh_Type>::ScalarField,  "potential", uFESpacePtr,
+                            Uptr, UInt (0) );
+    exporter->addVariable ( ExporterData<mesh_Type>::ScalarField,  "recovery variable", uFESpacePtr,
+                            rptr, UInt (0) );
 
 
-    exporter->postProcess( 0 );
+    exporter->postProcess ( 0 );
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier (MPI_COMM_WORLD);
     chronoinitialsettings.stop();
 
     //! Temporal loop
@@ -233,45 +257,57 @@ Int main( Int argc, char** argv )
     chronototaliterations.start();
     for ( Real time = t0 + dt ; time <= tFinal + dt / 2.; time += dt, iter++)
     {
-        dataIonic.setTime(time);
+        dataIonic.setTime (time);
         if (verbose)
         {
             std::cout << std::endl;
-            std::cout << "We are now at time "<< dataIonic.time() << " s. " << std::endl;
+            std::cout << "We are now at time " << dataIonic.time() << " s. " << std::endl;
             std::cout << std::endl;
         }
         chrono.start();
-        MPI_Barrier(MPI_COMM_WORLD);
-        ionicModel->solveIonicModel( *M_heart_fct, dataIonic.timeStep(), time );
+        MPI_Barrier (MPI_COMM_WORLD);
+        ionicModel->solveIonicModel ( *M_heart_fct, dataIonic.timeStep(), time );
 
-        normu=ionicModel->getPotential().norm2();
-        ionicModel->getPotential().epetraVector().MeanValue(&meanu);
-        ionicModel->getPotential().epetraVector().MaxValue(&minu);
+        normu = ionicModel->getPotential().norm2();
+        ionicModel->getPotential().epetraVector().MeanValue (&meanu);
+        ionicModel->getPotential().epetraVector().MaxValue (&minu);
 
         if (verbose)
         {
             std::cout << "norm u " << normu << std::endl;
             std::cout << "mean u " << meanu << std::endl;
-            std::cout << "max u " << minu << std::endl<<std::flush;
+            std::cout << "max u " << minu << std::endl << std::flush;
         }
 
         *Uptr = ionicModel->getPotential();
         *rptr = ionicModel->getRecoveryVariable();
 
 
-        exporter->postProcess( time );
-        MPI_Barrier(MPI_COMM_WORLD);
+        exporter->postProcess ( time );
+        MPI_Barrier (MPI_COMM_WORLD);
         chrono.stop();
-        if (verbose) std::cout << "Total iteration time " << chrono.diff() << " s." << std::endl;
+        if (verbose)
+        {
+            std::cout << "Total iteration time " << chrono.diff() << " s." << std::endl;
+        }
         chronototaliterations.stop();
     }
 
-    if (verbose) std::cout << "Total iterations time " << chronototaliterations.diff() << " s." << std::endl;
-    if (verbose) std::cout << "Total initial settings time " << chronoinitialsettings.diff() << " s." << std::endl;
-    if (verbose) std::cout << "Total execution time " << chronoinitialsettings.diff()+chronototaliterations.diff() << " s." << std::endl;
+    if (verbose)
+    {
+        std::cout << "Total iterations time " << chronototaliterations.diff() << " s." << std::endl;
+    }
+    if (verbose)
+    {
+        std::cout << "Total initial settings time " << chronoinitialsettings.diff() << " s." << std::endl;
+    }
+    if (verbose)
+    {
+        std::cout << "Total execution time " << chronoinitialsettings.diff() + chronototaliterations.diff() << " s." << std::endl;
+    }
 
 
     //! Finalizing Epetra communicator
     MPI_Finalize();
-    return( EXIT_SUCCESS );
+    return ( EXIT_SUCCESS );
 }
