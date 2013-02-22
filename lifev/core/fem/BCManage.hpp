@@ -1534,7 +1534,6 @@ bcEssentialManageResidual (VectorType&     res,
 
     if (sol.mapType() == Unique)
     {
-        std::cout << "pass me a repeated solution" << std::endl;
         VectorType repeatedSolution (sol, Repeated);
         bcEssentialManageResidual (  res,
                                      rhs,
