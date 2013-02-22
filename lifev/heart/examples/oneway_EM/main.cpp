@@ -54,6 +54,7 @@
 #include <lifev/core/mesh/MeshData.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/heart/solver/HeartUpdatedMonodomainSolver.hpp>
+#include <lifev/heart/solver/NeoHookeanActivatedMaterial.hpp>
 #include <lifev/heart/solver/HeartIonicSolver.hpp>
 #include <lifev/heart/solver/HeartAlievPanfilov.hpp>
 
@@ -303,13 +304,13 @@ struct ElectroMech::Private
         return 0.0;
     }
 
-    static Real d0CanineHeart (const Real& t, const Real& x, const Real& y, const Real& z, const ID& i)
+static Real d0CanineHeart(const Real& t, const Real& x, const Real& y, const Real& z, const ID& i)
+{
+    double rr = std::sqrt((x-1.0)*(x-1.0)+(y-1.5)*(y-1.5)+(z-0.9)*(z-0.9));//canineheart
+    if (t == 0)
     {
-        double rr = std::sqrt ( (x - 55.0) * (x - 55.0) + (y - 40.0) * (y - 40.0) + (z - 9.0) * (z - 9.0) ); //canineheart
-        if (t == 0)
-        {
-            return 10.0 * (1.0 - 1.0 / (1.0 + exp (-90.0 * (rr - 45.0) ) ) ); //-z*(z - 5.)*x/50.; // -z*(z - 80.)*x/5000.;//
-        }
+          return 10.0*(1.0-1.0/(1.0+exp(-90.0*(rr-0.5))));//-z*(z - 5.)*x/50.; // -z*(z - 80.)*x/5000.;//
+    }
 
         return 0.0;
     }
@@ -380,68 +381,69 @@ ElectroMech::ElectroMech ( int argc, char** argv,
 void
 ElectroMech::run()
 {
-    typedef HeartUpdatedMonodomainSolver< RegionMesh<LinearTetra> >::vector_Type  vector_Type;
-    typedef HeartUpdatedMonodomainSolver< RegionMesh<LinearTetra> >::matrix_Type  matrix_Type;
-    typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
-    typedef boost::shared_ptr< TimeAdvance< vector_Type > >       timeAdvance_type;
+  typedef HeartUpdatedMonodomainSolver< RegionMesh<LinearTetra> >::vector_Type  vector_Type;
+  typedef HeartUpdatedMonodomainSolver< RegionMesh<LinearTetra> >::matrix_Type  matrix_Type;
+  typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
+  typedef boost::shared_ptr< TimeAdvance< vector_Type > >       timeAdvance_type;
 
-    LifeChrono chronoinitialsettings;
-    LifeChrono chronototaliterations;
-    chronoinitialsettings.start();
-    Real normu;
-    Real meanu;
-    Real minu;
-    //Real maxu;
-    //Real maxdispl;
-    //Real mindispl;
-    //! Construction of data classes
+  LifeChrono chronoinitialsettings;
+  LifeChrono chronototaliterations;
+  chronoinitialsettings.start();
+  Real normu;
+  Real meanu;
+  Real minu;
+  //Real maxu;
+  Real maxdispl;
+  Real mindispl;
+  //! Construction of data classes
 
-    HeartMonodomainData _dataFunctors (M_heart_fct);
-    HeartIonicData _dataIonic (M_heart_fct->M_dataFile);
-    bool verbose = (M_heart_fct->M_comm->MyPID() == 0);
+  HeartMonodomainData _dataFunctors(M_heart_fct);
+  HeartIonicData _dataIonic(M_heart_fct->M_dataFile);
+  bool verbose = (M_heart_fct->M_comm->MyPID() == 0);
 
-    //! Number of boundary conditions for the velocity and mesh motion
-    //boost::shared_ptr<BCHandler> BChE( new BCHandler() );
-    BCHandler BChE;
-    BCFunctionBase uZero (Private::zero_scalar);
-    BChE.addBC ( "Endo",       ENDOCARDIUM,    Natural,    Full,   uZero,  1 );
-    BChE.addBC ( "Epi",            EPICARDIUM,     Natural,    Full,   uZero,  1 );
-    BChE.addBC ( "Trunc",      TRUNC_SEC,      Natural,    Full,   uZero,  1 );
+  //! Number of boundary conditions for the velocity and mesh motion
+  //boost::shared_ptr<BCHandler> BChE( new BCHandler() );
+  BCHandler BChE;
+  BCFunctionBase uZero(Private::zero_scalar);
+  BChE.addBC( "Endo",   	ENDOCARDIUM,	Natural,	Full,	uZero,  1 );
+  BChE.addBC( "Epi",   	        EPICARDIUM, 	Natural,   	Full,   uZero, 	1 );
+  BChE.addBC( "Trunc",    	TRUNC_SEC,  	Natural, 	Full,   uZero, 	1 );
 
-    boost::shared_ptr<BCHandler> BChS ( new BCHandler() );
-    BCFunctionBase dZero (Private::bcZero);
+  boost::shared_ptr<BCHandler> BChS( new BCHandler() );
+  BCFunctionBase dZero(Private::bcZero);
 
-    //! dataElasticStructure
-    GetPot dataFile ( parameters->data_file_name.c_str() );
+  //! dataElasticStructure
+  GetPot dataFile( parameters->data_file_name.c_str() );
 
-    boost::shared_ptr<StructuralConstitutiveLawData> dataStructure (new StructuralConstitutiveLawData( ) );
-    dataStructure->setup (dataFile);
+  boost::shared_ptr<StructuralConstitutiveLawData> dataStructure(new StructuralConstitutiveLawData( ));
+  dataStructure->setup(dataFile);
 
-    MeshData             meshData;
-    meshData.setup (dataFile, "solid/space_discretization");
+  MeshData             meshData;
+  meshData.setup(dataFile, "solid/space_discretization");
 
-    boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr (new RegionMesh<LinearTetra> ( parameters->comm ) );
-    readMesh (*fullMeshPtr, meshData);
+  boost::shared_ptr<RegionMesh<LinearTetra> > fullMeshPtr(new RegionMesh<LinearTetra>( parameters->comm ) );
+  readMesh(*fullMeshPtr, meshData);
 
-    MeshPartitioner< RegionMesh<LinearTetra> > meshPart ( fullMeshPtr, parameters->comm );
+  MeshPartitioner< RegionMesh<LinearTetra> > meshPart( fullMeshPtr, parameters->comm );
 
-    BCFunctionBase fixed (dZero);
+  BCFunctionBase fixed(dZero);
 
-    BChS->addBC ( "Endo",      ENDOCARDIUM,    Natural,    Full,   fixed,  3 );
-    BChS->addBC ( "Epi",       EPICARDIUM,     Natural,    Full,   dZero,  3 );
-    BChS->addBC ( "Trunc",  TRUNC_SEC,     Essential,  Full,   dZero,  3 );
+  BChS->addBC( "Endo",  	ENDOCARDIUM,	Natural,	Full,	fixed,  3 );
+  BChS->addBC( "Epi",   	EPICARDIUM, 	Natural,   	Full,   dZero, 	3 );
+  BChS->addBC( "Trunc",  TRUNC_SEC,  	Essential, 	Full,   dZero, 	3 );
 
-    std::string dOrder =  dataFile ( "solid/space_discretization/order", "P1");
-    std::string uOrder =  M_heart_fct->M_dataFile ( "electric/space_discretization/u_order", "P1");
-    std::string wOrder =  M_heart_fct->M_dataFile ( "electric/space_discretization/w_order", "P1");
+  std::string dOrder =  dataFile( "solid/space_discretization/order", "P1");
+  std::string uOrder =  M_heart_fct->M_dataFile( "electric/space_discretization/u_order", "P1");
+  std::string wOrder =  M_heart_fct->M_dataFile( "electric/space_discretization/w_order", "P1");
 
-    typedef FESpace< RegionMesh<LinearTetra>, MapEpetra > solidFESpace_type;
-    typedef boost::shared_ptr<solidFESpace_type> solidFESpace_ptrtype;
-    solidFESpace_ptrtype dFESpace ( new solidFESpace_type (meshPart, dOrder, 3, parameters->comm) );
-    if (verbose)
-    {
-        std::cout << std::endl;
-    }
+  typedef FESpace< RegionMesh<LinearTetra>, MapEpetra > solidFESpace_type;
+  typedef boost::shared_ptr<solidFESpace_type> solidFESpace_ptrtype;
+  solidFESpace_ptrtype dFESpace( new solidFESpace_type(meshPart,dOrder,3,parameters->comm) );
+  if (verbose) std::cout << std::endl;
+
+  std::string timeAdvanceMethod =  dataFile( "solid/time_discretization/method", "BDF");
+  timeAdvance_type  timeAdvance( TimeAdvanceFactory::instance().createObject( timeAdvanceMethod ) );
+  UInt OrderDev = 2;
 
     std::string timeAdvanceMethod =  dataFile ( "solid/time_discretization/method", "BDF");
     timeAdvance_type  timeAdvance ( TimeAdvanceFactory::instance().createObject ( timeAdvanceMethod ) );
@@ -735,28 +737,39 @@ ElectroMech::run()
         *acc  = timeAdvance->acceleration();
 
 
-        displMech = solid.displacement();
-        computeDispl (displElech, electricModel, _dataFunctors );
-        if (time < 22 )
-        {
-            displ = 0.0 * displElech;
-        }
-        else
-        {
-            //! Solving the solid mechanics
-            displ = 2 * (0.65 * displMech + 0.25 * displElech);
-        }
+    displMech=solid.displacement();
+    computeDispl(displElech, electricModel, _dataFunctors );
+    //if (time < 22 )
+    //  {
+    //	displ=0.0*displElech;
+    //  }
+    //else
+    //  {        //! Solving the solid mechanics
+    displ=2*(0.65*displMech+0.25*displElech);
+	//}
 
-        electricModel.moveMesh ( displ );
-        normu = electricModel.solutionTransmembranePotential().norm2();
-        electricModel.solutionTransmembranePotential().epetraVector().MeanValue (&meanu);
-        electricModel.solutionTransmembranePotential().epetraVector().MaxValue (&minu);
-        if (verbose)
-        {
-            std::cout << "norm u " << normu << std::endl;
-            std::cout << "mean u " << meanu << std::endl;
-            std::cout << "max u " << minu << std::endl << std::flush;
-        }
+    electricModel.moveMesh( displ );
+    normu=electricModel.solutionTransmembranePotential().norm2();
+    electricModel.solutionTransmembranePotential().epetraVector().MeanValue(&meanu);
+    electricModel.solutionTransmembranePotential().epetraVector().MaxValue(&minu);
+    displ.epetraVector().MaxValue(&maxdispl);
+    displ.epetraVector().MinValue(&mindispl);
+    if (verbose)
+      {
+	  std::cout << "norm u " << normu << std::endl;
+	  std::cout << "mean u " << meanu << std::endl;
+	  std::cout << "max u " << minu << std::endl<<std::flush;
+	  std::cout << "max disp " << maxdispl << std::endl;
+	  std::cout << "min disp " << mindispl << std::endl;
+      }
+
+    *Uptr = electricModel.solutionTransmembranePotential();
+    exporter->postProcess( time );
+    MPI_Barrier(MPI_COMM_WORLD);
+    chrono.stop();
+    if (verbose) std::cout << "Total iteration time " << chrono.diff() << " s." << std::endl;
+    chronototaliterations.stop();
+  }// end of time loop.
 
         *Uptr = electricModel.solutionTransmembranePotential();
         exporter->postProcess ( time );

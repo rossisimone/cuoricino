@@ -669,7 +669,7 @@ inline StructuralMaterial<Mesh>* createNeoHookeanActivatedMaterial()
 }
 namespace
 {
-static bool registerNH = StructuralMaterial<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ( "neoHookeanActivated", &createNeoHookeanActivatedMaterial<LifeV::RegionMesh<LinearTetra> > );
+static bool registerNHActive = StructuralMaterial<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct( "neoHookeanActivated", &createNeoHookeanActivatedMaterial<LifeV::RegionMesh<LinearTetra> > );
 }
 
 } //Namespace LifeV
