@@ -441,10 +441,6 @@ ElectroMech::run()
   solidFESpace_ptrtype dFESpace( new solidFESpace_type(meshPart,dOrder,3,parameters->comm) );
   if (verbose) std::cout << std::endl;
 
-  std::string timeAdvanceMethod =  dataFile( "solid/time_discretization/method", "BDF");
-  timeAdvance_type  timeAdvance( TimeAdvanceFactory::instance().createObject( timeAdvanceMethod ) );
-  UInt OrderDev = 2;
-
     std::string timeAdvanceMethod =  dataFile ( "solid/time_discretization/method", "BDF");
     timeAdvance_type  timeAdvance ( TimeAdvanceFactory::instance().createObject ( timeAdvanceMethod ) );
     UInt OrderDev = 2;
@@ -733,8 +729,8 @@ ElectroMech::run()
         timeAdvance->shiftRight ( solid.displacement() );
 
         *disp = solid.displacement();
-        *vel  = timeAdvance->velocity();
-        *acc  = timeAdvance->acceleration();
+        *vel  = timeAdvance->firstDerivative();
+        *acc  = timeAdvance->secondDerivative();
 
 
     displMech=solid.displacement();
@@ -770,17 +766,6 @@ ElectroMech::run()
     if (verbose) std::cout << "Total iteration time " << chrono.diff() << " s." << std::endl;
     chronototaliterations.stop();
   }// end of time loop.
-
-        *Uptr = electricModel.solutionTransmembranePotential();
-        exporter->postProcess ( time );
-        MPI_Barrier (MPI_COMM_WORLD);
-        chrono.stop();
-        if (verbose)
-        {
-            std::cout << "Total iteration time " << chrono.diff() << " s." << std::endl;
-        }
-        chronototaliterations.stop();
-    }// end of time loop.
 
     if (verbose)
     {

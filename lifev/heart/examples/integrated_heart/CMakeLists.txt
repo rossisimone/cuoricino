@@ -3,13 +3,9 @@ INCLUDE(TribitsAddExecutableAndTest)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
-TRIBITS_ADD_EXECUTABLE_AND_TEST(
+TRIBITS_ADD_EXECUTABLE(
   IntegratedHeart
   SOURCES integratedHeart.cpp flowConditions.cpp ud_functions.cpp
-  ARGS -c
-  NUM_MPI_PROCS 4
-  COMM serial mpi
-#  STANDARD_PASS_OUTPUT
   )
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_heart_integrated_heart_data
