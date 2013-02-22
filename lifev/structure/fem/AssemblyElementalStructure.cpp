@@ -45,7 +45,8 @@ namespace LifeV
 namespace AssemblyElementalStructure
 {
 
-void computeGradientLocalDisplacement (boost::multi_array<Real, 3>& gradientLocalDisplacement, const VectorElemental& uk_loc, const CurrentFE& fe )
+void computeGradientLocalDisplacement (boost::multi_array<Real, 3>& gradientLocalDisplacement,
+                                       const VectorElemental& uk_loc, const CurrentFE& fe )
 {
     // \grad u^k at each quadrature poInt
     Real s;
@@ -80,7 +81,8 @@ void computeGradientLocalDisplacement (boost::multi_array<Real, 3>& gradientLoca
 //! Methods for the stiffness matrix
 
 //! \f$ coef \cdot ( trace { [\nabla u^k]^T \nabla u }, \nabla\cdot  v  ) \f$
-void stiff_derdiv ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_derdiv ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement,
+                    MatrixElemental& elmat, const CurrentFE& fe )
 {
     Real s;
 
@@ -102,7 +104,8 @@ void stiff_derdiv ( Real coef, const boost::multi_array<Real, 3>&  gradientLocal
                     for ( UInt k = 0; k < fe.nbCoor(); ++k )
                         for ( UInt ig = 0; ig < fe.nbQuadPt(); ig++ )
                         {
-                            s += fe.phiDer ( i, icoor, ig ) * gradientLocalDisplacement[ jcoor ][ k ][ ig ] * fe.phiDer ( j, k, ig ) * fe.weightDet ( ig );
+                            s += fe.phiDer ( i, icoor, ig ) * gradientLocalDisplacement[ jcoor ][ k ][ ig ]
+                                 * fe.phiDer ( j, k, ig ) * fe.weightDet ( ig );
                         }
                     mat ( i, j ) += coef * s;
                 }
@@ -114,7 +117,8 @@ void stiff_derdiv ( Real coef, const boost::multi_array<Real, 3>&  gradientLocal
 
 
 //! \f$ coef \cdot ( [\nabla u^k]^T \nabla u : \nabla v  )\f$
-void stiff_dergradbis ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_dergradbis ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement,
+                        MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -137,9 +141,8 @@ void stiff_dergradbis ( Real coef, const boost::multi_array<Real, 3>&  gradientL
                     s = 0;
                     for ( UInt k = 0; k < fe.nbCoor(); ++k )
                         for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
-                        {
-                            s += fe.phiDer ( i, k, ig ) * gradientLocalDisplacement[ jcoor][ icoor ][ ig ] * fe.phiDer ( j, k, ig ) * fe.weightDet ( ig );
-                        }
+                            s += fe.phiDer ( i, k, ig ) * gradientLocalDisplacement[ jcoor][ icoor ][ ig ] *
+                                 fe.phiDer ( j, k, ig ) * fe.weightDet ( ig );
                     mat ( i, j ) += coef * s;
                 }
             }
@@ -200,8 +203,6 @@ void stiff_divgrad ( Real coef, const VectorElemental& uk_loc, MatrixElemental& 
 
 }
 
-
-
 //! \f$ coef * ( \grad u_k : \grad u_k) * ( \grad u : \grad v  )
 void stiff_gradgrad ( Real coef, const VectorElemental& uk_loc, MatrixElemental& elmat, const CurrentFE& fe )
 {
@@ -256,7 +257,8 @@ void stiff_gradgrad ( Real coef, const VectorElemental& uk_loc, MatrixElemental&
     }
 }
 
-void stiff_dergrad_gradbis ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_dergrad_gradbis ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement,
+                             MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -280,9 +282,8 @@ void stiff_dergrad_gradbis ( Real coef, const boost::multi_array<Real, 3>&  grad
                     for ( UInt k = 0; k < fe.nbCoor(); ++k )
                     {
                         for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
-                        {
-                            s += gradientLocalDisplacement[ icoor ][ jcoor ][ ig ] * fe.phiDer ( i, k, ig ) *  fe.phiDer ( j, k, ig ) * fe.weightDet ( ig );
-                        }
+                            s += gradientLocalDisplacement[ icoor ][ jcoor ][ ig ] * fe.phiDer ( i, k, ig ) *
+                                 fe.phiDer ( j, k, ig ) * fe.weightDet ( ig );
                     }
                     mat ( i, j ) += coef * s;
                 }
@@ -294,7 +295,8 @@ void stiff_dergrad_gradbis ( Real coef, const boost::multi_array<Real, 3>&  grad
 
 
 // coef * ( \grad u^k [\grad u]^T : \grad v )
-void stiff_dergrad_gradbis_Tr ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_dergrad_gradbis_Tr ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement,
+                                MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -317,9 +319,8 @@ void stiff_dergrad_gradbis_Tr ( Real coef, const boost::multi_array<Real, 3>&  g
                     for ( UInt k = 0; k < fe.nbCoor(); ++k )
                     {
                         for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
-                        {
-                            s += gradientLocalDisplacement[ icoor ][ k ][ ig ]  * fe.phiDer ( j, k, ig ) * fe.phiDer ( i, jcoor, ig ) * fe.weightDet ( ig );
-                        }
+                            s += gradientLocalDisplacement[ icoor ][ k ][ ig ]  * fe.phiDer ( j, k, ig ) *
+                                 fe.phiDer ( i, jcoor, ig ) * fe.weightDet ( ig );
                     }
                     mat ( i, j ) += coef * s;
                 }
@@ -359,7 +360,8 @@ void stiff_gradgradTr_gradbis ( Real coef, const VectorElemental& uk_loc, Matrix
                         for ( UInt j = 0; j < fe.nbFEDof(); j++ )
                         {
                             //! \grad u^k  [\grad u^k]^T  at each quadrature poInt
-                            s  += fe.phiDer ( i, n, ig ) * uk_loc.vec() [ i + icoor * fe.nbFEDof() ] * fe.phiDer ( j, n, ig ) * uk_loc.vec() [ j + jcoor * fe.nbFEDof() ];
+                            s  += fe.phiDer ( i, n, ig ) * uk_loc.vec() [ i + icoor * fe.nbFEDof() ] *
+                                  fe.phiDer ( j, n, ig ) * uk_loc.vec() [ j + jcoor * fe.nbFEDof() ];
                         }
                     }
                 }
@@ -382,9 +384,8 @@ void stiff_gradgradTr_gradbis ( Real coef, const VectorElemental& uk_loc, Matrix
                     s = 0;
                     for ( UInt k = 0; k < fe.nbCoor(); ++k )
                         for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
-                        {
-                            s += fe.phiDer ( i, k, ig ) * guk_gukT[ icoor ][ jcoor ][ ig ] * fe.phiDer ( j, k, ig ) * fe.weightDet ( ig );
-                        }
+                            s += fe.phiDer ( i, k, ig ) * guk_gukT[ icoor ][ jcoor ][ ig ] *
+                                 fe.phiDer ( j, k, ig ) * fe.weightDet ( ig );
                     mat ( i, j ) += coef * s;
                 }
             }
@@ -396,7 +397,8 @@ void stiff_gradgradTr_gradbis ( Real coef, const VectorElemental& uk_loc, Matrix
 //! Methods for the jacobian (St. Venant-Kirchhoff material)
 
 //! \f$ coef \cdot ( [\nabla u]^T \nabla u^k + [\nabla u^k]^T \nabla u : \nabla v  )\f$
-void stiff_dergrad ( Real coef, const boost::multi_array<Real, 3>& gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_dergrad ( Real coef, const boost::multi_array<Real, 3>& gradientLocalDisplacement,
+                     MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -416,8 +418,9 @@ void stiff_dergrad ( Real coef, const boost::multi_array<Real, 3>& gradientLocal
                     for ( UInt k = 0; k < fe.nbCoor(); ++k )
                         for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
                         {
-                            s += fe.phiDer ( i, k, ig ) * ( gradientLocalDisplacement[ jcoor ][ k ][ ig ] * fe.phiDer ( j, icoor, ig )
-                                                            + gradientLocalDisplacement[ jcoor ][ icoor ][ ig ] * fe.phiDer ( j, k, ig ) ) * fe.weightDet ( ig );
+                            s += fe.phiDer ( i, k, ig ) *
+                                 ( gradientLocalDisplacement[ jcoor ][ k ][ ig ] * fe.phiDer ( j, icoor, ig )
+                                   + gradientLocalDisplacement[ jcoor ][ icoor ][ ig ] * fe.phiDer ( j, k, ig ) ) * fe.weightDet ( ig );
                         }
                     mat ( i, j ) += coef * s;
                 }
@@ -429,7 +432,8 @@ void stiff_dergrad ( Real coef, const boost::multi_array<Real, 3>& gradientLocal
 
 
 // coef * ( (\div u) \grad u_k : \grad v  )
-void stiff_divgrad_2 ( Real coef, const boost::multi_array<Real, 3>& gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_divgrad_2 ( Real coef, const boost::multi_array<Real, 3>& gradientLocalDisplacement,
+                       MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -451,9 +455,9 @@ void stiff_divgrad_2 ( Real coef, const boost::multi_array<Real, 3>& gradientLoc
                     s = 0;
                     for ( UInt k = 0; k < fe.nbCoor(); ++k )
                         for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
-                        {
-                            s += fe.phiDer ( j, jcoor, ig ) * gradientLocalDisplacement[ icoor ][ k ][ ig ] * fe.phiDer ( i, k, ig ) * fe.weightDet ( ig );
-                        }
+                            s += fe.phiDer ( j, jcoor, ig ) *
+                                 gradientLocalDisplacement[ icoor ][ k ][ ig ] *
+                                 fe.phiDer ( i, k, ig ) * fe.weightDet ( ig );
                     mat ( i, j ) += coef * s;
                 }
             }
@@ -461,10 +465,9 @@ void stiff_divgrad_2 ( Real coef, const boost::multi_array<Real, 3>& gradientLoc
     }
 }
 
-
-
 // coef * ( \grad u_k : \grad u) *( \grad u_k : \grad v  )
-void stiff_gradgrad_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_gradgrad_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement,
+                        MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -485,9 +488,9 @@ void stiff_gradgrad_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientL
                         for ( UInt l = 0; l < fe.nbCoor(); ++l )
                         {
                             for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
-                            {
-                                s += gradientLocalDisplacement[ jcoor ][ l ][ ig ] * fe.phiDer ( j, l, ig ) * gradientLocalDisplacement[ icoor ][ k ][ ig ] * fe.phiDer (i, k, ig ) * fe.weightDet ( ig );
-                            }
+                                s += gradientLocalDisplacement[ jcoor ][ l ][ ig ] * fe.phiDer ( j, l, ig ) *
+                                     gradientLocalDisplacement[ icoor ][ k ][ ig ] * fe.phiDer (i, k, ig ) *
+                                     fe.weightDet ( ig );
                         }
                     }
                     mat ( i, j ) += coef  * s;
@@ -497,10 +500,9 @@ void stiff_gradgrad_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientL
     }
 }
 
-
-
 // coef * ( \grad \delta u [\grad u^k]^T : \grad v )
-void stiff_dergrad_gradbis_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_dergrad_gradbis_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement,
+                               MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -520,9 +522,8 @@ void stiff_dergrad_gradbis_2 ( Real coef, const boost::multi_array<Real, 3>&  gr
                 for ( UInt k = 0; k < fe.nbCoor(); ++k )
                 {
                     for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
-                    {
-                        s += gradientLocalDisplacement[ l ][ k ][ ig ] * fe.phiDer ( i, k, ig ) *  fe.phiDer ( j, l, ig ) * fe.weightDet ( ig );
-                    }
+                        s += gradientLocalDisplacement[ l ][ k ][ ig ] * fe.phiDer ( i, k, ig ) *
+                             fe.phiDer ( j, l, ig ) * fe.weightDet ( ig );
                 }
             }
             mat_tmp ( i, j ) = coef * s;
@@ -536,7 +537,8 @@ void stiff_dergrad_gradbis_2 ( Real coef, const boost::multi_array<Real, 3>&  gr
     }
 }
 
-void stiff_dergrad_gradbis_Tr_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_dergrad_gradbis_Tr_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement,
+                                  MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -556,7 +558,8 @@ void stiff_dergrad_gradbis_Tr_2 ( Real coef, const boost::multi_array<Real, 3>& 
                 {
                     for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
                     {
-                        s += gradientLocalDisplacement[ k ][ l ][ ig ] * fe.phiDer ( i, k, ig ) *  fe.phiDer ( j, l, ig ) * fe.weightDet ( ig );
+                        s += gradientLocalDisplacement[ k ][ l ][ ig ] * fe.phiDer ( i, k, ig ) *
+                             fe.phiDer ( j, l, ig ) * fe.weightDet ( ig );
                     }
                 }
             }
@@ -574,7 +577,8 @@ void stiff_dergrad_gradbis_Tr_2 ( Real coef, const boost::multi_array<Real, 3>& 
 
 
 // coef * (  \grad u^k [\grad u]^T \grad u^k : \grad v  )
-void stiff_gradgradTr_gradbis_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_gradgradTr_gradbis_2 ( Real coef, const boost::multi_array<Real, 3>&  gradientLocalDisplacement,
+                                  MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -600,7 +604,9 @@ void stiff_gradgradTr_gradbis_2 ( Real coef, const boost::multi_array<Real, 3>& 
                         {
                             for ( UInt ig = 0; ig < fe.nbQuadPt(); ++ig )
                             {
-                                s += gradientLocalDisplacement[ icoor ][ l ][ ig ] * gradientLocalDisplacement[ jcoor ][ k ][ ig ] * fe.phiDer ( i, k, ig ) *  fe.phiDer ( j, l, ig ) * fe.weightDet ( ig );
+                                s += gradientLocalDisplacement[ icoor ][ l ][ ig ] *
+                                     gradientLocalDisplacement[ jcoor ][ k ][ ig ] * fe.phiDer ( i, k, ig ) *
+                                     fe.phiDer ( j, l, ig ) * fe.weightDet ( ig );
                             }
                         }
                     }
@@ -611,10 +617,9 @@ void stiff_gradgradTr_gradbis_2 ( Real coef, const boost::multi_array<Real, 3>& 
     }
 }
 
-
-
 //  coef * (  \grad u [\grad u^k]^T \grad u^k : \grad v  )
-void stiff_gradgradTr_gradbis_3 ( Real coef, const VectorElemental& uk_loc, MatrixElemental& elmat, const CurrentFE& fe )
+void stiff_gradgradTr_gradbis_3 ( Real coef, const VectorElemental& uk_loc,
+                                  MatrixElemental& elmat, const CurrentFE& fe )
 {
 
     Real s;
@@ -641,7 +646,8 @@ void stiff_gradgradTr_gradbis_3 ( Real coef, const VectorElemental& uk_loc, Matr
                         for ( UInt j = 0; j < fe.nbFEDof(); j++ )
                         {
                             // \grad u^k  [\grad u^k]^T  at each quadrature poInt
-                            s  += fe.phiDer ( i, n, ig ) * uk_loc.vec() [ i + icoor * fe.nbFEDof() ] * fe.phiDer ( j, n, ig ) * uk_loc.vec() [ j + jcoor * fe.nbFEDof() ] ;
+                            s  += fe.phiDer ( i, n, ig ) * uk_loc.vec() [ i + icoor * fe.nbFEDof() ] *
+                                  fe.phiDer ( j, n, ig ) * uk_loc.vec() [ j + jcoor * fe.nbFEDof() ] ;
                         }
                     }
                 }
@@ -683,9 +689,6 @@ void stiff_gradgradTr_gradbis_3 ( Real coef, const VectorElemental& uk_loc, Matr
 // End of St. Venant Kirchhoff model
 
 
-
-
-
 //! ***********************************************************************************************
 //! METHODS SHARED BETWEEN NEO-HOOKEAN AND EXPONENTIAL MODELS
 //! ***********************************************************************************************
@@ -722,7 +725,6 @@ void source_Pvol ( Real      coef,
         }
     }
 }
-
 
 //! JACOBIAN MATRIX -------------------------------------------------------------------------------
 //! Volumetric part--------------------------------------------------------------------------------
@@ -971,8 +973,6 @@ void stiff_Jac_P1iso_NH_3term ( Real          coef,
     }
 }
 
-
-
 //! 4. Stiffness matrix : Int { -2/3 * coef * J^(-5/3) ( F : \nabla \delta ) ( CofF : \nabla \v ) }
 void stiff_Jac_P1iso_NH_4term ( Real coef,
                                 const boost::multi_array<Real, 3 >& CofFk,
@@ -1056,7 +1056,6 @@ void stiff_Jac_P1iso_NH_5term ( Real coef,
 //! END OF NEO-HOOKEAN MODEL
 //! ***********************************************************************************************
 
-
 //! ***********************************************************************************************
 //! METHODS FOR EXPONENTIAL MODEL
 //! ***********************************************************************************************
@@ -1097,9 +1096,6 @@ void  source_P1iso_Exp ( Real             coef,
         }
     }
 }
-
-
-
 
 //! Jacobian matrix isochoric part ----------------------------------------------------------------
 
