@@ -162,38 +162,6 @@ Int main ( Int argc, char** argv )
         std::cout << " Done!" << endl;
     }
 
-    //********************************************//
-    // Creates a new model object representing the//
-    // model from Aliev and Panfilov 1996.  The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
-    //********************************************//
-	// Starts the chronometer.                    //
-	//********************************************//
-//	LifeChrono chronoinitialsettings;
-//	chronoinitialsettings.start();
-
-	typedef RegionMesh<LinearTetra> 						mesh_Type;
-    typedef boost::function< Real(const Real& /*t*/,
-    								const Real&   x,
-    								const Real&   y,
-    								const Real& /*z*/,
-    								const ID&   /*i*/ ) > 	function_Type;
-
-	typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov > 		monodomainSolver_Type;
-	typedef boost::shared_ptr< monodomainSolver_Type > 	monodomainSolverPtr_Type;
-
-		//********************************************//
-	// Import parameters from an xml list. Use    //
-	// Teuchos to create a list from a given file //
-	// in the execution directory.                //
-	//********************************************//
-
-	if ( Comm->MyPID() == 0 )  std::cout << "Importing parameters list...";
-    Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
-    Teuchos::ParameterList monodomainList = *( Teuchos::getParametersFromXmlFile( "MonodomainSolverParamList.xml" ) );
-    if ( Comm->MyPID() == 0 )  std::cout << " Done!" << endl;
-
 	//********************************************//
 	// Creates a new model object representing the//
 	// model from Aliev and Panfilov 1996.  The   //
