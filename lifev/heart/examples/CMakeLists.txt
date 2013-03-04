@@ -4,6 +4,7 @@ INCLUDE(AddSubdirectories)
 
 ADD_SUBDIRECTORIES(
   0DAlievPanfilovModel
+  0DMitchellSchaefferModel
   0DMinimalModel
   0DNegroniLascanoModel
   0DFitzHughNagumoModel
