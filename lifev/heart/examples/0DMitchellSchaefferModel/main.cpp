@@ -26,13 +26,13 @@
 
 /*!
     @file
-    @brief 0D test with the Negroni Lascano model of 1996.
+    @brief 0D test with the Mitchell-Schaeffer model
 
-    @date 01−2013
-    @author Simone Rossi <simone.rossi@epfl.ch>
+    @date 04−2013
+    @author Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
     @contributor
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
+    @mantainer Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
  */
 
 // Tell the compiler to ignore specific kind of warnings:
