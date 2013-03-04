@@ -249,13 +249,8 @@ void IonicMitchellSchaeffer::computeRhs (const   std::vector<Real>&  v,
                                          const   Real&           Iapp,
                                          std::vector<Real>& rhs )
 {
-
-
-    rhs[0] = computeLocalPotentialRhs( v, Iapp );
-
+	rhs[0] = computeLocalPotentialRhs( v, Iapp );
     rhs[1] = computeLocalGatingRhs( v );
-
-
 }
 
 
