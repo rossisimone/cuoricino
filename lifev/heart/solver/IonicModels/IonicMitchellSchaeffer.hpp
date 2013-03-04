@@ -252,7 +252,9 @@ void IonicMitchellSchaeffer::computeRhs (const   std::vector<Real>&  v,
 
 
     rhs[0] = computeLocalPotentialRhs( v, Iapp );
+
     rhs[1] = computeLocalGatingRhs( v );
+
 
 }
 
@@ -260,15 +262,15 @@ void IonicMitchellSchaeffer::computeRhs (const   std::vector<Real>&  v,
 
 Real IonicMitchellSchaeffer::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp )
 {
-    return ( - ( ( v[1] / M_tauIn ) * v[0] * v[0] * ( v[0] - 1 ) - v[0] / M_tauOut ) + Iapp );
+    return ( - ( v[1] / M_tauIn ) * v[0] * v[0] * ( v[0] - 1 ) - v[0] / M_tauOut  + Iapp );
 }
 
 Real IonicMitchellSchaeffer::computeLocalGatingRhs ( const std::vector<Real>& v )
 {
     if(v[0] <= M_vGate)
-	   	return  ( - (1 - v[1] ) / M_tauOpen );
+	   	return  (  ( 1 - v[1] ) / M_tauOpen );
     else
-	   	return ( v[1] / M_tauClose );
+	   	return ( - v[1] / M_tauClose );
 }
 
 void IonicMitchellSchaeffer::showMe()

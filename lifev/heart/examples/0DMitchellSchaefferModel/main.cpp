@@ -116,7 +116,8 @@ Int main ( Int argc, char** argv )
     // the vector states                          //
     //********************************************//
     std::cout << "Initializing solution vector...";
-    std::vector<Real> unknowns (model.Size(), 0);
+    std::vector<Real> unknowns (model.Size(), 0 );
+    unknowns[1] = 1;
     std::cout << " Done!" << endl;
 
 
@@ -171,7 +172,7 @@ Int main ( Int argc, char** argv )
         //********************************************//
         if ( t > 1 && t < 2 )
         {
-            Iapp = 0.1;
+        	Iapp = 0.1;
         }
         else
         {
