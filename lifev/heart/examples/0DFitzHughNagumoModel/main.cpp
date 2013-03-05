@@ -1,13 +1,3 @@
-/*
- * main.cpp
- *
- *  Created on: 05/mar/2013
- *      Author: Giacomo
- */
-
-
-
-
 //@HEADER
 /*
 *******************************************************************************
@@ -78,6 +68,9 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
+void EulerExplicit(Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
+void ChebychevStabilized(Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
+
 Int main ( Int argc, char** argv )
 {
     //! Initializing Epetra communicator
@@ -86,7 +79,6 @@ Int main ( Int argc, char** argv )
     if ( Comm.MyPID() == 0 )
     {
         cout << "% using MPI" << endl;
-
     }
 
 
@@ -118,47 +110,17 @@ Int main ( Int argc, char** argv )
     //********************************************//
     model.showMe();
 
-
-    //********************************************//
-    // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
-    //********************************************//
-    std::cout << "Initializing solution vector...";
-    std::vector<Real> unknowns (model.Size(), 0);
-    std::cout << " Done!" << endl;
-
-
-    //********************************************//
-    // Initialize the rhs to 0. The rhs is the    //
-    // vector containing the numerical values of  //
-    // the time derivatives of the state          //
-    // variables, that is, the right hand side of //
-    // the differential equation.                 //
-    //********************************************//
-    std::cout << "Initializing rhs..." ;
-    std::vector<Real> rhs (model.Size(), 0);
-    std::cout << " Done! "  << endl;
-
-
-
-
-    //********************************************//
-    // The model needs as external informations   //
-    // the contraction velocity and the Calcium   //
-    // concentration.                             //
-    //********************************************//
-    Real Iapp (0.0);
-
-
     //********************************************//
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (60);
-    Real dt (0.01);
+
+    Real TF (FHNParameterList.get ("TF", 300.0));
+    Real dt (FHNParameterList.get ("dt", 0.01));
+
+    cout<<"Time parameters : "<<endl;
+    cout<<"TF = "<<TF<<endl;
+    cout<<"dt = "<<dt<<endl;
 
 
     //********************************************//
@@ -173,46 +135,12 @@ Int main ( Int argc, char** argv )
     // Time loop starts.                          //
     //********************************************//
     std::cout << "Time loop starts...\n";
-    for ( Real t = 0; t < TF; )
-    {
 
-        //********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
-        //********************************************//
-        if ( t > 0.1 && t < 0.2 )
-        {
-            Iapp = 2.0;
-        }
-        else
-        {
-            Iapp = 0;
-        }
+    if ( FHNParameterList.get ("Cheby", 1.0) == 0.0 )
+    	EulerExplicit(dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
+    else
+    	ChebychevStabilized(dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
 
-        std::cout << "\r " << t << " ms.       " << std::flush;
-
-        //********************************************//
-        // Compute the rhs using the model equations  //
-        //********************************************//
-        model.computeRhs ( unknowns, Iapp, rhs);
-
-        //********************************************//
-        // Use forward Euler method to advance the    //
-        // solution in time.                          //
-        //********************************************//
-        unknowns.at (0) = unknowns.at (0)  + dt * rhs.at (0);
-        unknowns.at (1) = unknowns.at (1)  + dt * rhs.at (1);
-
-        //********************************************//
-        // Writes solution on file.                   //
-        //********************************************//
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << "\n";
-
-        //********************************************//
-        // Update the time.                           //
-        //********************************************//
-        t = t + dt;
-    }
     std::cout << "\n...Time loop ends.\n";
     std::cout << "Solution written on file: " << filename << "\n";
     //********************************************//
@@ -223,4 +151,166 @@ Int main ( Int argc, char** argv )
     //! Finalizing Epetra communicator
     MPI_Finalize();
     return ( EXIT_SUCCESS );
+}
+
+void EulerExplicit(Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output)
+{
+	std::vector<Real> unknowns( model.Size(), 0.0);
+	std::vector<Real> rhs( model.Size(), 0.0);
+	Real Iapp;
+
+	cout<<"Computing using Explicit Euler"<<endl;
+
+	for ( Real t = 0; t < TF; )
+	    {
+
+	        //********************************************//
+	        // Compute Calcium concentration. Here it is  //
+	        // given as a function of time.               //
+	        //********************************************//
+	        if ( t > 10.0 && t < 10.1 )
+	        {
+	            Iapp = I;
+	        }
+	        else
+	        {
+	            Iapp = 0.0;
+	        }
+
+	        std::cout << "\r " << t << " ms.       " << std::flush;
+
+	        //********************************************//
+	        // Compute the rhs using the model equations  //
+	        //********************************************//
+	        model.computeRhs ( unknowns, Iapp, rhs);
+
+	        //********************************************//
+	        // Use forward Euler method to advance the    //
+	        // solution in time.                          //
+	        //********************************************//
+	        unknowns.at (0) = unknowns.at (0)  + dt * rhs.at (0);
+	        unknowns.at (1) = unknowns.at (1)  + dt * rhs.at (1);
+
+
+	        //********************************************//
+	        // Writes solution on file.                   //
+	        //********************************************//
+	        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << "\n";
+
+	        //********************************************//
+	        // Update the time.                           //
+	        //********************************************//
+	        t = t + dt;
+	    }
+}
+
+void ChebychevStabilized(Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output)
+{
+	Real x1, x2;
+	Real y1, y2;
+	Real r, u;
+	Real a,b,c,d;
+	Real s = 3.0;
+	Real s2 = 9.0;
+	std::vector<Real> g1 (2, 0.0);
+	std::vector<Real> g2 (2, 0.0);
+	std::vector<Real> g3 (2, 0.0);
+	std::vector<Real> rhs (model.Size(), 0.0);
+	std::vector<Real> unknowns( model.Size(), 0.0);
+	Real Iapp;
+
+	cout<<"Computing using Chebychev Stabilized"<<endl;
+
+    for ( Real t = 0.0; t < TF; )
+    {
+        //********************************************//
+        // Compute Calcium concentration. Here it is  //
+        // given as a function of time.               //
+        //********************************************//
+        if ( t >= 10.0 && t < 10.1 )
+        {
+            Iapp = I;
+        }
+        else
+        {
+            Iapp = 0.0;
+        }
+
+        std::cout << "\r " << t << " ms.       " << std::flush;
+
+
+        //Computing the Jacobian, J = [a b ; c d]
+        model.computeJ(a,b,c,d, unknowns);
+
+        //Iterations of PowerMethod to approximate the dominant eigenvalue of the Jacobian
+        //Works fine, exactly the same values as MATLAB
+        while(r>0.0001)
+        {
+        	// Computing y = J * x
+        	y1 = a*x1+b*x2;
+        	y2 = c*x1+d*x2;
+
+        	//Normalizing y and setting x = y
+        	r = sqrt(y1*y1+y2*y2);
+        	x1 = y1/r;
+        	x2 = y2/r;
+
+        	//Approximating the dominant eigenvalue u with the Rayleight quotient
+        	u = x1*(a*x1+b*x2)+x2*(c*x1+d*x2);
+
+        	//Computing the residual J*x - u*x
+        	y1 = a*x1 + b*x2 -u*x1;
+        	y2 = c*x1 + d*x2 -u*x2;
+
+        	//Squared norm of the residual
+        	r = y1*y1 + y2*y2;
+        }
+
+        //Approximation of spectral radius
+        u = abs(u);
+
+        if( u < s2/0.02 )
+        	u = s2/0.02;
+
+        //New stepsize
+        dt = s2 / u;
+
+        if( t<10.0 && t+dt>=10.1)
+        	dt = 10.0 - t;
+
+        cout<<"Iteration : "<<t<<endl;
+        cout<<"Spectral Radius : "<<u<<endl;
+        cout<<"Step Size : "<<dt<<endl<<endl;
+
+        g1 = unknowns;
+
+        model.computeRhs(g1, Iapp, rhs);
+        g2.at(0) = g1.at(0) + (dt / s2) * rhs.at(0);
+        g2.at(1) = g1.at(1) + (dt / s2) * rhs.at(1);
+
+        for (int j = 2; j <= s; j++)
+        {
+        	model.computeRhs(g2, Iapp, rhs);
+        	g3.at(0) = (2.0 * dt / s2) * rhs.at(0) + 2.0 * g2.at(0) - g1.at(0) ;
+        	g3.at(1) = (2.0 * dt / s2) * rhs.at(1) + 2.0 * g2.at(1) - g1.at(1) ;
+
+        	g2 = g3;
+        	g1 = g2;
+        }
+
+        unknowns.at(0) = g3.at(0);
+        unknowns.at(1) = g3.at(1);
+
+
+        //********************************************//
+        // Writes solution on file.                   //
+        //********************************************//
+        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", " << u << ", " << dt << "\n";
+
+        //********************************************//
+        // Update the time.                           //
+        //********************************************//
+
+        t = t + dt;
+    }
 }
