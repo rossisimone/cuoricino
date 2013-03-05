@@ -76,6 +76,7 @@ Int main ( Int argc, char** argv )
     if ( Comm.MyPID() == 0 )
     {
         cout << "% using MPI" << endl;
+
     }
 
 
