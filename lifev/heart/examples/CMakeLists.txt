@@ -6,6 +6,7 @@ ADD_SUBDIRECTORIES(
   0DAlievPanfilovModel
   0DMinimalModel
   0DNegroniLascanoModel
+  0DFitzHughNagumoModel
 #  ActiveStrainODE
   AlievPanfilov
   basic_example
