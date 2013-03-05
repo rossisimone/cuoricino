@@ -167,6 +167,9 @@ public:
     // compute the rhs with state variable interpolation
     Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
 
+    //compute the Jacobian
+    void computeJ(Real& a, Real& b, Real&c, Real& d, const std::vector<Real>& v);
+
     //! Display information about the model
     void showMe();
 
@@ -283,7 +286,15 @@ void IonicFitzHughNagumo::computeRhs (    const   std::vector<Real>&  v,
 
 Real IonicFitzHughNagumo::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp)
 {
-    return ( - M_k * v[0] * ( v[0] - M_a ) * ( v[0] - 1.0) - v[0] * v[1] + Iapp );
+    return ( - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) + Iapp );
+}
+
+void IonicFitzHughNagumo::computeJ(Real& a, Real& b, Real& c, Real& d, const std::vector<Real>& v)
+{
+	a = -( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
+	b = -M_Eta1 * v[0];
+	c = M_Eta;
+	d = -M_Gamma;
 }
 
 
