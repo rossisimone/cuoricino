@@ -9,5 +9,5 @@
 	<Parameter name="Iapp" type="double" value="2000.0"  />
 	<Parameter name="TF" type="double" value="300.0"  />
 	<Parameter name="dt" type="double" value="0.01"  />
-	<Parameter name="Cheby" type="double" value="1.0"  />
+	<Parameter name="Cheby" type="double" value="0.0"  />
 </ParameterList>
