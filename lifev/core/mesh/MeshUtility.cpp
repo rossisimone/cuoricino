@@ -92,77 +92,94 @@ const
     ret[ 2 ] = 1.0;
 }
 
-
+template<typename GeoShapeType>
 void
-fillWithFullMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
+fillWithMesh( boost::shared_ptr< RegionMesh<GeoShapeType, defaultMarkerCommon_Type > >& mesh,
+				  	  	  	  bool 	  isPartinioned,
                   const std::string& meshName,
-                  const std::string& resourcesPath )
-{
-
-    MeshData meshData;
-    meshData.setMeshDir( resourcesPath );
-    meshData.setMeshFile( meshName );
-	meshData.setMeshType( ".mesh" );
-	meshData.setMOrder( "P1" );
-	meshData.setVerbose( false );
-
-#ifdef HAVE_MPI
-    boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
-#else
-    boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
-#endif
-    Displayer displayer( Comm );
-
-    LifeChrono meshReadChrono;
-    meshReadChrono.start();
-    boost::shared_ptr<RegionMesh<LinearTetra> > fullMesh( new RegionMesh<LinearTetra> );
-    readMesh(*fullMesh, meshData);
-    printMeshInfos( fullMesh );
-    meshReadChrono.stop();
-    displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
-
-    LifeChrono meshPartChrono;
-    meshPartChrono.start();
-    MeshPartitioner< RegionMesh<LinearTetra> > meshPartitioner( fullMesh, Comm );
-    mesh = meshPartitioner.meshPartition();
-    meshPartChrono.stop();
-    fullMesh.reset(); //Freeing the global mesh to save memory
-    displayer.leaderPrint("Partitioning time: ", meshPartChrono.diff(), " s.\n");
-}
-
-void
-fillWithPartitionedMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
-                         const std::string& meshName,
-                         const std::string& ressourcesPath )
+                  const std::string& resourcesPath,
+                  const std::string& meshOrder = "P1")
 {
 #ifdef HAVE_MPI
     boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
 #else
     boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
 #endif
+
     Displayer displayer( Comm );
 
-    LifeChrono meshReadChrono;
-    meshReadChrono.start();
-    PartitionIO<RegionMesh<LinearTetra> > partitionIO((ressourcesPath+meshName).data(), Comm);
-    partitionIO.read(mesh);
-    meshReadChrono.stop();
-    displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
+	if( isPartinioned== 0 )
+	{
+		MeshData meshData;
+		meshData.setMeshDir( resourcesPath );
+		meshData.setMeshFile( meshName );
+		meshData.setMeshType( ".mesh" );
+		meshData.setMOrder( meshOrder );
+		meshData.setVerbose( false );
+
+
+		LifeChrono meshReadChrono;
+		meshReadChrono.start();
+		boost::shared_ptr<RegionMesh<GeoShapeType> > fullMesh( new RegionMesh<GeoShapeType> );
+		readMesh(*fullMesh, meshData);
+		printMeshInfos( fullMesh );
+		meshReadChrono.stop();
+		displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
+
+		LifeChrono meshPartChrono;
+		meshPartChrono.start();
+		MeshPartitioner< RegionMesh<GeoShapeType> > meshPartitioner( fullMesh, Comm );
+		mesh = meshPartitioner.meshPartition();
+		meshPartChrono.stop();
+		fullMesh.reset(); //Freeing the global mesh to save memory
+		displayer.leaderPrint("Partitioning time: ", meshPartChrono.diff(), " s.\n");
+	}
+	else
+	{
+	    LifeChrono meshReadChrono;
+	    meshReadChrono.start();
+	    PartitionIO<RegionMesh<GeoShapeType> > partitionIO((resourcesPath+meshName).data(), Comm);
+	    partitionIO.read(mesh);
+	    meshReadChrono.stop();
+	    displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
+	}
+
 }
+
+//template<typename GeoShapeType>
+//void
+//fillWithPartitionedMesh( boost::shared_ptr< RegionMesh<GeoShapeType, defaultMarkerCommon_Type > >& mesh,
+//                         const std::string& meshName,
+//                         const std::string& ressourcesPath )
+//{
+//#ifdef HAVE_MPI
+//    boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
+//#else
+//    boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
+//#endif
+//    Displayer displayer( Comm );
+//
+//    LifeChrono meshReadChrono;
+//    meshReadChrono.start();
+//    PartitionIO<RegionMesh<GeoShapeType> > partitionIO((ressourcesPath+meshName).data(), Comm);
+//    partitionIO.read(mesh);
+//    meshReadChrono.stop();
+//    displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
+//}
 
 void
 fillWithStructuredMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
-                        markerID_Type regionFlag,
-                        const UInt& m_x,
-                        const UInt& m_y,
-                        const UInt& m_z,
-                        bool verbose,
-                        const Real& l_x,
-                        const Real& l_y,
-                        const Real& l_z,
-                        const Real& t_x,
-                        const Real& t_y,
-                        const Real& t_z )
+		 markerID_Type regionFlag,
+		 const UInt& m_x,
+		 const UInt& m_y,
+		 const UInt& m_z,
+		 bool verbose=false,
+		 const Real& l_x=1.0,
+		 const Real& l_y=1.0,
+		 const Real& l_z=1.0,
+		 const Real& t_x=0.0,
+		 const Real& t_y=0.0,
+		 const Real& t_z=0.0 )
 {
 #ifdef HAVE_MPI
     boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );

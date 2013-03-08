@@ -2643,21 +2643,42 @@ void assignRegionMarkerID ( RegionMeshType & mesh, const RegionFunctorType& fun 
 
 //! Read and partitioned a *.mesh file
 /*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-void fillWithFullMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
-					   const std::string& meshName,
-					   const std::string& ressourcesPath = "./Ressources/" );
-
-//! Read a partitioned mesh
+  \param mesh pointer to the mesh that is going to be read/partinioned
+  \param meshName filename of the mesh without .mesh
+  \param meshPath path to the mesh file
+  \param meshOrder order of the mesh
+  \param isPartinioned boolean to say if the mesh to be loaded is already partitioned
+*/
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
-void fillWithPartitionedMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
-							  const std::string& meshName,
-							  const std::string& ressourcesPath = "./Ressources/" );
+template<typename GeoShapeType>
+void fillWithMesh( boost::shared_ptr< RegionMesh<GeoShapeType, defaultMarkerCommon_Type > >& mesh,
+									bool	isPartitioned,
+					   const std::string& meshName,
+					   const std::string& ressourcesPath = "./Ressources/",
+					   const std::string& meshOrder = "P1");
+
+////! Read a partitioned mesh
+///*!
+//    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+// */
+//void fillWithPartitionedMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
+//							  const std::string& meshName,
+//							  const std::string& ressourcesPath = "./Ressources/" );
 
 //! Build a mesh from a partitioned mesh
+/*!
+  @param mesh The mesh that we want to generate
+  @param regionFlag Flag of the region
+  @param m_x Number of elements along the length
+  @param m_y Number of elements along the width
+  @param m_z Number of elements along the height
+  @param l_x length of the mesh
+  @param l_y width of the mesh
+  @param l_z height of the mesh
+  @param verbose Verbose mode enabled/disabled
+*/
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
