@@ -38,7 +38,14 @@ int main(int argc, char **argv)
 	dataFileName = command_line.follow("data", 2, "-f", "--file");
 	GetPot dataFile(dataFileName);
 
+    //Create the mesh data and read and partitioned the mesh
+    boost::shared_ptr< RegionMesh <LinearTetra> > meshFullPtr ( new mesh_Type ( Comm ) );
+    std::string meshName = dataFile ("mesh/mesh_file", "cube4x4.mesh");
+    std::string meshPath =  dataFile ("mesh/mesh_dir", "./");
+    bool isPartioned = false;
 
+
+    MeshUtility::fillWithMesh ( meshFullPtr, isPartitioned, meshName, meshPath );
 
 	comm.reset();
 

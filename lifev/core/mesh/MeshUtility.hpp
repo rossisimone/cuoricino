@@ -2644,7 +2644,7 @@ void assignRegionMarkerID ( RegionMeshType & mesh, const RegionFunctorType& fun 
 //! Read and partitioned a *.mesh file
 /*!
   \param mesh pointer to the mesh that is going to be read/partinioned
-  \param meshName filename of the mesh without .mesh
+  \param meshName filename of the mesh
   \param meshPath path to the mesh file
   \param meshOrder order of the mesh
   \param isPartinioned boolean to say if the mesh to be loaded is already partitioned
