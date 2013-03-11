@@ -18,5 +18,6 @@ ADD_SUBDIRECTORIES(
   IonicAlievPanfilov
   IonicFitzHughNagumo
   IonicMinimalModel
+  Restart
 #  RiceModel
 )
