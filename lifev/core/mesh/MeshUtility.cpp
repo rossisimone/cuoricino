@@ -95,10 +95,10 @@ const
 template<typename GeoShapeType>
 void
 fillWithMesh( boost::shared_ptr< RegionMesh<GeoShapeType, defaultMarkerCommon_Type > >& mesh,
-				  	  	  	  bool 	  isPartinioned,
-                  const std::string& meshName,
-                  const std::string& resourcesPath,
-                  const std::string& meshOrder = "P1")
+									bool	isPartitioned,
+					   const std::string& meshName,
+					   const std::string& resourcesPath = "./Ressources/",
+					   const std::string& meshOrder = "P1")
 {
 #ifdef HAVE_MPI
     boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
@@ -108,7 +108,7 @@ fillWithMesh( boost::shared_ptr< RegionMesh<GeoShapeType, defaultMarkerCommon_Ty
 
     Displayer displayer( Comm );
 
-	if( isPartinioned== 0 )
+	if( isPartitioned== 0 )
 	{
 		MeshData meshData;
 		meshData.setMeshDir( resourcesPath );

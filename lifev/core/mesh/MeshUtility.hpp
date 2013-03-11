@@ -2656,7 +2656,7 @@ template<typename GeoShapeType>
 void fillWithMesh( boost::shared_ptr< RegionMesh<GeoShapeType, defaultMarkerCommon_Type > >& mesh,
 									bool	isPartitioned,
 					   const std::string& meshName,
-					   const std::string& ressourcesPath = "./Ressources/",
+					   const std::string& resourcesPath = "./Ressources/",
 					   const std::string& meshOrder = "P1");
 
 ////! Read a partitioned mesh

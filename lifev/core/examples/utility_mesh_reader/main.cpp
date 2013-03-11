@@ -11,11 +11,10 @@
 #include <lifev/core/LifeV.hpp>
 #include <lifev/core/filter/GetPot.hpp>
 #include <lifev/core/util/LifeChrono.hpp>
-
+#include <lifev/core/mesh/RegionMesh.hpp>
+#include <lifev/core/mesh/MeshUtility.hpp>
 
 using namespace LifeV;
-
-int run(GetPot & dataFile, bool verbose, boost::shared_ptr<Epetra_Comm> & comm);
 
 // Do not edit
 int main(int argc, char **argv)
@@ -39,14 +38,29 @@ int main(int argc, char **argv)
 	GetPot dataFile(dataFileName);
 
     //Create the mesh data and read and partitioned the mesh
-    boost::shared_ptr< RegionMesh <LinearTetra> > meshFullPtr ( new mesh_Type ( Comm ) );
+    boost::shared_ptr< RegionMesh <LinearTetra> > meshFullPtr ( new RegionMesh <LinearTetra> ( comm ) );
     std::string meshName = dataFile ("mesh/mesh_file", "cube4x4.mesh");
     std::string meshPath =  dataFile ("mesh/mesh_dir", "./");
-    bool isPartioned = false;
+    std::string meshOrder=  "P1";
+    bool isPartitioned = false;
 
 
-    MeshUtility::fillWithMesh ( meshFullPtr, isPartitioned, meshName, meshPath );
+    //MeshUtility::fillWithMesh( meshFullPtr, isPartitioned, meshName, meshPath, "P1" );
+    MeshUtility::fillWithMesh( meshFullPtr,isPartitioned, meshName, meshPath, meshOrder);
 
+    boost::shared_ptr< RegionMesh <LinearTetra> > meshStructPtr ( new RegionMesh <LinearTetra> ( comm ) );
+    MeshUtility::fillWithStructuredMesh( meshStructPtr,
+    							 1,
+    							 5,
+    							 5,
+    							 5,
+    							 true,
+    							 1.0,
+    							 1.0,
+    							 1.0,
+    							 0.0,
+    							 0.0,
+    							 0.0 );
 	comm.reset();
 
 #ifdef HAVE_MPI
@@ -54,5 +68,5 @@ int main(int argc, char **argv)
     std::cout<< "MPI Finalization \n";
 #endif
 
-	return check;
+	return 0;
 }
