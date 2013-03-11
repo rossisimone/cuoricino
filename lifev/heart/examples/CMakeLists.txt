@@ -15,6 +15,7 @@ ADD_SUBDIRECTORIES(
   oneway_EM
   XbNegroniLascano96
   IonicAlievPanfilov
+  IonicFitzHughNagumo
   IonicMinimalModel
 #  RiceModel
 )
