@@ -110,10 +110,10 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus(const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
-	{
-		return ( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
-	}
+Real Stimulus(const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+{
+	return 80.91*( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
+}
 
 
 
@@ -128,8 +128,8 @@ Int main( Int argc, char** argv )
     //********************************************//
 	// Starts the chronometer.                    //
 	//********************************************//
-//	LifeChrono chronoinitialsettings;
-//	chronoinitialsettings.start();
+	LifeChrono chronoinitialsettings;
+	chronoinitialsettings.start();
 
 	typedef RegionMesh<LinearTetra> mesh_Type;
     typedef boost::function< Real(const Real& /*t*/,
@@ -196,12 +196,13 @@ Int main( Int argc, char** argv )
 	//********************************************//
 	if ( Comm->MyPID() == 0 )  cout << "\nInitializing potential:  " ;
 
+	//Compute the potential at t0
 	function_Type f = &Stimulus;
-	splitting -> setPotentialFromFunction( f );
+	splitting -> setPotentialFromFunction( f ); //initialize potential
 
 	//setting up initial conditions
-	*( splitting -> globalSolution().at(0) ) = 0.0;
-	*( splitting -> globalSolution().at(1) ) = 0.0;
+	//*( splitting -> globalSolution().at(0) ) = FHNParameterList.get ("V0", 1.0);
+	*( splitting -> globalSolution().at(1) ) = FHNParameterList.get ("W0", 0.011);
 
 	if ( Comm->MyPID() == 0 ) cout << "Done! \n" ;
 
@@ -214,8 +215,8 @@ Int main( Int argc, char** argv )
 	// Create a fiber direction                   //
 	//********************************************//
 	VectorSmall<3> fibers;
-	fibers[0]=  monodomainList.get("fiber_X", std::sqrt(2) / 2.0 );
-	fibers[1]=  monodomainList.get("fiber_Y", std::sqrt(2) / 2.0 );
+	fibers[0]=  monodomainList.get("fiber_X", std::sqrt(2.0) / 2.0 );
+	fibers[1]=  monodomainList.get("fiber_Y", std::sqrt(2.0) / 2.0 );
 	fibers[2]=  monodomainList.get("fiber_Z", 0.0 );
 
 	splitting ->setupFibers(fibers);
@@ -251,6 +252,8 @@ Int main( Int argc, char** argv )
 	//********************************************//
     splitting -> exportFiberDirection();
 
+    chronoinitialsettings.stop();
+    std::cout<<"\n\n\nElapsed time : "<<chronoinitialsettings.diff()<<std::endl;
 
     if ( Comm->MyPID() == 0 ) cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     MPI_Barrier(MPI_COMM_WORLD);

@@ -10,4 +10,6 @@
 	<Parameter name="TF" type="double" value="300.0"  />
 	<Parameter name="dt" type="double" value="0.01"  />
 	<Parameter name="Cheby" type="double" value="0.0"  />
+	<Parameter name="V0" type="double" value="163.17"  />
+	<Parameter name="W0" type="double" value="0.34"  />
 </ParameterList>

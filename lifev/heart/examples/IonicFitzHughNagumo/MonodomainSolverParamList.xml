@@ -5,7 +5,7 @@
     <Parameter name="k" type="double" value="8.0"  />
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
-    <Parameter name="timeStep" type="double" value="0.02"  />
+    <Parameter name="timeStep" type="double" value="0.01"  />
     <Parameter name="endTime" type="double" value="10."  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0001"  />
     <Parameter name="transversalDiffusion" type="double" value="0.0000001"  />
