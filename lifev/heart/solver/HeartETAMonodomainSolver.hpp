@@ -314,9 +314,14 @@ public:
         return M_commPtr;
     }
     //! get the pointer to the partitioned mesh
-    inline const meshPtr_Type           meshPtr             ()  const
+    inline const meshPtr_Type           localMeshPtr             ()  const
     {
-        return M_meshPtr;
+        return M_localMeshPtr;
+    }
+    //! get the pointer to the partitioned mesh
+    inline const meshPtr_Type           fullMeshPtr             ()  const
+    {
+        return M_fullMeshPtr;
     }
     //! get the pointer to the ETA finite element space
     inline const ETFESpacePtr_Type  ETFESpacePtr        ()  const
@@ -463,9 +468,17 @@ public:
     /*!
         @param boost::shared_ptr<Mesh> pointer to the partitioned mesh
      */
-    inline void setMeshPtr              ( const meshPtr_Type        p       )
+    inline void setLocalMeshPtr              ( const meshPtr_Type        p       )
     {
-        this -> M_meshPtr = p ;
+        this -> M_localMeshPtr = p ;
+    }
+    //! set the pointer to the partitioned mesh
+    /*!
+        @param boost::shared_ptr<Mesh> pointer to the partitioned mesh
+     */
+    inline void setFullMeshPtr              ( const meshPtr_Type        p       )
+    {
+        this -> M_fullMeshPtr = p ;
     }
     //! set the pointer to the ETA fe space
     /*!
@@ -587,9 +600,13 @@ public:
     {
         (* (M_commPtr) ) = *p ;
     }
-    inline void copyMesh                ( const meshPtr_Type        p   )
+    inline void copyLocalMesh                ( const meshPtr_Type        p   )
     {
-        (* (M_meshPtr) ) = *p ;
+        (* (M_localMeshPtr) ) = *p ;
+    }
+    inline void copyFullMesh                ( const meshPtr_Type        p   )
+    {
+        (* (M_fullMeshPtr) ) = *p ;
     }
     inline void copyETFESpace       ( const ETFESpacePtr_Type   p   )
     {
@@ -721,7 +738,7 @@ public:
     //! partition the mesh
     void inline partitionMesh ( std::string  meshName, std::string   meshPath)
     {
-        MeshUtility::fillWithFullMesh ( M_meshPtr, meshName, meshPath );
+        MeshUtility::fillWithFullMesh ( M_fullMeshPtr, M_localMeshPtr, meshName, meshPath );
     }
     //! given an boost function initialize the potential
     void inline setPotentialFromFunction ( function_Type f )
@@ -797,6 +814,8 @@ public:
     void setupFibers();
     //! Generates the fiber direction given the three component of the vector (F_x,F_y,F_z)
     void setupFibers (VectorSmall<3> fibers);
+    //! Generates the fiber direction from a  given file
+    void setupFibers (std::string fibersFile);
     //! Solves the gating variables with forward Euler
     void solveOneStepGatingVariablesFE();
     //! Compute the rhs using state variable interpolation
@@ -871,7 +890,8 @@ private:
     ionicModelPtr_Type  M_ionicModelPtr;
 
     commPtr_Type        M_commPtr;
-    meshPtr_Type        M_meshPtr;
+    meshPtr_Type        M_localMeshPtr;
+    meshPtr_Type        M_fullMeshPtr;
     ETFESpacePtr_Type   M_ETFESpacePtr;
     feSpacePtr_Type     M_feSpacePtr;
     matrixPtr_Type      M_massMatrixPtr;
@@ -998,7 +1018,7 @@ HeartETAMonodomainSolver ( const HeartETAMonodomainSolver& solver    ) :
     M_membraneCapacitance   ( solver.M_membraneCapacitance ),
     M_ionicModelPtr         ( solver.M_ionicModelPtr ),
     M_commPtr               ( solver.M_commPtr ),
-    M_meshPtr               ( solver.M_meshPtr ),
+    M_localMeshPtr               ( solver.M_localMeshPtr ),
     M_ETFESpacePtr          ( solver.M_ETFESpacePtr ),
     M_feSpacePtr            (  solver.M_feSpacePtr ),
     M_massMatrixPtr         ( new matrix_Type ( * (solver.M_massMatrixPtr) ) ),
@@ -1037,7 +1057,7 @@ operator= (const HeartETAMonodomainSolver& solver    )
     M_membraneCapacitance   = solver.M_membraneCapacitance;
     copyIonicModel ( solver.M_ionicModelPtr );
     M_commPtr               = solver.M_commPtr ;
-    M_meshPtr               = solver.M_meshPtr ;
+    M_localMeshPtr               = solver.M_localMeshPtr ;
     copyETFESpace ( solver.M_ETFESpacePtr );
     copyFeSpace ( solver.M_feSpacePtr );
     copyMassMatrix ( solver.M_massMatrixPtr );
@@ -1073,7 +1093,7 @@ setupFibers()
 {
 
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-    ( new FESpace< mesh_Type, MapEpetra > ( M_meshPtr, M_elementsOrder, 3, M_commPtr) );
+    ( new FESpace< mesh_Type, MapEpetra > ( M_localMeshPtr, M_elementsOrder, 3, M_commPtr) );
 
     M_fiberPtr.reset ( new vector_Type ( Space3D -> map() ) );
 
@@ -1092,7 +1112,7 @@ void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupFibers (VectorSmall<3> fibers)
 {
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-    ( new FESpace< mesh_Type, MapEpetra > ( M_meshPtr, M_elementsOrder, 3, M_commPtr) );
+    ( new FESpace< mesh_Type, MapEpetra > ( M_localMeshPtr, M_elementsOrder, 3, M_commPtr) );
 
     M_fiberPtr.reset ( new vector_Type ( Space3D -> map() ) );
 
@@ -1117,14 +1137,40 @@ setupFibers (VectorSmall<3> fibers)
 
 
 template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh,  IonicModel>::setupFibers (std::string fibersFile)
+{
+//    std::stringstream MyPID;
+//    ifstream fibers (fibersFile.c_str() );
+//
+//    std::cout << "fiber_file: " <<  fibersFile.c_str() << std::endl;
+//    UInt NumGlobalElements =  M_feSpacePtr.map (Repeated)->NumGlobalElements();
+//    std::vector<Real> fiber_global_vector (NumGlobalElements);
+//
+//    for ( UInt i = 0; i < NumGlobalElements; ++i)
+//    {
+//        fibers >> fiber_global_vector[i];
+//    }
+//    UInt NumMyElements = M_localMapVector.map (Repeated)->NumMyElements();
+//    for (UInt j = 0; j < NumMyElements; ++j)
+//    {
+//        UInt ig = M_localMapVector.map (Repeated)->MyGlobalElements() [j];
+//        (*M_fiberPtr)[ig] = fiber_global_vector[ig];
+//    }
+//    std::cout << std::endl;
+//    fiber_global_vector.clear();
+
+}
+
+
+template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 exportFiberDirection()
 {
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-    ( new FESpace< mesh_Type, MapEpetra > ( M_meshPtr, M_elementsOrder, 3, M_commPtr) );
+    ( new FESpace< mesh_Type, MapEpetra > ( M_localMeshPtr, M_elementsOrder, 3, M_commPtr) );
 
     ExporterHDF5<mesh_Type> exp;
-    exp.setMeshProcId ( M_meshPtr, M_commPtr -> MyPID() );
+    exp.setMeshProcId ( M_localMeshPtr, M_commPtr -> MyPID() );
     exp.setPrefix ("FiberDirection");
     exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", Space3D, M_fiberPtr, UInt (0) );
     exp.postProcess (0);
@@ -1137,7 +1183,7 @@ void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 exportFiberDirection (exporter_Type& exporter)
 {
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-    ( new FESpace< mesh_Type, MapEpetra > ( M_meshPtr, M_elementsOrder, 3, M_commPtr) );
+    ( new FESpace< mesh_Type, MapEpetra > ( M_localMeshPtr, M_elementsOrder, 3, M_commPtr) );
 
     exporter.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", Space3D, M_fiberPtr, UInt (0) );
     exporter.postProcess (0);
@@ -1149,9 +1195,9 @@ void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setup (GetPot& dataFile, short int ionicSize)
 {
 
-    M_ETFESpacePtr.reset ( new ETFESpace_Type ( M_meshPtr, &feTetraP1, M_commPtr) );
-    M_feSpacePtr.reset (new FESpace< mesh_Type, MapEpetra > (M_meshPtr, M_elementsOrder, 1, M_commPtr) );
-    M_feSpacePtr.reset ( new feSpace_Type (M_meshPtr, M_elementsOrder, 1, M_commPtr)  );
+    M_ETFESpacePtr.reset ( new ETFESpace_Type ( M_localMeshPtr, &feTetraP1, M_commPtr) );
+    M_feSpacePtr.reset (new FESpace< mesh_Type, MapEpetra > (M_localMeshPtr, M_elementsOrder, 1, M_commPtr) );
+    M_feSpacePtr.reset ( new feSpace_Type (M_localMeshPtr, M_elementsOrder, 1, M_commPtr)  );
     M_massMatrixPtr.reset ( new matrix_Type ( M_ETFESpacePtr->map() ) );
     M_stiffnessMatrixPtr.reset ( new matrix_Type ( M_ETFESpacePtr->map() ) );
     M_globalMatrixPtr.reset ( new matrix_Type ( M_ETFESpacePtr->map() ) );
@@ -1188,38 +1234,38 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupMassMatrix()
 {
-    {
-        using namespace ExpressionAssembly;
+	{
+	   using namespace ExpressionAssembly;
 
-        integrate (  elements ( M_meshPtr  ),
-                     quadRuleTetra4pt,
-                     M_ETFESpacePtr,
-                     M_ETFESpacePtr,
-                     phi_i * phi_j
-                  )
-                >> M_massMatrixPtr;
+	   integrate(  elements( M_localMeshPtr  ),
+				   quadRuleTetra4pt,
+				   M_ETFESpacePtr,
+				   M_ETFESpacePtr,
+				   phi_i * phi_j
+			   )
+			   >> M_massMatrixPtr;
 
-    }
-    M_massMatrixPtr -> globalAssemble();
+	}
+	M_massMatrixPtr -> globalAssemble();
 }
 
 template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupLumpedMassMatrix()
 {
-    {
-        using namespace ExpressionAssembly;
+	{
+	   using namespace ExpressionAssembly;
 
-        integrate (  elements ( M_meshPtr  ),
-                     quadRuleTetra4ptNodal,
-                     M_ETFESpacePtr,
-                     M_ETFESpacePtr,
-                     phi_i * phi_j
-                  )
-                >> M_massMatrixPtr;
+	   integrate(  elements( M_localMeshPtr  ),
+				   quadRuleTetra4ptNodal,
+				   M_ETFESpacePtr,
+				   M_ETFESpacePtr,
+				   phi_i * phi_j
+			   )
+			   >> M_massMatrixPtr;
 
-    }
-    M_massMatrixPtr -> globalAssemble();
+	}
+	M_massMatrixPtr -> globalAssemble();
 }
 
 
@@ -1227,19 +1273,19 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupStiffnessMatrix()
 {
-    {
-        using namespace ExpressionAssembly;
+	{
+	   using namespace ExpressionAssembly;
 
-        integrate (  elements ( M_meshPtr ),
-                     quadRuleTetra4pt,
-                     M_ETFESpacePtr,
-                     M_ETFESpacePtr,
-                     dot (  rotate ( M_ETFESpacePtr, *M_fiberPtr, M_diffusionTensor ) * grad (phi_i) , grad (phi_j) )
-                  )
-                >> M_stiffnessMatrixPtr;
+	   integrate(  elements( M_localMeshPtr ),
+				   quadRuleTetra4pt,
+				   M_ETFESpacePtr,
+				   M_ETFESpacePtr,
+				   dot(  rotate( M_ETFESpacePtr, *M_fiberPtr, M_diffusionTensor ) * grad(phi_i) , grad(phi_j) )
+		   )
+		   >> M_stiffnessMatrixPtr;
 
-    }
-    M_stiffnessMatrixPtr -> globalAssemble();
+	}
+	M_stiffnessMatrixPtr -> globalAssemble();
 }
 
 
@@ -1248,19 +1294,19 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupStiffnessMatrix (VectorSmall<3> diffusion)
 {
-    {
-        using namespace ExpressionAssembly;
+	{
+	   using namespace ExpressionAssembly;
 
-        integrate (  elements ( M_meshPtr  ),
-                     quadRuleTetra4pt,
-                     M_ETFESpacePtr,
-                     M_ETFESpacePtr,
-                     dot (  rotate ( M_ETFESpacePtr, *M_fiberPtr, diffusion ) * grad (phi_i) , grad (phi_j) )
-                  )
-                >> M_stiffnessMatrixPtr;
+	   integrate(  elements( M_localMeshPtr  ),
+				   quadRuleTetra4pt,
+				   M_ETFESpacePtr,
+				   M_ETFESpacePtr,
+				   dot(  rotate( M_ETFESpacePtr, *M_fiberPtr, diffusion ) * grad(phi_i) , grad(phi_j) )
+		   )
+		   >> M_stiffnessMatrixPtr;
 
-    }
-    M_stiffnessMatrixPtr -> globalAssemble();
+	}
+	M_stiffnessMatrixPtr -> globalAssemble();
 }
 
 
@@ -1268,19 +1314,19 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupStiffnessMatrix (VectorEpetra& fiber, VectorSmall<3> diffusion)
 {
-    {
-        using namespace ExpressionAssembly;
+	{
+	   using namespace ExpressionAssembly;
 
-        integrate (  elements ( M_meshPtr  ),
-                     quadRuleTetra4pt,
-                     M_ETFESpacePtr,
-                     M_ETFESpacePtr,
-                     dot ( rotate ( M_ETFESpacePtr, fiber, diffusion ) * grad (phi_i) , grad (phi_j) )
-                  )
-                >> M_stiffnessMatrixPtr;
+	   integrate(  elements( M_localMeshPtr  ),
+				   quadRuleTetra4pt,
+				   M_ETFESpacePtr,
+				   M_ETFESpacePtr,
+				   dot( rotate( M_ETFESpacePtr, fiber, diffusion ) * grad(phi_i) , grad(phi_j) )
+		   )
+		   >> M_stiffnessMatrixPtr;
 
-    }
-    M_stiffnessMatrixPtr -> globalAssemble();
+	}
+	M_stiffnessMatrixPtr -> globalAssemble();
 }
 
 
@@ -1357,7 +1403,7 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
 setupPotentialExporter (exporter_Type& exporter)
 {
-    exporter.setMeshProcId ( M_meshPtr, M_commPtr -> MyPID() );
+    exporter.setMeshProcId ( M_localMeshPtr, M_commPtr -> MyPID() );
     exporter.setPrefix ("Potential");
     exporter.addVariable ( ExporterData<mesh_Type>::ScalarField,  "Potential", M_feSpacePtr, M_potentialPtr, UInt (0) );
 }
@@ -1366,7 +1412,7 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
 setupExporter (exporter_Type& exporter)
 {
-    exporter.setMeshProcId ( M_meshPtr, M_commPtr -> MyPID() );
+    exporter.setMeshProcId ( M_localMeshPtr, M_commPtr -> MyPID() );
     exporter.setPrefix ("Solution");
     std::string variableName;
     for ( int i = 0; i < M_ionicModelPtr -> Size() ; i++ )
@@ -1382,7 +1428,7 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
 setupPotentialExporter (exporter_Type& exporter, std::string fileName)
 {
-    exporter.setMeshProcId ( M_meshPtr, M_commPtr -> MyPID() );
+    exporter.setMeshProcId ( M_localMeshPtr, M_commPtr -> MyPID() );
     exporter.setPrefix (fileName);
     exporter.addVariable ( ExporterData<mesh_Type>::ScalarField,  "Potential", M_feSpacePtr, M_potentialPtr, UInt (0) );
 }
@@ -1391,7 +1437,7 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
 setupExporter (exporter_Type& exporter, std::string fileName)
 {
-    exporter.setMeshProcId ( M_meshPtr, M_commPtr -> MyPID() );
+    exporter.setMeshProcId ( M_localMeshPtr, M_commPtr -> MyPID() );
     exporter.setPrefix (fileName);
     std::string variableName;
     for ( int i = 0; i < M_ionicModelPtr -> Size() ; i++ )
@@ -1610,7 +1656,7 @@ init (ionicModelPtr_Type model)
 {
     init();
     M_commPtr.reset ( new Epetra_MpiComm (MPI_COMM_WORLD)  );
-    M_meshPtr.reset ( new mesh_Type ( M_commPtr ) );
+    M_localMeshPtr.reset ( new mesh_Type ( M_commPtr ) );
     M_ionicModelPtr = model;
 
 }
@@ -1621,7 +1667,7 @@ init ( commPtr_Type comm  )
 {
     init();
     M_commPtr = comm;
-    M_meshPtr.reset ( new mesh_Type ( M_commPtr ) );
+    M_localMeshPtr.reset ( new mesh_Type ( M_commPtr ) );
 }
 
 template<typename Mesh, typename IonicModel>
@@ -1629,7 +1675,7 @@ void HeartETAMonodomainSolver<Mesh, IonicModel>::
 init (meshPtr_Type meshPtr)
 {
     init();
-    M_meshPtr = meshPtr;
+    M_localMeshPtr = meshPtr;
     M_commPtr = meshPtr -> comm();
 }
 

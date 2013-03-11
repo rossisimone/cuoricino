@@ -280,74 +280,105 @@ Int main( Int argc, char** argv )
 
 	importer -> closeFile();
 
-
-
-    ExporterHDF5<mesh_Type> Exp;
-    Exp.setMeshProcId ( splitting -> meshPtr(), splitting -> commPtr() -> MyPID() );
-    Exp.setPrefix (Name);
-    (*newFiber)*=100.0;
-    Exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "ciccia", Space3D, newFiber, UInt (0) );
-    Exp.postProcess (0);
-    Exp.closeFile();
-
-
-
-	//********************************************//
-	// Creating exporters to save the solution    //
-	//********************************************//
-	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-
-    splitting -> setupExporter( exporterSplitting, "Splitting" );
-
-    splitting -> exportSolution( exporterSplitting, 0);
-
-	//********************************************//
-	// Create the global matrix: mass + stiffness //
-	//********************************************//
-	splitting -> setupLumpedMassMatrix();
-	splitting -> setupStiffnessMatrix();
-	splitting -> setupGlobalMatrix();
-
-    splitting -> solveICI(exporterSplitting);
-    exporterSplitting.closeFile();
-
-
-    //================================================
-    //
-    //================================================
-	std::string sol( "Splitting" );
-    monodomainSolver_Type::vectorPtr_Type newSol( new VectorEpetra( splitting -> feSpacePtr() -> map(), LifeV::Unique ) );
-    exporterData_Type ImpData(exporterData_Type::ScalarField, "Variable0.00005", splitting -> feSpacePtr(),
-    						newSol, UInt(0), exporterData_Type::UnsteadyRegime);
-
-    //================================================
-    //
-    //================================================
-    filterPtr_Type Imp( new hdf5Filter_Type() );
 //
-    Imp -> setMeshProcId ( splitting -> meshPtr(), Comm -> MyPID() );
-    Imp-> setPrefix (sol);
 //
-   Imp -> readVariable(ImpData);
-	Imp -> closeFile();
+//    ExporterHDF5<mesh_Type> Exp;
+//    Exp.setMeshProcId ( splitting -> meshPtr(), splitting -> commPtr() -> MyPID() );
+//    Exp.setPrefix (Name);
+//    (*newFiber)*=100.0;
+//    Exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "ciccia", Space3D, newFiber, UInt (0) );
+//    Exp.postProcess (0);
+//    Exp.closeFile();
+//
+//
+//
+//	//********************************************//
+//	// Creating exporters to save the solution    //
+//	//********************************************//
+//	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+//
+//    splitting -> setupExporter( exporterSplitting, "Splitting" );
+//
+//    splitting -> exportSolution( exporterSplitting, 0);
+//
+//	//********************************************//
+//	// Create the global matrix: mass + stiffness //
+//	//********************************************//
+//	splitting -> setupLumpedMassMatrix();
+//	splitting -> setupStiffnessMatrix();
+//	splitting -> setupGlobalMatrix();
+//
+//    splitting -> solveICI(exporterSplitting);
+//    exporterSplitting.closeFile();
+//
+//
+//    //================================================
+//    //
+//    //================================================
+//	std::string sol( "Splitting" );
+//    monodomainSolver_Type::vectorPtr_Type newSol( new VectorEpetra( splitting -> feSpacePtr() -> map(), LifeV::Unique ) );
+//    exporterData_Type ImpData(exporterData_Type::ScalarField, "Variable0.00005", splitting -> feSpacePtr(),
+//    						newSol, UInt(0), exporterData_Type::UnsteadyRegime);
+//
+//    //================================================
+//    //
+//    //================================================
+//    filterPtr_Type Imp( new hdf5Filter_Type() );
+////
+//    Imp -> setMeshProcId ( splitting -> meshPtr(), Comm -> MyPID() );
+//    Imp-> setPrefix (sol);
+////
+//   Imp -> readVariable(ImpData);
+//	Imp -> closeFile();
+//    //================================================
+//    //
+//    //================================================
+//	splitting -> setPotentialPtr(newSol);
+//	( *( splitting -> globalSolution().at(1) ) ) *=0;
+//
+//	//********************************************//
+//	// Creating exporters to save the solution    //
+//	//********************************************//
+//	ExporterHDF5< RegionMesh <LinearTetra> > exporter2;
+//
+//    splitting -> setupExporter( exporter2, "exp2" );
+//
+//    splitting -> exportSolution( exporter2, 0);
+//
+//    splitting -> solveICI(exporter2);
+//    exporter2.closeFile();
+
     //================================================
     //
     //================================================
-	splitting -> setPotentialPtr(newSol);
-	( *( splitting -> globalSolution().at(1) ) ) *=0;
+    typedef VectorEpetra                           vector_Type;
+    typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
 
-	//********************************************//
-	// Creating exporters to save the solution    //
-	//********************************************//
-	ExporterHDF5< RegionMesh <LinearTetra> > exporter2;
+//    boost::shared_ptr<mesh_Type> lmesh( new mesh_Type( Comm ) );
+//    lmesh ->se
+    boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > space(new FESpace<mesh_Type, MapEpetra>(  splitting -> meshPtr(), "P1", 1, Comm ) );
 
-    splitting -> setupExporter( exporter2, "exp2" );
 
-    splitting -> exportSolution( exporter2, 0);
+//    vectorPtr_Type vec( new vector_Type( splitting -> feSpacePtr() -> map(), Unique ) );
+    vectorPtr_Type vec( new vector_Type( space -> map(), Unique ) );
 
-    splitting -> solveICI(exporter2);
-    exporter2.closeFile();
+    for( UInt j(0); j < vec -> epetraVector().MyLength() ; ++j){
 
+    	if( splitting -> meshPtr() -> point( vec -> blockMap().GID(j) ).markerID() == 1 )
+    	{
+    		if( vec -> blockMap().LID( vec -> blockMap().GID(j) ) != -1 )
+    			(*vec)( vec -> blockMap().GID(j) )=1.0;
+    	}
+    }
+
+
+
+    	ExporterHDF5<mesh_Type> Exp1;
+      Exp1.setMeshProcId ( splitting -> meshPtr(), splitting -> commPtr() -> MyPID() );
+      Exp1.setPrefix ("pippo");
+      Exp1.addVariable ( ExporterData<mesh_Type>::ScalarField,  "ciccia", splitting -> feSpacePtr(), vec, UInt (0) );
+      Exp1.postProcess (0);
+      Exp1.closeFile();
 
 
 

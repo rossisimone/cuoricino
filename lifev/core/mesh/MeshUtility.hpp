@@ -2755,12 +2755,21 @@ void assignRegionMarkerID ( RegionMeshType& mesh, const RegionFunctorType& fun )
 } // assignRegionMarkerID
 
 //! Read and partitioned a *.mesh file
+
+void resetMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& fullmesh);
+
+
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 void fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
                         const std::string& meshName,
                         const std::string& ressourcesPath = "./Ressources/" );
+void fillWithFullMesh ( 	boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
+							boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
+							const std::string& meshName,
+							const std::string& ressourcesPath = "./Ressources/" );
+
 
 void fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
 		 boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
