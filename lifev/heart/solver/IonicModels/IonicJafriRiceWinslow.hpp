@@ -138,7 +138,7 @@ public:
     }
     inline void setVSs(const Real& volSS)
     {
-    	this->M_VSs = VSS;
+    	this->M_VSs = volSS;
     }
 
     inline const Real& concK0() const
@@ -161,7 +161,7 @@ public:
 
     inline const Real& concCa0() const
     {
-    	return M_vGate;
+    	return M_Ca0;
     }
     inline void setCa0(const Real& concCa0)
     {
@@ -568,7 +568,7 @@ public:
     {
     	return M_f;
     }
-    inline void setG(const Real& intoOpenSt)
+    inline void setF(const Real& intoOpenSt)
     {
       	this->M_f = intoOpenSt;
     }
@@ -787,30 +787,35 @@ private:
 
     //@}
 
+
+
 }; // class IonicJafriRiceWinslow
 
 //! Scientific notation calculus
+inline double base10( int const& a )
+{
+	return pow(10, a);
+}
 
-inline Real ee10( int const& a );
 
 // ===================================================
 //! Constructors
 // ===================================================
 IonicJafriRiceWinslow::IonicJafriRiceWinslow()    :
     super       ( 9 ),
-    M_ACap      ( 1.534 * ee10( -4 ) ),
-    M_VMyo      ( 25.84 * ee10( -6 ) ),
-    M_VJsr      ( 0.12 * ee10( -6 ) ),
-    M_VNsr      ( 2.098 * ee10( -6 ) ),
-    M_VSs       ( 1.485 * ee10( -9 ) ),
+    M_ACap      ( 1.534 * base10( -4 ) ),
+    M_VMyo      ( 25.84 * base10( -6 ) ),
+    M_VJsr      ( 0.12 * base10( -6 ) ),
+    M_VNsr      ( 2.098 * base10( -6 ) ),
+    M_VSs       ( 1.485 * base10( -9 ) ),
     M_K0        ( 5.4 ),
     M_Na0       ( 140.0 ),
     M_Ca0       ( 1.8 ),
     M_LtrpnTot  ( 70.0 ),
     M_HtrpnTot  ( 140.0 ),
-    M_kPHtrpn   ( 2.0 * ee10( 7 ) ),
+    M_kPHtrpn   ( 2.0 * base10( 7 ) ),
     M_kNHtrpn   ( 0.066 ),
-    M_kPLtrpn   ( 4.0 * ee10( 7 ) ),
+    M_kPLtrpn   ( 4.0 * base10( 7 ) ),
     M_kNLtrpn   ( 40.0 ),
     M_CmdnTot   ( 50.0 ),
     M_CsqnTot   ( 15.0 ),
@@ -837,7 +842,7 @@ IonicJafriRiceWinslow::IonicJafriRiceWinslow()    :
     M_GCab      ( 0.00201 ),
     M_GNab      ( 0.00141 ),
 	M_v1       	( 1.8 ),
-	M_v2        ( 5.80 * ee10( -5 ) ),
+	M_v2        ( 5.80 * base10( -5 ) ),
 	M_v3        ( 1.8 ),
 	M_KmUp      ( 0.5 ),
 	M_tauTr     ( 34.48 ),
@@ -857,27 +862,27 @@ IonicJafriRiceWinslow::IonicJafriRiceWinslow()    :
 	M_a         ( 2.0 ),
 	M_b         ( 2.0 ),
 	M_omega     ( 0.01 ),
-	M_PCa       ( 33.75 * ee10( -4 ) ),
-	M_PK        ( 62.5 * ee10( -7 ) ),
+	M_PCa       ( 33.75 * base10( -4 ) ),
+	M_PK        ( 62.5 * base10( -7 ) ),
 	M_ICaHalf   ( -0.458 )
 {}
 
 IonicJafriRiceWinslow::IonicJafriRiceWinslow ( Teuchos::ParameterList& parameterList ) :
     super       ( 9 )
 {
-    M_ACap      = parameterList.get ( "areaCap", 1.534 * ee10( -4 ) );
-    M_VMyo      = parameterList.get ( "volMyo", 25.84 * ee10( -6 ) );
-    M_VJsr      = parameterList.get ( "volJSR", 0.12 * ee10( -6 ) );
-    M_VNsr      = parameterList.get ( "volNSR", 2.098 * ee10( -6 ) );
-    M_VSs       = parameterList.get ( "volSS", 1.485 * ee10( -9 ) );
+    M_ACap      = parameterList.get ( "areaCap", 1.534 * base10( -4 ) );
+    M_VMyo      = parameterList.get ( "volMyo", 25.84 * base10( -6 ) );
+    M_VJsr      = parameterList.get ( "volJSR", 0.12 * base10( -6 ) );
+    M_VNsr      = parameterList.get ( "volNSR", 2.098 * base10( -6 ) );
+    M_VSs       = parameterList.get ( "volSS", 1.485 * base10( -9 ) );
     M_K0        = parameterList.get ( "concK0", 5.4 );
     M_Na0       = parameterList.get ( "concNa0", 140.0 );
     M_Ca0       = parameterList.get ( "concCa0", 1.8 );
     M_LtrpnTot  = parameterList.get ( "lTrpnTot", 70.0 );
     M_HtrpnTot  = parameterList.get ( "hTrpnTot", 140.0 );
-    M_kPHtrpn   = parameterList.get ( "kpHtrpn", 2.0 * ee10( 7 ) );
+    M_kPHtrpn   = parameterList.get ( "kpHtrpn", 2.0 * base10( 7 ) );
     M_kNHtrpn   = parameterList.get ( "knHtrpn", 0.066 );
-    M_kPLtrpn   = parameterList.get ( "kpLtrpn", 4.0 * ee10( 7 ) );
+    M_kPLtrpn   = parameterList.get ( "kpLtrpn", 4.0 * base10( 7 ) );
     M_kNLtrpn   = parameterList.get ( "knLtrpn", 40.0 );
     M_CmdnTot   = parameterList.get ( "cmdnTot", 50.0 );
     M_CsqnTot   = parameterList.get ( "csqnTot", 15.0 );
@@ -903,30 +908,30 @@ IonicJafriRiceWinslow::IonicJafriRiceWinslow ( Teuchos::ParameterList& parameter
     M_KmPCa     = parameterList.get ( "constmpCa", 0.5 );
     M_GCab      = parameterList.get ( "maxCondCab", 0.00201 );
     M_GNab      = parameterList.get ( "maxCondNab", 0.00141 );
-    M_v1       	= paraneterList.get ( "maxRyRPerm", 1.8 );
-    M_v2        = paraneterList.get ( "leakRateConst", 5.80 * ee10( -5 ) );
-    M_v3        = paraneterList.get ( "pumpRateATPase", 1.8 );
-    M_KmUp      = paraneterList.get ( "constmUp", 0.5 );
-    M_tauTr     = paraneterList.get ( "timeConstNsrJsr", 34.48 );
-    M_tauXFer   = paraneterList.get ( "timeConstSubMyo", 3.125 );
-    M_kap       = paraneterList.get ( "kAPlus", 0.01215 );
-    M_kan       = paraneterList.get ( "kANeg", 0.1425 );
-    M_kbp       = paraneterList.get ( "kBPlus", 0.00405 );
-    M_kbn       = paraneterList.get ( "kBNeg", 1.930 );
-    M_kcp       = paraneterList.get ( "kCPlus", 0.018 );
-    M_kcn       = paraneterList.get ( "kCNeg", 0.0008 );
-    M_n 		= paraneterList.get ( "coopParamN", 4.0 );
-    M_m         = paraneterList.get ( "coopParamM", 3.0 );
-    M_f         = paraneterList.get ( "intoOpenSt", 0.3 );
-    M_g         = paraneterList.get ( "outOpenSt", 2.0 );
-    M_fprime    = paraneterList.get ( "intoOpenStCa", 0.0 );
-    M_gprime    = paraneterList.get ( "outOpenSt2", 0.0 );
-    M_a         = paraneterList.get ( "modeTParamA", 2.0 );
-    M_b         = paraneterList.get ( "modeTParamB", 2.0 );
-    M_omega     = paraneterList.get ( "modeTParamO", 0.01 );
-    M_PCa       = paraneterList.get ( "permCa", 33.75 * ee10( -4 ) );
-    M_PK        = paraneterList.get ( "permK", 62.5 * ee10( -7 ) );
-    M_ICaHalf   = paraneterList.get ( "courCaHalf", -0.458 );
+    M_v1       	= parameterList.get ( "maxRyRPerm", 1.8 );
+    M_v2        = parameterList.get ( "leakRateConst", 5.80 * base10( -5 ) );
+    M_v3        = parameterList.get ( "pumpRateATPase", 1.8 );
+    M_KmUp      = parameterList.get ( "constmUp", 0.5 );
+    M_tauTr     = parameterList.get ( "timeConstNsrJsr", 34.48 );
+    M_tauXFer   = parameterList.get ( "timeConstSubMyo", 3.125 );
+    M_kap       = parameterList.get ( "kAPlus", 0.01215 );
+    M_kan       = parameterList.get ( "kANeg", 0.1425 );
+    M_kbp       = parameterList.get ( "kBPlus", 0.00405 );
+    M_kbn       = parameterList.get ( "kBNeg", 1.930 );
+    M_kcp       = parameterList.get ( "kCPlus", 0.018 );
+    M_kcn       = parameterList.get ( "kCNeg", 0.0008 );
+    M_n 		= parameterList.get ( "coopParamN", 4.0 );
+    M_m         = parameterList.get ( "coopParamM", 3.0 );
+    M_f         = parameterList.get ( "intoOpenSt", 0.3 );
+    M_g         = parameterList.get ( "outOpenSt", 2.0 );
+    M_fprime    = parameterList.get ( "intoOpenStCa", 0.0 );
+    M_gprime    = parameterList.get ( "outOpenSt2", 0.0 );
+    M_a         = parameterList.get ( "modeTParamA", 2.0 );
+    M_b         = parameterList.get ( "modeTParamB", 2.0 );
+    M_omega     = parameterList.get ( "modeTParamO", 0.01 );
+    M_PCa       = parameterList.get ( "permCa", 33.75 * base10( -4 ) );
+    M_PK        = parameterList.get ( "permK", 62.5 * base10( -7 ) );
+    M_ICaHalf   = parameterList.get ( "courCaHalf", -0.458 );
 }
 
 IonicJafriRiceWinslow::IonicJafriRiceWinslow ( const IonicJafriRiceWinslow& model )
@@ -1081,7 +1086,7 @@ void IonicJafriRiceWinslow::computeRhs ( const std::vector<Real>&  v,
 	std::vector<Real> gatingRhs ( computeLocalGatingRhs(v) );
 	std::vector<Real> concRhs ( computeLocalConcRhs(v) );
 	std::vector<Real> subSysCaRhs ( computeLocalSubSysCaRhs(v) );
-	std::vector<Real> channelRyrRhs ( computeLocalChannelRyrRhs()(v) );
+	std::vector<Real> channelRyrRhs ( computeLocalChannelRyrRhs(v) );
 
 	std::copy(gatingRhs.begin(), gatingRhs.end(), rhs.begin());
 	std::copy(concRhs.begin(), concRhs.end() - 2, rhs.begin() + gatingRhs.size());
@@ -1100,7 +1105,7 @@ void IonicJafriRiceWinslow::computeRhs (const   std::vector<Real>&  v,
 	std::vector<Real> gatingRhs ( computeLocalGatingRhs(v) );
 	std::vector<Real> concRhs ( computeLocalConcRhs(v) );
 	std::vector<Real> subSysCaRhs ( computeLocalSubSysCaRhs(v) );
-	std::vector<Real> channelRyrRhs ( computeLocalChannelRyrRhs()(v) );
+	std::vector<Real> channelRyrRhs ( computeLocalChannelRyrRhs(v) );
 
 	rhs[0] = computeLocalPotentialRhs(v, Iapp);
 	std::copy(gatingRhs.begin(), gatingRhs.end(), rhs.begin() + 1 );
@@ -1119,7 +1124,7 @@ Real IonicJafriRiceWinslow::computeLocalPotentialRhs ( const std::vector<Real>& 
 	std::vector<Real>param2 ( fastINa(v) );
 	std::vector<Real>param3 ( timeDIK(v) );
 
-	return ( - ( param2[0] + param1[0] + param3[0] + timeIIK1(v) + timeplaIkp(v) +
+	return ( - ( param2[0] + param1[0] + param3[0] + timeIIK1(v) + plaIKp(v) +
 			exINaCa(v) + pumpINaK(v) + noSpecInsCa(v) + pumpIpCa(v) + param1[1] + backICab(v) + backINab(v) )  + Iapp );
 }
 
@@ -1131,7 +1136,7 @@ std::vector<Real> IonicJafriRiceWinslow::computeLocalGatingRhs ( const std::vect
 	Real x = v[4];
 
 	std::vector<Real> gatingRhs(4);
-	std::vector<Real>param  ( fastINa(v) );
+	std::vector<Real>param1 ( fastINa(v) );
 	std::vector<Real>param2 ( timeDIK(v) );
 
 	gatingRhs[0] = param1[1] * ( 1 - m ) - param1[2] * m;
@@ -1171,10 +1176,10 @@ std::vector<Real> IonicJafriRiceWinslow::computeLocalSubSysCaRhs( const std::vec
 	Real cCaNSR = v[8];
 	Real cCaSS = v[9];
 	Real cCaJSR = v[10];
-	Real fracPC1 = v[11];
+
 	Real fracPO1 = v[12];
 	Real fracPO2 = v[13];
-	Real fracPC2 = v[14];
+
 	Real c0 = v[15];
 	Real c1 = v[16];
 	Real c2 = v[17];
@@ -1237,7 +1242,7 @@ std::vector<Real> IonicJafriRiceWinslow::computeLocalSubSysCaRhs( const std::vec
 	subSysCaRHS[6] = beta * c1 + M_omega * cCa0 - ( 4 * alpha + gamma ) * c0;
 	subSysCaRHS[7] = 4 * alpha * c0 + 2 * beta * c2 + cCa1 * M_omega / M_b - ( beta + 3 * alpha + gamma * M_a ) * c1;
 	subSysCaRHS[8] = 3 * alpha * c1  + 3 * beta * c3 + cCa2 * M_omega * pow(M_b, 2) - ( 2 * beta + 2* alpha + gamma * pow(M_a, 2) ) * c2;
-	subSysCaRHS[9] = 2 * aplha * c2 + 4 * beta * c4 + cCa3 * M_omega / pow(M_b, 3) - ( 3 * beta + alpha + gamma * pow(M_a, 3) ) * c3;
+	subSysCaRHS[9] = 2 * alpha * c2 + 4 * beta * c4 + cCa3 * M_omega / pow(M_b, 3) - ( 3 * beta + alpha + gamma * pow(M_a, 3) ) * c3;
 	subSysCaRHS[10] = alpha *c3 + M_g * o + cCa4 * M_omega / pow(M_b, 4) - ( 4 * beta + M_f + gamma * pow(M_a, 4) ) * c4;
 	subSysCaRHS[11] = M_f * c4 - M_g * o;
 	subSysCaRHS[12] = betaprime * cCa1 + gamma * c0 - ( 4 * alphaprime + M_omega ) * cCa0;
@@ -1276,13 +1281,13 @@ std::vector<Real> IonicJafriRiceWinslow::fastINa( const std::vector<Real>& v )
 		fastNa[3] = 0.0;
 		fastNa[4] = 0.0;
 		fastNa[5] = 1 / ( 0.13 * ( 1 + exp( ( V + 10.66 ) / -11.1 ) ) );
-		fastNa[6] = 0.3 * exp( -2.535 * ee10( -7 ) * V) / ( 1 + exp( -0.1 *( V + 32.0 ) ) );
+		fastNa[6] = 0.3 * exp( -2.535 * base10( -7 ) * V) / ( 1 + exp( -0.1 *( V + 32.0 ) ) );
 	}
 	else
 	{
 		fastNa[3] = 0.135 * exp( ( 80 + V ) / -6.8 );
-		fastNa[4] = ( -127140 * exp( 0.2444 * V) - 3.474 * ee10(-5) * exp( -0.04391 * V ) ) * ( V + 37.78 ) / ( 1 + exp ( 0.311 * ( V + 79.23 ) ) );
-		fastNa[5] = 3.56 * exp( 0.079 * V ) + 3.1 * ee10(5) * exp( 0.35 * V ) ;
+		fastNa[4] = ( -127140 * exp( 0.2444 * V) - 3.474 * base10(-5) * exp( -0.04391 * V ) ) * ( V + 37.78 ) / ( 1 + exp ( 0.311 * ( V + 79.23 ) ) );
+		fastNa[5] = 3.56 * exp( 0.079 * V ) + 3.1 * base10(5) * exp( 0.35 * V ) ;
 		fastNa[6] = 0.1212 * exp( -0.01052 * V ) / ( 1 + exp( -0.1378 * (V + 40.14 ) ) );
 	}
 
@@ -1304,8 +1309,8 @@ std::vector<Real> IonicJafriRiceWinslow::timeDIK( const std::vector<Real>& v )
 	Real xi = 1 / ( 1 + exp( V - 56.26) / 32.1 );
 
 	timeDK[0] = maxCondK * xi * pow(x, 2) * ( V - potK );
-	timeDK[1] = 7.19 * ee10(-5) * ( V + 30 ) / ( 1 - exp( -0.148 * ( V + 30 ) ) );
-	timeDK[2] = 1.31 * ee10(-4) * ( V + 30 ) / ( -1 + exp( 0.0687 * ( V + 30 ) ) );
+	timeDK[1] = 7.19 * base10(-5) * ( V + 30 ) / ( 1 - exp( -0.148 * ( V + 30 ) ) );
+	timeDK[2] = 1.31 * base10(-4) * ( V + 30 ) / ( -1 + exp( 0.0687 * ( V + 30 ) ) );
 
 	return timeDK;
 }
@@ -1328,7 +1333,7 @@ Real IonicJafriRiceWinslow::timeIIK1( const std::vector<Real>& v )
 // Plateau K+ current IKp
 Real IonicJafriRiceWinslow::plaIKp( const std::vector<Real>& v )
 {
-	Real potKp = M_R * M_T / M_F * log( M_K0 / cK );
+	Real potKp = M_R * M_T / M_F * log( M_K0 / v[6] );
 	Real constKp = 1 / ( 1 + exp( ( 7.488 - v[0] ) / 5.98 ) );
 
 	return M_GKp * constKp *( v[0] - potKp );
@@ -1378,7 +1383,7 @@ Real IonicJafriRiceWinslow::noSpecInsCa( const std::vector<Real>& v )
 				( ( 0.75 * cK * exp( ( V * M_F ) / ( M_R * M_T ) ) - 0.75 * M_K0 ) / ( exp( ( V * M_F ) / ( M_R * M_T ) ) - 1 ) );
 
 	Real courInsNa = maxInsNa * ( 1 / ( 1 + pow( M_KmNsCa /cCa, 3) ) );
-	Real courInsK = maxInsNa * ( 1 / ( 1 + pow( M_KmNsCa /cCa, 3) ) );
+	Real courInsK = \maxInsK * ( 1 / ( 1 + pow( M_KmNsCa /cCa, 3) ) );
 
 	return courInsK + courInsNa;
 
@@ -1485,11 +1490,11 @@ void IonicJafriRiceWinslow::showMe()
     std::cout << "timeConstNsrJsr: " << this->timeConstNsrJsr() << std::endl;
     std::cout << "timeConstSubMyo: " << this->timeConstSubMyo() << std::endl;
     std::cout << "kAPlus: " << this->kAPlus() << std::endl;
-    std::cout << "kANeg: " << this->KANeg() << std::endl;
+    std::cout << "kANeg: " << this->kANeg() << std::endl;
     std::cout << "kBPlus: " << this->kBPlus() << std::endl;
-    std::cout << "kBNeg: " << this->KBNeg() << std::endl;
+    std::cout << "kBNeg: " << this->kBNeg() << std::endl;
     std::cout << "kCPlus: " << this->kCPlus() << std::endl;
-    std::cout << "kCNeg: " << this->KCNeg() << std::endl;
+    std::cout << "kCNeg: " << this->kCNeg() << std::endl;
     std::cout << "coopParamN: " << this->coopParamN() << std::endl;
     std::cout << "coopParamM: " << this->coopParamM() << std::endl;
     std::cout << "intoOpenSt: " << this->intoOpenSt() << std::endl;
@@ -1514,10 +1519,7 @@ void IonicJafriRiceWinslow::showMe()
 //! Additional Methods
 // ===================================================
 
-inline Real ee10( int const& a )
-{
-	return pow(10,a);
-}
+
 
 
 
