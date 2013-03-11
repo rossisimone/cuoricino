@@ -57,7 +57,7 @@
 
 #include <lifev/core/array/MatrixEpetra.hpp>
 
-#include <lifev/heart/solver/IonicModels/JafriRiceWinslow.hpp>
+#include <lifev/heart/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>

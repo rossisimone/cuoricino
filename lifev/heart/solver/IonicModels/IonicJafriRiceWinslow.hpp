@@ -1380,10 +1380,10 @@ Real IonicJafriRiceWinslow::noSpecInsCa( const std::vector<Real>& v )
 			( ( 0.75 * cNa * exp( ( V * M_F ) / ( M_R * M_T ) ) - 0.75 * M_Na0 ) / ( exp( ( V * M_F ) / ( M_R * M_T ) ) - 1 ) );
 
 	Real maxInsK = M_PnsCa * ( ( V * pow(M_F, 2) ) / ( M_R * M_T ) ) *
-				( ( 0.75 * cK * exp( ( V * M_F ) / ( M_R * M_T ) ) - 0.75 * M_K0 ) / ( exp( ( V * M_F ) / ( M_R * M_T ) ) - 1 ) );
+			( ( 0.75 * cK * exp( ( V * M_F ) / ( M_R * M_T ) ) - 0.75 * M_K0 ) / ( exp( ( V * M_F ) / ( M_R * M_T ) ) - 1 ) );
 
 	Real courInsNa = maxInsNa * ( 1 / ( 1 + pow( M_KmNsCa /cCa, 3) ) );
-	Real courInsK = \maxInsK * ( 1 / ( 1 + pow( M_KmNsCa /cCa, 3) ) );
+	Real courInsK = maxInsK * ( 1 / ( 1 + pow( M_KmNsCa /cCa, 3) ) );
 
 	return courInsK + courInsNa;
 
