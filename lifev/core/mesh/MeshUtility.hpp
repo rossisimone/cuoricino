@@ -59,6 +59,12 @@
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
 
+#include <lifev/core/util/LifeChrono.hpp>
+#include <lifev/core/util/Displayer.hpp>
+#include <lifev/core/mesh/MeshPartitioner.hpp>
+#include <lifev/core/filter/PartitionIO.hpp>
+
+
 namespace LifeV
 {
 
@@ -66,6 +72,7 @@ namespace LifeV
 class LinearTetra;
 template <typename GeoShapeType, typename MCType >
 class RegionMesh;
+class MeshData;
 
 namespace MeshUtility
 {
@@ -2754,6 +2761,20 @@ void assignRegionMarkerID ( RegionMeshType& mesh, const RegionFunctorType& fun )
 
 } // assignRegionMarkerID
 
+//! setup and get the mesh data
+/*!
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+  @param meshOrder order of the mesh elements
+*/
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+MeshData getMeshData( const std::string& meshName,
+		                const std::string& resourcesPath = "./",
+		                const std::string& meshOrder = "P1" );
+
+
 //! Read and partitioned a *.mesh file
 /*!
   @param meshLocal The partitioned mesh that we want to generate
@@ -2764,43 +2785,65 @@ void assignRegionMarkerID ( RegionMeshType& mesh, const RegionFunctorType& fun )
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
-void fillWithMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
+template< typename RegionMeshType>
+void fillWithMesh( boost::shared_ptr< RegionMeshType >& meshLocal,
 					 bool isPartitioned,
 					 const std::string& meshName,
-					 const std::string& resourcesPath = "./Ressources/" );
+					 const std::string& resourcesPath = "./",
+					 const std::string& meshOrder = "P1",
+					 boost::shared_ptr< RegionMeshType >& meshFull = boost::shared_ptr< RegionMeshType >() )
+{
+	if(isPartitioned)
+	{
+		fillWithPartitionedMesh( meshLocal, meshName, resourcesPath );
+	}
+	else
+	{
+		fillWithFullMesh( meshLocal, meshName, resourcesPath, meshOrder, meshFull );
+	}
+}
+
 //! Read and partitioned a *.mesh file
 /*!
-  @param meshFull The mesh that we want to generate without partitioning
   @param meshLocal The partitioned mesh that we want to generate
   @param meshName name of the mesh file
   @param resourcesPath path to the mesh folder
-*/
-//! Read and partitioned a *.mesh file
-/*!
-  @param meshLocal The partitioned mesh that we want to generate
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-void fillWithFullMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
-					   const std::string& meshName,
-					   const std::string& resourcesPath = "./Ressources/" );
-//! Read and partitioned a *.mesh file
-/*!
-  @param meshFull The mesh that we want to generate without partitioning
-  @param meshLocal The partitioned mesh that we want to generate
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
+  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
 */
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
-void fillWithFullMesh(boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
-						boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
-					   const std::string& meshName,
-					   const std::string& resourcesPath = "./Ressources/" );
+template< typename RegionMeshType>
+void fillWithFullMesh( 	boost::shared_ptr< RegionMeshType >& meshLocal,
+							const std::string& meshName,
+							const std::string& resourcesPath = "./",
+							const std::string& meshOrder = "P1",
+							boost::shared_ptr< RegionMeshType >& meshFull = boost::shared_ptr< RegionMeshType >() )
+{
+#ifdef HAVE_MPI
+	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
+#else
+	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
+#endif
+	Displayer displayer( Comm );
+
+	LifeChrono meshReadChrono;
+	meshReadChrono.start();
+	boost::shared_ptr<RegionMeshType > fullMesh( new RegionMeshType );
+	readMesh(*fullMesh, getMeshData(meshName, resourcesPath, meshOrder ) );
+	printMeshInfos( fullMesh );
+	meshReadChrono.stop();
+	displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
+
+	LifeChrono meshPartChrono;
+	meshPartChrono.start();
+	MeshPartitioner< RegionMeshType > meshPartitioner( fullMesh, Comm );
+	meshLocal = meshPartitioner.meshPartition();
+	meshPartChrono.stop();
+	displayer.leaderPrint("Partitioning time: ", meshPartChrono.diff(), " s.\n");
+	if( meshFull ) meshFull = fullMesh;
+	else fullMesh.reset(); //Freeing the global mesh to save memory
+}
 
 //! Read a partitioned mesh
 /*!
@@ -2811,9 +2854,25 @@ void fillWithFullMesh(boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCo
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
-void fillWithPartitionedMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
+template< typename RegionMeshType>
+void fillWithPartitionedMesh( boost::shared_ptr< RegionMeshType >& meshLocal,
 							  const std::string& meshName,
-							  const std::string& resourcesPath = "./Ressources/" );
+							  const std::string& resourcesPath = "./" )
+{
+#ifdef HAVE_MPI
+	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
+#else
+	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
+#endif
+	Displayer displayer( Comm );
+
+	LifeChrono meshReadChrono;
+	meshReadChrono.start();
+	PartitionIO< RegionMeshType > partitionIO( ( resourcesPath + meshName ).data(), Comm);
+	partitionIO.read(meshLocal);
+	meshReadChrono.stop();
+	displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
+}
 
 //! Build a mesh from a partitioned mesh
 /*!

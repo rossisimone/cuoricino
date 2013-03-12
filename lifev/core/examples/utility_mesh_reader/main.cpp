@@ -41,8 +41,9 @@ int main(int argc, char **argv)
     boost::shared_ptr< RegionMesh <LinearTetra> > meshPtr ( new RegionMesh <LinearTetra> ( comm ) );
     std::string meshName = dataFile ("mesh/mesh_file", "cube4x4.mesh");
     std::string meshPath =  dataFile ("mesh/mesh_dir", "./");
+    std::string meshOrder =  dataFile ("mesh/mesh_order", "P1");
     bool isPartitioned = false;
-    MeshUtility::fillWithMesh( meshPtr, isPartitioned, meshName, meshPath );
+//    MeshUtility::fillWithMesh( meshPtr, isPartitioned, meshName, meshPath, meshOrder );
 	if( comm -> MyPID() == 0 ) cout << "... DONE! ";
 
 
@@ -50,7 +51,7 @@ int main(int argc, char **argv)
 	if( comm -> MyPID() == 0 ) cout << "\n\nReading and partitioning the cube mesh saving the global mesh: ... ";
 	boost::shared_ptr< RegionMesh <LinearTetra> > meshFullPtr ( new RegionMesh <LinearTetra> ( comm ) );
     boost::shared_ptr< RegionMesh <LinearTetra> > meshLocalPtr ( new RegionMesh <LinearTetra> ( comm ) );
-    MeshUtility::fillWithFullMesh( meshFullPtr, meshLocalPtr, meshName, meshPath );
+//   MeshUtility::fillWithMesh( meshLocalPtr, isPartitioned, meshName, meshPath, "P1", meshFullPtr );
 	if( comm -> MyPID() == 0 ) cout << "... DONE! ";
 
     //create a 3D structured mesh
@@ -67,7 +68,7 @@ int main(int argc, char **argv)
     							 1.0,
     							 0.0,
     							 0.0,
-    							 0.0 );\
+    							 0.0 );
 
 
 	if( comm -> MyPID() == 0 ) cout << "... DONE!\n\n ";
