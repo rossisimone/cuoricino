@@ -19,7 +19,7 @@
 	<Parameter name="constmCmdn" type="double" value="2.38"/>
 	<Parameter name="constmCsqn" type="double" value="0.8"/>
 	<Parameter name="farad" type="double" value="96.5"/>
-	<Parameter name="temp" type="double" value="310"/>
+	<Parameter name="temp" type="double" value="310.0"/>
 	<Parameter name="gasConst" type="double" value="8.314"/>
 	<Parameter name="maxCondNa" type="double" value="12.0"/>
 	<Parameter name="maxCondKp" type="double" value="0.00828"/>

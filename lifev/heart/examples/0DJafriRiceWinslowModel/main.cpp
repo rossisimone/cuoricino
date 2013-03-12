@@ -86,7 +86,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     std::cout << "Importing parameters list...";
-    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslow.xml" ) );
+    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
     std::cout << " Done!" << endl;
 
 
@@ -175,7 +175,7 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (400);
+    Real TF (4.0);
     Real dt (0.02);
 
 
@@ -194,7 +194,7 @@ Int main ( Int argc, char** argv )
     for ( Real t = 0; t < TF; )
     {
 
-        //********************************************//
+    	//********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
@@ -204,41 +204,88 @@ Int main ( Int argc, char** argv )
         }
         else
         {
-            Iapp = 0;
+        	Iapp = 0;
         }
 
         std::cout << "\r " << t << " ms.       " << std::flush;
 
-        //********************************************//
-        // Compute the rhs using the model equations  //
-        //********************************************//
-        model.computeRhs ( unknowns, Iapp, rhs);
+         //********************************************//
+         // Compute the rhs using the model equations  //
+         //********************************************//
+         model.computeRhs ( unknowns, Iapp, rhs);
 
-        //********************************************//
-        // Use forward Euler method to advance the    //
-        // solution in time.                          //
-        //********************************************//
-        unknowns.at (0) = unknowns.at (0)  + dt * rhs.at (0);
-        unknowns.at (1) = unknowns.at (1)  + dt * rhs.at (1);
+         //********************************************//
+         // Use forward Euler method to advance the    //
+         // solution in time.                          //
+         //********************************************//
+        /* unknowns.at (0) = unknowns.at (0)   + dt * rhs.at (0);
+         unknowns.at (1) = unknowns.at (1)   + dt * rhs.at (1);
+         unknowns.at (2) = unknowns.at (2)   + dt * rhs.at (2);
+         unknowns.at (3) = unknowns.at (3)   + dt * rhs.at (3);
+         unknowns.at (4) = unknowns.at (4)   + dt * rhs.at (4);
+         unknowns.at (5) = unknowns.at (5)   + dt * rhs.at (5);
+         unknowns.at (6) = unknowns.at (6)   + dt * rhs.at (6);
+         unknowns.at (7) = unknowns.at (7)   + dt * rhs.at (7);
+         unknowns.at (8) = unknowns.at (8)   + dt * rhs.at (8);
+         unknowns.at (9) = unknowns.at (9)   + dt * rhs.at (9);
+         unknowns.at (10) = unknowns.at (10) + dt * rhs.at (10);
+         unknowns.at (11) = unknowns.at (11) + dt * rhs.at (11);
+         unknowns.at (12) = unknowns.at (12) + dt * rhs.at (12);
+         unknowns.at (13) = unknowns.at (13) + dt * rhs.at (13);
+         unknowns.at (14) = unknowns.at (14) + dt * rhs.at (14);
+         unknowns.at (15) = unknowns.at (15) + dt * rhs.at (15);
+         unknowns.at (16) = unknowns.at (16) + dt * rhs.at (16);
+         unknowns.at (17) = unknowns.at (17) + dt * rhs.at (17);
+         unknowns.at (18) = unknowns.at (18) + dt * rhs.at (18);
+         unknowns.at (19) = unknowns.at (19) + dt * rhs.at (19);
+         unknowns.at (20) = unknowns.at (20) + dt * rhs.at (20);
+         unknowns.at (21) = unknowns.at (21) + dt * rhs.at (21);
+         unknowns.at (22) = unknowns.at (22) + dt * rhs.at (22);
+         unknowns.at (23) = unknowns.at (23) + dt * rhs.at (23);
+         unknowns.at (24) = unknowns.at (24) + dt * rhs.at (24);
+         unknowns.at (25) = unknowns.at (25) + dt * rhs.at (25);
+         unknowns.at (26) = unknowns.at (26) + dt * rhs.at (26);
+         unknowns.at (27) = unknowns.at (27) + dt * rhs.at (27);
+         unknowns.at (28) = unknowns.at (28) + dt * rhs.at (28);
+         unknowns.at (29) = unknowns.at (29) + dt * rhs.at (29);*/
 
-        //********************************************//
-        // Writes solution on file.                   //
-        //********************************************//
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << "\n";
 
-        //********************************************//
-        // Update the time.                           //
-        //********************************************//
-        t = t + dt;
-    }
+         //********************************************//
+         // Writes solution on file.                   //
+         //********************************************//
+         output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
+        		 << unknowns.at (2) << ", " << unknowns.at (3) << ", "
+        		 << unknowns.at (4) << ", " << unknowns.at (5) << ", "
+        		 << unknowns.at (6) << ", " << unknowns.at (7) << ", "
+        		 << unknowns.at (8) << ", " << unknowns.at (9) << ", "
+        		 << unknowns.at (10) << ", " << unknowns.at (11) << ", "
+        		 << unknowns.at (12) << ", " << unknowns.at (13) << ", "
+        		 << unknowns.at (14) << ", " << unknowns.at (15) << ", "
+        		 << unknowns.at (16) << ", " << unknowns.at (17) << ", "
+        		 << unknowns.at (18) << ", " << unknowns.at (19) << ", "
+        		 << unknowns.at (20) << ", " << unknowns.at (21) << ", "
+        		 << unknowns.at (22) << ", " << unknowns.at (23) << ", "
+        		 << unknowns.at (24) << ", " << unknowns.at (25) << ", "
+        		 << unknowns.at (26) << ", " << unknowns.at (27) << ", "
+        		 << unknowns.at (28) << ", " << unknowns.at (29) << "\n";
+
+         //********************************************//
+         // Update the time.                           //
+         //********************************************//
+         t = t + dt;
+       }
+
     std::cout << "\n...Time loop ends.\n";
     std::cout << "Solution written on file: " << filename << "\n";
+
     //********************************************//
     // Close exported file.                       //
     //********************************************//
+
     output.close();
+
 
     //! Finalizing Epetra communicator
     MPI_Finalize();
     return ( EXIT_SUCCESS );
-}
+   }
