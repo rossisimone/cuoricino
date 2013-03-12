@@ -234,17 +234,17 @@ fillWithStructuredMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarker
                    l_x, l_y, l_z,
                    t_x, t_y, t_z );
 
-//    printMeshInfos( fullMesh );
-//    meshBuildChrono.stop();
-//    displayer.leaderPrint("Building time: ", meshBuildChrono.diff(), " s.\n");
-//
-//    LifeChrono meshPartChrono;
-//    meshPartChrono.start();
-//    MeshPartitioner< RegionMesh<LinearTetra> > meshPartitioner( fullMesh, Comm );
-//    mesh = meshPartitioner.meshPartition();
-//    meshPartChrono.stop();
-//    fullMesh.reset(); //Freeing the global mesh to save memory
-//    displayer.leaderPrint("Partitioning time: ", meshPartChrono.diff(), " s.\n");
+    printMeshInfos( fullMesh );
+    meshBuildChrono.stop();
+    displayer.leaderPrint("Building time: ", meshBuildChrono.diff(), " s.\n");
+
+    LifeChrono meshPartChrono;
+    meshPartChrono.start();
+    MeshPartitioner< RegionMesh<LinearTetra> > meshPartitioner( fullMesh, Comm );
+    mesh = meshPartitioner.meshPartition();
+    meshPartChrono.stop();
+    fullMesh.reset(); //Freeing the global mesh to save memory
+    displayer.leaderPrint("Partitioning time: ", meshPartChrono.diff(), " s.\n");
 }
 
 
