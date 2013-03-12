@@ -123,29 +123,30 @@ Int main ( Int argc, char** argv )
     unknowns[4] = 0.000928836;
     unknowns[5] = 10.2042;
     unknowns[6] = 143.727;
-    unknowns[7] = 0.0000994893;
-    unknowns[8] = 1.24891;
-    unknowns[9] = 0.000136058;
-    unknowns[10] = 1.17504;
-    unknowns[11] = 0.762527;
-    unknowns[12] = 0.00119168;
-    unknowns[13] = 0.00000000630613;
-    unknowns[14] = 0.236283;
-    unknowns[15] = 0.997208;
-    unknowns[16] = 0.0000638897;
-    unknowns[17] = 0.00000000153500;
-    unknowns[18] = 0.0000000000000163909;
-    unknowns[19] = 0.0000000000000000000656337;
-    unknowns[20] = 0.00000000000000000000984546;
-    unknowns[21] = 0.00272826;
-    unknowns[22] = 0.000000699215;
-    unknowns[23] = 0.0000000000671989;
-    unknowns[24] = 0.00000000000000287031;
-    unknowns[25] = 0.0000000000000000000459752;
-    unknowns[26] = 0.0;
-    unknowns[27] = 0.998983;
-    unknowns[28] = 0.6349973;
-    unknowns[29] = 135.9813;
+    unknowns[7] = 140.0;
+    unknowns[8] = 0.0000994893;
+    unknowns[9] = 1.24891;
+    unknowns[10] = 0.000136058;
+    unknowns[11] = 1.17504;
+    unknowns[12] = 0.762527;
+    unknowns[13] = 0.00119168;
+    unknowns[14] = 0.00000000630613;
+    unknowns[15] = 0.236283;
+    unknowns[16] = 0.997208;
+    unknowns[17] = 0.0000638897;
+    unknowns[18] = 0.00000000153500;
+    unknowns[19] = 0.0000000000000163909;
+    unknowns[20] = 0.0000000000000000000656337;
+    unknowns[21] = 0.00000000000000000000984546;
+    unknowns[22] = 0.00272826;
+    unknowns[23] = 0.000000699215;
+    unknowns[24] = 0.0000000000671989;
+    unknowns[25] = 0.00000000000000287031;
+    unknowns[26] = 0.0000000000000000000459752;
+    unknowns[27] = 0.0;
+    unknowns[28] = 0.998983;
+    unknowns[29] = 0.6349973;
+    unknowns[30] = 135.9813;
     std::cout << " Done!" << endl;
 
 
@@ -175,7 +176,7 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (4.0);
+    Real TF (0.02);
     Real dt (0.02);
 
 
@@ -218,7 +219,7 @@ Int main ( Int argc, char** argv )
          // Use forward Euler method to advance the    //
          // solution in time.                          //
          //********************************************//
-        /* unknowns.at (0) = unknowns.at (0)   + dt * rhs.at (0);
+         /*unknowns.at (0) = unknowns.at (0)   + dt * rhs.at (0);
          unknowns.at (1) = unknowns.at (1)   + dt * rhs.at (1);
          unknowns.at (2) = unknowns.at (2)   + dt * rhs.at (2);
          unknowns.at (3) = unknowns.at (3)   + dt * rhs.at (3);
@@ -247,7 +248,8 @@ Int main ( Int argc, char** argv )
          unknowns.at (26) = unknowns.at (26) + dt * rhs.at (26);
          unknowns.at (27) = unknowns.at (27) + dt * rhs.at (27);
          unknowns.at (28) = unknowns.at (28) + dt * rhs.at (28);
-         unknowns.at (29) = unknowns.at (29) + dt * rhs.at (29);*/
+         unknowns.at (29) = unknowns.at (29) + dt * rhs.at (29);
+         unknowns.at (30) = unknowns.at (30) + dt * rhs.at (30);*/
 
 
          //********************************************//

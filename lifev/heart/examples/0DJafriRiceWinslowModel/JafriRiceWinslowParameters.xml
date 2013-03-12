@@ -5,7 +5,6 @@
 	<Parameter name="volJSR" type="double" value="0.00000012"/>
 	<Parameter name="volNSR" type="double" value="0.000002098"/>
 	<Parameter name="volSS" type="double" value="0.000000001485"/>
-	<Parameter name="concK0" type="double" value="5.4"/>
 	<Parameter name="concNa0" type="double" value="140.0"/>
 	<Parameter name="concCa0" type="double" value="1.8"/>
 	<Parameter name="lTrpnTot" type="double" value="70.0"/>
@@ -18,6 +17,7 @@
 	<Parameter name="csqnTot" type="double" value="15.0"/>
 	<Parameter name="constmCmdn" type="double" value="2.38"/>
 	<Parameter name="constmCsqn" type="double" value="0.8"/>
+	<Parameter name="capMem" type="double" value="1.0"/>
 	<Parameter name="farad" type="double" value="96.5"/>
 	<Parameter name="temp" type="double" value="310.0"/>
 	<Parameter name="gasConst" type="double" value="8.314"/>
