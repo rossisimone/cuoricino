@@ -2643,29 +2643,64 @@ void assignRegionMarkerID ( RegionMeshType & mesh, const RegionFunctorType& fun 
 
 //! Read and partitioned a *.mesh file
 /*!
-  \param mesh pointer to the mesh that is going to be read/partinioned
-  \param meshName filename of the mesh
-  \param meshPath path to the mesh file
-  \param meshOrder order of the mesh
-  \param isPartinioned boolean to say if the mesh to be loaded is already partitioned
+  @param meshLocal The partitioned mesh that we want to generate
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
 */
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
-template<typename GeoShapeType>
-void fillWithMesh( boost::shared_ptr< RegionMesh<GeoShapeType, defaultMarkerCommon_Type > >& mesh,
-									bool	isPartitioned,
+void fillWithMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
+					 bool isPartitioned,
+					 const std::string& meshName,
+					 const std::string& resourcesPath = "./Ressources/" );
+//! Read and partitioned a *.mesh file
+/*!
+  @param meshFull The mesh that we want to generate without partitioning
+  @param meshLocal The partitioned mesh that we want to generate
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+*/
+//! Read and partitioned a *.mesh file
+/*!
+  @param meshLocal The partitioned mesh that we want to generate
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+*/
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+void fillWithFullMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
 					   const std::string& meshName,
-					   const std::string& resourcesPath = "./Ressources/",
-					   const std::string& meshOrder = "P1");
+					   const std::string& resourcesPath = "./Ressources/" );
+//! Read and partitioned a *.mesh file
+/*!
+  @param meshFull The mesh that we want to generate without partitioning
+  @param meshLocal The partitioned mesh that we want to generate
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+*/
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+void fillWithFullMesh(boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
+						boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
+					   const std::string& meshName,
+					   const std::string& resourcesPath = "./Ressources/" );
 
-////! Read a partitioned mesh
-///*!
-//    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
-// */
-//void fillWithPartitionedMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
-//							  const std::string& meshName,
-//							  const std::string& ressourcesPath = "./Ressources/" );
+//! Read a partitioned mesh
+/*!
+  @param meshLocal The partitioned mesh that we want to generate
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+*/
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+void fillWithPartitionedMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
+							  const std::string& meshName,
+							  const std::string& resourcesPath = "./Ressources/" );
 
 //! Build a mesh from a partitioned mesh
 /*!
