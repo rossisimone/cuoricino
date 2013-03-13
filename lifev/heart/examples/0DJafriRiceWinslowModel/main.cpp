@@ -85,9 +85,9 @@ Int main ( Int argc, char** argv )
     // in the execution directory.                //
     //********************************************//
 
-    std::cout << "Importing parameters list...";
+    cout << "Importing parameters list...";
     Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
-    std::cout << " Done!" << endl;
+    cout << " Done!" << endl;
 
 
     //********************************************//
@@ -96,9 +96,9 @@ Int main ( Int argc, char** argv )
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
-    std::cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
+    cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
     IonicJafriRiceWinslow  model ( ParameterList );
-    std::cout << " Done!" << endl;
+    cout << " Done!" << endl;
 
 
     //********************************************//
@@ -115,8 +115,9 @@ Int main ( Int argc, char** argv )
     // the model. rStates is the reference to the //
     // the vector states                          //
     //********************************************//
-    std::cout << "Initializing solution vector...";
+    cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
+    unknowns[0] = - 84.1638;
     unknowns[1] = 0.0328302;
     unknowns[2] = 0.988354;
     unknowns[3] = 0.992540;
@@ -147,7 +148,7 @@ Int main ( Int argc, char** argv )
     unknowns[28] = 0.998983;
     unknowns[29] = 0.6349973;
     unknowns[30] = 135.9813;
-    std::cout << " Done!" << endl;
+    cout << " Done!" << endl;
 
 
     //********************************************//
@@ -157,11 +158,9 @@ Int main ( Int argc, char** argv )
     // variables, that is, the right hand side of //
     // the differential equation.                 //
     //********************************************//
-    std::cout << "Initializing rhs..." ;
+    cout << "Initializing rhs..." ;
     std::vector<Real> rhs (model.Size(), 0);
-    std::cout << " Done! "  << endl;
-
-
+    cout << " Done! "  << endl;
 
 
     //********************************************//
@@ -176,7 +175,7 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (0.02);
+    Real TF (0.04);
     Real dt (0.02);
 
 
@@ -191,7 +190,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
-    std::cout << "Time loop starts...\n";
+    cout << "Time loop starts...\n";
     for ( Real t = 0; t < TF; )
     {
 
@@ -208,18 +207,28 @@ Int main ( Int argc, char** argv )
         	Iapp = 0;
         }
 
-        std::cout << "\r " << t << " ms.       " << std::flush;
+        cout << "\r " << t << " ms.       " << std::flush;
 
          //********************************************//
          // Compute the rhs using the model equations  //
          //********************************************//
-         model.computeRhs ( unknowns, Iapp, rhs);
+         model.computeRhs ( unknowns, Iapp, rhs );
+
+         int i(0);
+
+         for(std::vector<Real>::iterator it=rhs.begin(); it!=rhs.end(); ++it)
+             {
+        	 	 cout << i << "/ " << *it << ", ";
+        	 	 i = i + 1;
+             }
+         cout << "\n" << rhs.size() << endl;
+
 
          //********************************************//
          // Use forward Euler method to advance the    //
          // solution in time.                          //
          //********************************************//
-         /*unknowns.at (0) = unknowns.at (0)   + dt * rhs.at (0);
+         unknowns.at (0) = unknowns.at (0)   + dt * rhs.at (0);
          unknowns.at (1) = unknowns.at (1)   + dt * rhs.at (1);
          unknowns.at (2) = unknowns.at (2)   + dt * rhs.at (2);
          unknowns.at (3) = unknowns.at (3)   + dt * rhs.at (3);
@@ -249,7 +258,7 @@ Int main ( Int argc, char** argv )
          unknowns.at (27) = unknowns.at (27) + dt * rhs.at (27);
          unknowns.at (28) = unknowns.at (28) + dt * rhs.at (28);
          unknowns.at (29) = unknowns.at (29) + dt * rhs.at (29);
-         unknowns.at (30) = unknowns.at (30) + dt * rhs.at (30);*/
+         unknowns.at (30) = unknowns.at (30) + dt * rhs.at (30);
 
 
          //********************************************//
@@ -277,8 +286,8 @@ Int main ( Int argc, char** argv )
          t = t + dt;
        }
 
-    std::cout << "\n...Time loop ends.\n";
-    std::cout << "Solution written on file: " << filename << "\n";
+    cout << "\n...Time loop ends.\n";
+    cout << "Solution written on file: " << filename << "\n";
 
     //********************************************//
     // Close exported file.                       //
