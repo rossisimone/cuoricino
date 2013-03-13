@@ -417,69 +417,69 @@ private:
 // ===================================================
 //! Constructors
 // ===================================================
-//IonicMinimalModel::IonicMinimalModel()	:
-//		super 	    ( 4     ),
-//		M_uo    	( 0. 	),
-//		M_uu    	( 1.61 	),
-//		M_tetav 	( 0.3 	),
-//		M_tetaw 	( 0.13 	),
-//		M_tetavm	( 0.1 	),
-//		M_tetao 	( 0.005 ),
-//		M_tauv1 	( 80.0	),
-//		M_tauv2 	( 1.4506),
-//		M_tauvp 	( 1.4506),
-//		M_tauw1 	( 70.0 	),
-//		M_tauw2 	( 8.0 	),
-//		M_kw    	( 200.0	),
-//		M_uw    	( 0.016 ),
-//		M_tauwp  	( 280.0	),
-//		M_taufi 	( 0.078 ),
-//		M_tauo1 	( 410.0	),
-//		M_tauo2 	( 7.0 	),
-//		M_tauso1	( 91.0 	),
-//		M_tauso2	( 0.8 	),
-//		M_kso   	( 2.1 	),
-//		M_uso   	( 0.6 	),
-//		M_taus1 	( 2.7342),
-//		M_taus2 	( 4.0	),
-//		M_ks    	( 2.0994),
-//		M_us    	( 0.9087),
-//		M_tausi 	( 3.3849),
-//		M_tauwinf	( 0.01 	),
-//		M_winfstar 	( 0.5 	)
+//IonicMinimalModel::IonicMinimalModel()    :
+//      super       ( 4     ),
+//      M_uo        ( 0.    ),
+//      M_uu        ( 1.61  ),
+//      M_tetav     ( 0.3   ),
+//      M_tetaw     ( 0.13  ),
+//      M_tetavm    ( 0.1   ),
+//      M_tetao     ( 0.005 ),
+//      M_tauv1     ( 80.0  ),
+//      M_tauv2     ( 1.4506),
+//      M_tauvp     ( 1.4506),
+//      M_tauw1     ( 70.0  ),
+//      M_tauw2     ( 8.0   ),
+//      M_kw        ( 200.0 ),
+//      M_uw        ( 0.016 ),
+//      M_tauwp     ( 280.0 ),
+//      M_taufi     ( 0.078 ),
+//      M_tauo1     ( 410.0 ),
+//      M_tauo2     ( 7.0   ),
+//      M_tauso1    ( 91.0  ),
+//      M_tauso2    ( 0.8   ),
+//      M_kso       ( 2.1   ),
+//      M_uso       ( 0.6   ),
+//      M_taus1     ( 2.7342),
+//      M_taus2     ( 4.0   ),
+//      M_ks        ( 2.0994),
+//      M_us        ( 0.9087),
+//      M_tausi     ( 3.3849),
+//      M_tauwinf   ( 0.01  ),
+//      M_winfstar  ( 0.5   )
 //{
 //}
 
-IonicMinimalModel::IonicMinimalModel()	:
-		super 	    ( 4     ),
-		M_uo    	( 0. 	),
-		M_uu    	( 1.58 	),
-		M_tetav 	( 0.3 	),
-		M_tetaw 	( 0.015	),
-		M_tetavm	( 0.015	),
-		M_tetao 	( 0.006 ),
-		M_tauv1 	( 60.0	),
-		M_tauv2 	( 1150.0),
-		M_tauvp 	( 1.4506),
-		M_tauw1 	( 70.0 	),
-		M_tauw2 	( 20.0 	),
-		M_kw    	( 65.0	),
-		M_uw    	( 0.03  ),
-		M_tauwp  	( 280.0	),
-		M_taufi 	( 0.11  ),
-		M_tauo1 	( 6.0	),
-		M_tauo2 	( 6.0 	),
-		M_tauso1	( 43.0 	),
-		M_tauso2	( 0.2 	),
-		M_kso   	( 2.0 	),
-		M_uso   	( 0.65 	),
-		M_taus1 	( 2.7342),
-		M_taus2 	( 3.0	),
-		M_ks    	( 2.0994),
-		M_us    	( 0.9087),
-		M_tausi 	( 2.8723),
-		M_tauwinf	( 0.07 	),
-		M_winfstar 	( 0.94 	)
+IonicMinimalModel::IonicMinimalModel()  :
+    super       ( 4     ),
+    M_uo        ( 0.    ),
+    M_uu        ( 1.58  ),
+    M_tetav     ( 0.3   ),
+    M_tetaw     ( 0.015 ),
+    M_tetavm    ( 0.015 ),
+    M_tetao     ( 0.006 ),
+    M_tauv1     ( 60.0  ),
+    M_tauv2     ( 1150.0),
+    M_tauvp     ( 1.4506),
+    M_tauw1     ( 70.0  ),
+    M_tauw2     ( 20.0  ),
+    M_kw        ( 65.0  ),
+    M_uw        ( 0.03  ),
+    M_tauwp     ( 280.0 ),
+    M_taufi     ( 0.11  ),
+    M_tauo1     ( 6.0   ),
+    M_tauo2     ( 6.0   ),
+    M_tauso1    ( 43.0  ),
+    M_tauso2    ( 0.2   ),
+    M_kso       ( 2.0   ),
+    M_uso       ( 0.65  ),
+    M_taus1     ( 2.7342),
+    M_taus2     ( 3.0   ),
+    M_ks        ( 2.0994),
+    M_us        ( 0.9087),
+    M_tausi     ( 2.8723),
+    M_tauwinf   ( 0.07  ),
+    M_winfstar  ( 0.94  )
 {
 }
 
@@ -639,21 +639,21 @@ void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
     Real Jso   = ( U - M_uo ) * ( 1.0 - Heaviside ( U - M_tetaw )  ) / tauo + Heaviside ( U - M_tetaw ) / tauso;
     Real Jsi   = - Heaviside ( U - M_tetaw ) * W * W / M_tausi;
 
-	rhs[0] = - ( Jfi + Jso + Jsi ) + Iapp;
-	rhs[1] = ( 1.0 - Heaviside( U - M_tetav ) ) * ( vinf - V ) / tauvm - Heaviside( U - M_tetav ) * V / M_tauvp;
-	rhs[2] = ( 1.0 - Heaviside( U - M_tetaw ) ) * ( winf - W ) / tauwm - Heaviside( U - M_tetaw ) * W / M_tauwp;
-	rhs[3] = ( ( 1.0 + std::tanh( M_ks * ( U - M_us ) ) ) / 2.0 - S ) / taus;
+    rhs[0] = - ( Jfi + Jso + Jsi ) + Iapp;
+    rhs[1] = ( 1.0 - Heaviside ( U - M_tetav ) ) * ( vinf - V ) / tauvm - Heaviside ( U - M_tetav ) * V / M_tauvp;
+    rhs[2] = ( 1.0 - Heaviside ( U - M_tetaw ) ) * ( winf - W ) / tauwm - Heaviside ( U - M_tetaw ) * W / M_tauwp;
+    rhs[3] = ( ( 1.0 + std::tanh ( M_ks * ( U - M_us ) ) ) / 2.0 - S ) / taus;
 }
 
 
-Real IonicMinimalModel::computeLocalPotentialRhs( const std::vector<Real>& v, const Real& Iapp)
+Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp)
 {
     Real dPotential (0.0);
 
-	Real U = v[0];
-	Real V = v[1];
-	Real W = v[2];
-	//Real S = v[3];
+    Real U = v[0];
+    Real V = v[1];
+    Real W = v[2];
+    //Real S = v[3];
 
     Real tauso = M_tauso1 + ( M_tauso2 - M_tauso1 ) * ( 1.0 + std::tanh ( M_kso * ( U - M_uso ) ) ) / 2.0;
     Real tauo  = ( 1.0 - Heaviside ( U - M_tetao ) ) * M_tauo1 + Heaviside ( U - M_tetao ) * M_tauo2;

@@ -1188,38 +1188,38 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupMassMatrix()
 {
-	{
-	   using namespace ExpressionAssembly;
+    {
+        using namespace ExpressionAssembly;
 
-	   integrate(  elements( M_meshPtr  ),
-				   quadRuleTetra4pt,
-				   M_ETFESpacePtr,
-				   M_ETFESpacePtr,
-				   phi_i * phi_j
-			   )
-			   >> M_massMatrixPtr;
+        integrate (  elements ( M_meshPtr  ),
+                     quadRuleTetra4pt,
+                     M_ETFESpacePtr,
+                     M_ETFESpacePtr,
+                     phi_i * phi_j
+                  )
+                >> M_massMatrixPtr;
 
-	}
-	M_massMatrixPtr -> globalAssemble();
+    }
+    M_massMatrixPtr -> globalAssemble();
 }
 
 template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupLumpedMassMatrix()
 {
-	{
-	   using namespace ExpressionAssembly;
+    {
+        using namespace ExpressionAssembly;
 
-	   integrate(  elements( M_meshPtr  ),
-				   quadRuleTetra4ptNodal,
-				   M_ETFESpacePtr,
-				   M_ETFESpacePtr,
-				   phi_i * phi_j
-			   )
-			   >> M_massMatrixPtr;
+        integrate (  elements ( M_meshPtr  ),
+                     quadRuleTetra4ptNodal,
+                     M_ETFESpacePtr,
+                     M_ETFESpacePtr,
+                     phi_i * phi_j
+                  )
+                >> M_massMatrixPtr;
 
-	}
-	M_massMatrixPtr -> globalAssemble();
+    }
+    M_massMatrixPtr -> globalAssemble();
 }
 
 
@@ -1227,19 +1227,19 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupStiffnessMatrix()
 {
-	{
-	   using namespace ExpressionAssembly;
+    {
+        using namespace ExpressionAssembly;
 
-	   integrate(  elements( M_meshPtr ),
-				   quadRuleTetra4pt,
-				   M_ETFESpacePtr,
-				   M_ETFESpacePtr,
-				   dot(  rotate( M_ETFESpacePtr, *M_fiberPtr, M_diffusionTensor ) * grad(phi_i) , grad(phi_j) )
-		   )
-		   >> M_stiffnessMatrixPtr;
+        integrate (  elements ( M_meshPtr ),
+                     quadRuleTetra4pt,
+                     M_ETFESpacePtr,
+                     M_ETFESpacePtr,
+                     dot (  rotate ( M_ETFESpacePtr, *M_fiberPtr, M_diffusionTensor ) * grad (phi_i) , grad (phi_j) )
+                  )
+                >> M_stiffnessMatrixPtr;
 
-	}
-	M_stiffnessMatrixPtr -> globalAssemble();
+    }
+    M_stiffnessMatrixPtr -> globalAssemble();
 }
 
 
@@ -1248,19 +1248,19 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupStiffnessMatrix (VectorSmall<3> diffusion)
 {
-	{
-	   using namespace ExpressionAssembly;
+    {
+        using namespace ExpressionAssembly;
 
-	   integrate(  elements( M_meshPtr  ),
-				   quadRuleTetra4pt,
-				   M_ETFESpacePtr,
-				   M_ETFESpacePtr,
-				   dot(  rotate( M_ETFESpacePtr, *M_fiberPtr, diffusion ) * grad(phi_i) , grad(phi_j) )
-		   )
-		   >> M_stiffnessMatrixPtr;
+        integrate (  elements ( M_meshPtr  ),
+                     quadRuleTetra4pt,
+                     M_ETFESpacePtr,
+                     M_ETFESpacePtr,
+                     dot (  rotate ( M_ETFESpacePtr, *M_fiberPtr, diffusion ) * grad (phi_i) , grad (phi_j) )
+                  )
+                >> M_stiffnessMatrixPtr;
 
-	}
-	M_stiffnessMatrixPtr -> globalAssemble();
+    }
+    M_stiffnessMatrixPtr -> globalAssemble();
 }
 
 
@@ -1268,19 +1268,19 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupStiffnessMatrix (VectorEpetra& fiber, VectorSmall<3> diffusion)
 {
-	{
-	   using namespace ExpressionAssembly;
+    {
+        using namespace ExpressionAssembly;
 
-	   integrate(  elements( M_meshPtr  ),
-				   quadRuleTetra4pt,
-				   M_ETFESpacePtr,
-				   M_ETFESpacePtr,
-				   dot( rotate( M_ETFESpacePtr, fiber, diffusion ) * grad(phi_i) , grad(phi_j) )
-		   )
-		   >> M_stiffnessMatrixPtr;
+        integrate (  elements ( M_meshPtr  ),
+                     quadRuleTetra4pt,
+                     M_ETFESpacePtr,
+                     M_ETFESpacePtr,
+                     dot ( rotate ( M_ETFESpacePtr, fiber, diffusion ) * grad (phi_i) , grad (phi_j) )
+                  )
+                >> M_stiffnessMatrixPtr;
 
-	}
-	M_stiffnessMatrixPtr -> globalAssemble();
+    }
+    M_stiffnessMatrixPtr -> globalAssemble();
 }
 
 
@@ -1288,9 +1288,9 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh,  IonicModel>::
 setupGlobalMatrix()
 {
-	(*M_globalMatrixPtr) *= 0;
-	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
-	(*M_globalMatrixPtr) += ( (*M_massMatrixPtr) * ( 1.0 / M_timeStep ) );
+    (*M_globalMatrixPtr) *= 0;
+    (*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
+    (*M_globalMatrixPtr) += ( (*M_massMatrixPtr) * ( 1.0 / M_timeStep ) );
 }
 
 template<typename Mesh, typename IonicModel>

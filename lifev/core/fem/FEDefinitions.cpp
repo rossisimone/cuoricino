@@ -390,14 +390,14 @@ const QuadratureRule quadRuleTetra4pt ( pt_tetra_4pt,
 //Nodal integration for lumping
 static const QuadraturePoint pt_tetra_4pt_nodal[ 4 ] =
 {
-    QuadraturePoint( 0.0, 0.0, 0.0, 1. / 24. ),
-    QuadraturePoint( 1.0, 0.0, 0.0, 1. / 24. ),
-    QuadraturePoint( 0.0, 1.0, 0.0, 1. / 24. ),
-    QuadraturePoint( 0.0, 0.0, 1.0, 1. / 24. )
+    QuadraturePoint ( 0.0, 0.0, 0.0, 1. / 24. ),
+    QuadraturePoint ( 1.0, 0.0, 0.0, 1. / 24. ),
+    QuadraturePoint ( 0.0, 1.0, 0.0, 1. / 24. ),
+    QuadraturePoint ( 0.0, 0.0, 1.0, 1. / 24. )
 };
-const QuadratureRule quadRuleTetra4ptNodal( pt_tetra_4pt_nodal,
-                                 QUAD_RULE_TETRA_4PT_NODAL,
-                                 "Quadrature rule 4 points on a tetraedra vertices", TETRA, 4, 1 );
+const QuadratureRule quadRuleTetra4ptNodal ( pt_tetra_4pt_nodal,
+                                             QUAD_RULE_TETRA_4PT_NODAL,
+                                             "Quadrature rule 4 points on a tetraedra vertices", TETRA, 4, 1 );
 //----------------------------------------------------------------------
 // 5 points Integration rule for tetraedra (Ref. e.g. Comincioli pag. 236)
 const Real tet5ptx1 = 1. / 6. , tet5ptx2 = 1. / 2., tet5ptx3 = 1. / 4.;

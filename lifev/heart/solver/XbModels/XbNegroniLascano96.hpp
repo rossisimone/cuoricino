@@ -272,10 +272,10 @@ XbNegroniLascano96& XbNegroniLascano96::operator= ( const XbNegroniLascano96& Xb
 // v(0) = TCa
 // v(1) = TCas
 // v(2) = Ts
-void XbNegroniLascano96::computeRhs(	const	std::vector<Real>& 	v,
-											const	Real& 			Ca,
-											const	Real& 			vel,
-													std::vector<Real>& rhs )
+void XbNegroniLascano96::computeRhs (    const   std::vector<Real>&  v,
+                                         const   Real&           Ca,
+                                         const   Real&           vel,
+                                         std::vector<Real>& rhs )
 {
 
     Real Q1 = M_alpha1 * Ca * ( 1.0 - v[0] - v[1] - v[2] ) - M_beta1 * v[0];

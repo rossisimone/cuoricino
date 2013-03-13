@@ -111,247 +111,290 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus(const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
-	{
-		return ( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
-	}
+Real Stimulus (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+{
+    return ( 0.5 + 0.5 * ( std::tanh ( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
+}
 
 
 
-Int main( Int argc, char** argv )
+Int main ( Int argc, char** argv )
 {
 
     //! Initializing Epetra communicator
-	MPI_Init(&argc, &argv);
-	boost::shared_ptr<Epetra_Comm>  Comm( new Epetra_MpiComm(MPI_COMM_WORLD) );
-	if ( Comm->MyPID() == 0 ) cout << "% using MPI" << endl;
+    MPI_Init (&argc, &argv);
+    boost::shared_ptr<Epetra_Comm>  Comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "% using MPI" << endl;
+    }
 
     //********************************************//
-	// Starts the chronometer.                    //
-	//********************************************//
-//	LifeChrono chronoinitialsettings;
-//	chronoinitialsettings.start();
+    // Starts the chronometer.                    //
+    //********************************************//
+    //  LifeChrono chronoinitialsettings;
+    //  chronoinitialsettings.start();
 
-	typedef RegionMesh<LinearTetra> 						mesh_Type;
-    typedef boost::function< Real(const Real& /*t*/,
-    								const Real&   x,
-    								const Real&   y,
-    								const Real& /*z*/,
-    								const ID&   /*i*/ ) > 	function_Type;
+    typedef RegionMesh<LinearTetra>                         mesh_Type;
+    typedef boost::function < Real (const Real& /*t*/,
+                                    const Real &   x,
+                                    const Real &   y,
+                                    const Real& /*z*/,
+                                    const ID&   /*i*/ ) >   function_Type;
 
-	typedef HeartETAMonodomainSolver< mesh_Type, IonicMinimalModel > 		monodomainSolver_Type;
-	typedef boost::shared_ptr< monodomainSolver_Type > 	monodomainSolverPtr_Type;
-	typedef VectorEpetra									vector_Type;
-	typedef boost::shared_ptr<vector_Type>					vectorPtr_Type;
-		//********************************************//
-	// Import parameters from an xml list. Use    //
-	// Teuchos to create a list from a given file //
-	// in the execution directory.                //
-	//********************************************//
+    typedef HeartETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
+    typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
+    typedef VectorEpetra                                    vector_Type;
+    typedef boost::shared_ptr<vector_Type>                  vectorPtr_Type;
+    //********************************************//
+    // Import parameters from an xml list. Use    //
+    // Teuchos to create a list from a given file //
+    // in the execution directory.                //
+    //********************************************//
 
-	if ( Comm->MyPID() == 0 )  std::cout << "Importing parameters list...";
- //   Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
-    Teuchos::ParameterList monodomainList = *( Teuchos::getParametersFromXmlFile( "MonodomainSolverParamList.xml" ) );
-    if ( Comm->MyPID() == 0 )  std::cout << " Done!" << endl;
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Importing parameters list...";
+    }
+    //   Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Done!" << endl;
+    }
 
-	//********************************************//
-	// Creates a new model object representing the//
-	// model from Aliev and Panfilov 1996.  The   //
-	// model input are the parameters. Pass  the  //
-	// parameter list in the constructor          //
-	//********************************************//
-    if ( Comm->MyPID() == 0 ) std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
-	boost::shared_ptr<IonicMinimalModel>  model( new IonicMinimalModel() );
-	if ( Comm->MyPID() == 0 ) std::cout << " Done!" << endl;
+    //********************************************//
+    // Creates a new model object representing the//
+    // model from Aliev and Panfilov 1996.  The   //
+    // model input are the parameters. Pass  the  //
+    // parameter list in the constructor          //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
+    }
+    boost::shared_ptr<IonicMinimalModel>  model ( new IonicMinimalModel() );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Done!" << endl;
+    }
 
-	//********************************************//
-	// In the parameter list we need to specify   //
-	// the mesh name and the mesh path.           //
-	//********************************************//
-	std::string meshName = monodomainList.get("mesh_name","lid16.mesh");
-	std::string meshPath = monodomainList.get("mesh_path","./");
+    //********************************************//
+    // In the parameter list we need to specify   //
+    // the mesh name and the mesh path.           //
+    //********************************************//
+    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
+    std::string meshPath = monodomainList.get ("mesh_path", "./");
 
-	//********************************************//
-	// We need the GetPot datafile for to setup   //
-	// the preconditioner.                        //
-	//********************************************//
-	GetPot command_line(argc, argv);
-	const string data_file_name = command_line.follow("data", 2, "-f", "--file");
-	GetPot dataFile(data_file_name);
+    //********************************************//
+    // We need the GetPot datafile for to setup   //
+    // the preconditioner.                        //
+    //********************************************//
+    GetPot command_line (argc, argv);
+    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+    GetPot dataFile (data_file_name);
 
-	//********************************************//
-	// We create three solvers to solve with:     //
-	// 1) Operator Splitting method               //
-	// 2) Ionic Current Interpolation             //
-	// 3) State Variable Interpolation            //
-	//********************************************//
-	if ( Comm->MyPID() == 0 )  std::cout << "Building Monodomain Solvers... ";
+    //********************************************//
+    // We create three solvers to solve with:     //
+    // 1) Operator Splitting method               //
+    // 2) Ionic Current Interpolation             //
+    // 3) State Variable Interpolation            //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Building Monodomain Solvers... ";
+    }
 
-	monodomainSolverPtr_Type splitting( new monodomainSolver_Type( meshName, meshPath, dataFile, model ) );
-	if ( Comm->MyPID() == 0 )  std::cout << " Splitting solver done... ";
-
-
-	//********************************************//
-	// Setting up the initial condition form      //
-	// a given function.                          //
-	//********************************************//
-	if ( Comm->MyPID() == 0 )  cout << "\nInitializing potential:  " ;
-
-	function_Type f = &Stimulus;
-	splitting -> setPotentialFromFunction( f );
-
-	//setting up initial conditions
-	*( splitting -> globalSolution().at(1) ) = 1.0;
-	*( splitting -> globalSolution().at(2) ) = 1.0;
-	*( splitting -> globalSolution().at(3) ) = 0.021553043080281;
-
-	if ( Comm->MyPID() == 0 ) cout << "Done! \n" ;
-
-	//********************************************//
-	// Setting up the time data                   //
-	//********************************************//
-	splitting -> setParameters( monodomainList );
-
-	//********************************************//
-	// Create a fiber direction                   //
-	//********************************************//
-	VectorSmall<3> fibers;
-	fibers[0]=  monodomainList.get("fiber_X", std::sqrt(2) / 2.0 );
-	fibers[1]=  monodomainList.get("fiber_Y", std::sqrt(2) / 2.0 );
-	fibers[2]=  monodomainList.get("fiber_Z", 0.0 );
-
-	splitting ->setupFibers(fibers);
-
-	//********************************************//
-	// Create the global matrix: mass + stiffness //
-	//********************************************//
-	splitting -> setupLumpedMassMatrix();
-	splitting -> setupStiffnessMatrix();
-	splitting -> setupGlobalMatrix();
+    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Splitting solver done... ";
+    }
 
 
-	//********************************************//
-	// Create Xb model							  //
-	//********************************************//
-	std::cout << "Importing parameters list for xb model...";
-    Teuchos::ParameterList NLParameterList = *( Teuchos::getParametersFromXmlFile( "NegroniLascano96Parameters.xml" ) );
-	std::cout << " Done!" << endl;
-    if ( Comm->MyPID() == 0 ) std::cout << "Building Constructor for Negroni Lascano Model with parameters ... ";
-	boost::shared_ptr<XbNegroniLascano96>  xbModel( new XbNegroniLascano96(NLParameterList) );
-	if ( Comm->MyPID() == 0 ) std::cout << " Done!" << endl;
+    //********************************************//
+    // Setting up the initial condition form      //
+    // a given function.                          //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nInitializing potential:  " ;
+    }
+
+    function_Type f = &Stimulus;
+    splitting -> setPotentialFromFunction ( f );
+
+    //setting up initial conditions
+    * ( splitting -> globalSolution().at (1) ) = 1.0;
+    * ( splitting -> globalSolution().at (2) ) = 1.0;
+    * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
+
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "Done! \n" ;
+    }
+
+    //********************************************//
+    // Setting up the time data                   //
+    //********************************************//
+    splitting -> setParameters ( monodomainList );
+
+    //********************************************//
+    // Create a fiber direction                   //
+    //********************************************//
+    VectorSmall<3> fibers;
+    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2) / 2.0 );
+    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2) / 2.0 );
+    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+
+    splitting ->setupFibers (fibers);
+
+    //********************************************//
+    // Create the global matrix: mass + stiffness //
+    //********************************************//
+    splitting -> setupLumpedMassMatrix();
+    splitting -> setupStiffnessMatrix();
+    splitting -> setupGlobalMatrix();
 
 
-	//********************************************//
-	// Initialize the solution to 0. The model    //
-	// consist of three state variables. Xe.Size()//
-	// returns the number of state variables of   //
-	// the model. rStates is the reference to the //
-	// the vector states                          //
-	//********************************************//
-	std::cout << "Initializing solution vector...";
-	std::vector<vectorPtr_Type> states;
-	for(int k = 0; k < xbModel -> Size(); ++k ){
-		states.push_back( *(new vectorPtr_Type( new vector_Type( splitting -> feSpacePtr() -> map() ) ) ) );
-	}
-	std::cout << " Done!" << endl;
+    //********************************************//
+    // Create Xb model                            //
+    //********************************************//
+    std::cout << "Importing parameters list for xb model...";
+    Teuchos::ParameterList NLParameterList = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
+    std::cout << " Done!" << endl;
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Building Constructor for Negroni Lascano Model with parameters ... ";
+    }
+    boost::shared_ptr<XbNegroniLascano96>  xbModel ( new XbNegroniLascano96 (NLParameterList) );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Done!" << endl;
+    }
+
+
+    //********************************************//
+    // Initialize the solution to 0. The model    //
+    // consist of three state variables. Xe.Size()//
+    // returns the number of state variables of   //
+    // the model. rStates is the reference to the //
+    // the vector states                          //
+    //********************************************//
+    std::cout << "Initializing solution vector...";
+    std::vector<vectorPtr_Type> states;
+    for (int k = 0; k < xbModel -> Size(); ++k )
+    {
+        states.push_back ( * (new vectorPtr_Type ( new vector_Type ( splitting -> feSpacePtr() -> map() ) ) ) );
+    }
+    std::cout << " Done!" << endl;
 
 
 
-	//********************************************//
-	// Initialize the rhs to 0. The rhs is the    //
-	// vector containing the numerical values of  //
-	// the time derivatives of the state          //
-	// variables, that is, the right hand side of //
-	// the differential equation.                 //
-	//********************************************//
-	std::cout << "Initializing rhs..." ;
-	std::vector<vectorPtr_Type> rhs;
-	for(int k = 0; k < xbModel -> Size(); ++k ){
-		rhs.push_back( *(new vectorPtr_Type( new vector_Type( splitting -> feSpacePtr() -> map() ) ) ) );
-	}
-	std::cout << " Done! "  << endl;
+    //********************************************//
+    // Initialize the rhs to 0. The rhs is the    //
+    // vector containing the numerical values of  //
+    // the time derivatives of the state          //
+    // variables, that is, the right hand side of //
+    // the differential equation.                 //
+    //********************************************//
+    std::cout << "Initializing rhs..." ;
+    std::vector<vectorPtr_Type> rhs;
+    for (int k = 0; k < xbModel -> Size(); ++k )
+    {
+        rhs.push_back ( * (new vectorPtr_Type ( new vector_Type ( splitting -> feSpacePtr() -> map() ) ) ) );
+    }
+    std::cout << " Done! "  << endl;
 
 
-	//********************************************//
-	// The model needs as external informations   //
-	// the contraction velocity and the Calcium   //
-	// concentration.                             //
-	//********************************************//
-	boost::shared_ptr<VectorEpetra>  vel( new VectorEpetra(splitting -> feSpacePtr() -> map() ) );
-	*vel = 0;
-	boost::shared_ptr<VectorEpetra>  Ca(splitting -> globalSolution().at(3));
+    //********************************************//
+    // The model needs as external informations   //
+    // the contraction velocity and the Calcium   //
+    // concentration.                             //
+    //********************************************//
+    boost::shared_ptr<VectorEpetra>  vel ( new VectorEpetra (splitting -> feSpacePtr() -> map() ) );
+    *vel = 0;
+    boost::shared_ptr<VectorEpetra>  Ca (splitting -> globalSolution().at (3) );
 
 
 
-	//********************************************//
-	// Simulation starts on t=0 and ends on t=TF. //
-	// The timestep is given by dt                //
-	//********************************************//
-	Real dt = splitting -> timeStep();
+    //********************************************//
+    // Simulation starts on t=0 and ends on t=TF. //
+    // The timestep is given by dt                //
+    //********************************************//
+    Real dt = splitting -> timeStep();
     Real T = splitting -> endTime();
-	//********************************************//
-	// Creating the exporter to save the solution //
-	//********************************************//
+    //********************************************//
+    // Creating the exporter to save the solution //
+    //********************************************//
     //! Setting generic Exporter postprocessing
     ExporterHDF5< RegionMesh <LinearTetra> > exporterXb;
 
-	exporterXb.setMeshProcId( splitting -> meshPtr(), splitting -> commPtr() -> MyPID() );
-	exporterXb.setPrefix("XbSolution");
-	std::string variableName;
-	for( int i = 0; i < xbModel -> Size() ; i++ ){
-		variableName = "State" + boost::lexical_cast<std::string>( i );
-		exporterXb.addVariable( ExporterData<mesh_Type>::ScalarField,  variableName, splitting -> feSpacePtr(), states.at(i), UInt(0) );
-	}
+    exporterXb.setMeshProcId ( splitting -> meshPtr(), splitting -> commPtr() -> MyPID() );
+    exporterXb.setPrefix ("XbSolution");
+    std::string variableName;
+    for ( int i = 0; i < xbModel -> Size() ; i++ )
+    {
+        variableName = "State" + boost::lexical_cast<std::string> ( i );
+        exporterXb.addVariable ( ExporterData<mesh_Type>::ScalarField,  variableName, splitting -> feSpacePtr(), states.at (i), UInt (0) );
+    }
 
-
-
-	//********************************************//
-	// Creating exporters to save the solution    //
-	//********************************************//
-	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-
-    splitting -> setupExporter( exporterSplitting, "Splitting" );
-
-    splitting -> exportSolution( exporterSplitting, 0);
 
 
     //********************************************//
-	// Solving the system                         //
-	//********************************************//
-    if ( Comm->MyPID() == 0 ) cout << "\nstart solving:  " ;
+    // Creating exporters to save the solution    //
+    //********************************************//
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+
+    splitting -> setupExporter ( exporterSplitting, "Splitting" );
+
+    splitting -> exportSolution ( exporterSplitting, 0);
+
+
+    //********************************************//
+    // Solving the system                         //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nstart solving:  " ;
+    }
 
 
 
-    for( Real t(0.0); t < T; ){
-    	t += dt;
-    	splitting -> solveOneSplittingStep(exporterSplitting, t);
+    for ( Real t (0.0); t < T; )
+    {
+        t += dt;
+        splitting -> solveOneSplittingStep (exporterSplitting, t);
 
 
-    	xbModel -> computeRhs( states, *Ca, *vel, rhs);
+        xbModel -> computeRhs ( states, *Ca, *vel, rhs);
 
-		//********************************************//
-		// Use forward Euler method to advance the    //
-		// solution in time.                          //
-		//********************************************//
+        //********************************************//
+        // Use forward Euler method to advance the    //
+        // solution in time.                          //
+        //********************************************//
 
-		*( states.at(0) ) = *( states.at(0) ) + dt * ( *( rhs.at(0) ) );
-		*( states.at(1) ) = *( states.at(1) ) + dt * ( *( rhs.at(1) ) );
-		*( states.at(2) ) = *( states.at(2) ) + dt * ( *( rhs.at(2) ) );
-		exporterXb.postProcess( t );
+        * ( states.at (0) ) = * ( states.at (0) ) + dt * ( * ( rhs.at (0) ) );
+        * ( states.at (1) ) = * ( states.at (1) ) + dt * ( * ( rhs.at (1) ) );
+        * ( states.at (2) ) = * ( states.at (2) ) + dt * ( * ( rhs.at (2) ) );
+        exporterXb.postProcess ( t );
 
     }
 
     exporterSplitting.closeFile();
     exporterXb.closeFile();
 
-	//********************************************//
-	// Saving Fiber direction to file             //
-	//********************************************//
+    //********************************************//
+    // Saving Fiber direction to file             //
+    //********************************************//
     splitting -> exportFiberDirection();
 
 
-    if ( Comm->MyPID() == 0 ) cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
-    MPI_Barrier(MPI_COMM_WORLD);
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+    }
+    MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();
     return ( EXIT_SUCCESS );
 }
