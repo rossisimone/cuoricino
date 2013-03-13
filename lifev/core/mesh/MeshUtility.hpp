@@ -2761,18 +2761,18 @@ void assignRegionMarkerID ( RegionMeshType& mesh, const RegionFunctorType& fun )
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template <typename RegionMeshType>
-void printMeshInfos( boost::shared_ptr<RegionMeshType > mesh )
+void printMeshInfos ( boost::shared_ptr<RegionMeshType > mesh )
 {
 #ifdef HAVE_MPI
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
 #else
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
 #endif
-	Displayer displayer( Comm );
-	MeshUtility::MeshStatistics::meshSize meshSize = MeshUtility::MeshStatistics::computeSize( *mesh );
-	displayer.leaderPrint( "Mesh size (max): ", meshSize.maxH, "\n" );
-	displayer.leaderPrint( "Mesh size (min): ", meshSize.minH, "\n" );
-	displayer.leaderPrint( "Mesh size (av.): ", meshSize.meanH, "\n" );
+    Displayer displayer ( Comm );
+    MeshUtility::MeshStatistics::meshSize meshSize = MeshUtility::MeshStatistics::computeSize ( *mesh );
+    displayer.leaderPrint ( "Mesh size (max): ", meshSize.maxH, "\n" );
+    displayer.leaderPrint ( "Mesh size (min): ", meshSize.minH, "\n" );
+    displayer.leaderPrint ( "Mesh size (av.): ", meshSize.meanH, "\n" );
 }
 
 

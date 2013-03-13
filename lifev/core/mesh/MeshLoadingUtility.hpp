@@ -79,17 +79,17 @@ namespace MeshUtility
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 MeshData
-getMeshData( const std::string& meshName,
-	          const std::string& resourcesPath = "./",
-		      const std::string& meshOrder = "P1")
+getMeshData ( const std::string& meshName,
+              const std::string& resourcesPath = "./",
+              const std::string& meshOrder = "P1")
 {
-	    MeshData meshData;
-	    meshData.setMeshDir( resourcesPath );
-	    meshData.setMeshFile( meshName );
-		meshData.setMeshType( ".mesh" );
-		meshData.setMOrder( meshOrder );
-		meshData.setVerbose( false );
-		return meshData;
+    MeshData meshData;
+    meshData.setMeshDir ( resourcesPath );
+    meshData.setMeshFile ( meshName );
+    meshData.setMeshType ( ".mesh" );
+    meshData.setMOrder ( meshOrder );
+    meshData.setVerbose ( false );
+    return meshData;
 }
 
 //! Read and partitioned a *.mesh file
@@ -105,21 +105,21 @@ getMeshData( const std::string& meshName,
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template< typename RegionMeshType>
-void fillWithMesh( boost::shared_ptr< RegionMeshType >& meshLocal,
-					 boost::shared_ptr< RegionMeshType >& meshFull ,
-					 bool isPartitioned,
-					 const std::string& meshName,
-					 const std::string& resourcesPath = "./",
-					 const std::string& meshOrder = "P1" )
+void fillWithMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
+                    boost::shared_ptr< RegionMeshType >& meshFull ,
+                    bool isPartitioned,
+                    const std::string& meshName,
+                    const std::string& resourcesPath = "./",
+                    const std::string& meshOrder = "P1" )
 {
-	if(isPartitioned)
-	{
-		fillWithPartitionedMesh( meshLocal, meshName, resourcesPath );
-	}
-	else
-	{
-		fillWithFullMesh( meshLocal,  meshFull, meshName, resourcesPath, meshOrder );
-	}
+    if (isPartitioned)
+    {
+        fillWithPartitionedMesh ( meshLocal, meshName, resourcesPath );
+    }
+    else
+    {
+        fillWithFullMesh ( meshLocal,  meshFull, meshName, resourcesPath, meshOrder );
+    }
 }
 
 //! Read and partitioned a *.mesh file
@@ -134,14 +134,14 @@ void fillWithMesh( boost::shared_ptr< RegionMeshType >& meshLocal,
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template< typename RegionMeshType>
-void fillWithMesh( boost::shared_ptr< RegionMeshType >& meshLocal,
-					 bool isPartitioned,
-					 const std::string& meshName,
-					 const std::string& resourcesPath = "./",
-					 const std::string& meshOrder = "P1" )
+void fillWithMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
+                    bool isPartitioned,
+                    const std::string& meshName,
+                    const std::string& resourcesPath = "./",
+                    const std::string& meshOrder = "P1" )
 {
-	boost::shared_ptr< RegionMeshType > tmpMeshFull( new RegionMeshType );
-	fillWithMesh( meshLocal, tmpMeshFull, isPartitioned, meshName, resourcesPath, meshOrder );
+    boost::shared_ptr< RegionMeshType > tmpMeshFull ( new RegionMeshType );
+    fillWithMesh ( meshLocal, tmpMeshFull, isPartitioned, meshName, resourcesPath, meshOrder );
 }
 
 
@@ -157,126 +157,70 @@ void fillWithMesh( boost::shared_ptr< RegionMeshType >& meshLocal,
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template< typename RegionMeshType>
-void fillWithFullMesh( 	boost::shared_ptr< RegionMeshType >& meshLocal,
-							boost::shared_ptr< RegionMeshType >& meshFull,
-							const std::string& meshName,
-							const std::string& resourcesPath = "./",
-							const std::string& meshOrder = "P1" )
+void fillWithFullMesh (  boost::shared_ptr< RegionMeshType >& meshLocal,
+                         boost::shared_ptr< RegionMeshType >& meshFull,
+                         const std::string& meshName,
+                         const std::string& resourcesPath = "./",
+                         const std::string& meshOrder = "P1" )
 {
 #ifdef HAVE_MPI
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
 #else
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
 #endif
-	Displayer displayer( Comm );
+    Displayer displayer ( Comm );
 
-	LifeChrono meshReadChrono;
-	meshReadChrono.start();
-	boost::shared_ptr<RegionMeshType > fullMesh( new RegionMeshType );
-	readMesh(*fullMesh, getMeshData(meshName, resourcesPath, meshOrder ) );
-	printMeshInfos( fullMesh );
-	meshReadChrono.stop();
-	displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
-
-	LifeChrono meshPartChrono;
-	meshPartChrono.start();
-	MeshPartitioner< RegionMeshType > meshPartitioner( fullMesh, Comm );
-	meshLocal = meshPartitioner.meshPartition();
-	meshPartChrono.stop();
-	displayer.leaderPrint("Partitioning time: ", meshPartChrono.diff(), " s.\n");
-	if( meshFull ) meshFull = fullMesh;
-	else fullMesh.reset(); //Freeing the global mesh to save memory
-}
-
-//! Read and partitioned a *.mesh file
-/*!
-  @param meshLocal The partitioned mesh that we want to generate
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-template< typename RegionMeshType>
-void fillWithPartitionedMesh( boost::shared_ptr< RegionMeshType >& meshLocal,
-							  const std::string& meshName,
-							  const std::string& resourcesPath = "./" )
-{
-#ifdef HAVE_MPI
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
-#else
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
-#endif
-	Displayer displayer( Comm );
-
-	LifeChrono meshReadChrono;
-	meshReadChrono.start();
-	PartitionIO< RegionMeshType > partitionIO( ( resourcesPath + meshName ).data(), Comm);
-	partitionIO.read(meshLocal);
-	meshReadChrono.stop();
-	displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
-}
-
-//! Build a mesh from a partitioned mesh
-/*!
-  @param mesh The mesh that we want to generate
-  @param regionFlag Flag of the region
-  @param m Number of elements along the ( length, width, height )
-  @param l length of the mesh ( length, width, height )
-  @param t translation of the mesh along the (x,y,z)-axis
-  @param verbose Verbose mode enabled/disabled
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-template< typename RegionMeshType>
-void fillWithStructuredMesh( boost::shared_ptr< RegionMeshType >& mesh,
-								boost::shared_ptr< RegionMeshType >& meshFull,
-								markerID_Type regionFlag,
-								const std::vector<UInt>& m,
-								bool verbose=false,
-								const std::vector<UInt>& l = std::vector<UInt>(3,1),
-								const std::vector<UInt>& t = std::vector<UInt>(3,0) )
-{
-#ifdef HAVE_MPI
-    boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
-#else
-    boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
-#endif
-    Displayer displayer( Comm );
-
-	LifeChrono meshBuildChrono;
-	meshBuildChrono.start();
-	boost::shared_ptr< RegionMeshType > fullMesh( new RegionMeshType( Comm ) );
-	if( m.size() == 1)
-	{
-		//TODO structured mesh in 1D
-	}
-	else if( m.size() == 2)
-	{
-		//TODO structured mesh in 1D
-	}
-	else
-	{
-	regularMesh3D( *fullMesh,
-			   regionFlag,
-			   m[0], m[1], m[2],
-			   verbose,
-			   l[0], l[1], l[2],
-			   t[0], t[1], t[2] );
-	}
-    printMeshInfos( fullMesh );
-    meshBuildChrono.stop();
-    displayer.leaderPrint("Building time: ", meshBuildChrono.diff(), " s.\n");
+    LifeChrono meshReadChrono;
+    meshReadChrono.start();
+    boost::shared_ptr<RegionMeshType > fullMesh ( new RegionMeshType );
+    readMesh (*fullMesh, getMeshData (meshName, resourcesPath, meshOrder ) );
+    printMeshInfos ( fullMesh );
+    meshReadChrono.stop();
+    displayer.leaderPrint ("Loading time: ", meshReadChrono.diff(), " s.\n");
 
     LifeChrono meshPartChrono;
     meshPartChrono.start();
-    MeshPartitioner<  RegionMeshType  > meshPartitioner( fullMesh, Comm );
-    mesh = meshPartitioner.meshPartition();
+    MeshPartitioner< RegionMeshType > meshPartitioner ( fullMesh, Comm );
+    meshLocal = meshPartitioner.meshPartition();
     meshPartChrono.stop();
-    displayer.leaderPrint("Partitioning time: ", meshPartChrono.diff(), " s.\n");
-	if( meshFull ) meshFull = fullMesh;
-	else fullMesh.reset(); //Freeing the global mesh to save memory
+    displayer.leaderPrint ("Partitioning time: ", meshPartChrono.diff(), " s.\n");
+    if ( meshFull )
+    {
+        meshFull = fullMesh;
+    }
+    else
+    {
+        fullMesh.reset();    //Freeing the global mesh to save memory
+    }
+}
+
+//! Read and partitioned a *.mesh file
+/*!
+  @param meshLocal The partitioned mesh that we want to generate
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+*/
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+template< typename RegionMeshType>
+void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
+                               const std::string& meshName,
+                               const std::string& resourcesPath = "./" )
+{
+#ifdef HAVE_MPI
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
+#else
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
+#endif
+    Displayer displayer ( Comm );
+
+    LifeChrono meshReadChrono;
+    meshReadChrono.start();
+    PartitionIO< RegionMeshType > partitionIO ( ( resourcesPath + meshName ).data(), Comm);
+    partitionIO.read (meshLocal);
+    meshReadChrono.stop();
+    displayer.leaderPrint ("Loading time: ", meshReadChrono.diff(), " s.\n");
 }
 
 //! Build a mesh from a partitioned mesh
@@ -292,15 +236,83 @@ void fillWithStructuredMesh( boost::shared_ptr< RegionMeshType >& mesh,
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template< typename RegionMeshType>
-void fillWithStructuredMesh( boost::shared_ptr< RegionMeshType >& mesh,
-							 markerID_Type regionFlag,
-							 const std::vector<UInt>& m,
-							 bool verbose=false,
-							 const std::vector<UInt>& l = std::vector<UInt>(3,1),
-							 const std::vector<UInt>& t = std::vector<UInt>(3,0) )
+void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
+                              boost::shared_ptr< RegionMeshType >& meshFull,
+                              markerID_Type regionFlag,
+                              const std::vector<UInt>& m,
+                              bool verbose = false,
+                              const std::vector<UInt>& l = std::vector<UInt> (3, 1),
+                              const std::vector<UInt>& t = std::vector<UInt> (3, 0) )
 {
-	boost::shared_ptr< RegionMeshType > tmpMeshFull( new RegionMeshType );
-	fillWithStructuredMesh( mesh, tmpMeshFull, regionFlag, m, verbose, l, t );
+#ifdef HAVE_MPI
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
+#else
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
+#endif
+    Displayer displayer ( Comm );
+
+    LifeChrono meshBuildChrono;
+    meshBuildChrono.start();
+    boost::shared_ptr< RegionMeshType > fullMesh ( new RegionMeshType ( Comm ) );
+    if ( m.size() == 1)
+    {
+        //TODO structured mesh in 1D
+    }
+    else if ( m.size() == 2)
+    {
+        //TODO structured mesh in 2D
+    }
+    else
+    {
+        regularMesh3D ( *fullMesh,
+                        regionFlag,
+                        m[0], m[1], m[2],
+                        verbose,
+                        l[0], l[1], l[2],
+                        t[0], t[1], t[2] );
+    }
+    printMeshInfos ( fullMesh );
+    meshBuildChrono.stop();
+    displayer.leaderPrint ("Building time: ", meshBuildChrono.diff(), " s.\n");
+
+    LifeChrono meshPartChrono;
+    meshPartChrono.start();
+    MeshPartitioner<  RegionMeshType  > meshPartitioner ( fullMesh, Comm );
+    mesh = meshPartitioner.meshPartition();
+    meshPartChrono.stop();
+    displayer.leaderPrint ("Partitioning time: ", meshPartChrono.diff(), " s.\n");
+    if ( meshFull )
+    {
+        meshFull = fullMesh;
+    }
+    else
+    {
+        fullMesh.reset();    //Freeing the global mesh to save memory
+    }
+}
+
+//! Build a mesh from a partitioned mesh
+/*!
+  @param mesh The mesh that we want to generate
+  @param regionFlag Flag of the region
+  @param m Number of elements along the ( length, width, height )
+  @param l length of the mesh ( length, width, height )
+  @param t translation of the mesh along the (x,y,z)-axis
+  @param verbose Verbose mode enabled/disabled
+*/
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+template< typename RegionMeshType>
+void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
+                              markerID_Type regionFlag,
+                              const std::vector<UInt>& m,
+                              bool verbose = false,
+                              const std::vector<UInt>& l = std::vector<UInt> (3, 1),
+                              const std::vector<UInt>& t = std::vector<UInt> (3, 0) )
+{
+    boost::shared_ptr< RegionMeshType > tmpMeshFull ( new RegionMeshType );
+    fillWithStructuredMesh ( mesh, tmpMeshFull, regionFlag, m, verbose, l, t );
 }
 
 
