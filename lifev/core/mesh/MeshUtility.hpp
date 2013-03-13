@@ -59,11 +59,7 @@
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
 
-#include <lifev/core/util/LifeChrono.hpp>
 #include <lifev/core/util/Displayer.hpp>
-#include <lifev/core/mesh/MeshPartitioner.hpp>
-#include <lifev/core/filter/PartitionIO.hpp>
-
 
 namespace LifeV
 {
@@ -72,7 +68,6 @@ namespace LifeV
 class LinearTetra;
 template <typename GeoShapeType, typename MCType >
 class RegionMesh;
-class MeshData;
 
 namespace MeshUtility
 {
@@ -2761,152 +2756,24 @@ void assignRegionMarkerID ( RegionMeshType& mesh, const RegionFunctorType& fun )
 
 } // assignRegionMarkerID
 
-//! setup and get the mesh data
-/*!
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
-  @param meshOrder order of the mesh elements
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-MeshData getMeshData( const std::string& meshName,
-		                const std::string& resourcesPath = "./",
-		                const std::string& meshOrder = "P1" );
-
-
-//! Read and partitioned a *.mesh file
-/*!
-  @param meshLocal The partitioned mesh that we want to generate
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
-  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-template< typename RegionMeshType>
-void fillWithMesh( boost::shared_ptr< RegionMeshType >& meshLocal,
-					 bool isPartitioned,
-					 const std::string& meshName,
-					 const std::string& resourcesPath = "./",
-					 const std::string& meshOrder = "P1",
-					 boost::shared_ptr< RegionMeshType >& meshFull = boost::shared_ptr< RegionMeshType >() )
-{
-	if(isPartitioned)
-	{
-		fillWithPartitionedMesh( meshLocal, meshName, resourcesPath );
-	}
-	else
-	{
-		fillWithFullMesh( meshLocal, meshName, resourcesPath, meshOrder, meshFull );
-	}
-}
-
-//! Read and partitioned a *.mesh file
-/*!
-  @param meshLocal The partitioned mesh that we want to generate
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
-  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-template< typename RegionMeshType>
-void fillWithFullMesh( 	boost::shared_ptr< RegionMeshType >& meshLocal,
-							const std::string& meshName,
-							const std::string& resourcesPath = "./",
-							const std::string& meshOrder = "P1",
-							boost::shared_ptr< RegionMeshType >& meshFull = boost::shared_ptr< RegionMeshType >() )
-{
-#ifdef HAVE_MPI
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
-#else
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
-#endif
-	Displayer displayer( Comm );
-
-	LifeChrono meshReadChrono;
-	meshReadChrono.start();
-	boost::shared_ptr<RegionMeshType > fullMesh( new RegionMeshType );
-	readMesh(*fullMesh, getMeshData(meshName, resourcesPath, meshOrder ) );
-	printMeshInfos( fullMesh );
-	meshReadChrono.stop();
-	displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
-
-	LifeChrono meshPartChrono;
-	meshPartChrono.start();
-	MeshPartitioner< RegionMeshType > meshPartitioner( fullMesh, Comm );
-	meshLocal = meshPartitioner.meshPartition();
-	meshPartChrono.stop();
-	displayer.leaderPrint("Partitioning time: ", meshPartChrono.diff(), " s.\n");
-	if( meshFull ) meshFull = fullMesh;
-	else fullMesh.reset(); //Freeing the global mesh to save memory
-}
-
-//! Read a partitioned mesh
-/*!
-  @param meshLocal The partitioned mesh that we want to generate
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-template< typename RegionMeshType>
-void fillWithPartitionedMesh( boost::shared_ptr< RegionMeshType >& meshLocal,
-							  const std::string& meshName,
-							  const std::string& resourcesPath = "./" )
-{
-#ifdef HAVE_MPI
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
-#else
-	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
-#endif
-	Displayer displayer( Comm );
-
-	LifeChrono meshReadChrono;
-	meshReadChrono.start();
-	PartitionIO< RegionMeshType > partitionIO( ( resourcesPath + meshName ).data(), Comm);
-	partitionIO.read(meshLocal);
-	meshReadChrono.stop();
-	displayer.leaderPrint("Loading time: ", meshReadChrono.diff(), " s.\n");
-}
-
-//! Build a mesh from a partitioned mesh
-/*!
-  @param mesh The mesh that we want to generate
-  @param regionFlag Flag of the region
-  @param m_x Number of elements along the length
-  @param m_y Number of elements along the width
-  @param m_z Number of elements along the height
-  @param l_x length of the mesh
-  @param l_y width of the mesh
-  @param l_z height of the mesh
-  @param verbose Verbose mode enabled/disabled
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-void fillWithStructuredMesh( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
-							 markerID_Type regionFlag,
-							 const UInt& m_x,
-							 const UInt& m_y,
-							 const UInt& m_z,
-							 bool verbose=false,
-							 const Real& l_x=1.0,
-							 const Real& l_y=1.0,
-							 const Real& l_z=1.0,
-							 const Real& t_x=0.0,
-							 const Real& t_y=0.0,
-							 const Real& t_z=0.0 );
-
 //! Print informations about the mesh
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
-void printMeshInfos( boost::shared_ptr<RegionMesh<LinearTetra, defaultMarkerCommon_Type > > mesh );
+template <typename RegionMeshType>
+void printMeshInfos( boost::shared_ptr<RegionMeshType > mesh )
+{
+#ifdef HAVE_MPI
+	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
+#else
+	boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
+#endif
+	Displayer displayer( Comm );
+	MeshUtility::MeshStatistics::meshSize meshSize = MeshUtility::MeshStatistics::computeSize( *mesh );
+	displayer.leaderPrint( "Mesh size (max): ", meshSize.maxH, "\n" );
+	displayer.leaderPrint( "Mesh size (min): ", meshSize.minH, "\n" );
+	displayer.leaderPrint( "Mesh size (av.): ", meshSize.meanH, "\n" );
+}
 
 
 } // namespace MeshUtility
