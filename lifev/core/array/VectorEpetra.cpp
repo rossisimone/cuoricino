@@ -152,14 +152,11 @@ VectorEpetra::data_type&
 VectorEpetra::operator[] ( const UInt row )
 {
     Int lrow = blockMap().LID (row);
-
-#ifdef HAVE_LIFEV_DEBUG
     if ( lrow < 0 )
     {
         std::cout << M_epetraVector->Comm().MyPID() << " " << row << " " << lrow << std::endl;
         ERROR_MSG ( "VectorEpetra::operator [] ERROR : !! lrow < 0\n" );
     }
-#endif
 
     return (*M_epetraVector) [0][lrow];
 }
@@ -168,14 +165,12 @@ const VectorEpetra::data_type&
 VectorEpetra::operator[] ( const UInt row ) const
 {
     Int lrow = blockMap().LID (row);
-
-#ifdef HAVE_LIFEV_DEBUG
     if ( lrow < 0 )
     {
         std::cout << M_epetraVector->Comm().MyPID() << " " << row << " " << lrow << std::endl;
         ERROR_MSG ( "VectorEpetra::operator () ERROR : !! lrow < 0\n" );
+
     }
-#endif
 
     return ( (*M_epetraVector) [0][lrow]);
 }
@@ -240,7 +235,7 @@ VectorEpetra::operator= ( const VectorEpetra& vector )
     }
 
     // if we get here, it means that we have two different repeated maps.
-    // To hande this case, we have to create a unique copy first:
+    // To handle this case, we have to create a unique copy first:
 
     std::cout << "Tentative of export import from two repeated vectors based on different maps."
               << std::endl;
@@ -609,13 +604,11 @@ Int VectorEpetra::globalToLocalRowId ( const UInt row ) const
 {
     Int lrow = blockMap().LID (row);
 
-#ifdef HAVE_LIFEV_DEBUG
     if ( lrow < 0 && blockMap().Comm().NumProc() == 1 )
     {
         std::cout << M_epetraVector->Comm().MyPID() << " " << row << " " << lrow << std::endl;
         ERROR_MSG ( "VectorEpetra::globalToLocalRowId ERROR : !! lrow < 0\n" );
     }
-#endif
 
     return lrow;
 }
@@ -1088,3 +1081,4 @@ operator* ( const VectorEpetra::data_type& scalar, const VectorEpetra& vector )
 }
 
 }  // end namespace LifeV
+

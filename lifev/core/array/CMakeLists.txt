@@ -1,4 +1,5 @@
 SET(array_HEADERS
+  array/EnumMapEpetra.hpp
   array/VectorEpetra.hpp
   array/MapVector.hpp
   array/VectorSmall.hpp
@@ -19,6 +20,7 @@ SET(array_HEADERS
   array/VectorElemental.hpp
   array/RNMOperator.hpp
   array/MatrixContainer.hpp
+  array/GhostHandler.hpp
 CACHE INTERNAL "")
 
 SET(array_SOURCES

@@ -44,6 +44,7 @@
 // Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-pedantic"
 
 #include <Epetra_MpiComm.h>
 #include <Epetra_FECrsMatrix.h>
@@ -59,6 +60,7 @@
 // Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
+#pragma GCC diagnostic warning "-pedantic"
 
 #include <lifev/core/array/VectorEpetra.hpp>
 
@@ -109,7 +111,14 @@ public:
       @param map Row map. The column map will be defined in MatrixEpetra<DataType>::GlobalAssemble(...,...)
       @param numEntries The average number of entries for each row.
      */
-    MatrixEpetra ( const MapEpetra& map, Int numEntries = 50 );
+    MatrixEpetra ( const MapEpetra& map, Int numEntries = 50, bool ignoreNonLocalValues = false );
+
+    //! Constructor for square and rectangular matrices, knowing the number of entries per row
+    /*!
+      @param map Row map. The column map will be defined in MatrixEpetra<DataType>::GlobalAssemble(...,...)
+      @param numEntries The average number of entries for each row.
+     */
+    MatrixEpetra ( const MapEpetra& map, Int* numEntriesPerRow, bool ignoreNonLocalValues = false );
 
     //! Copy Constructor
     /*!
@@ -142,7 +151,7 @@ public:
     MatrixEpetra ( const MapEpetra& map, matrix_ptrtype crsMatrixPtr);
 
     //! Destructor
-    ~MatrixEpetra() {};
+    ~MatrixEpetra() {}
 
     //@}
 
@@ -155,6 +164,12 @@ public:
       @param matrix matrix to be added to the current matrix
      */
     MatrixEpetra& operator += ( const MatrixEpetra& matrix );
+
+    //! Subtraction operator
+    /*!
+      @param matrix matrix to be subtracted to the current matrix
+     */
+    MatrixEpetra& operator -= ( const MatrixEpetra& matrix );
 
     //! Assignment operator
     /*!
@@ -355,6 +370,9 @@ public:
     Int globalAssemble ( const boost::shared_ptr<const MapEpetra>& domainMap,
                          const boost::shared_ptr<const MapEpetra>& rangeMap );
 
+    //! Fill complete of a square matrix with default domain and range map
+    Int fillComplete();
+
     //! insert the given value into the diagonal
     /*!
       Pay intention that this will add values to the diagonal,
@@ -367,6 +385,16 @@ public:
       @param Map The MapEpetra
       @param offset An offset for the insertion of the diagonal entries
     */
+
+    void insertGlobalValues (int GlobalRow, int NumEntries, const double* Values, const int* Indices);
+    //! insert values into the matrix
+    /*!
+      @param GlobalRow The global row-index
+      @param NumEntries number of entries per row
+      @param Values The values to be inserted
+      @param Indices The global column-index
+    */
+
     void insertValueDiagonal ( const DataType entry, const MapEpetra& Map, const UInt offset = 0 );
 
     //! insert the given value into the diagonal
@@ -600,9 +628,17 @@ MatrixEpetra<DataType>::MatrixEpetra ( const MapEpetra& map, const Epetra_CrsGra
 }
 
 template <typename DataType>
-MatrixEpetra<DataType>::MatrixEpetra ( const MapEpetra& map, Int numEntries ) :
+MatrixEpetra<DataType>::MatrixEpetra ( const MapEpetra& map, Int numEntries, bool ignoreNonLocalValues ) :
     M_map       ( new MapEpetra ( map ) ),
-    M_epetraCrs ( new matrix_type ( Copy, *M_map->map ( Unique ), numEntries, false) )
+    M_epetraCrs ( new matrix_type ( Copy, *M_map->map ( Unique ), numEntries, ignoreNonLocalValues) )
+{
+
+}
+
+template <typename DataType>
+MatrixEpetra<DataType>::MatrixEpetra ( const MapEpetra& map, int* numEntries, bool ignoreNonLocalValues ) :
+    M_map       ( new MapEpetra ( map ) ),
+    M_epetraCrs ( new matrix_type ( Copy, *M_map->map ( Unique ), numEntries, ignoreNonLocalValues) )
 {
 
 }
@@ -662,6 +698,15 @@ MatrixEpetra<DataType>&
 MatrixEpetra<DataType>::operator += ( const MatrixEpetra& matrix )
 {
     EpetraExt::MatrixMatrix::Add ( *matrix.matrixPtr(), false, 1., *this->matrixPtr(), 1. );
+
+    return *this;
+}
+
+template <typename DataType>
+MatrixEpetra<DataType>&
+MatrixEpetra<DataType>::operator -= ( const MatrixEpetra& matrix )
+{
+    EpetraExt::MatrixMatrix::Add ( *matrix.matrixPtr(), false, 1., *this->matrixPtr(), -1. );
 
     return *this;
 }
@@ -1347,6 +1392,18 @@ Int MatrixEpetra<DataType>::globalAssemble()
 }
 
 template <typename DataType>
+Int MatrixEpetra<DataType>::fillComplete()
+{
+    if ( !M_epetraCrs->Filled() )
+    {
+        insertZeroDiagonal();
+    }
+    M_domainMap = M_map;
+    M_rangeMap  = M_map;
+    return  M_epetraCrs->FillComplete();
+}
+
+template <typename DataType>
 Int MatrixEpetra<DataType>::globalAssemble ( const boost::shared_ptr<const MapEpetra>& domainMap,
                                              const boost::shared_ptr<const MapEpetra>& rangeMap )
 {
@@ -1363,13 +1420,18 @@ Int MatrixEpetra<DataType>::globalAssemble ( const boost::shared_ptr<const MapEp
 }
 
 template <typename DataType>
-void
-MatrixEpetra<DataType>::insertValueDiagonal ( const DataType entry, const MapEpetra& Map, const UInt offset )
+void MatrixEpetra<DataType>::insertValueDiagonal ( const DataType entry, const MapEpetra& Map, const UInt offset )
 {
     for ( Int i = 0 ; i < Map.map (Unique)->NumMyElements(); ++i )
     {
         addToCoefficient ( offset + Map.map (Unique)->GID (i) , offset + Map.map (Unique)->GID (i), entry );
     }
+}
+
+template <typename DataType>
+void MatrixEpetra<DataType>::insertGlobalValues (int GlobalRow, int NumEntries, const double* Values, const int* Indices)
+{
+    M_epetraCrs->InsertGlobalValues (GlobalRow, NumEntries, Values, Indices);
 }
 
 template <typename DataType>
