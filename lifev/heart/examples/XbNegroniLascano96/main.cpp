@@ -330,13 +330,14 @@ Int main ( Int argc, char** argv )
     //! Setting generic Exporter postprocessing
     ExporterHDF5< RegionMesh <LinearTetra> > exporterXb;
 
-	exporterXb.setMeshProcId( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
-	exporterXb.setPrefix("XbSolution");
-	std::string variableName;
-	for( int i = 0; i < xbModel -> Size() ; i++ ){
-		variableName = "State" + boost::lexical_cast<std::string>( i );
-		exporterXb.addVariable( ExporterData<mesh_Type>::ScalarField,  variableName, splitting -> feSpacePtr(), states.at(i), UInt(0) );
-	}
+    exporterXb.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
+    exporterXb.setPrefix ("XbSolution");
+    std::string variableName;
+    for ( int i = 0; i < xbModel -> Size() ; i++ )
+    {
+        variableName = "State" + boost::lexical_cast<std::string> ( i );
+        exporterXb.addVariable ( ExporterData<mesh_Type>::ScalarField,  variableName, splitting -> feSpacePtr(), states.at (i), UInt (0) );
+    }
 
 
 

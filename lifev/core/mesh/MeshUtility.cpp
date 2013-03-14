@@ -95,7 +95,7 @@ const
 //void
 //resetMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& fullmesh)
 //{
-//	fullMesh.reset(); //Freeing the global mesh to save memory
+//  fullMesh.reset(); //Freeing the global mesh to save memory
 //}
 
 void
@@ -129,18 +129,18 @@ fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommo
     meshPartChrono.start();
     MeshPartitioner< RegionMesh<LinearTetra> > meshPartitioner ( fullMesh, Comm );
     meshLocal = meshPartitioner.meshPartition();
-    meshPartChrono.stop()	;
-	fullMesh.reset(); //Freeing the global mesh to save memory
+    meshPartChrono.stop()   ;
+    fullMesh.reset(); //Freeing the global mesh to save memory
     displayer.leaderPrint ("Partitioning time: ", meshPartChrono.diff(), " s.\n");
 
 }
 
 void
 fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
-		             boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
+                   boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
                    const std::string& meshName,
                    const std::string& resourcesPath)
-                   // TODO bool eraseFullMesh)
+// TODO bool eraseFullMesh)
 {
 
     MeshData meshData;
@@ -170,14 +170,14 @@ fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommo
     meshPartChrono.start();
     MeshPartitioner< RegionMesh<LinearTetra> > meshPartitioner ( fullMesh, Comm );
     meshLocal = meshPartitioner.meshPartition();
-    meshPartChrono.stop()	;
-//
+    meshPartChrono.stop()   ;
+    //
     displayer.leaderPrint ("Partitioning time: ", meshPartChrono.diff(), " s.\n");
 }
 
 void
 fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
-		boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
+                   boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
                    const std::string& meshName,
                    const std::string& resourcesPath )
 {

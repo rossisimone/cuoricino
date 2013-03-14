@@ -140,7 +140,7 @@ public:
     inline void setVp     ( const Real& Vp )
     {
         this->M_Vp      = Vp;
-        this->M_Eta		= M_Eta2/M_Vp;
+        this->M_Eta     = M_Eta2 / M_Vp;
     }
     inline void setEta1   ( const Real& Eta1 )
     {
@@ -149,13 +149,13 @@ public:
     inline void setEta2   ( const Real& Eta2 )
     {
         this->M_Eta2    = Eta2;
-        this->M_Eta		= M_Eta2/M_Vp;
-        this->M_Gamma	= M_Eta2*M_Eta3;
+        this->M_Eta     = M_Eta2 / M_Vp;
+        this->M_Gamma   = M_Eta2 * M_Eta3;
     }
     inline void setEta3   ( const Real& Eta3 )
     {
         this->M_Eta3    = Eta3;
-        this->M_Gamma	= M_Eta2*M_Eta3;
+        this->M_Gamma   = M_Eta2 * M_Eta3;
     }
 
     //Compute the rhs on a single node or for the 0D case
@@ -168,7 +168,7 @@ public:
     Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
 
     //compute the Jacobian
-    void computeJ(Real& a, Real& b, Real&c, Real& d, const std::vector<Real>& v);
+    void computeJ (Real& a, Real& b, Real& c, Real& d, const std::vector<Real>& v);
 
     //! Display information about the model
     void showMe();
@@ -202,10 +202,10 @@ IonicFitzHughNagumo::IonicFitzHughNagumo()    :
     M_Vp    ( 100. ),
     M_Eta1  ( 4.4 ),
     M_Eta2  ( 0.012 ),
-	M_Eta3	( 1.)
+    M_Eta3  ( 1.)
 {
-	M_Eta = M_Eta2 / M_Vp;
-	M_Gamma = M_Eta2 * M_Eta3;
+    M_Eta = M_Eta2 / M_Vp;
+    M_Gamma = M_Eta2 * M_Eta3;
 }
 
 IonicFitzHughNagumo::IonicFitzHughNagumo ( Teuchos::ParameterList& parameterList   )   :
@@ -216,9 +216,9 @@ IonicFitzHughNagumo::IonicFitzHughNagumo ( Teuchos::ParameterList& parameterList
     M_Vp    =   parameterList.get ("Vp", 100.);
     M_Eta1  =   parameterList.get ("Eta1", 4.4);
     M_Eta2  =   parameterList.get ("Eta2", 0.012);
-    M_Eta3	=	parameterList.get ("Eta3", 1.);
-	M_Eta   =   M_Eta2 / M_Vp;
-	M_Gamma =   M_Eta2 * M_Eta3;
+    M_Eta3  =   parameterList.get ("Eta3", 1.);
+    M_Eta   =   M_Eta2 / M_Vp;
+    M_Gamma =   M_Eta2 * M_Eta3;
 }
 
 IonicFitzHughNagumo::IonicFitzHughNagumo ( const IonicFitzHughNagumo& model )
@@ -228,9 +228,9 @@ IonicFitzHughNagumo::IonicFitzHughNagumo ( const IonicFitzHughNagumo& model )
     M_Vp    =   model.M_Vp;
     M_Eta1  =   model.M_Eta1;
     M_Eta2  =   model.M_Eta2;
-    M_Eta3	=	model.M_Eta3;
-    M_Eta	=	model.M_Eta;
-    M_Gamma	=	model.M_Gamma;
+    M_Eta3  =   model.M_Eta3;
+    M_Eta   =   model.M_Eta;
+    M_Gamma =   model.M_Gamma;
 
     M_numberOfEquations = model.M_numberOfEquations;
 }
@@ -245,9 +245,9 @@ IonicFitzHughNagumo& IonicFitzHughNagumo::operator= ( const IonicFitzHughNagumo&
     M_Vp    =   model.M_Vp;
     M_Eta1  =   model.M_Eta1;
     M_Eta2  =   model.M_Eta2;
-    M_Eta3	=	model.M_Eta3;
-    M_Eta	=	model.M_Eta;
-    M_Gamma	=	model.M_Gamma;
+    M_Eta3  =   model.M_Eta3;
+    M_Eta   =   model.M_Eta;
+    M_Gamma =   model.M_Gamma;
 
     M_numberOfEquations = model.M_numberOfEquations;
 
@@ -264,7 +264,7 @@ void IonicFitzHughNagumo::computeRhs (    const   std::vector<Real>&  v,
 {
 
     //Real dr = - ( M_epsilon + M_mu1 * v[1] / ( M_mu2 + v[0] ) ) * ( v[1] + M_k * v[0] * ( v[0] - M_a  - 1.0 ) );
-    Real dr = M_Eta*v[0] - M_Gamma*v[1] ;
+    Real dr = M_Eta * v[0] - M_Gamma * v[1] ;
 
     rhs[0] = dr;
 
@@ -276,7 +276,7 @@ void IonicFitzHughNagumo::computeRhs (    const   std::vector<Real>&  v,
                                           std::vector<Real>& rhs )
 {
     Real dV = - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) + Iapp;
-    Real dr = M_Eta*v[0] - M_Gamma*v[1] ;
+    Real dr = M_Eta * v[0] - M_Gamma * v[1] ;
 
     rhs[0] = dV;
     rhs[1] = dr;
@@ -289,12 +289,12 @@ Real IonicFitzHughNagumo::computeLocalPotentialRhs ( const std::vector<Real>& v,
     return ( - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) + Iapp );
 }
 
-void IonicFitzHughNagumo::computeJ(Real& a, Real& b, Real& c, Real& d, const std::vector<Real>& v)
+void IonicFitzHughNagumo::computeJ (Real& a, Real& b, Real& c, Real& d, const std::vector<Real>& v)
 {
-	a = -( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
-	b = -M_Eta1 * v[0];
-	c = M_Eta;
-	d = -M_Gamma;
+    a = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
+    b = -M_Eta1 * v[0];
+    c = M_Eta;
+    d = -M_Gamma;
 }
 
 

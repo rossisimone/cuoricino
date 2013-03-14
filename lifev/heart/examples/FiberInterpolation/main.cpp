@@ -176,7 +176,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Fill the fiber direction in an EpetraVector//
     //********************************************//
-    vectorPtr_Type fiber1( new vector_Type ( coarse -> map() ) );
+    vectorPtr_Type fiber1 ( new vector_Type ( coarse -> map() ) );
 
     int n1 = (*fiber1).epetraVector().MyLength();
     int d1 = n1 / 3;
@@ -197,13 +197,13 @@ Int main ( Int argc, char** argv )
 
     //********************************************//
     // Create the new fiber direction in the finer//
-    //				mesh						  //
+    //              mesh                          //
     //********************************************//
-    vectorPtr_Type fiber2( new vector_Type ( fine -> map() ) );
+    vectorPtr_Type fiber2 ( new vector_Type ( fine -> map() ) );
 
     //********************************************//
     // Interpolate the fiber direction in the fine//
-    // mesh										  //
+    // mesh                                       //
     //********************************************//
 
     int n2 = (*fiber2).epetraVector().MyLength();
