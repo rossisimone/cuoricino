@@ -64,6 +64,7 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData() :
     M_alpha                            ( ),
     M_gamma                            ( ),
     M_order                            ( ),
+    M_fileFiberDirections              ( ),
     M_verbose                          ( ),
     M_vectorMaterialFlags              ( )
 {
@@ -82,6 +83,7 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData ( const StructuralC
     M_alpha                            ( structuralConstitutiveLawData.M_alpha ),
     M_gamma                            ( structuralConstitutiveLawData.M_gamma ),
     M_order                            ( structuralConstitutiveLawData.M_order ),
+    M_fileFiberDirections              ( structuralConstitutiveLawData.M_fileFiberDirections ),
     M_verbose                          ( structuralConstitutiveLawData.M_verbose ),
     M_vectorMaterialFlags              ( structuralConstitutiveLawData.M_vectorMaterialFlags )
 {
@@ -107,6 +109,7 @@ StructuralConstitutiveLawData::operator= ( const StructuralConstitutiveLawData& 
         M_alpha                            = structuralConstitutiveLawData.M_alpha;
         M_gamma                            = structuralConstitutiveLawData.M_gamma;
         M_order                            = structuralConstitutiveLawData.M_order;
+        M_fileFiberDirections              = structuralConstitutiveLawData.M_fileFiberDirections;
         M_verbose                          = structuralConstitutiveLawData.M_verbose;
         M_vectorMaterialFlags              = structuralConstitutiveLawData.M_vectorMaterialFlags;
     }
@@ -184,6 +187,9 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
     // space_discretization
     M_order            = dataFile ( ( section + "/space_discretization/order" ).data(), "P1" );
 
+    // fiber directions
+    M_fileFiberDirections = dataFile ( ( section + "/space_discretization/fibers_file" ).data(), "" );
+
     // miscellaneous
     M_verbose          = dataFile ( ( section + "/miscellaneous/verbose" ).data(), 0 );
     M_useExactJacobian = dataFile ( ( section + "/useExactJacobian"      ).data(), false );
@@ -238,6 +244,7 @@ StructuralConstitutiveLawData::showMe ( std::ostream& output ) const
 
     output << "\n*** Values for data [solid/space_discretization]\n\n";
     output << "FE order                         = " << M_order << std::endl;
+    output << "File for fiber directions        = " << M_fileFiberDirections << std::endl;
 
     output << "\n*** Values for data [solid/time_discretization]\n\n";
     M_time->showMe ( output );

@@ -333,6 +333,15 @@ public:
         return M_order;
     }
 
+    //! Get file name to read fiber directions from
+    /*!
+     * @return file name to read fiber directions from
+     */
+    const std::string& fileFiberDirections() const
+    {
+        return M_fileFiberDirections;
+    }
+
     //! Get verbose level
     /*!
      * @return verbose level
@@ -396,6 +405,7 @@ private:
 
     //! Space discretization
     std::string            M_order;
+    std::string            M_fileFiberDirections;
 
     //! Miscellaneous
     UInt                   M_verbose; // temporal output verbose
