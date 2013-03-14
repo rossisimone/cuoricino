@@ -72,6 +72,7 @@
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
 #include <lifev/structure/solver/ExponentialMaterialNonLinear.hpp>
 #include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
+#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
 
 #include <lifev/core/fem/DOFInterface3Dto3D.hpp>
 #include <lifev/core/fem/DOFInterface3Dto2D.hpp>
@@ -340,6 +341,11 @@ public:
     static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createNeoHookeanMaterialNonLinear()
     {
         return new NeoHookeanMaterialNonLinear< FSIOperator::mesh_Type >();
+    }
+
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createNeoHookeanMaterialActivated()
+    {
+        return new NeoHookeanActivatedMaterial< FSIOperator::mesh_Type >();
     }
 
     //@}

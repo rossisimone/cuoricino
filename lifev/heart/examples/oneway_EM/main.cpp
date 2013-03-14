@@ -54,7 +54,7 @@
 #include <lifev/core/mesh/MeshData.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/heart/solver/HeartUpdatedMonodomainSolver.hpp>
-#include <lifev/heart/solver/NeoHookeanActivatedMaterial.hpp>
+#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
 #include <lifev/heart/solver/HeartIonicSolver.hpp>
 #include <lifev/heart/solver/HeartAlievPanfilov.hpp>
 
