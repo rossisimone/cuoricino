@@ -6,7 +6,7 @@
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
     <Parameter name="timeStep" type="double" value="0.01"  />
-    <Parameter name="endTime" type="double" value="60."  />
+    <Parameter name="endTime" type="double" value="150.0"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.001"  />
     <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />

@@ -271,8 +271,20 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
+    Real dt = monodomainList.get ("timeStep", 0.01);
+    Real TF = monodomainList.get ("endTime", 150.0);
 
-    splitting   -> solveSplitting ( exporterSplitting );
+    //splitting   -> solveSplitting ( exporterSplitting );
+
+    for ( Real t = 0.0; t < TF; )
+    {
+        t = t + dt;
+        splitting -> solveOneSplittingStep (exporterSplitting, t);
+
+        std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+
+    }
+
     exporterSplitting.closeFile();
 
 
