@@ -595,7 +595,8 @@ FSIMonolithic::assembleSolidBlock ( UInt iter, const vector_Type& solution )
 
     if ( isMaterialLinear )
     {
-        // Linear material case
+        // Linear material case, only stiffness matrix is needed
+
         M_solid->material()->computeStiffness (solution * M_solid->rescaleFactor(), 1., M_data->dataSolid(), M_solid->mapMarkersVolumes(), M_solid->displayerPtr() );
         M_solidBlockPrec.reset (new matrix_Type (*M_monolithicMap, 1) );
         *M_solidBlockPrec += *M_solid->massMatrix();
@@ -605,11 +606,13 @@ FSIMonolithic::assembleSolidBlock ( UInt iter, const vector_Type& solution )
     }
     else
     {
-        // Computing the Jacobian if solving a nonlinear problem
+        // Compute the Jacobian instead if solving a nonlinear problem
+
         if ( M_data->dataSolid()->solidType().compare ("neoHookeanActivated") == 0 )
         {
-            // Take into account the fiber directions when updating the Jacobian
-            M_solid->material()->updateJacobianMatrix ( solution * M_solid->rescaleFactor(), dataSolid(), M_solid->mapMarkersVolumes(), M_solid->displayerPtr() );
+            // Take into account the fiber directions when dealing with activated material
+            boost::shared_ptr< NeoHookeanActivatedMaterial<mesh_Type> > materialActivated ( boost::dynamic_pointer_cast< NeoHookeanActivatedMaterial<mesh_Type> > ( M_solid->material() ) );
+            materialActivated->updateJacobianMatrix ( solution * M_solid->rescaleFactor(), dataSolid(), M_solid->mapMarkersVolumes(), M_solid->displayerPtr() );
         }
         else
         {
