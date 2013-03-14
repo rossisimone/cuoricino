@@ -210,7 +210,7 @@ Int main ( Int argc, char** argv )
     {
         std::cout << " Splitting solver done... ";
     }
-    monodomainSolverPtr_Type ici ( new monodomainSolver_Type ( dataFile, model, splitting ->  meshPtr() ) );
+    monodomainSolverPtr_Type ici ( new monodomainSolver_Type ( dataFile, model, splitting ->  localMeshPtr() ) );
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " ICI solver done!\n. ";
