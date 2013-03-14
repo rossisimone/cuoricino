@@ -10,8 +10,8 @@
     <Parameter name="longitudinalDiffusion" type="double" value="0.001"  />
     <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="lid64.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
+    <Parameter name="mesh_name" type="string" value="lid16.mesh"  />
+    <Parameter name="mesh_path" type="string" value="./"  />
     <Parameter name="fiber_X" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />
