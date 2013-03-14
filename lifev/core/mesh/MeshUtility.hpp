@@ -2762,6 +2762,11 @@ void fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarker
                         const std::string& meshName,
                         const std::string& ressourcesPath = "./Ressources/" );
 
+void fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
+		 boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
+                        const std::string& meshName,
+                        const std::string& ressourcesPath = "./Ressources/" );
+
 //! Read a partitioned mesh
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>

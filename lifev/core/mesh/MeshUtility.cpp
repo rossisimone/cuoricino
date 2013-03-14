@@ -131,6 +131,44 @@ fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommo
 }
 
 void
+fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
+		boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
+                   const std::string& meshName,
+                   const std::string& resourcesPath )
+{
+
+    MeshData meshData;
+    meshData.setMeshDir ( resourcesPath );
+    meshData.setMeshFile ( meshName );
+    meshData.setMeshType ( ".mesh" );
+    meshData.setMOrder ( "P1" );
+    meshData.setVerbose ( false );
+
+#ifdef HAVE_MPI
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
+#else
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
+#endif
+    Displayer displayer ( Comm );
+
+    LifeChrono meshReadChrono;
+    meshReadChrono.start();
+    boost::shared_ptr<RegionMesh<LinearTetra> > fullMesh ( new RegionMesh<LinearTetra> );
+    readMesh (*fullMesh, meshData);
+    printMeshInfos ( fullMesh );
+    meshReadChrono.stop();
+    displayer.leaderPrint ("Loading time: ", meshReadChrono.diff(), " s.\n");
+
+    LifeChrono meshPartChrono;
+    meshPartChrono.start();
+    MeshPartitioner< RegionMesh<LinearTetra> > meshPartitioner ( fullMesh, Comm );
+    mesh = meshPartitioner.meshPartition();
+    meshPartChrono.stop();
+    meshFull = fullMesh;
+    displayer.leaderPrint ("Partitioning time: ", meshPartChrono.diff(), " s.\n");
+}
+
+void
 fillWithPartitionedMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
                           const std::string& meshName,
                           const std::string& ressourcesPath )
