@@ -126,16 +126,16 @@ public:
       \param dataMaterial: a pointer to the dataType member in StructuralSolver class to get the material coefficients (e.g. Young modulus, Poisson ratio..)
       \param displayer: a pointer to the Dysplaier member in the StructuralSolver class
     */
-    void updateJacobianMatrix ( const vector_Type& disp,
-                                const dataPtr_Type& dataMaterial,
+    void updateJacobianMatrix ( const vector_Type&             disp,
+                                const dataPtr_Type&            dataMaterial,
                                 const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                const displayerPtr_Type& displayer);
+                                const displayerPtr_Type&       displayer);
 
-    void updateJacobianMatrix ( const vector_Type& disp,
-                                const vector_Type&       fibersRaw,
-                                const dataPtr_Type& dataMaterial,
+    void updateJacobianMatrix ( const vector_Type&             disp,
+                                const vector_Type&             fibersRaw,
+                                const dataPtr_Type&            dataMaterial,
                                 const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                const displayerPtr_Type& displayer);
+                                const displayerPtr_Type&       displayer);
 
     //! Updates the nonlinear terms in the Jacobian matrix in StructualSolver::updateJacobian
     /*!
@@ -240,24 +240,24 @@ protected:
     boost::scoped_ptr<MatrixElemental>              M_elmatK;
 
     //! Vector: stiffness non-linear
-    vectorPtr_Type                      M_stiff;
+    vectorPtr_Type                                  M_stiff;
 
     //! First Piola-Kirchhoff stress tensor
-    vectorPtr_Type                          M_FirstPiolaKStress;
+    vectorPtr_Type                                  M_FirstPiolaKStress;
 
     //! Local tensors initialization
     boost::shared_ptr<boost::multi_array<Real, 3> > M_Fk;
     boost::shared_ptr<boost::multi_array<Real, 3> > M_CofFk;
 
-    boost::shared_ptr<std::vector<Real> > M_Jack;
-    boost::shared_ptr<std::vector<Real> > M_trCisok;
-    boost::shared_ptr<std::vector<Real> > M_trCk;
+    boost::shared_ptr<std::vector<Real> >           M_Jack;
+    boost::shared_ptr<std::vector<Real> >           M_trCisok;
+    boost::shared_ptr<std::vector<Real> >           M_trCk;
 
     //! Local fibers vector
     boost::shared_ptr<boost::multi_array<Real, 0> > M_fiberVector;
-    boost::shared_ptr<std::vector<Real> > M_Gammaf;
-    boost::shared_ptr<std::vector<Real> > M_I_4f;
-    boost::shared_ptr<std::vector<Real> > M_I_1E;
+    boost::shared_ptr<std::vector<Real> >           M_Gammaf;
+    boost::shared_ptr<std::vector<Real> >           M_I_4f;
+    boost::shared_ptr<std::vector<Real> >           M_I_1E;
 };
 
 
@@ -266,11 +266,11 @@ protected:
 
 template <typename Mesh>
 NeoHookeanActivatedMaterial<Mesh>::NeoHookeanActivatedMaterial() :
-    super           ( ),
+    super               ( ),
     M_elvecK            ( ),
-    M_elmatK                    ( ),
-    M_stiff                 ( ),
-    M_FirstPiolaKStress     ( )
+    M_elmatK            ( ),
+    M_stiff             ( ),
+    M_FirstPiolaKStress ( )
 {
 }
 
@@ -333,20 +333,21 @@ void NeoHookeanActivatedMaterial<Mesh>::computeLinearStiff (dataPtr_Type& /*data
 
 
 template <typename Mesh>
-void NeoHookeanActivatedMaterial<Mesh>::updateJacobianMatrix ( const vector_Type&       /*disp*/,
-                                                               const dataPtr_Type&      /*dataMaterial*/,
+void NeoHookeanActivatedMaterial<Mesh>::updateJacobianMatrix ( const vector_Type&             /*disp*/,
+                                                               const dataPtr_Type&            /*dataMaterial*/,
                                                                const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
-                                                               const displayerPtr_Type& /*displayer*/ )
+                                                               const displayerPtr_Type&       /*displayer*/ )
 {
     //! Empty method for active neo-Hookean material
+    ASSERT (false, "NeoHookeanActivatedMaterial::updateJacobianMatrix should not be called without the fiber directions.");
 }
 
 template <typename Mesh>
-void NeoHookeanActivatedMaterial<Mesh>::updateJacobianMatrix ( const vector_Type&       disp,
-                                                               const vector_Type&    fibersRaw,
-                                                               const dataPtr_Type&      dataMaterial,
+void NeoHookeanActivatedMaterial<Mesh>::updateJacobianMatrix ( const vector_Type&             disp,
+                                                               const vector_Type&             fibersRaw,
+                                                               const dataPtr_Type&            dataMaterial,
                                                                const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                               const displayerPtr_Type& displayer )
+                                                               const displayerPtr_Type&       displayer )
 {
     this->M_jacobian.reset (new matrix_Type (*this->M_localMap) );
 
@@ -360,12 +361,12 @@ void NeoHookeanActivatedMaterial<Mesh>::updateJacobianMatrix ( const vector_Type
 
 
 template <typename Mesh>
-void NeoHookeanActivatedMaterial<Mesh>::updateNonLinearJacobianTerms ( matrixPtr_Type&       jacobian,
-                                                                       const vector_Type&    disp,
-                                                                       const vector_Type&    fibersRaw,
-                                                                       const dataPtr_Type&   dataMaterial,
+void NeoHookeanActivatedMaterial<Mesh>::updateNonLinearJacobianTerms ( matrixPtr_Type&                jacobian,
+                                                                       const vector_Type&             disp,
+                                                                       const vector_Type&             fibersRaw,
+                                                                       const dataPtr_Type&            dataMaterial,
                                                                        const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                                       const displayerPtr_Type&  displayer )
+                                                                       const displayerPtr_Type&       displayer )
 {
     displayer->leaderPrint ("   Non-Linear S-  updating non linear terms in the Jacobian Matrix (Activated Neo-Hookean)");
 
