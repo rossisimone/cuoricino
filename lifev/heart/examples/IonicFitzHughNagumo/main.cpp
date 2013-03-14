@@ -112,7 +112,7 @@ using namespace LifeV;
 
 Real Stimulus(const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-	return 80.91*( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
+	return 80.0*( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
 }
 
 
@@ -201,7 +201,6 @@ Int main( Int argc, char** argv )
 	splitting -> setPotentialFromFunction( f ); //initialize potential
 
 	//setting up initial conditions
-	//*( splitting -> globalSolution().at(0) ) = FHNParameterList.get ("V0", 1.0);
 	*( splitting -> globalSolution().at(1) ) = FHNParameterList.get ("W0", 0.011);
 
 	if ( Comm->MyPID() == 0 ) cout << "Done! \n" ;
