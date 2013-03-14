@@ -589,9 +589,13 @@ FSIMonolithic::assembleSolidBlock ( UInt iter, const vector_Type& solution )
         updateSolidSystem (this->M_rhs);
     }
 
+    bool isMaterialLinear = (M_data->dataSolid()->solidType().compare ("exponential"))
+                         && (M_data->dataSolid()->solidType().compare ("neoHookean"))
+                         && (M_data->dataSolid()->solidType().compare ("neoHookeanActivated"));
 
-    if (M_data->dataSolid()->solidType().compare ("exponential") && M_data->dataSolid()->solidType().compare ("neoHookean") )
+    if ( isMaterialLinear )
     {
+        // Linear material case
         M_solid->material()->computeStiffness (solution * M_solid->rescaleFactor(), 1., M_data->dataSolid(), M_solid->mapMarkersVolumes(), M_solid->displayerPtr() );
         M_solidBlockPrec.reset (new matrix_Type (*M_monolithicMap, 1) );
         *M_solidBlockPrec += *M_solid->massMatrix();
@@ -601,7 +605,17 @@ FSIMonolithic::assembleSolidBlock ( UInt iter, const vector_Type& solution )
     }
     else
     {
-        M_solid->material()->updateJacobianMatrix ( solution * M_solid->rescaleFactor(), dataSolid(), M_solid->mapMarkersVolumes(), M_solid->displayerPtr() ); // computing the derivatives if nonlinear (comment this for inexact Newton);
+        // Computing the Jacobian if solving a nonlinear problem
+        if ( M_data->dataSolid()->solidType().compare ("neoHookeanActivated") == 0 )
+        {
+            // Take into account the fiber directions when updating the Jacobian
+            M_solid->material()->updateJacobianMatrix ( solution * M_solid->rescaleFactor(), dataSolid(), M_solid->mapMarkersVolumes(), M_solid->displayerPtr() );
+        }
+        else
+        {
+            M_solid->material()->updateJacobianMatrix ( solution * M_solid->rescaleFactor(), dataSolid(), M_solid->mapMarkersVolumes(), M_solid->displayerPtr() );
+        }
+
         M_solidBlockPrec.reset (new matrix_Type (*M_monolithicMap, 1) );
         *M_solidBlockPrec += *M_solid->massMatrix();
         *M_solidBlockPrec += *M_solid->material()->jacobian(); //stiffMatrix();
