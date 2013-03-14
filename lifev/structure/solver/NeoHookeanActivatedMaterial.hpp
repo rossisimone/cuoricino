@@ -291,13 +291,13 @@ void
 NeoHookeanActivatedMaterial<Mesh>::setup ( const boost::shared_ptr< FESpace<Mesh, MapEpetra> >& dFESpace,
                                            const boost::shared_ptr<const MapEpetra>&            monolithicMap,
                                            const UInt                                           offset,
-                                           const dataPtr_Type& dataMaterial,
-                                           const displayerPtr_Type& displayer )
+                                           const dataPtr_Type&                                  dataMaterial,
+                                           const displayerPtr_Type&                             displayer )
 {
     this->M_displayer = displayer;
     this->M_dataMaterial  = dataMaterial;
 
-    std::cout << "setting up the activated material" << std::endl;
+    std::cout << "Setting up the activated material" << std::endl;
 
     this->M_FESpace                     = dFESpace;
     this->M_localMap                    = monolithicMap;
@@ -319,6 +319,31 @@ NeoHookeanActivatedMaterial<Mesh>::setup ( const boost::shared_ptr< FESpace<Mesh
     M_trCk.reset ( new std::vector<Real> (dFESpace->fe().nbQuadPt(), 0.0) );
     M_I_4f.reset ( new std::vector<Real> (dFESpace->fe().nbQuadPt(), 0.0) );
     M_I_1E.reset ( new std::vector<Real> (dFESpace->fe().nbQuadPt(), 0.0) );
+
+    //! Read the fiber directions from a file specified in StructuralConstitutiveLawData
+    if ( dataMaterial->fileFiberDirections().compare("") )
+    {
+        std::stringstream MyPID;
+        ifstream fibers (dataMaterial->fileFiberDirections().c_str() );
+
+        std::cout << "Fiber_file: " <<  dataMaterial->fileFiberDirections().c_str() << std::endl;
+
+        UInt NumGlobalElements = dFESpace->dim(); // monolithicMap->mapSize();
+        std::vector<Real> fiber_global_vector (NumGlobalElements);
+
+        for ( UInt i = 0; i < NumGlobalElements; ++i)
+        {
+            fibers >> fiber_global_vector[i];
+        }
+
+        fiber_global_vector.clear();
+
+    }
+    else
+    {
+        ASSERT(false, "NeoHookeanActivatedMaterial::setup requires that fileFiberDirections is specified in StructuralConstitutiveLawData");
+    }
+
 }
 
 
@@ -338,7 +363,6 @@ void NeoHookeanActivatedMaterial<Mesh>::updateJacobianMatrix ( const vector_Type
                                                                const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
                                                                const displayerPtr_Type&       /*displayer*/ )
 {
-    //! Empty method for active neo-Hookean material
     ASSERT (false, "NeoHookeanActivatedMaterial::updateJacobianMatrix should not be called without the fiber directions.");
 }
 
