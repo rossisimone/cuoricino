@@ -93,7 +93,7 @@ Int main ( Int argc, char** argv )
     //! Initializing Epetra communicator
     MPI_Init (&argc, &argv);
     boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
-    if ( Comm->MyPID() == 0 )
+    if ( comm->MyPID() == 0 )
     {
         cout << "% using MPI" << endl;
     }
@@ -112,12 +112,13 @@ Int main ( Int argc, char** argv )
     // in the execution directory.                //
     //********************************************//
 
-    if ( Comm->MyPID() == 0 )
+    if ( comm->MyPID() == 0 )
     {
         std::cout << "Importing parameters list...";
     }
-    Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
-    if ( Comm->MyPID() == 0 )
+    Teuchos::ParameterList list1 = * ( Teuchos::getParametersFromXmlFile ( "ParamList1.xml" ) );
+    Teuchos::ParameterList list2 = * ( Teuchos::getParametersFromXmlFile ( "ParamList2.xml" ) );
+    if ( comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
     }
@@ -126,8 +127,10 @@ Int main ( Int argc, char** argv )
     // In the parameter list we need to specify   //
     // the mesh name and the mesh path.           //
     //********************************************//
-    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
-    std::string meshPath = monodomainList.get ("mesh_path", "./");
+    std::string meshName1 = list1.get ("mesh_name", "lid16.mesh");
+    std::string meshPath1 = list1.get ("mesh_path", "./");
+    std::string meshName2 = list2.get ("mesh_name", "lid64.mesh");
+    std::string meshPath2 = list2.get ("mesh_path", "./");
 
     //********************************************//
     // We need the GetPot datafile for to setup   //
@@ -140,85 +143,109 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Load the mesh                              //
     //********************************************//
-    meshPtr_Type mesh ( new mesh_Type ( comm ) );
-    MeshUtility::fillWithFullMesh (mesh, fullMesh, meshName, meshPath);
+    meshPtr_Type mesh1 ( new mesh_Type ( comm ) );
+    meshPtr_Type fullMesh1 ( new mesh_Type ( comm ) );
+    MeshUtility::fillWithFullMesh (mesh1, fullMesh1, meshName1, meshPath1);
+
+    meshPtr_Type mesh2 ( new mesh_Type ( comm ) );
+    meshPtr_Type fullMesh2 ( new mesh_Type ( comm ) );
+    MeshUtility::fillWithFullMesh (mesh2, fullMesh2, meshName2, meshPath2);
 
 
     //********************************************//
-    // Setting up the initial condition form      //
-    // a given function.                          //
+    // Create fe spaces                           //
     //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nInitializing potential:  " ;
-    }
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > coarse
+    ( new FESpace< mesh_Type, MapEpetra > ( mesh1, "P1", 3, comm ) );
 
-    function_Type f = &Stimulus;
-    splitting -> setPotentialFromFunction ( f );
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > fine
+    ( new FESpace< mesh_Type, MapEpetra > ( mesh2, "P1", 3, comm ) );
 
-    //setting up initial conditions
-    * ( splitting -> globalSolution().at (1) ) = 1.0;
-    * ( splitting -> globalSolution().at (2) ) = 1.0;
-    * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
-
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "Done! \n" ;
-    }
-
-    //********************************************//
-    // Setting up the time data                   //
-    //********************************************//
-    splitting -> setParameters ( monodomainList );
 
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
     VectorSmall<3> fibers;
-    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2) / 2.0 );
-    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2) / 2.0 );
-    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+    fibers[0] =  list1.get ("fiber_X", std::sqrt (2) / 2.0 );
+    fibers[1] =  list1.get ("fiber_Y", std::sqrt (2) / 2.0 );
+    fibers[2] =  list1.get ("fiber_Z", 0.0 );
 
-    splitting ->setupFibers (fibers);
+
+
 
     //********************************************//
-    // Create the global matrix: mass + stiffness //
+    // Fill the fiber direction in an EpetraVector//
     //********************************************//
-    splitting -> setupLumpedMassMatrix();
-    splitting -> setupStiffnessMatrix();
-    splitting -> setupGlobalMatrix();
+    vectorPtr_Type fiber1( new vector_Type ( coarse -> map() ) );
+
+    int n1 = (*fiber1).epetraVector().MyLength();
+    int d1 = n1 / 3;
+    (*fiber1) *= 0;
+    int i (0);
+    int j (0);
+    int k (0);
+    for ( int l (0); l < d1; l++)
+    {
+
+        i = (*fiber1).blockMap().GID (l);
+        j = (*fiber1).blockMap().GID (l + d1);
+        k = (*fiber1).blockMap().GID (l + 2 * d1);
+        (*fiber1) [i] = fibers[0];
+        (*fiber1) [j] = fibers[1];
+        (*fiber1) [k] = fibers[2];
+    }
+
+    //********************************************//
+    // Create the new fiber direction in the finer//
+    //				mesh						  //
+    //********************************************//
+    vectorPtr_Type fiber2( new vector_Type ( fine -> map() ) );
+
+    //********************************************//
+    // Interpolate the fiber direction in the fine//
+    // mesh										  //
+    //********************************************//
+
+    int n2 = (*fiber2).epetraVector().MyLength();
+    int d2 = n2 / 3;
+    (*fiber2) *= 0;
+    int i2 (0);
+    int j2 (0);
+    int k2 (0);
+    for ( int l (0); l < d2; l++)
+    {
+
+        i2 = (*fiber2).blockMap().GID (l);
+        j2 = (*fiber2).blockMap().GID (l + d2);
+        k2 = (*fiber2).blockMap().GID (l + 2 * d2);
+        (*fiber2) [i2] = fibers[0];
+        (*fiber2) [j2] = fibers[1];
+        (*fiber2) [k2] = fibers[2];
+    }
+
 
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+    ExporterHDF5< mesh_Type > exporter1;
+    exporter1.setMeshProcId ( mesh1, comm -> MyPID() );
+    exporter1.setPrefix ("CoarseFiberDirection");
+    exporter1.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", coarse, fiber1, UInt (0) );
+    exporter1.postProcess (0);
+    exporter1.closeFile();
 
-    splitting -> setupExporter ( exporterSplitting, "Splitting" );
 
-    splitting -> exportSolution ( exporterSplitting, 0);
+    ExporterHDF5< mesh_Type > exporter2;
+    exporter2.setMeshProcId ( mesh2, comm -> MyPID() );
+    exporter2.setPrefix ("FineFiberDirection");
+    exporter2.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", fine, fiber2, UInt (0) );
+    exporter2.postProcess (0);
+    exporter2.closeFile();
 
-    //********************************************//
-    // Solving the system                         //
-    //********************************************//
-    if ( Comm->MyPID() == 0 )
+
+    if ( comm->MyPID() == 0 )
     {
-        cout << "\nstart solving:  " ;
-    }
-
-
-    splitting   -> solveSplitting ( exporterSplitting );
-    exporterSplitting.closeFile();
-
-
-    //********************************************//
-    // Saving Fiber direction to file             //
-    //********************************************//
-    splitting -> exportFiberDirection();
-
-
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+        cout << "\n All the best for your simulation :P\n  " ;
     }
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();

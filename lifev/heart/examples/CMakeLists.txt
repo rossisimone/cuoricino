@@ -7,6 +7,7 @@ ADD_SUBDIRECTORIES(
   0DMinimalModel
   0DNegroniLascanoModel
   0DFitzHughNagumoModel
+  FiberInterpolation
 #  ActiveStrainODE
   AlievPanfilov
   basic_example
