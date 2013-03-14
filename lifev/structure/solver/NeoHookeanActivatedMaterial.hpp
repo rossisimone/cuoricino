@@ -333,10 +333,10 @@ void NeoHookeanActivatedMaterial<Mesh>::computeLinearStiff (dataPtr_Type& /*data
 
 
 template <typename Mesh>
-void NeoHookeanActivatedMaterial<Mesh>::updateJacobianMatrix ( const vector_Type&       disp,
-                                                               const dataPtr_Type&      dataMaterial,
-                                                               const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                               const displayerPtr_Type& displayer )
+void NeoHookeanActivatedMaterial<Mesh>::updateJacobianMatrix ( const vector_Type&       /*disp*/,
+                                                               const dataPtr_Type&      /*dataMaterial*/,
+                                                               const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
+                                                               const displayerPtr_Type& /*displayer*/ )
 {
     //! Empty method for active neo-Hookean material
 }
@@ -586,10 +586,11 @@ void NeoHookeanActivatedMaterial<Mesh>::computeStiffness ( const vector_Type&   
 
 
 template <typename Mesh>
-void NeoHookeanActivatedMaterial<Mesh>::computeStiffness (const vector_Type& sol,
-                                                          Real factor, const dataPtr_Type& dataMaterial,
-                                                          const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                          const displayerPtr_Type& displayer )
+void NeoHookeanActivatedMaterial<Mesh>::computeStiffness (const vector_Type& /*sol*/,
+                                                          Real /*factor*/,
+                                                          const dataPtr_Type& /*dataMaterial*/,
+                                                          const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
+                                                          const displayerPtr_Type& /*displayer*/ )
 {
     //! Empty method for active neo-Hookean material
 }
@@ -723,7 +724,7 @@ void NeoHookeanActivatedMaterial<Mesh>::showMe ( std::string const& fileNameStif
 
 
 template <typename Mesh>
-void NeoHookeanActivatedMaterial<Mesh>::computeKinematicsVariables ( const VectorElemental& dk_loc )
+void NeoHookeanActivatedMaterial<Mesh>::computeKinematicsVariables ( const VectorElemental& /*dk_loc*/ )
 {
     //! Empty method for active neo-Hookean material
 }
