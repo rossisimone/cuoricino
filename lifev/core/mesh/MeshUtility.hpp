@@ -2765,11 +2765,6 @@ void resetMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_
 void fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
                         const std::string& meshName,
                         const std::string& ressourcesPath = "./Ressources/" );
-void fillWithFullMesh (     boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
-                            boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
-                            const std::string& meshName,
-                            const std::string& ressourcesPath = "./Ressources/" );
-
 
 void fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& mesh,
                         boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshFull,
