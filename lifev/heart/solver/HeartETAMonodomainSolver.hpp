@@ -1018,7 +1018,8 @@ HeartETAMonodomainSolver ( const HeartETAMonodomainSolver& solver    ) :
     M_membraneCapacitance   ( solver.M_membraneCapacitance ),
     M_ionicModelPtr         ( solver.M_ionicModelPtr ),
     M_commPtr               ( solver.M_commPtr ),
-    M_localMeshPtr               ( solver.M_localMeshPtr ),
+    M_localMeshPtr          ( solver.M_localMeshPtr ),
+    M_fullMeshPtr           ( solver.M_fullMeshPtr ),
     M_ETFESpacePtr          ( solver.M_ETFESpacePtr ),
     M_feSpacePtr            (  solver.M_feSpacePtr ),
     M_massMatrixPtr         ( new matrix_Type ( * (solver.M_massMatrixPtr) ) ),
@@ -1058,6 +1059,7 @@ operator= (const HeartETAMonodomainSolver& solver    )
     copyIonicModel ( solver.M_ionicModelPtr );
     M_commPtr               = solver.M_commPtr ;
     M_localMeshPtr               = solver.M_localMeshPtr ;
+    M_fullMeshPtr               = solver.M_fullMeshPtr ;
     copyETFESpace ( solver.M_ETFESpacePtr );
     copyFeSpace ( solver.M_feSpacePtr );
     copyMassMatrix ( solver.M_massMatrixPtr );
@@ -1657,6 +1659,7 @@ init (ionicModelPtr_Type model)
     init();
     M_commPtr.reset ( new Epetra_MpiComm (MPI_COMM_WORLD)  );
     M_localMeshPtr.reset ( new mesh_Type ( M_commPtr ) );
+    M_fullMeshPtr.reset ( new mesh_Type ( M_commPtr ) );
     M_ionicModelPtr = model;
 
 }
@@ -1668,6 +1671,7 @@ init ( commPtr_Type comm  )
     init();
     M_commPtr = comm;
     M_localMeshPtr.reset ( new mesh_Type ( M_commPtr ) );
+    M_fullMeshPtr.reset ( new mesh_Type ( M_commPtr ) );
 }
 
 template<typename Mesh, typename IonicModel>
@@ -1675,7 +1679,9 @@ void HeartETAMonodomainSolver<Mesh, IonicModel>::
 init (meshPtr_Type meshPtr)
 {
     init();
+    //TODO change the meshPtr to pass the fullMeshPtr
     M_localMeshPtr = meshPtr;
+    M_fullMeshPtr.reset ( new mesh_Type ( M_commPtr ) );
     M_commPtr = meshPtr -> comm();
 }
 

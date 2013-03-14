@@ -240,10 +240,10 @@ Int main( Int argc, char** argv )
 	// Create the global matrix: mass + stiffness //
 	//********************************************//
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-    ( new FESpace< mesh_Type, MapEpetra > ( splitting -> meshPtr(), "P1", 3, splitting -> commPtr() ) );
+    ( new FESpace< mesh_Type, MapEpetra > ( splitting -> localMeshPtr(), "P1", 3, splitting -> commPtr() ) );
 
     ExporterHDF5<mesh_Type> exp;
-    exp.setMeshProcId ( splitting -> meshPtr(), splitting -> commPtr() -> MyPID() );
+    exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
     exp.setPrefix ("FiberDirection");
     exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", Space3D, splitting -> fiberPtr(), UInt (0) );
     exp.postProcess (0);
@@ -271,7 +271,7 @@ Int main( Int argc, char** argv )
 //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
     filterPtr_Type importer( new hdf5Filter_Type() );
 
-    importer -> setMeshProcId ( splitting -> meshPtr(), Comm -> MyPID() );
+    importer -> setMeshProcId ( splitting -> localMeshPtr(), Comm -> MyPID() );
     std::string const Name = "fiberdirection";
     importer-> setPrefix (name);
 	if ( Comm->MyPID() == 0 ) cout << "Done! \n" ;
@@ -280,73 +280,73 @@ Int main( Int argc, char** argv )
 
 	importer -> closeFile();
 
+
+
+    ExporterHDF5<mesh_Type> Exp;
+    Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
+    Exp.setPrefix (Name);
+    (*newFiber)*=100.0;
+    Exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "ciccia", Space3D, newFiber, UInt (0) );
+    Exp.postProcess (0);
+    Exp.closeFile();
+
+
+
+	//********************************************//
+	// Creating exporters to save the solution    //
+	//********************************************//
+	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+
+    splitting -> setupExporter( exporterSplitting, "Splitting" );
+
+    splitting -> exportSolution( exporterSplitting, 0);
+
+	//********************************************//
+	// Create the global matrix: mass + stiffness //
+	//********************************************//
+	splitting -> setupLumpedMassMatrix();
+	splitting -> setupStiffnessMatrix();
+	splitting -> setupGlobalMatrix();
+
+    splitting -> solveICI(exporterSplitting);
+    exporterSplitting.closeFile();
+
+
+    //================================================
+    //
+    //================================================
+	std::string sol( "Splitting" );
+    monodomainSolver_Type::vectorPtr_Type newSol( new VectorEpetra( splitting -> feSpacePtr() -> map(), LifeV::Unique ) );
+    exporterData_Type ImportData(exporterData_Type::ScalarField, "Variable0.00010", splitting -> feSpacePtr(),
+    						newSol, UInt(0), exporterData_Type::UnsteadyRegime);
+
+    //================================================
+    //
+    //================================================
+    filterPtr_Type Imp( new hdf5Filter_Type() );
 //
+    Imp -> setMeshProcId ( splitting -> localMeshPtr(), Comm -> MyPID() );
+    Imp-> setPrefix (sol);
 //
-//    ExporterHDF5<mesh_Type> Exp;
-//    Exp.setMeshProcId ( splitting -> meshPtr(), splitting -> commPtr() -> MyPID() );
-//    Exp.setPrefix (Name);
-//    (*newFiber)*=100.0;
-//    Exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "ciccia", Space3D, newFiber, UInt (0) );
-//    Exp.postProcess (0);
-//    Exp.closeFile();
-//
-//
-//
-//	//********************************************//
-//	// Creating exporters to save the solution    //
-//	//********************************************//
-//	ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-//
-//    splitting -> setupExporter( exporterSplitting, "Splitting" );
-//
-//    splitting -> exportSolution( exporterSplitting, 0);
-//
-//	//********************************************//
-//	// Create the global matrix: mass + stiffness //
-//	//********************************************//
-//	splitting -> setupLumpedMassMatrix();
-//	splitting -> setupStiffnessMatrix();
-//	splitting -> setupGlobalMatrix();
-//
-//    splitting -> solveICI(exporterSplitting);
-//    exporterSplitting.closeFile();
-//
-//
-//    //================================================
-//    //
-//    //================================================
-//	std::string sol( "Splitting" );
-//    monodomainSolver_Type::vectorPtr_Type newSol( new VectorEpetra( splitting -> feSpacePtr() -> map(), LifeV::Unique ) );
-//    exporterData_Type ImpData(exporterData_Type::ScalarField, "Variable0.00005", splitting -> feSpacePtr(),
-//    						newSol, UInt(0), exporterData_Type::UnsteadyRegime);
-//
-//    //================================================
-//    //
-//    //================================================
-//    filterPtr_Type Imp( new hdf5Filter_Type() );
-////
-//    Imp -> setMeshProcId ( splitting -> meshPtr(), Comm -> MyPID() );
-//    Imp-> setPrefix (sol);
-////
-//   Imp -> readVariable(ImpData);
-//	Imp -> closeFile();
-//    //================================================
-//    //
-//    //================================================
-//	splitting -> setPotentialPtr(newSol);
-//	( *( splitting -> globalSolution().at(1) ) ) *=0;
-//
-//	//********************************************//
-//	// Creating exporters to save the solution    //
-//	//********************************************//
-//	ExporterHDF5< RegionMesh <LinearTetra> > exporter2;
-//
-//    splitting -> setupExporter( exporter2, "exp2" );
-//
-//    splitting -> exportSolution( exporter2, 0);
-//
-//    splitting -> solveICI(exporter2);
-//    exporter2.closeFile();
+    Imp -> readVariable(ImportData);
+	Imp -> closeFile();
+    //================================================
+    //
+    //================================================
+	splitting -> setPotentialPtr(newSol);
+	( *( splitting -> globalSolution().at(1) ) ) *=0;
+
+	//********************************************//
+	// Creating exporters to save the solution    //
+	//********************************************//
+	ExporterHDF5< RegionMesh <LinearTetra> > exporter2;
+
+    splitting -> setupExporter( exporter2, "exp2" );
+
+    splitting -> exportSolution( exporter2, 0);
+
+    splitting -> solveICI(exporter2);
+    exporter2.closeFile();
 
     //================================================
     //
@@ -356,7 +356,7 @@ Int main( Int argc, char** argv )
 
 //    boost::shared_ptr<mesh_Type> lmesh( new mesh_Type( Comm ) );
 //    lmesh ->se
-    boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > space(new FESpace<mesh_Type, MapEpetra>(  splitting -> meshPtr(), "P1", 1, Comm ) );
+    boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > space(new FESpace<mesh_Type, MapEpetra>(  splitting -> localMeshPtr(), "P1", 1, Comm ) );
 
 
 //    vectorPtr_Type vec( new vector_Type( splitting -> feSpacePtr() -> map(), Unique ) );
@@ -364,17 +364,32 @@ Int main( Int argc, char** argv )
 
     for( UInt j(0); j < vec -> epetraVector().MyLength() ; ++j){
 
-    	if( splitting -> meshPtr() -> point( vec -> blockMap().GID(j) ).markerID() == 1 )
+    	if( splitting -> fullMeshPtr() -> point( vec -> blockMap().GID(j) ).markerID() == 15 )
     	{
     		if( vec -> blockMap().LID( vec -> blockMap().GID(j) ) != -1 )
     			(*vec)( vec -> blockMap().GID(j) )=1.0;
     	}
+    	if( splitting -> fullMeshPtr() -> point( vec -> blockMap().GID(j) ).markerID() == 14 )
+    	    	{
+    	    		if( vec -> blockMap().LID( vec -> blockMap().GID(j) ) != -1 )
+    	    			(*vec)( vec -> blockMap().GID(j) )=2.0;
+    	    	}
+    	if( splitting -> fullMeshPtr() -> point( vec -> blockMap().GID(j) ).markerID() == 13 )
+    	    	{
+    	    		if( vec -> blockMap().LID( vec -> blockMap().GID(j) ) != -1 )
+    	    			(*vec)( vec -> blockMap().GID(j) )=3.0;
+    	    	}
+    	if( splitting -> fullMeshPtr() -> point( vec -> blockMap().GID(j) ).markerID() == 37 )
+    	    	{
+    	    		if( vec -> blockMap().LID( vec -> blockMap().GID(j) ) != -1 )
+    	    			(*vec)( vec -> blockMap().GID(j) )=4.0;
+    	    	}
     }
 
 
 
     	ExporterHDF5<mesh_Type> Exp1;
-      Exp1.setMeshProcId ( splitting -> meshPtr(), splitting -> commPtr() -> MyPID() );
+      Exp1.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
       Exp1.setPrefix ("pippo");
       Exp1.addVariable ( ExporterData<mesh_Type>::ScalarField,  "ciccia", splitting -> feSpacePtr(), vec, UInt (0) );
       Exp1.postProcess (0);

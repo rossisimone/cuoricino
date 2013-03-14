@@ -102,7 +102,6 @@ void
 fillWithFullMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& meshLocal,
                    const std::string& meshName,
                    const std::string& resourcesPath)
-                   // TODO bool eraseFullMesh)
 {
     MeshData meshData;
     meshData.setMeshDir ( resourcesPath );
