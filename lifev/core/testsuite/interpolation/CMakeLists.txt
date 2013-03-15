@@ -1,9 +1,10 @@
-
 INCLUDE(TribitsAddExecutableAndTest)
 INCLUDE(AddSubdirectories)
 
 ADD_SUBDIRECTORIES(
-  fsi_segregated
-  fsi_monolithic
-  fsi_restart
+  RBF_test2dScalar
+  RBF_test3dScalar
+  RBF_test2dVectorial
+  RBF_test3dVectorial
   )
+

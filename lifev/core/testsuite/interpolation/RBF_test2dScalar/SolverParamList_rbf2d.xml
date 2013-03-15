@@ -1,9 +1,9 @@
 <ParameterList>
 	<!-- LinearSolver parameters -->
 	<Parameter name="Reuse Preconditioner" type="bool" value="true"/>
-    <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
-    <Parameter name="Quit On Failure" type="bool" value="false"/>
-    <Parameter name="Silent" type="bool" value="false"/>
+        <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
+        <Parameter name="Quit On Failure" type="bool" value="false"/>
+        <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="Belos"/>
 	<Parameter name="Maximum Iterations" type="int" value="200"/>
 	

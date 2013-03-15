@@ -10,6 +10,7 @@ ADD_SUBDIRECTORIES(
   fem
   filter
   hyperbolic
+  interpolation
   linear_solver
   matrix_epetra_structured_framework
   mesh

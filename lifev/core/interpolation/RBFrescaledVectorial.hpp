@@ -26,158 +26,141 @@
 
 /*!
     @file
-    @brief FSIData - File containing the implementation of Radial Basis Functions suited for interpolation
-                     between non-matching grids
+    @brief A short description of the file content
 
-    @author Davide Forti <davide.forti@epfl.ch>
-    @date 01-31-2010
+    @author Davide Forti <forti@mathicsepc48.epfl.ch>
+    @date 14 Mar 2013
 
-    @maintainer Davide Forti <davide.Forti@epfl.ch>
+    A more detailed description of the file (if necessary)
  */
 
-#ifndef RBF_INTERPOLATIONVECTORIAL_HPP
-#define RBF_INTERPOLATIONVECTORIAL_HPP
+#ifndef RBFRESCALEDVECTORIAL_H
+#define RBFRESCALEDVECTORIAL_H 1
 
-#include <lifev/core/LifeV.hpp>
-#include <Epetra_Vector.h>
-#include <lifev/core/array/MatrixEpetra.hpp>
-#include <lifev/core/array/GhostHandler.hpp>
-#include <Epetra_FECrsMatrix.h>
-#include <lifev/core/algorithm/PreconditionerIfpack.hpp>
-#include <lifev/core/algorithm/LinearSolver.hpp>
-#include <Teuchos_ParameterList.hpp>
-#include <Teuchos_XMLParameterListHelpers.hpp>
-#include <Teuchos_RCP.hpp>
+#include <lifev/core/interpolation/RBFInterpolation.hpp>
 
-namespace LifeV
+namespace LifeV {
+
+template <typename mesh_Type>
+class RBFrescaledVectorial: public RBFInterpolation<mesh_Type>
 {
-template <typename Mesh>
-class RBFInterpolationVectorial
-{
-
 public:
 
-    typedef Mesh                                              mesh_Type;
-    typedef boost::shared_ptr<mesh_Type>                      meshPtr_Type;
+    typedef boost::shared_ptr<mesh_Type>                                          meshPtr_Type;
 
-    typedef VectorEpetra                                      vector_Type;
-    typedef boost::shared_ptr<vector_Type >                   vectorPtr_Type;
+    typedef VectorEpetra                                                          vector_Type;
+    typedef boost::shared_ptr<vector_Type >                                       vectorPtr_Type;
 
-    typedef MatrixEpetra<double>                              matrix_Type;
-    typedef boost::shared_ptr<matrix_Type>                    matrixPtr_Type;
+    typedef MatrixEpetra<double>                                                  matrix_Type;
+    typedef boost::shared_ptr<matrix_Type>                                        matrixPtr_Type;
 
-    typedef std::vector<int>                                  flagContainer_Type;
+    typedef std::vector<int>                                                      flagContainer_Type;
 
-    typedef std::set<ID>                                      idContainer_Type;
+    typedef std::set<ID>                                                          idContainer_Type;
 
-    typedef MapEpetra                                         map_Type;
-    typedef boost::shared_ptr<MapEpetra>                      mapPtr_Type;
+    typedef MapEpetra                                                             map_Type;
+    typedef boost::shared_ptr<MapEpetra>                                          mapPtr_Type;
 
-    typedef GhostHandler<mesh_Type>                           neighbors_Type;
-    typedef boost::shared_ptr<neighbors_Type>                 neighborsPtr_Type;
+    typedef GhostHandler<mesh_Type>                                               neighbors_Type;
+    typedef boost::shared_ptr<neighbors_Type>                                     neighborsPtr_Type;
 
-    typedef LifeV::Preconditioner                             basePrec_Type;
-    typedef boost::shared_ptr<basePrec_Type>                  basePrecPtr_Type;
+    typedef LifeV::Preconditioner                                                 basePrec_Type;
+    typedef boost::shared_ptr<basePrec_Type>                                      basePrecPtr_Type;
 
-    typedef LifeV::PreconditionerIfpack                       prec_Type;
-    typedef boost::shared_ptr<prec_Type>                      precPtr_Type;
+    typedef LifeV::PreconditionerIfpack                                           prec_Type;
+    typedef boost::shared_ptr<prec_Type>                                          precPtr_Type;
 
-    typedef Teuchos::RCP< Teuchos::ParameterList >            parameterList_Type;
+    typedef Teuchos::RCP< Teuchos::ParameterList >                                parameterList_Type;
 
-    //! Constructor
-    RBFInterpolationVectorial ( meshPtr_Type fullMeshKnown,
-                                meshPtr_Type localMeshKnown,
-                                meshPtr_Type fullMeshUnknown,
-                                meshPtr_Type localMeshUnknown,
-                                flagContainer_Type flags);
+    RBFrescaledVectorial();
 
-    //! Destructor
-    ~RBFInterpolationVectorial() {}
+    virtual ~RBFrescaledVectorial();
 
+    void setup ( meshPtr_Type fullMeshKnown, meshPtr_Type localMeshKnown, meshPtr_Type fullMeshUnknown, meshPtr_Type localMeshUnknown, flagContainer_Type flags );
 
-    //! Setup the RBF data
-    void setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type UnknownField, GetPot datafile, Teuchos::RCP< Teuchos::ParameterList > belosList);
+    void setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type UnknownField, GetPot datafile, parameterList_Type belosList);
 
-
-    //! Build the RBF Operators, namely the interpolant and the projection ones.
     void buildOperators();
 
-    //! Build the RBF interpolant
-    void InterpolationOperator();
+    void interpolationOperator();
 
-    //! Identifies nodes with an assigned markerID
-    void identifyNodes (meshPtr_Type LocalMesh, std::set<ID>& GID_nodes, vectorPtr_Type CheckVector);
+    void projectionOperator();
 
-    //! Check if the point with markerID pointMarker has to be selected
-    bool isInside (ID pointMarker, flagContainer_Type Flags);
-
-    //! Evaluate the RBF radius
-    double computeRBFradius (meshPtr_Type MeshNeighbors, meshPtr_Type MeshGID, idContainer_Type Neighbors, ID GlobalID);
-
-    //! Evaluation of the RBF
-    double rbf (double x1, double y1, double z1, double x2, double y2, double z2, double radius);
-
-    //! Build the projection operator
-    void ProjectionOperator();
-
-    //! Prepare Rhs
     void buildRhs();
 
-    //! Manages the solution of the interpolation problem
-    void interpolate();
-
-    //! Manages the solution of the interpolation problem, namely the costant (c=1) field.
     void interpolateCostantField();
 
-    //! Getter for the solution
+    void identifyNodes (meshPtr_Type LocalMesh, std::set<ID>& GID_nodes, vectorPtr_Type CheckVector);
+
+    bool isInside (ID pointMarker, flagContainer_Type Flags);
+
+    double rbf (double x1, double y1, double z1, double x2, double y2, double z2, double radius);
+
+    void interpolate();
+
     void solution (vectorPtr_Type& Solution);
 
-    //! Getter for the solution obtained by a pure RBF approach
     void solutionrbf (vectorPtr_Type& Solution_rbf);
+
+    void updateRhs(vectorPtr_Type newRhs);
+
+    void setRadius ( double radius );
 
 private:
 
-    meshPtr_Type                M_fullMeshKnown;
-    meshPtr_Type                M_localMeshKnown;
-    meshPtr_Type                M_fullMeshUnknown;
-    meshPtr_Type                M_localMeshUnknown;
-    matrixPtr_Type              M_interpolationOperator;
-    matrixPtr_Type              M_projectionOperator;
-    flagContainer_Type          M_flags;
-    vectorPtr_Type              M_knownField;
-    vectorPtr_Type              M_unknownField;
-    idContainer_Type            M_GIdsKnownMesh;
-    idContainer_Type            M_GIdsUnknownMesh;
-    vectorPtr_Type              M_RhsF1;
-    vectorPtr_Type              M_RhsF2;
-    vectorPtr_Type              M_RhsF3;
-    vectorPtr_Type              M_RhsOne;
-    vectorPtr_Type              M_rbf_one;
-    mapPtr_Type                 M_interpolationOperatorMap;
-    mapPtr_Type                 M_projectionOperatorMap;
-    neighborsPtr_Type           M_neighbors;
-    vectorPtr_Type              M_unknownField_rbf;
-    GetPot                      M_datafile;
-    parameterList_Type          M_belosList;
+    meshPtr_Type        M_fullMeshKnown;
+    meshPtr_Type        M_localMeshKnown;
+    meshPtr_Type        M_fullMeshUnknown;
+    meshPtr_Type        M_localMeshUnknown;
+    flagContainer_Type  M_flags;
+    vectorPtr_Type      M_knownField;
+    vectorPtr_Type      M_unknownField;
+    GetPot              M_datafile;
+    parameterList_Type  M_belosList;
+    idContainer_Type    M_GIdsKnownMesh;
+    idContainer_Type    M_GIdsUnknownMesh;
+    matrixPtr_Type      M_interpolationOperator;
+    matrixPtr_Type      M_projectionOperator;
+    vectorPtr_Type      M_RhsF1;
+    vectorPtr_Type      M_RhsF2;
+    vectorPtr_Type      M_RhsF3;
+    vectorPtr_Type      M_RhsOne;
+    vectorPtr_Type      M_rbf_one;
+    mapPtr_Type         M_interpolationOperatorMap;
+    mapPtr_Type         M_projectionOperatorMap;
+    neighborsPtr_Type   M_neighbors;
+    vectorPtr_Type      M_unknownField_rbf;
+    double              M_radius;
 };
 
-template <typename Mesh>
-RBFInterpolationVectorial<Mesh>::RBFInterpolationVectorial ( meshPtr_Type fullMeshKnown,
-                                                             meshPtr_Type localMeshKnown,
-                                                             meshPtr_Type fullMeshUnknown,
-                                                             meshPtr_Type localMeshUnknown,
-                                                             flagContainer_Type flags) :
-    M_fullMeshKnown ( fullMeshKnown ),
-    M_localMeshKnown ( localMeshKnown ),
-    M_fullMeshUnknown ( fullMeshUnknown ),
-    M_localMeshUnknown ( localMeshUnknown ),
-    M_flags ( flags )
+template <typename mesh_Type>
+RBFrescaledVectorial<mesh_Type>::RBFrescaledVectorial():
+    M_radius(0)
+{}
+
+template <typename mesh_Type>
+RBFrescaledVectorial<mesh_Type>::~RBFrescaledVectorial()
+{}
+
+
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::setup ( meshPtr_Type fullMeshKnown, meshPtr_Type localMeshKnown, meshPtr_Type fullMeshUnknown, meshPtr_Type localMeshUnknown, flagContainer_Type flags )
 {
+    M_fullMeshKnown = fullMeshKnown;
+    M_localMeshKnown = localMeshKnown;
+    M_fullMeshUnknown = fullMeshUnknown;
+    M_localMeshUnknown = localMeshUnknown;
+    M_flags = flags;
 }
 
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::setRadius ( double radius )
+{
+    M_radius = radius;
+}
 
-template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type UnknownField, GetPot datafile, parameterList_Type belosList)
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type UnknownField, GetPot datafile, parameterList_Type belosList)
 {
     M_knownField   = KnownField;
     M_unknownField = UnknownField;
@@ -185,19 +168,19 @@ void RBFInterpolationVectorial<Mesh>::setupRBFData (vectorPtr_Type KnownField, v
     M_belosList    = belosList;
 }
 
-
 template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::buildOperators()
+void RBFrescaledVectorial<Mesh>::buildOperators()
 {
-    this->InterpolationOperator();
-    this->ProjectionOperator();
+    this->interpolationOperator();
+    this->projectionOperator();
     this->buildRhs();
     this->interpolateCostantField();
 }
 
 template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::InterpolationOperator()
+void RBFrescaledVectorial<Mesh>::interpolationOperator()
 {
+    ASSERT(M_radius!=0, "Please set the basis radius using RBFrescaledScalar<mesh_Type>::setRadius(double radius)")
     this->identifyNodes (M_localMeshKnown, M_GIdsKnownMesh, M_knownField);
     M_neighbors.reset ( new neighbors_Type ( M_fullMeshKnown, M_localMeshKnown, M_knownField->mapPtr(), M_knownField->mapPtr()->commPtr() ) );
     if (M_flags[0] == -1)
@@ -211,7 +194,6 @@ void RBFInterpolationVectorial<Mesh>::InterpolationOperator()
 
     int LocalNodesNumber = M_GIdsKnownMesh.size();
 
-    std::vector<double>   RBF_radius (LocalNodesNumber);
     std::vector<std::set<ID> > MatrixGraph (LocalNodesNumber);
     int* ElementsPerRow = new int[LocalNodesNumber];
     int* GlobalID = new int[LocalNodesNumber];
@@ -221,9 +203,8 @@ void RBFInterpolationVectorial<Mesh>::InterpolationOperator()
     for (std::set<ID>::iterator it = M_GIdsKnownMesh.begin(); it != M_GIdsKnownMesh.end(); ++it)
     {
         GlobalID[k] = *it;
-        MatrixGraph[k] = M_neighbors->nodeNodeNeighborsList() [GlobalID[k]];
+        MatrixGraph[k] = M_neighbors->createNodeNodeNeighborsMapWithinRadius (M_radius, GlobalID[k]);
         MatrixGraph[k].insert (GlobalID[k]);
-        RBF_radius[k] = computeRBFradius ( M_fullMeshKnown, M_fullMeshKnown, MatrixGraph[k], GlobalID[k]);
         ElementsPerRow[k] = MatrixGraph[k].size();
         if (ElementsPerRow[k] > Max_entries)
         {
@@ -250,28 +231,25 @@ void RBFInterpolationVectorial<Mesh>::InterpolationOperator()
                                M_fullMeshKnown->point (*it).x(),
                                M_fullMeshKnown->point (*it).y(),
                                M_fullMeshKnown->point (*it).z(),
-                               RBF_radius[i]);
+                               M_radius);
             ++k;
         }
-        M_interpolationOperator->insertGlobalValues (GlobalID[i], k, Values, Indices);
+        M_interpolationOperator->matrixPtr()->InsertGlobalValues (GlobalID[i], k, Values, Indices);
     }
     M_interpolationOperator->globalAssemble();
-
     delete Indices;
     delete Values;
     delete ElementsPerRow;
     delete GlobalID;
 }
 
-template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::ProjectionOperator()
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::projectionOperator()
 {
-
     this->identifyNodes (M_localMeshUnknown, M_GIdsUnknownMesh, M_unknownField);
 
     int LocalNodesNumber = M_GIdsUnknownMesh.size();
 
-    std::vector<double>   RBF_radius (LocalNodesNumber);
     std::vector<std::set<ID> > MatrixGraph (LocalNodesNumber);
     int* ElementsPerRow = new int[LocalNodesNumber];
     int* GlobalID = new int[LocalNodesNumber];
@@ -299,9 +277,9 @@ void RBFInterpolationVectorial<Mesh>::ProjectionOperator()
                 }
             }
         }
-        MatrixGraph[k] = M_neighbors->nodeNodeNeighborsList() [nearestPoint];
+
+        MatrixGraph[k] = M_neighbors->createNodeNodeNeighborsMapWithinRadius (M_radius, nearestPoint);
         MatrixGraph[k].insert (nearestPoint);
-        RBF_radius[k] = computeRBFradius ( M_fullMeshKnown, M_fullMeshUnknown, MatrixGraph[k], GlobalID[k]);
         ElementsPerRow[k] = MatrixGraph[k].size();
         if (ElementsPerRow[k] > Max_entries)
         {
@@ -328,37 +306,20 @@ void RBFInterpolationVectorial<Mesh>::ProjectionOperator()
                                M_fullMeshKnown->point (*it).x(),
                                M_fullMeshKnown->point (*it).y(),
                                M_fullMeshKnown->point (*it).z(),
-                               RBF_radius[i]);
+                               M_radius);
             ++k;
         }
-        M_projectionOperator->insertGlobalValues (GlobalID[i], k, Values, Indices);
+        M_projectionOperator->matrixPtr()->InsertGlobalValues (GlobalID[i], k, Values, Indices);
     }
     M_projectionOperator->globalAssemble (M_interpolationOperatorMap, M_projectionOperatorMap);
-
     delete Indices;
     delete Values;
     delete ElementsPerRow;
     delete GlobalID;
 }
 
-template <typename Mesh>
-double RBFInterpolationVectorial<Mesh>::computeRBFradius (meshPtr_Type MeshNeighbors, meshPtr_Type MeshGID, idContainer_Type Neighbors, ID GlobalID)
-{
-    double r = 0;
-    double r_max = 0;
-    for (idContainer_Type::iterator it = Neighbors.begin(); it != Neighbors.end(); ++it)
-    {
-        r = std::sqrt ( pow ( MeshGID->point ( GlobalID ).x() - MeshNeighbors->point ( *it ).x(), 2 )
-                        + pow ( MeshGID->point ( GlobalID ).y() - MeshNeighbors->point ( *it ).y(), 2 )
-                        + pow ( MeshGID->point ( GlobalID ).z() - MeshNeighbors->point ( *it ).z(), 2 ) );
-        r_max = ( r > r_max ) ? r : r_max;
-    }
-    return r_max;
-}
-
-
-template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::buildRhs()
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::buildRhs()
 {
     M_RhsF1.reset (new vector_Type (*M_interpolationOperatorMap) );
     M_RhsF2.reset (new vector_Type (*M_interpolationOperatorMap) );
@@ -366,13 +327,13 @@ void RBFInterpolationVectorial<Mesh>::buildRhs()
     M_RhsOne.reset (new vector_Type (*M_interpolationOperatorMap) );
 
     M_RhsF1->subset (*M_knownField, *M_interpolationOperatorMap, 0, 0);
-    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3, 0);
-    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3 * 2, 0);
+    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3, 0);
+    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3*2, 0);
     *M_RhsOne += 1;
 }
 
-template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::interpolateCostantField()
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::interpolateCostantField()
 {
     vectorPtr_Type gamma_one;
     gamma_one.reset (new vector_Type (*M_interpolationOperatorMap) );
@@ -394,13 +355,11 @@ void RBFInterpolationVectorial<Mesh>::interpolateCostantField()
     solverOne.solve ( gamma_one );
 
     M_rbf_one.reset (new vector_Type (*M_projectionOperatorMap) );
-
     M_projectionOperator->multiply (false, *gamma_one, *M_rbf_one);
-
 }
 
-template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::interpolate()
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::interpolate()
 {
     vectorPtr_Type gamma_f1;
     gamma_f1.reset (new vector_Type (*M_interpolationOperatorMap) );
@@ -410,6 +369,7 @@ void RBFInterpolationVectorial<Mesh>::interpolate()
 
     vectorPtr_Type gamma_f3;
     gamma_f3.reset (new vector_Type (*M_interpolationOperatorMap) );
+
 
     // Preconditioner
     prec_Type* precRawPtr;
@@ -481,18 +441,17 @@ void RBFInterpolationVectorial<Mesh>::interpolate()
 
     M_unknownField_rbf.reset (new vector_Type (M_unknownField->map() ) );
     M_unknownField_rbf->subset (*rbf_f1, *M_projectionOperatorMap, 0, 0);
-    M_unknownField_rbf->subset (*rbf_f2, *M_projectionOperatorMap, 0, M_unknownField->size() / 3);
-    M_unknownField_rbf->subset (*rbf_f3, *M_projectionOperatorMap, 0, M_unknownField->size() / 3 * 2);
+    M_unknownField_rbf->subset (*rbf_f2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
+    M_unknownField_rbf->subset (*rbf_f3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
 
     M_unknownField->subset (*solution1, *M_projectionOperatorMap, 0, 0);
-    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size() / 3);
-    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size() / 3 * 2);
+    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
+    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
 
 }
 
-
-template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::identifyNodes (meshPtr_Type LocalMesh, std::set<ID>& GID_nodes, vectorPtr_Type CheckVector)
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::identifyNodes (meshPtr_Type LocalMesh, std::set<ID>& GID_nodes, vectorPtr_Type CheckVector)
 {
     if (M_flags[0] == -1)
     {
@@ -513,8 +472,8 @@ void RBFInterpolationVectorial<Mesh>::identifyNodes (meshPtr_Type LocalMesh, std
     }
 }
 
-template <typename Mesh>
-bool RBFInterpolationVectorial<Mesh>::isInside (ID pointMarker, flagContainer_Type flags)
+template <typename mesh_Type>
+bool RBFrescaledVectorial<mesh_Type>::isInside (ID pointMarker, flagContainer_Type flags)
 {
     int check = 0;
     for (UInt i = 0; i < flags.size(); ++i)
@@ -526,26 +485,48 @@ bool RBFInterpolationVectorial<Mesh>::isInside (ID pointMarker, flagContainer_Ty
 }
 
 
-template <typename Mesh>
-double RBFInterpolationVectorial<Mesh>::rbf (double x1, double y1, double z1, double x2, double y2, double z2, double radius)
+template <typename mesh_Type>
+double RBFrescaledVectorial<mesh_Type>::rbf (double x1, double y1, double z1, double x2, double y2, double z2, double radius)
 {
     double distance = sqrt ( pow (x1 - x2, 2) + pow (y1 - y2, 2) + pow (z1 - z2, 2) );
     return pow (1 - distance / radius, 4) * (4 * distance / radius + 1);
 }
 
-template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::solution (vectorPtr_Type& Solution)
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
+{
+    *M_RhsF1 *= 0;
+    M_RhsF1->subset (*newRhs, *M_interpolationOperatorMap, 0, 0);
+    *M_RhsF2 *= 0;
+    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3, 0);
+    *M_RhsF3 *= 0;
+    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3*2, 0);
+}
+
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::solution (vectorPtr_Type& Solution)
 {
     Solution = M_unknownField;
 }
 
-
-template <typename Mesh>
-void RBFInterpolationVectorial<Mesh>::solutionrbf (vectorPtr_Type& Solution_rbf)
+template <typename mesh_Type>
+void RBFrescaledVectorial<mesh_Type>::solutionrbf (vectorPtr_Type& Solution_rbf)
 {
     Solution_rbf = M_unknownField_rbf;
 }
 
-} // namespace LifeV
+//! Factory create function
+template <typename mesh_Type>
+inline RBFInterpolation<mesh_Type> * createRBFrescaledVectorial()
+{
+    return new RBFrescaledVectorial< mesh_Type > ();
+}
+namespace
+{
+static bool S_registerTriRV = RBFInterpolation<LifeV::RegionMesh<LinearTriangle > >::InterpolationFactory::instance().registerProduct ( "RBFrescaledVectorial", &createRBFrescaledVectorial<LifeV::RegionMesh<LinearTriangle > > );
+static bool S_registerTetRV = RBFInterpolation<LifeV::RegionMesh<LinearTetra > >::InterpolationFactory::instance().registerProduct ( "RBFrescaledVectorial", &createRBFrescaledVectorial<LifeV::RegionMesh<LinearTetra > > );
+}
 
-#endif // RBF_INTERPOLATIONVECTORIAL_HPP
+} // Namespace LifeV
+
+#endif /* RBFRESCALEDVECTORIAL_H */
