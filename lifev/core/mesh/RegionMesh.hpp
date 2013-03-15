@@ -53,6 +53,7 @@
 #include <lifev/core/mesh/MeshEntityContainer.hpp>
 #include <lifev/core/array/ArraySimple.hpp>
 #include <lifev/core/mesh/ElementShapes.hpp>
+#include <lifev/core/mesh/MeshTransformer.hpp>
 #include <lifev/core/mesh/MeshUtility.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 
