@@ -86,7 +86,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Importing parameters list...";
-    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
     cout << " Done!" << endl;
 
 
@@ -97,7 +97,7 @@ Int main ( Int argc, char** argv )
     // parameter list in the constructor          //
     //********************************************//
     cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
-    IonicJafriRiceWinslow  model ( ParameterList );
+    IonicJafriRiceWinslow  model ( parameterList );
     cout << " Done!" << endl;
 
 
@@ -124,30 +124,30 @@ Int main ( Int argc, char** argv )
     unknowns[4] = 0.000928836;
     unknowns[5] = 10.2042;
     unknowns[6] = 143.727;
-    unknowns[7] = 140.0;
-    unknowns[8] = 0.0000994893;
-    unknowns[9] = 1.24891;
-    unknowns[10] = 0.000136058;
+    unknowns[7] = 5.4;
+    unknowns[8] = 9.94893e-11;
+    unknowns[9] = 1.243891;
+    unknowns[10] = 1.36058e-4;
     unknowns[11] = 1.17504;
     unknowns[12] = 0.762527;
-    unknowns[13] = 0.00119168;
-    unknowns[14] = 0.00000000630613;
+    unknowns[13] = 1.19168e-3;
+    unknowns[14] = 6.30613e-9;
     unknowns[15] = 0.236283;
     unknowns[16] = 0.997208;
-    unknowns[17] = 0.0000638897;
-    unknowns[18] = 0.00000000153500;
-    unknowns[19] = 0.0000000000000163909;
-    unknowns[20] = 0.0000000000000000000656337;
-    unknowns[21] = 0.00000000000000000000984546;
-    unknowns[22] = 0.00272826;
-    unknowns[23] = 0.000000699215;
-    unknowns[24] = 0.0000000000671989;
-    unknowns[25] = 0.00000000000000287031;
-    unknowns[26] = 0.0000000000000000000459752;
+    unknowns[17] = 6.38897e-5;
+    unknowns[18] = 1.535e-9;
+    unknowns[19] = 1.63909e-14;
+    unknowns[20] = 6.56337e-20;
+    unknowns[21] = 9.84546e-21;
+    unknowns[22] = 2.72826e-3;
+    unknowns[23] = 6.99215e-7;
+    unknowns[24] = 6.71989e-11;
+    unknowns[25] = 2.87031e-15;
+    unknowns[26] = 4.59752e-20;
     unknowns[27] = 0.0;
     unknowns[28] = 0.998983;
-    unknowns[29] = 0.6349973;
-    unknowns[30] = 135.9813;
+    unknowns[29] = 0.00635;
+    unknowns[30] = 0.13598;
     cout << " Done!" << endl;
 
 
@@ -175,22 +175,24 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (0.04);
-    Real dt (0.02);
-
+    Real TF = parameterList.get ( "endTime", 5.0 );
+    Real dt = parameterList.get ( "timeStep", 5.77e-5 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
     string filename = "output.txt";
-    std::ofstream output ("output.txt");
+    std::ofstream output  ("output.txt");
 
 
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
     cout << "Time loop starts...\n";
+
+
+
     for ( Real t = 0; t < TF; )
     {
 
@@ -200,7 +202,7 @@ Int main ( Int argc, char** argv )
         //********************************************//
         if ( t > 1 && t < 2 )
         {
-        	Iapp = 0.1;
+        	Iapp = 0.516289;
         }
         else
         {
@@ -209,76 +211,70 @@ Int main ( Int argc, char** argv )
 
         cout << "\r " << t << " ms.       " << std::flush;
 
-         //********************************************//
-         // Compute the rhs using the model equations  //
-         //********************************************//
-         model.computeRhs ( unknowns, Iapp, rhs );
+        //********************************************//
+        // Compute the rhs using the model equations  //
+        //********************************************//
+        model.computeRhs ( unknowns, Iapp, rhs );
 
-         int i(0);
+        //********************************************//
+        // Writes solution on file.                   //
+        //********************************************//
 
-         for(std::vector<Real>::iterator it=rhs.begin(); it!=rhs.end(); ++it)
-             {
-        	 	 cout << i << "/ " << *it << ", ";
-        	 	 i = i + 1;
-             }
-         cout << "\n" << rhs.size() << endl;
+        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
+       		 << unknowns.at (2) << ", " << unknowns.at (3) << ", "
+       		 << unknowns.at (4) << ", " << unknowns.at (5) << ", "
+       		 << unknowns.at (6) << ", " << unknowns.at (7) << ", "
+       		 << unknowns.at (8) << ", " << unknowns.at (9) << ", "
+       		 << unknowns.at (10) << ", " << unknowns.at (11) << ", "
+       		 << unknowns.at (12) << ", " << unknowns.at (13) << ", "
+       		 << unknowns.at (14) << ", " << unknowns.at (15) << ", "
+       		 << unknowns.at (16) << ", " << unknowns.at (17) << ", "
+       		 << unknowns.at (18) << ", " << unknowns.at (19) << ", "
+             << unknowns.at (20) << ", " << unknowns.at (21) << ", "
+             << unknowns.at (22) << ", " << unknowns.at (23) << ", "
+             << unknowns.at (24) << ", " << unknowns.at (25) << ", "
+             << unknowns.at (26) << ", " << unknowns.at (27) << ", "
+             << unknowns.at (28) << ", " << unknowns.at (29) << ", "
+             << unknowns.at (30) << "\n";
+
 
 
          //********************************************//
          // Use forward Euler method to advance the    //
          // solution in time.                          //
          //********************************************//
-         unknowns.at (0) = unknowns.at (0)   + dt * rhs.at (0);
-         unknowns.at (1) = unknowns.at (1)   + dt * rhs.at (1);
-         unknowns.at (2) = unknowns.at (2)   + dt * rhs.at (2);
-         unknowns.at (3) = unknowns.at (3)   + dt * rhs.at (3);
-         unknowns.at (4) = unknowns.at (4)   + dt * rhs.at (4);
-         unknowns.at (5) = unknowns.at (5)   + dt * rhs.at (5);
-         unknowns.at (6) = unknowns.at (6)   + dt * rhs.at (6);
-         unknowns.at (7) = unknowns.at (7)   + dt * rhs.at (7);
-         unknowns.at (8) = unknowns.at (8)   + dt * rhs.at (8);
-         unknowns.at (9) = unknowns.at (9)   + dt * rhs.at (9);
-         unknowns.at (10) = unknowns.at (10) + dt * rhs.at (10);
-         unknowns.at (11) = unknowns.at (11) + dt * rhs.at (11);
-         unknowns.at (12) = unknowns.at (12) + dt * rhs.at (12);
-         unknowns.at (13) = unknowns.at (13) + dt * rhs.at (13);
-         unknowns.at (14) = unknowns.at (14) + dt * rhs.at (14);
-         unknowns.at (15) = unknowns.at (15) + dt * rhs.at (15);
-         unknowns.at (16) = unknowns.at (16) + dt * rhs.at (16);
-         unknowns.at (17) = unknowns.at (17) + dt * rhs.at (17);
-         unknowns.at (18) = unknowns.at (18) + dt * rhs.at (18);
-         unknowns.at (19) = unknowns.at (19) + dt * rhs.at (19);
-         unknowns.at (20) = unknowns.at (20) + dt * rhs.at (20);
-         unknowns.at (21) = unknowns.at (21) + dt * rhs.at (21);
-         unknowns.at (22) = unknowns.at (22) + dt * rhs.at (22);
-         unknowns.at (23) = unknowns.at (23) + dt * rhs.at (23);
-         unknowns.at (24) = unknowns.at (24) + dt * rhs.at (24);
-         unknowns.at (25) = unknowns.at (25) + dt * rhs.at (25);
-         unknowns.at (26) = unknowns.at (26) + dt * rhs.at (26);
-         unknowns.at (27) = unknowns.at (27) + dt * rhs.at (27);
-         unknowns.at (28) = unknowns.at (28) + dt * rhs.at (28);
-         unknowns.at (29) = unknowns.at (29) + dt * rhs.at (29);
-         unknowns.at (30) = unknowns.at (30) + dt * rhs.at (30);
+
+    	 for(int j(0); j <= 30; ++j)
+         {
+    		 if( t > 21 && t < 26.5 )
+    		 {
+				 if(j!= 10)
+					 unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+				 else
+				 {
+					 for( int k(0) ; k < 150; k++ )
+					 {
+						 unknowns.at (10) = unknowns.at (10)   + dt / 150 * rhs.at (10);
+						 model.computeRhs ( unknowns, Iapp, rhs );
+					 }
+				 }
+    		 }
+    		 else unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+         }
+
+//         unknowns.at(1) = ( unknowns.at(1) / dt + model.fastINa(unknowns).at(1) )
+//        		 / ( 1 / dt + model.fastINa(unknowns).at(1) + model.fastINa(unknowns).at(2) );
+//      	 unknowns.at(2) = ( unknowns.at(2) / dt + model.fastINa(unknowns).at(3) )
+//      			 / ( 1 / dt + model.fastINa(unknowns).at(3) + model.fastINa(unknowns).at(5) );
+//    	 unknowns.at(3) = ( unknowns.at(3) / dt + model.fastINa(unknowns).at(4) )
+//    			 / ( 1 / dt + model.fastINa(unknowns).at(4) + model.fastINa(unknowns).at(6) );
+//    	 unknowns.at(4) = ( unknowns.at(4) / dt + model.timeDIK(unknowns).at(1) )
+//    			 / ( 1 / dt + model.timeDIK(unknowns).at(1) + model.timeDIK(unknowns).at(2) );
 
 
-         //********************************************//
-         // Writes solution on file.                   //
-         //********************************************//
-         output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
-        		 << unknowns.at (2) << ", " << unknowns.at (3) << ", "
-        		 << unknowns.at (4) << ", " << unknowns.at (5) << ", "
-        		 << unknowns.at (6) << ", " << unknowns.at (7) << ", "
-        		 << unknowns.at (8) << ", " << unknowns.at (9) << ", "
-        		 << unknowns.at (10) << ", " << unknowns.at (11) << ", "
-        		 << unknowns.at (12) << ", " << unknowns.at (13) << ", "
-        		 << unknowns.at (14) << ", " << unknowns.at (15) << ", "
-        		 << unknowns.at (16) << ", " << unknowns.at (17) << ", "
-        		 << unknowns.at (18) << ", " << unknowns.at (19) << ", "
-        		 << unknowns.at (20) << ", " << unknowns.at (21) << ", "
-        		 << unknowns.at (22) << ", " << unknowns.at (23) << ", "
-        		 << unknowns.at (24) << ", " << unknowns.at (25) << ", "
-        		 << unknowns.at (26) << ", " << unknowns.at (27) << ", "
-        		 << unknowns.at (28) << ", " << unknowns.at (29) << "\n";
+//    	 unknowns.at (28) = ( unknowns.at(28) / dt + model.computeYParameters(unknowns).at(0) /  model.computeYParameters(unknowns).at(1) )
+//    			 / ( 1 / dt + 1 /  model.computeYParameters(unknowns).at(1) );
+
 
          //********************************************//
          // Update the time.                           //
@@ -292,7 +288,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Close exported file.                       //
     //********************************************//
-
     output.close();
 
 

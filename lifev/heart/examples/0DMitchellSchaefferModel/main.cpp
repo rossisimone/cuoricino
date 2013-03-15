@@ -187,16 +187,16 @@ Int main ( Int argc, char** argv )
         model.computeRhs ( unknowns, Iapp, rhs);
 
         //********************************************//
+        // Writes solution on file.                   //
+        //********************************************//
+        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << "\n";
+
+        //********************************************//
         // Use forward Euler method to advance the    //
         // solution in time.                          //
         //********************************************//
         unknowns.at (0) = unknowns.at (0)  + dt * rhs.at (0);
         unknowns.at (1) = unknowns.at (1)  + dt * rhs.at (1);
-
-        //********************************************//
-        // Writes solution on file.                   //
-        //********************************************//
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << "\n";
 
         //********************************************//
         // Update the time.                           //
