@@ -188,16 +188,30 @@ Int main ( Int argc, char** argv )
 
 	UInt NumGlobalElements =  fiber1 -> size();
 	std::vector<Real> fiber_global_vector (NumGlobalElements);
+
+    if ( comm->MyPID() == 0 )
+    {
+        std::cout << "\nImporting the fibers...";
+    }
 	for ( UInt i = 0; i < NumGlobalElements; ++i)
 	{
 		fibers >> fiber_global_vector[i];
 	}
+    if ( comm->MyPID() == 0 )
+    {
+        std::cout << " Done!\n";
+    }
 
 	int n1 = (*fiber1).epetraVector().MyLength();
 	int d1 = n1 / 3;
 	int i (0);
 	int j (0);
 	int k (0);
+
+    if ( comm->MyPID() == 0 )
+    {
+        std::cout << "\nAssigning fibers to the vector epetra...";
+    }
 	for (UInt l = 0; l < d1; ++l)
 	{
 	i = (*fiber1).blockMap().GID (l);
@@ -216,6 +230,11 @@ Int main ( Int argc, char** argv )
 	}
 	std::cout << std::endl;
 	fiber_global_vector.clear();
+    if ( comm->MyPID() == 0 )
+    {
+        std::cout << " Done!\n";
+    }
+
 
     //********************************************//
     // Create the new fiber direction in the finer//
@@ -228,6 +247,10 @@ Int main ( Int argc, char** argv )
     // mesh                                       //
     //********************************************//
 
+    if ( comm->MyPID() == 0 )
+    {
+        std::cout << "\nStarting interpolation...";
+    }
     int nFlags = 1;
     std::vector<int> flags (nFlags);
     flags[0] = -1;
@@ -235,12 +258,24 @@ Int main ( Int argc, char** argv )
     interpolationPtr_Type RBFinterpolant;
 
     RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFrescaledVectorial" ) );
-
     RBFinterpolant->setup( fullMesh1, mesh1, fullMesh2, mesh2, flags);
+    if ( comm->MyPID() == 0 )
+    {
+        std::cout << "\t Setting up...";
+    }
 
-    RBFinterpolant->setRadius((double) MeshUtility::MeshStatistics::computeSize (*fullMesh1).maxH);
+    RBFinterpolant->setRadius( (double) MeshUtility::MeshStatistics::computeSize (*fullMesh1).maxH );
     RBFinterpolant->setupRBFData (fiber1, fiber2, dataFile, belosList);
+    if ( comm->MyPID() == 0 )
+    {
+        std::cout << "\t Building operators...";
+    }
     RBFinterpolant->buildOperators();
+    if ( comm->MyPID() == 0 )
+    {
+        std::cout << " Done!\n";
+    }
+
     RBFinterpolant->interpolate();
     RBFinterpolant->solution (fiber2);
 
