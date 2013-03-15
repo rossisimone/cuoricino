@@ -23,6 +23,7 @@ SET(mesh_HEADERS
   mesh/RegionMesh2DStructured.hpp
   mesh/MeshTransformer.hpp
   mesh/UpdateMeshFacetsRidges.hpp
+  mesh/RegionMeshStructured.hpp
 CACHE INTERNAL "")
 
 SET(mesh_SOURCES
