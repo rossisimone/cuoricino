@@ -21,6 +21,8 @@ SET(mesh_HEADERS
   mesh/MeshChecks.hpp
   mesh/MeshElementMarked.hpp
   mesh/RegionMesh2DStructured.hpp
+  mesh/MeshTransformer.hpp
+  mesh/UpdateMeshFacetsRidges.hpp
 CACHE INTERNAL "")
 
 SET(mesh_SOURCES
