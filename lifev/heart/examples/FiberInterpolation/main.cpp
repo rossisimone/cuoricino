@@ -78,6 +78,11 @@
 #endif
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
+#include <lifev/core/interpolation/RBFInterpolation.hpp>
+#include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
+#include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
+#include <lifev/core/interpolation/RBFvectorial.hpp>
+
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -105,6 +110,8 @@ Int main ( Int argc, char** argv )
     typedef boost::shared_ptr<mesh_Type>                    meshPtr_Type;
     typedef VectorEpetra                                    vector_Type;
     typedef boost::shared_ptr<vector_Type>                  vectorPtr_Type;
+    typedef RBFInterpolation<mesh_Type>           interpolation_Type;
+    typedef boost::shared_ptr<interpolation_Type> interpolationPtr_Type;
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -118,6 +125,8 @@ Int main ( Int argc, char** argv )
     }
     Teuchos::ParameterList list1 = * ( Teuchos::getParametersFromXmlFile ( "ParamList1.xml" ) );
     Teuchos::ParameterList list2 = * ( Teuchos::getParametersFromXmlFile ( "ParamList2.xml" ) );
+    Teuchos::RCP< Teuchos::ParameterList > belosList = Teuchos::rcp ( new Teuchos::ParameterList );
+    belosList = Teuchos::getParametersFromXmlFile ( "SolverParamList_rbf3d.xml" );
     if ( comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
@@ -165,12 +174,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
-    VectorSmall<3> fibers;
-    fibers[0] =  list1.get ("fiber_X", std::sqrt (2) / 2.0 );
-    fibers[1] =  list1.get ("fiber_Y", std::sqrt (2) / 2.0 );
-    fibers[2] =  list1.get ("fiber_Z", 0.0 );
-
-
 
 
     //********************************************//
@@ -178,22 +181,41 @@ Int main ( Int argc, char** argv )
     //********************************************//
     vectorPtr_Type fiber1 ( new vector_Type ( coarse -> map() ) );
 
-    int n1 = (*fiber1).epetraVector().MyLength();
-    int d1 = n1 / 3;
-    (*fiber1) *= 0;
-    int i (0);
-    int j (0);
-    int k (0);
-    for ( int l (0); l < d1; l++)
-    {
+    std::string fibersDirectory = list1.get ("fiber_path", "./" );
+    std::string fibersFile = list1.get ("fiber_file", "fibers.dat" );
 
-        i = (*fiber1).blockMap().GID (l);
-        j = (*fiber1).blockMap().GID (l + d1);
-        k = (*fiber1).blockMap().GID (l + 2 * d1);
-        (*fiber1) [i] = fibers[0];
-        (*fiber1) [j] = fibers[1];
-        (*fiber1) [k] = fibers[2];
-    }
+   ifstream fibers ( (fibersDirectory+fibersFile).c_str() );
+
+	UInt NumGlobalElements =  fiber1 -> size();
+	std::vector<Real> fiber_global_vector (NumGlobalElements);
+	for ( UInt i = 0; i < NumGlobalElements; ++i)
+	{
+		fibers >> fiber_global_vector[i];
+	}
+
+	int n1 = (*fiber1).epetraVector().MyLength();
+	int d1 = n1 / 3;
+	int i (0);
+	int j (0);
+	int k (0);
+	for (UInt l = 0; l < d1; ++l)
+	{
+	i = (*fiber1).blockMap().GID (l);
+	j = (*fiber1).blockMap().GID (l + d1);
+	k = (*fiber1).blockMap().GID (l + 2 * d1);
+	(*fiber1) [i] = fiber_global_vector[3 * i];
+	(*fiber1) [j] = fiber_global_vector[3 * i + 1];
+	(*fiber1) [k] = fiber_global_vector[3 * i + 2];
+
+	//normalizing
+    Real norm1 = std::sqrt( (*fiber1) [i] * (*fiber1) [i] + (*fiber1) [j] * (*fiber1) [j] + (*fiber1) [k] * (*fiber1) [k] );
+
+    (*fiber1) [i] = (*fiber1) [i] / norm1;
+    (*fiber1) [j] = (*fiber1) [j] / norm1;
+    (*fiber1) [k] = (*fiber1) [k] / norm1;
+	}
+	std::cout << std::endl;
+	fiber_global_vector.clear();
 
     //********************************************//
     // Create the new fiber direction in the finer//
@@ -206,9 +228,30 @@ Int main ( Int argc, char** argv )
     // mesh                                       //
     //********************************************//
 
+    int nFlags = 1;
+    std::vector<int> flags (nFlags);
+    flags[0] = -1;
+
+    interpolationPtr_Type RBFinterpolant;
+
+    RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFrescaledVectorial" ) );
+
+    RBFinterpolant->setup( fullMesh1, mesh1, fullMesh2, mesh2, flags);
+
+    RBFinterpolant->setRadius((double) MeshUtility::MeshStatistics::computeSize (*fullMesh1).maxH);
+    RBFinterpolant->setupRBFData (fiber1, fiber2, dataFile, belosList);
+    RBFinterpolant->buildOperators();
+    RBFinterpolant->interpolate();
+    RBFinterpolant->solution (fiber2);
+
+
+
+
+    //********************************************//
+    // Normalize                                  //
+    //********************************************//
     int n2 = (*fiber2).epetraVector().MyLength();
     int d2 = n2 / 3;
-    (*fiber2) *= 0;
     int i2 (0);
     int j2 (0);
     int k2 (0);
@@ -218,12 +261,13 @@ Int main ( Int argc, char** argv )
         i2 = (*fiber2).blockMap().GID (l);
         j2 = (*fiber2).blockMap().GID (l + d2);
         k2 = (*fiber2).blockMap().GID (l + 2 * d2);
-        (*fiber2) [i2] = fibers[0];
-        (*fiber2) [j2] = fibers[1];
-        (*fiber2) [k2] = fibers[2];
+
+        Real norm2 = std::sqrt( (*fiber2) [i2] * (*fiber2) [i2] + (*fiber2) [j2] * (*fiber2) [j2] + (*fiber2) [k2] * (*fiber2) [k2] );
+
+        (*fiber2) [i2] = (*fiber2) [i2] / norm2;
+        (*fiber2) [j2] = (*fiber2) [j2] / norm2;
+        (*fiber2) [k2] = (*fiber2) [k2] / norm2;
     }
-
-
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
