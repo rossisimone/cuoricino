@@ -155,8 +155,8 @@ int main (int argc, char** argv)
 
 
     std::cout << " Now building local Edges/faces Stuff" << std::endl << std::endl;
-    aMesh.updateElementEdges();
-    aMesh.updateElementFaces();
+    updateMeshRidges ( aMesh );
+    updateMeshFacets ( aMesh );
     aMesh.showMe();
     std::cout << " Now cleaning local Edges/faces Stuff" << std::endl << std::endl;
     aMesh.cleanElementRidges();
@@ -178,8 +178,8 @@ int main (int argc, char** argv)
     aMesh.showMe();
 
     std::cout << " Now building again local Edges/faces Stuff" << std::endl << std::endl;
-    aMesh.updateElementEdges();
-    aMesh.updateElementFaces();
+    updateMeshRidges ( aMesh );
+    updateMeshFacets ( aMesh );
     aMesh.showMe();
     checkMesh3D (aMesh, sw,
                  true, true,
