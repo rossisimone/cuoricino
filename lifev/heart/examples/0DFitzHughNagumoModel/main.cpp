@@ -271,15 +271,11 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 		I(i,i) = 1.0;
 
 	//Problem variables
-	Real It(0.0);										//Applied current
-	vector< VectorSmall<n> > y(N, VectorSmall<2>() );	//vector containing the solution
-	vector< Real > t(N,0.0);							//vector containing the time
-	vector< Real > dt(N-1,0.0);							//vector containing the time steps
-
-	//Initial values
-	y.at(0) = y0;
-	t.at(0) = t0;
-	dt.at(0) = dt_init;
+	Real It(0.0);					//Applied current
+	VectorSmall<n> y(y0);			//y contains the solution y_k
+	Real t(t0);						//time t_k
+	Real dt(dt_init);				//time step dt_k
+	Real dt_old(dt_init);
 
 	//Stepsize control variables
 	Real S = 0.9;						//Safety parameter for the new time step
@@ -300,70 +296,67 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 	VectorSmall<n> rhs;					//rhs will be the righ side
 	Real err_n;							//error at step n
 	Real err_n_1;						//error at step n-1
-	Real fac;							//factor used for the new time step
-	Real fac_max = 5.0;					//maximal value for this factor
-	Real Tol;							//tolerance, which depends on abs_tol, rel_tol and y_n
+	Real fac;							//factor used for the new time step, dt(k+1) = dt(k) * fac
+	Real fac_max = 5.0;					//maximal value for this factor, dt(k+1) < dt(k)*fac_max
+	Real Tol;							//tolerance, which depends on abs_tol, rel_tol and y_k
 	Int k = 1;							//iteration counter
 	Int rejections = 0;					//used to know if a step is rejected two times consecutively
 
-	output << t.at(0) << " " << y.at(0)(0) << " " << y.at(0)(1) << "\n";
+	output << t << " " << y(0) << " " << y(1) << " " << dt <<"\n";
 
 	//First step, to set err_n_1
 	cout<<"Begin of iteration k = 0"<<endl;
-	B = I/(dt.at(0)*g) - model.computeJ( t.at(0), y.at(0) );
+	B = I/(dt*g) - model.computeJ( t, y);
 	B = Invert(B);
 	for (int i = 0; i<s; i++)
 	{
-		ytmp = y.at(0) + U*A.extract(i); 	//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
-		Utmp = (U*C.extract(i))/dt.at(0);	//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
-		model.computeRhs ( y.at(0), It, rhs);
+		ytmp = y + U*A.extract(i); 				//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
+		Utmp = (U*C.extract(i))/dt;				//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
+		model.computeRhs ( y, It, rhs);
 		Utmp = B*( rhs + Utmp );
 		setCol<n,s>(U, Utmp, i);
 	}
-	y.at(1) = y.at(0) + U*m;
+	y = y + U*m;
 	Utmp = U*m-U*mhat;
 	err_n_1 = Utmp.norm();
-	t.at(1) = t.at(0) + dt.at(0);
-	dt.at(1) = dt.at(0);
+	t = t + dt;
 
-	cout<<"t(k) = "<<t.at(0)<<endl;
-	cout<<"dt(k) = "<<dt.at(0)<<endl;
+	cout<<"t(k) = "<<t-dt<<endl;
+	cout<<"dt(k) = "<<dt<<endl;
 	cout<<"err_n_1 = "<<err_n_1<<endl;
-	cout<<"dt(k+1) = "<<dt.at(1)<<endl;
+	cout<<"dt(k+1) = "<<dt<<endl;
 	cout<<"Iteration 0 finished."<<endl<<endl;
 
-	output << t.at(1) << " " << y.at(1)(0) << " " << y.at(1)(1) << "\n";
+	output << t << " " << y(0) << " " << y(1) << " " << dt << "\n";
 
-	while (t.at(k) < TF)
+	while (t < TF)
 	{
 		cout<<"Begin of iteration k = "<<k<<endl;
-		cout<<"t("<<k<<") = "<<t.at(k)<<endl;
-		cout<<"dt("<<k<<") = "<<dt.at(k)<<endl;
+		cout<<"t("<<k<<") = "<<t<<endl;
+		cout<<"dt("<<k<<") = "<<dt<<endl;
 
-		U *= 0.0;														//U variables initilized at 0
-		B = I/(dt.at(k)*g) - model.computeJ( t.at(k), y.at(k) );		//Building linear system matrix
-		B = Invert(B);													//Computing the inverse, which will be used s times
+		U *= 0.0;									//U variables initilized at 0
+		B = I/(dt*g) - model.computeJ( t, y );		//Building linear system matrix
+		B = Invert(B);								//Computing the inverse, which will be used s times
 
 		for (int i = 0; i<s; i++)					//Computing the s stages
 		{
-			ytmp = y.at(k) + U*A.extract(i);		//Point where f will be evalued
-			Utmp = (U*C.extract(i))/dt.at(k);		//U_i = sum_{j=1}^{i-1} C(i,j)*U_j
-			model.computeRhs( y.at(k), It, rhs);	//rhs = f(ytmp)
+			ytmp = y + U*A.extract(i);				//Point where f will be evalued
+			Utmp = (U*C.extract(i))/dt;				//U_i = sum_{j=1}^{i-1} C(i,j)*U_j
+			model.computeRhs( y, It, rhs);			//rhs = f(ytmp)
 			Utmp = B*( rhs + Utmp );				//solving the linear system, Utmp = U_i
 			setCol<n,s>(U, Utmp, i);				//Putting U_i in the ith column of U
 		}
-		y.at(k+1) = y.at(k) + U*m;					//upgrading the solution
-		t.at(k+1) = t.at(k) + dt.at(k);				//upgrading the time
 
-		Tol = abs_tol + rel_tol * max<Real>( y.at(k).norm(), y.at(k+1).norm() ); //Tol = atol + rtol*max( y_k, y_k+1 )
-		Utmp =  U*(m-mhat) ;													 //difference with the embedded method
-		err_n = Utmp.norm();													 //norm of the error
-		if (err_n == 0.0)							//here we set fac, where dt(k+1) = fac*dt(k	)
+		Tol = abs_tol + rel_tol * y.norm();			//Tol = atol + rtol*|y_k|
+		Utmp =  U*(m-mhat) ;						//difference with the embedded method
+		err_n = Utmp.norm();						//norm of the error
+		if (err_n == 0.0)							//here we set fac, where dt(k+1) = fac*dt(k)
 			fac = fac_max;							//if the actual error is zero we set fac to its maximal value
 		else if (err_n_1 == 0.0)					//if the previous error was zero and the actual is not then fac~1
 			fac = S;
 		else										//formula to compute fac, takes in account Tol, errors and time steps
-			fac = S * pow( (Tol*err_n_1)/(err_n*err_n) , p_1 ) * ( dt.at(k) / dt.at(k-1) ) ;
+			fac = S * pow( (Tol*err_n_1)/(err_n*err_n) , p_1 ) * ( dt / dt_old ) ;
 
 		cout<<"Tol = "<<Tol<<endl;
 		cout<<"err_n_1 = "<<err_n_1<<endl;
@@ -372,38 +365,30 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 
 		if (err_n > Tol)							//the step is rejected
 		{
-			cout<<"Rejected step at time "<<t.at(k)<<" with dt = "<<dt.at(k)<<" and fac = "<<fac<<endl<<endl;
+			cout<<"Rejected step at time "<<t<<" with dt = "<<dt<<" and fac = "<<fac<<endl<<endl;
 			if (rejections >= 1)					//if it is the second time that it is rejected we
-				dt.at(k) /= 10.0;					//divide the time step by 10
+				dt /= 10.0;							//divide the time step by 10
 			else									//else dt = dt*fac, if the previous step has not grown too much then
-				dt.at(k) *= fac;					//fac<1, if fac>1 it will be rejected one more time and dt will be
+				dt *= fac;							//fac<1, if fac>1 it will be rejected one more time and dt will be
 													//divided by 10.
 			rejections++;							//increase the number of rejections
-			continue;								//redo the iteration
+			continue;								//redo the iteration with the new time step
 		}
 		rejections = 0;								//here the step has been accepted, reset rejections to 0
 
-		//setting the new time step
-		// dt(k+1) = min( TF-t(k+1), fac*dt(k), fac_max*dt(k) )
-		dt.at(k+1) = min<Real>( TF-t.at(k+1), min<Real>( fac, fac_max )*dt.at(k) );
-		err_n_1 = err_n;							//upgrading the error for the next iteration
+		y = y + U*m;								//upgrading the solution
+		t = t + dt;									//upgrading the time
+
+		//setting the new time step and upgrading variables
+		err_n_1 = err_n;
+		dt_old = dt;
+		dt = min<Real>( TF-t, min<Real>( fac, fac_max )*dt );	// dt(k+1) = min( TF-t, fac*dt(k), fac_max*dt(k) )
 		k++;
 
-		cout<<"dt("<<k<<") = "<<dt.at(k)<<endl;
-
-		if ( k + 0.2*N > y.size() )
-		{
-			cout<<"Resizing vectors...";
-			y.resize(y.size()+N);
-			t.resize(t.size()+N);
-			dt.resize(dt.size()+N);
-			cout<<"Done!"<<endl;
-		}
-
+		cout<<"dt("<<k<<") = "<<dt<<endl;
 		cout<<"Iteration "<<k-1<<" finished."<<endl<<endl;
 
-		output << t.at(k) << " " << y.at(k)(0) << " " << y.at(k)(1) << "\n";
-
+		output << t << " " << y(0) << " " << y(1) << " " <<dt<<"\n";
 	}
 
 
