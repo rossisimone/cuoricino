@@ -54,8 +54,13 @@
 
 #include <fstream>
 #include <string>
+#include <algorithm>
 
 #include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/array/MatrixSmall.hpp>
+#include <lifev/core/array/VectorSmall.hpp>
+
+#include <lifev/core/util/LifeChrono.hpp>
 
 #include <lifev/heart/solver/IonicModels/IonicFitzHughNagumo.hpp>
 #include <lifev/core/LifeV.hpp>
@@ -64,12 +69,23 @@
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
 
-using std::cout;
-using std::endl;
+using namespace std;
 using namespace LifeV;
 
+
 void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
-void ChebychevStabilized (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
+
+void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
+
+template<UInt n, UInt s>
+void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0, Real t0, Real TF, Real dt_init,
+							Real g,	const MatrixSmall<s,s>& A, const MatrixSmall<s,s>& C, const VectorSmall<s>& gammai,
+							const VectorSmall<s>& a, const VectorSmall<s>& m, const VectorSmall<s>& mhat,
+							const Real& Iapp, std::ofstream& output );
+
+MatrixSmall<2,2> Invert(const MatrixSmall<2,2>& A);
+template<UInt Dim1, UInt Dim2> void setCol(MatrixSmall<Dim1,Dim2>& A, const VectorSmall<Dim1>& b, const Int& j);
+
 
 Int main ( Int argc, char** argv )
 {
@@ -122,30 +138,30 @@ Int main ( Int argc, char** argv )
     cout << "TF = " << TF << endl;
     cout << "dt = " << dt << endl;
 
+    string filename;
+    if(FHNParameterList.get ("Rosen", 1.0) == 0.0)
+    	filename = "output_ExpEuler.txt";
+    else
+    	filename = "output_ROS3P.txt";
 
-    //********************************************//
-    // Open the file "output.txt" to save the     //
-    // solution.                                  //
-    //********************************************//
-    string filename = "output.txt";
-    std::ofstream output ("output.txt");
-
+    ofstream output(filename.c_str());
 
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
-    std::cout << "Time loop starts...\n";
+    std::cout << "Time loop starts...\n\n\n";
 
-    if ( FHNParameterList.get ("Cheby", 1.0) == 0.0 )
-    {
+    LifeChrono chrono;
+    chrono.start();
+
+    if ( FHNParameterList.get ("Rosen", 1.0) == 0.0 )
         EulerExplicit (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
-    }
     else
-    {
-        ChebychevStabilized (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
-    }
+        ROS3P (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
 
+    chrono.stop();
     std::cout << "\n...Time loop ends.\n";
+    std::cout << "\nElapsed time : " << chrono.diff() << std::endl;
     std::cout << "Solution written on file: " << filename << "\n";
     //********************************************//
     // Close exported file.                       //
@@ -160,6 +176,9 @@ Int main ( Int argc, char** argv )
 void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output)
 {
     std::vector<Real> unknowns ( model.Size(), 0.0);
+    unknowns.at(0) = 98.999200000000002;
+    unknowns.at(1) = 0.023763800000000;
+
     std::vector<Real> rhs ( model.Size(), 0.0);
     Real Iapp;
 
@@ -174,7 +193,7 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
         //********************************************//
         if ( t > 10.0 && t < 10.1 )
         {
-            Iapp = I;
+            Iapp = 0.0;
         }
         else
         {
@@ -199,7 +218,7 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << "\n";
+        output << t << " " << unknowns.at (0) << " " << unknowns.at (1) << "\n";
 
         //********************************************//
         // Update the time.                           //
@@ -208,117 +227,217 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
     }
 }
 
-void ChebychevStabilized (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output)
+void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output)
 {
-    Real x1, x2;
-    Real y1, y2;
-    Real r, u;
-    Real a, b, c, d;
-    Real s = 3.0;
-    Real s2 = 9.0;
-    std::vector<Real> g1 (2, 0.0);
-    std::vector<Real> g2 (2, 0.0);
-    std::vector<Real> g3 (2, 0.0);
-    std::vector<Real> rhs (model.Size(), 0.0);
-    std::vector<Real> unknowns ( model.Size(), 0.0);
-    Real Iapp;
+	cout << "Computing using ROS3P." << endl;
 
-    cout << "Computing using Chebychev Stabilized" << endl;
+	// Initialization of ROS3P parameters
+	MatrixSmall<3,3> A;
+	MatrixSmall<3,3> C;
+	VectorSmall<3> gammai;
+	VectorSmall<3> a;
+	VectorSmall<3> m;
+	VectorSmall<3> mhat;
+	Real g(0.7886751345948129);
 
-    for ( Real t = 0.0; t < TF; )
-    {
-        //********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
-        //********************************************//
-        if ( t >= 10.0 && t < 10.1 )
-        {
-            Iapp = I;
-        }
-        else
-        {
-            Iapp = 0.0;
-        }
+	A(1,0) = 1.267949192431123;			A(2,0) = 1.267949192431123;
+	C(1,0) = -1.607695154586736;		C(2,0) = -3.464101615137755;		C(2,1) = -1.732050807568877;
+	gammai(0) = 0.7886751345948129;		gammai(1) = -0.2113248654051871;	gammai(2) = -1.077350269189626;
+	a(0) = 0.0;							a(1) = 1.0;							a(2) = 1.0;
+	m(0) = 2.0;							m(1) = 0.5773502691896258;			m(2) = 0.4226497308103742;
+	mhat(0) = 2.113248654051871;		mhat(1) = 1.0;						mhat(2) = 0.4226497308103742;
 
-        std::cout << "\r " << t << " ms.       " << std::flush;
+	//Problem initial values
+	VectorSmall<2> y0;
+	Real t0(0.0);
+	y0(0) = 98.999200000000002;		y0(1) = 0.023763800000000;
 
+	//Call of the general Rosenbrock, passing ROS3P parameters, right side and initial values.
+	//Implemented with variable changes to avoid some matrix*vector multiplications
+	RosenbrockTransformed < 2, 3 > ( model, y0, t0, TF, dt, g, A, C, gammai, a, m, mhat, I, output );
 
-        //Computing the Jacobian, J = [a b ; c d]
-        model.computeJ (a, b, c, d, unknowns);
-
-        //Iterations of PowerMethod to approximate the dominant eigenvalue of the Jacobian
-        //Works fine, exactly the same values as MATLAB
-        while (r > 0.0001)
-        {
-            // Computing y = J * x
-            y1 = a * x1 + b * x2;
-            y2 = c * x1 + d * x2;
-
-            //Normalizing y and setting x = y
-            r = sqrt (y1 * y1 + y2 * y2);
-            x1 = y1 / r;
-            x2 = y2 / r;
-
-            //Approximating the dominant eigenvalue u with the Rayleight quotient
-            u = x1 * (a * x1 + b * x2) + x2 * (c * x1 + d * x2);
-
-            //Computing the residual J*x - u*x
-            y1 = a * x1 + b * x2 - u * x1;
-            y2 = c * x1 + d * x2 - u * x2;
-
-            //Squared norm of the residual
-            r = y1 * y1 + y2 * y2;
-        }
-
-        //Approximation of spectral radius
-        u = abs (u);
-
-        if ( u < s2 / 0.02 )
-        {
-            u = s2 / 0.02;
-        }
-
-        //New stepsize
-        dt = s2 / u;
-
-        if ( t < 10.0 && t + dt >= 10.1)
-        {
-            dt = 10.0 - t;
-        }
-
-        cout << "Iteration : " << t << endl;
-        cout << "Spectral Radius : " << u << endl;
-        cout << "Step Size : " << dt << endl << endl;
-
-        g1 = unknowns;
-
-        model.computeRhs (g1, Iapp, rhs);
-        g2.at (0) = g1.at (0) + (dt / s2) * rhs.at (0);
-        g2.at (1) = g1.at (1) + (dt / s2) * rhs.at (1);
-
-        for (int j = 2; j <= s; j++)
-        {
-            model.computeRhs (g2, Iapp, rhs);
-            g3.at (0) = (2.0 * dt / s2) * rhs.at (0) + 2.0 * g2.at (0) - g1.at (0) ;
-            g3.at (1) = (2.0 * dt / s2) * rhs.at (1) + 2.0 * g2.at (1) - g1.at (1) ;
-
-            g2 = g3;
-            g1 = g2;
-        }
-
-        unknowns.at (0) = g3.at (0);
-        unknowns.at (1) = g3.at (1);
-
-
-        //********************************************//
-        // Writes solution on file.                   //
-        //********************************************//
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", " << u << ", " << dt << "\n";
-
-        //********************************************//
-        // Update the time.                           //
-        //********************************************//
-
-        t = t + dt;
-    }
 }
+
+template<UInt n, UInt s>
+void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0, Real t0, Real TF, Real dt_init,
+							Real g,	const MatrixSmall<s,s>& A, const MatrixSmall<s,s>& C, const VectorSmall<s>& gammai,
+							const VectorSmall<s>& a, const VectorSmall<s>& m, const VectorSmall<s>& mhat,
+							const Real& Iapp, std::ofstream& output )
+{
+	// Constants
+	Int N = (TF-t0)/(100*dt_init);	//Initial size of the vector containing the solution
+	MatrixSmall<n,n> I;				//Identity matrix
+	for(int i=0; i<n; i++)
+		I(i,i) = 1.0;
+
+	//Problem variables
+	Real It(0.0);										//Applied current
+	vector< VectorSmall<n> > y(N, VectorSmall<2>() );	//vector containing the solution
+	vector< Real > t(N,0.0);							//vector containing the time
+	vector< Real > dt(N-1,0.0);							//vector containing the time steps
+
+	//Initial values
+	y.at(0) = y0;
+	t.at(0) = t0;
+	dt.at(0) = dt_init;
+
+	//Stepsize control variables
+	Real S = 0.9;						//Safety parameter for the new time step
+	Real abs_tol = 0.0000001;			//absolute error tolerance
+	Real rel_tol = 0.00001;				//relative error tolerance
+	Real p = 3.0; 						//order of the method, which is also phat+1
+	Real p_1 = 1/p;						//used in computations
+
+	//The Rosenbrock method requires the multiplication J*(sum_{j=1}^{i-1} alpha(i,j)*K_j)
+	//This multiplication can be avoided using U_i = sum_{j=1}^{i-1} alpha(i,j)*K_j
+	//In the following the U_i variables are used
+
+	//Auxiliary variables
+	MatrixSmall<n,s> U;					//matrix which columns are the U_i
+	MatrixSmall<n,n> B;					//Linear system matrix
+	VectorSmall<n> ytmp;				//temporary variable
+	VectorSmall<n> Utmp;				//temporary variable
+	VectorSmall<n> rhs;					//rhs will be the righ side
+	Real err_n;							//error at step n
+	Real err_n_1;						//error at step n-1
+	Real fac;							//factor used for the new time step
+	Real fac_max = 5.0;					//maximal value for this factor
+	Real Tol;							//tolerance, which depends on abs_tol, rel_tol and y_n
+	Int k = 1;							//iteration counter
+	Int rejections = 0;					//used to know if a step is rejected two times consecutively
+
+	output << t.at(0) << " " << y.at(0)(0) << " " << y.at(0)(1) << "\n";
+
+	//First step, to set err_n_1
+	cout<<"Begin of iteration k = 0"<<endl;
+	B = I/(dt.at(0)*g) - model.computeJ( t.at(0), y.at(0) );
+	B = Invert(B);
+	for (int i = 0; i<s; i++)
+	{
+		ytmp = y.at(0) + U*A.extract(i); 	//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
+		Utmp = (U*C.extract(i))/dt.at(0);	//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
+		model.computeRhs ( y.at(0), It, rhs);
+		Utmp = B*( rhs + Utmp );
+		setCol<n,s>(U, Utmp, i);
+	}
+	y.at(1) = y.at(0) + U*m;
+	Utmp = U*m-U*mhat;
+	err_n_1 = Utmp.norm();
+	t.at(1) = t.at(0) + dt.at(0);
+	dt.at(1) = dt.at(0);
+
+	cout<<"t(k) = "<<t.at(0)<<endl;
+	cout<<"dt(k) = "<<dt.at(0)<<endl;
+	cout<<"err_n_1 = "<<err_n_1<<endl;
+	cout<<"dt(k+1) = "<<dt.at(1)<<endl;
+	cout<<"Iteration 0 finished."<<endl<<endl;
+
+	output << t.at(1) << " " << y.at(1)(0) << " " << y.at(1)(1) << "\n";
+
+	while (t.at(k) < TF)
+	{
+		cout<<"Begin of iteration k = "<<k<<endl;
+		cout<<"t("<<k<<") = "<<t.at(k)<<endl;
+		cout<<"dt("<<k<<") = "<<dt.at(k)<<endl;
+
+		U *= 0.0;														//U variables initilized at 0
+		B = I/(dt.at(k)*g) - model.computeJ( t.at(k), y.at(k) );		//Building linear system matrix
+		B = Invert(B);													//Computing the inverse, which will be used s times
+
+		for (int i = 0; i<s; i++)					//Computing the s stages
+		{
+			ytmp = y.at(k) + U*A.extract(i);		//Point where f will be evalued
+			Utmp = (U*C.extract(i))/dt.at(k);		//U_i = sum_{j=1}^{i-1} C(i,j)*U_j
+			model.computeRhs( y.at(k), It, rhs);	//rhs = f(ytmp)
+			Utmp = B*( rhs + Utmp );				//solving the linear system, Utmp = U_i
+			setCol<n,s>(U, Utmp, i);				//Putting U_i in the ith column of U
+		}
+		y.at(k+1) = y.at(k) + U*m;					//upgrading the solution
+		t.at(k+1) = t.at(k) + dt.at(k);				//upgrading the time
+
+		Tol = abs_tol + rel_tol * max<Real>( y.at(k).norm(), y.at(k+1).norm() ); //Tol = atol + rtol*max( y_k, y_k+1 )
+		Utmp =  U*(m-mhat) ;													 //difference with the embedded method
+		err_n = Utmp.norm();													 //norm of the error
+		if (err_n == 0.0)							//here we set fac, where dt(k+1) = fac*dt(k	)
+			fac = fac_max;							//if the actual error is zero we set fac to its maximal value
+		else if (err_n_1 == 0.0)					//if the previous error was zero and the actual is not then fac~1
+			fac = S;
+		else										//formula to compute fac, takes in account Tol, errors and time steps
+			fac = S * pow( (Tol*err_n_1)/(err_n*err_n) , p_1 ) * ( dt.at(k) / dt.at(k-1) ) ;
+
+		cout<<"Tol = "<<Tol<<endl;
+		cout<<"err_n_1 = "<<err_n_1<<endl;
+		cout<<"err_n   = "<<err_n<<endl;
+		cout<<"fac = "<<fac<<endl;
+
+		if (err_n > Tol)							//the step is rejected
+		{
+			cout<<"Rejected step at time "<<t.at(k)<<" with dt = "<<dt.at(k)<<" and fac = "<<fac<<endl<<endl;
+			if (rejections >= 1)					//if it is the second time that it is rejected we
+				dt.at(k) /= 10.0;					//divide the time step by 10
+			else									//else dt = dt*fac, if the previous step has not grown too much then
+				dt.at(k) *= fac;					//fac<1, if fac>1 it will be rejected one more time and dt will be
+													//divided by 10.
+			rejections++;							//increase the number of rejections
+			continue;								//redo the iteration
+		}
+		rejections = 0;								//here the step has been accepted, reset rejections to 0
+
+		//setting the new time step
+		// dt(k+1) = min( TF-t(k+1), fac*dt(k), fac_max*dt(k) )
+		dt.at(k+1) = min<Real>( TF-t.at(k+1), min<Real>( fac, fac_max )*dt.at(k) );
+		err_n_1 = err_n;							//upgrading the error for the next iteration
+		k++;
+
+		cout<<"dt("<<k<<") = "<<dt.at(k)<<endl;
+
+		if ( k + 0.2*N > y.size() )
+		{
+			cout<<"Resizing vectors...";
+			y.resize(y.size()+N);
+			t.resize(t.size()+N);
+			dt.resize(dt.size()+N);
+			cout<<"Done!"<<endl;
+		}
+
+		cout<<"Iteration "<<k-1<<" finished."<<endl<<endl;
+
+		output << t.at(k) << " " << y.at(k)(0) << " " << y.at(k)(1) << "\n";
+
+	}
+
+
+}
+
+MatrixSmall<2,2> Invert(const MatrixSmall<2,2>& A)
+{
+	Real det = A(0,0)*A(1,1) - A(0,1)*A(1,0);
+	MatrixSmall<2,2> B;
+	B(0,0) = A(1,1);
+	B(0,1) = -A(0,1);
+	B(1,0) = -A(1,0);
+	B(1,1) = A(0,0);
+	B = B/det;
+
+	return B;
+}
+
+template<UInt Dim1, UInt Dim2>
+void setCol(MatrixSmall<Dim1,Dim2>& A, const VectorSmall<Dim1>& b, const Int& j)
+{
+	for( Int i=0; i<Dim1; i++)
+		A(i,j) = b(i);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

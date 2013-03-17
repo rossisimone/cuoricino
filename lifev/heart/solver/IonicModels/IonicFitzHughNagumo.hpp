@@ -41,6 +41,8 @@
 
 #include <lifev/heart/solver/IonicModels/HeartIonicModel.hpp>
 
+#include <lifev/core/array/MatrixSmall.hpp>
+#include <lifev/core/array/VectorSmall.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -162,13 +164,15 @@ public:
     void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
 
     void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
+    void computeRhs ( const VectorSmall<2>& v, const Real& Iapp, VectorSmall<2>& rhs);
 
 
     // compute the rhs with state variable interpolation
     Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
 
     //compute the Jacobian
-    void computeJ (Real& a, Real& b, Real& c, Real& d, const std::vector<Real>& v);
+    MatrixSmall<2,2> computeJ (const Real& t, const std::vector<Real>& v);
+    MatrixSmall<2,2> computeJ (const Real& t, const VectorSmall<2>& v);
 
     //! Display information about the model
     void showMe();
@@ -282,19 +286,41 @@ void IonicFitzHughNagumo::computeRhs (    const   std::vector<Real>&  v,
     rhs[1] = dr;
 
 }
+void IonicFitzHughNagumo::computeRhs ( const VectorSmall<2>& v, const Real& Iapp, VectorSmall<2>& rhs)
+{
+    Real dV = - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) + Iapp;
+    Real dr = M_Eta * v[0] - M_Gamma * v[1] ;
 
+    rhs[0] = dV;
+    rhs[1] = dr;
+
+}
 
 Real IonicFitzHughNagumo::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp)
 {
     return ( - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) + Iapp );
 }
 
-void IonicFitzHughNagumo::computeJ (Real& a, Real& b, Real& c, Real& d, const std::vector<Real>& v)
+MatrixSmall<2,2> IonicFitzHughNagumo::computeJ (const Real& t, const std::vector<Real>& v)
 {
-    a = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
-    b = -M_Eta1 * v[0];
-    c = M_Eta;
-    d = -M_Gamma;
+	MatrixSmall<2,2> J;
+    J(0,0) = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
+    J(0,1) = -M_Eta1 * v[0];
+    J(1,0) = M_Eta;
+    J(1,1) = -M_Gamma;
+
+    return J;
+}
+
+MatrixSmall<2,2> IonicFitzHughNagumo::computeJ (const Real& t, const VectorSmall<2>& v)
+{
+	MatrixSmall<2,2> J;
+    J(0,0) = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
+    J(0,1) = -M_Eta1 * v[0];
+    J(1,0) = M_Eta;
+    J(1,1) = -M_Gamma;
+
+    return J;
 }
 
 
