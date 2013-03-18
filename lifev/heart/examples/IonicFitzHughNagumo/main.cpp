@@ -110,10 +110,30 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus1 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
     return 80.0 * ( 0.5 + 0.5 * ( std::tanh ( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
 }
+
+Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+{
+    if ( x<= 0.1 )
+    	return 80.0;
+    else if( x<= 0.2)
+    	return 80.0*( 0.2 - x )/(0.1);
+    else
+    	return 0.0;
+}
+Real Cut (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+{
+    if ( y<= 0.45 )
+    	return 1.0;
+    else if( y<= 0.55)
+    	return ( 0.55 - y )/(0.1);
+    else
+    	return 0.0;
+}
+
 
 
 
@@ -135,6 +155,9 @@ Int main ( Int argc, char** argv )
     chronoinitialsettings.start();
 
     typedef RegionMesh<LinearTetra> mesh_Type;
+    typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
+    typedef FESpace< mesh_Type, MapEpetra >    feSpace_Type;
+    typedef boost::shared_ptr<feSpace_Type>    feSpacePtr_Type;
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
@@ -221,7 +244,7 @@ Int main ( Int argc, char** argv )
     }
 
     //Compute the potential at t0
-    function_Type f = &Stimulus;
+    function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
 
     //setting up initial conditions
@@ -271,7 +294,7 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-    Real dt = monodomainList.get ("timeStep", 0.01);
+    Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
 
     //splitting   -> solveSplitting ( exporterSplitting );
@@ -280,6 +303,21 @@ Int main ( Int argc, char** argv )
     {
         t = t + dt;
         splitting -> solveOneSplittingStep (exporterSplitting, t);
+
+//        if( t >= 34.95 && t<=35.05)
+//        {
+//        	cout<<"Defining variables"<<endl;
+//        	function_Type g = &Cut;
+//        	vectorPtr_Type M_Cut(new VectorEpetra);
+//        	const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
+//        	feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
+//        	cout<<"Interpolating"<<endl;
+//        	(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
+//        	cout<<"Multiplying"<<endl;
+//        	*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
+//        	*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
+//        	cout<<"End"<<endl;
+//        }
 
         std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
 
