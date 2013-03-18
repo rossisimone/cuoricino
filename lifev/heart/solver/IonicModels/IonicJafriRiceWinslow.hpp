@@ -698,6 +698,12 @@
 
 		Real backINab( const std::vector<Real>& v);
 
+		//! For resolution with implicit numerical integrator
+
+//		std::vector<Real> computeYParameters( const std::vector<Real>& v);
+//		std::vector<Real> channelLCaMatrix( const std::vector<Real>& v );
+
+
 		//! Display information about the model
 		void showMe();
 
@@ -1465,46 +1471,154 @@
 		return channelRyrRHS;
 	}
 
-	//std::vector<Real> IonicJafriRiceWinslow::computeYParameters( const std::vector<Real>& v)
-	//{
-	//	std::vector<Real> intParam(2);
-	//
-	//	intParam[0] = 1 / ( 1 + exp( ( v[0] + 55 ) / 7.5 ) ) + 0.1 / ( 1 + exp( -v[0] + 21 ) / 6 );
-	//	intParam[1] = 20 + 600 / ( 1 + exp( v[0]+ 30 ) / 9.5 );
-	//
-	//	return intParam;
-	//}
+//	std::vector<Real> IonicJafriRiceWinslow::computeYParameters( const std::vector<Real>& v)
+//	{
+//		std::vector<Real> intParam(2);
+//
+//		intParam[0] = 1 / ( 1 + exp( ( v[0] + 55 ) / 7.5 ) ) + 0.1 / ( 1 + exp( -v[0] + 21 ) / 6 );
+//		intParam[1] = 20 + 600 / ( 1 + exp( v[0]+ 30 ) / 9.5 );
+//
+//		return intParam;
+//	}
 
-	//std::vector<Real> IonicJafriRiceWinslow::channelLCaMatrix( const std::vector<Real>& v )
-	//{
-	//	V     = v[0];
-	//	cCaSS = v[10];
-	//
-	//	Real alpha      = 0.4 * exp( ( V + 12 ) / 10);
-	//	Real beta       = 0.05 * exp( -( V + 12 ) / 13);
-	//	Real alphaprime = M_a * alpha;
-	//	Real betaprime  = beta / M_b;
-	//	Real gamma      = 0.1875 * cCaSS;
-	//
-	//	std::vector<Real> lCaMatrix[12][12];
-	//
-	//	for(int i(0); i <= 12; ++i)
-	//	{
-	//		if( i <= 5 )
-	//		{
-	//			lCaMatrix[i][i] = - ( ( 4 - i ) * alpha + i * beta + gamma * pow(M_a, i) );
-	//		}
-	//		else if( i == 6 )
-	//		{
-	//			lCaMatrix[i][i] = - g;
-	//		}
-	//		else if ( i != 12 && i > 6 )
-	//		{
-	//			lCaMatrix[i][i] = -( ( 4 - i ) * alphaprime + i * betaprime + M_omega * pow(1 / M_b, i) );
-	//		}
-	//	}
-	//}
+//	std::vector<Real> IonicJafriRiceWinslow::channelLCaMatrix( const std::vector<Real>& v )
+//	{
+//		V     = v[0];
+//		cCaSS = v[10];
+//
+//		Real alpha      = 0.4 * exp( ( V + 12 ) / 10);
+//		Real beta       = 0.05 * exp( -( V + 12 ) / 13);
+//		Real alphaprime = M_a * alpha;
+//		Real betaprime  = beta / M_b;
+//		Real gamma      = 0.1875 * cCaSS;
+//
+//		Real lCaMatrix[12][12];
+//
+//		for(int i(0); i < 12; ++i)
+//		{
+//			for(int j(0); j < 12; ++j)
+//			{
+//				if ( j == i )
+//				{
+//					if ( i < 5 )
+//					{
+//						if ( i == 4 )
+//							lCaMatrix[i][j] = - ( M_f + i * beta + gamma * pow(M_a, i) );
+//						else
+//							lCaMatrix[i][j] = - ( ( 4 - i ) * alpha + i * beta + gamma * pow(M_a, i) );
+//					}
+//					else if( i == 5 )
+//					{
+//						lCaMatrix[i][j] = - M_g;
+//
+//					}
+//					else if ( i > 5 && i != 11 )
+//					{
+//						if ( i == 10 )
+//							lCaMatrix[i][j] = - ( M_fprime + i * betaprime + M_omega * pow(1 / M_b, i) );
+//						else
+//							lCaMatrix[i][j] = - ( ( 4 - ( i - 6 ) ) * alphaprime + i * betaprime + M_omega * pow(1 / M_b, i) );
+//					}
+//					else
+//					{
+//						lCaMatrix[i][j] = - M_gprime;
+//					}
+//				}
+//
+//				else if ( j == i + 1 )
+//				{
+//					if ( i < 4 )
+//					{
+//						lCaMatrix[i][j] = i * beta;
+//					}
+//					else if( i == 4 )
+//					{
+//						lCaMatrix[i][j] = M_g;
+//
+//					}
+//					else if ( i > 5 && i != 10 )
+//					{
+//						lCaMatrix[i][j] = i * betaprime;
+//					}
+//					else if ( i == 10 )
+//					{
+//						lCaMatrix[i][j] = M_gprime;
+//					}
+//					else
+//						lCaMatrix[i][j] = 0;
+//				}
+//
+//				else if ( j == i-1 )
+//				{
+//					if ( j < 4 )
+//					{
+//						lCaMatrix[i][j] = ( 4 - j ) * alpha;
+//					}
+//					else if( j == 4 )
+//					{
+//						lCaMatrix[i][j] = M_f;
+//					}
+//					else if ( i > 6 && i != 11 )
+//					{
+//						lCaMatrix[i][j] = ( 4 - ( j - 6 ) ) * alphaprime;
+//					}
+//					else if ( i == 11 )
+//					{
+//						lCaMatrix[i][j] = M_fprime;
+//					}
+//					else
+//						lCaMatrix[i][j] = 0;
+//				}
+//
+//				else if ( j == i + 6 )
+//				{
+//					if( i <= 4 )
+//					{
+//						lCaMatrix[i][j] = M_omega * pow(1 / M_b, i);
+//					}
+//					else
+//						lCaMatrix[i][j] = 0;
+//				}
+//
+//				else if ( j == i - 6 )
+//				{
+//					if( j <= 4 )
+//					{
+//						lCaMatrix[i][j] = gamma * pow(M_a, j);
+//					}
+//					else
+//						lCaMatrix[i][j] = 0;
+//				}
+//
+//				else
+//					lCaMatrix[i][j] = 0;
+//			}
+//		}
+//	}
 
+//	std::vector<Real> IonicJafriRiceWinslow::channelRyRMatrix( const std::vector<Real>& v )
+//	{
+//		cCaSS = v[10];
+//
+//		Real lRyRMatrix[4][4];
+//
+//		lRyRMatrix[0][0] =  - M_kap * pow(cCaSS, M_n);
+//		lRyRMatrix[0][1] = M_kan;
+//		lRyRMatrix[0][2] = 0;
+//		lRyRMatrix[0][3] = 0;
+//		lRyRMatrix[1][0] = M_kap * pow(cCaSS, M_n);
+//		lRyRMatrix[1][1] = - M_kan - M_kbp * pow(cCaSS, M_m) - M_kcp;
+//		lRyRMatrix[1][2] = M_kbp;
+//		lRyRMatrix[1][3] = M_kcn;
+//		lRyRMatrix[2][0] = 0;
+//		lRyRMatrix[2][1] = M_kbp * pow(cCaSS, M_m);
+//		lRyRMatrix[2][2] = - M_kbp;
+//		lRyRMatrix[2][3] = 0;
+//		lRyRMatrix[3][0] = 0;
+//		lRyRMatrix[3][1] = M_kcp;
+//		lRyRMatrix[3][2] = 0;
+//		lRyRMatrix[3][3] = - M_kcn;
+//	}
 
 	void IonicJafriRiceWinslow::showMe()
 	{
