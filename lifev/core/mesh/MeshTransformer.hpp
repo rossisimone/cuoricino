@@ -60,17 +60,22 @@ namespace MeshUtility
 /** Class to transform a mesh.
  * A class that implements methods to transform a mesh without changing
  * mesh connectivities. It has a constructor that takes the mesh to be transformed
- * @note The Template RMTYPE is used to compile with IBM AIX compilers
+ * @note The Template MarkerCommonType is used to compile with IBM AIX compilers
  * @author Luca Formaggia
  * @date 2 August 2011
  */
-//
-template <typename REGIONMESH, typename RMTYPE = typename REGIONMESH::markerCommon_Type >
+
+// The Template MarkerCommonType is used to compile with IBM compilers
+template <typename RegionMeshType, typename MarkerCommonType = typename RegionMeshType::markerCommon_Type >
 class MeshTransformer
 {
 public:
+
+    typedef RegionMeshType regionMesh_Type;
+    typedef MarkerCommonType markerCommon_Type;
+
     /** the constructor may take a reference to the mesh to be manipulated */
-    MeshTransformer (REGIONMESH& m);
+    MeshTransformer (RegionMeshType& m);
     /** Move the mesh according to a given displacement.
     *
     *  It moves the mesh from the last position saved with savePoints()
@@ -78,10 +83,10 @@ public:
     *  savePoints(), the first time it is called it will save the current mesh point and then
     *  apply the movement.
     *
-    *  Displacement is a 3*numpoints() VECTOR which stores the x-displacement first,
+    *  Displacement is a 3*numpoints() VectorType which stores the x-displacement first,
     *  then the y-displacements etc.
     *
-    *  The VECTOR object must comply with lifeV distributed vector concept EpetraVector
+    *  The VectorType object must comply with lifeV distributed vector concept EpetraVector
     *  in particular it must have the methods isGlobalIDPresent(Uint i).
     *
     *  @author Miguel Fernandez
@@ -90,8 +95,8 @@ public:
     *  @param disp Displacement vector. In this version it must be an EpetraVector
     *  @param dim  Length of vector disp.
     */
-    template <typename VECTOR>
-    void moveMesh ( const VECTOR& disp, UInt dim);
+    template <typename VectorType>
+    void moveMesh ( const VectorType& disp, UInt dim);
     /** Transform the mesh. It uses  boost::numeric::ublas (3,3) matrices
      *  scale, rotate and translate to perform the mesh movement
      *  (operations performed in this order).
@@ -105,8 +110,8 @@ public:
      *  @param translate    vector of three components for (x,y,z) translation the mesh
      *
      */
-    template <typename VECTOR>
-    void transformMesh ( const VECTOR& scale, const VECTOR& rotate, const VECTOR& translate );
+    template <typename VectorType>
+    void transformMesh ( const VectorType& scale, const VectorType& rotate, const VectorType& translate );
 
     /** Transform the mesh according to a given mapping.
      *  Transform the mesh according to a given meshMapping(Real& x, Real& y, Real& z).
@@ -115,8 +120,8 @@ public:
      *  @param meshMapping   function void meshMmapping(Real& x, Real& y, Real& z) which receive
      *                   x, y, z, and transform them according to a certain mapping
      */
-    template <typename function>
-    void transformMesh ( const function& meshMapping);
+    template <typename FunctionType>
+    void transformMesh ( const FunctionType& meshMapping);
 
     //! Tells if we store old points
     /**
@@ -149,7 +154,7 @@ public:
      *  @param i Id of the Point.
      *  @return i-th mesh Point before the last movement.
      */
-    typename REGIONMESH::point_Type const& pointInitial ( ID const i ) const;
+    typename RegionMeshType::point_Type const& pointInitial ( ID const i ) const;
     /** Returns a constant reference to the list of Points before the last movement.
       *
       *  If the mesh points have not been saved with a previous call to
@@ -157,7 +162,8 @@ public:
       *
       *  @return The list mesh Point before the last movement.
       */
-    typename REGIONMESH::points_Type const& pointListInitial() const;
+    typename RegionMeshType::points_Type const& pointListInitial() const;
+
 private:
     /** Appropriately sets internal switches
      *
@@ -165,27 +171,19 @@ private:
      *  to ensure that the handling of (possibly) stored points
      *  works;
      */
-    REGIONMESH& M_mesh;
-    typename REGIONMESH::points_Type M_pointList;
+    RegionMeshType& M_mesh;
+    typename RegionMeshType::points_Type M_pointList;
 };
-/** Mesh statistics.
- *  Namespace that groups functions which operate on a mesh to extract statistics.
- *  The functions do not modify mesh content
- *  @author Luca Formaggia
- *  @date 3 August 2011
- */
-
 
 // *****   IMPLEMENTATIONS ****
-// The Template RMTYPE is used to compile with IBM compilers
-template <typename REGIONMESH, typename RMTYPE >
-MeshTransformer<REGIONMESH, RMTYPE >::MeshTransformer (REGIONMESH& m) : M_mesh (m), M_pointList() {}
+template <typename RegionMeshType, typename MarkerCommonType >
+MeshTransformer<RegionMeshType, MarkerCommonType >::MeshTransformer (RegionMeshType& m) : M_mesh (m), M_pointList() {}
 /**
  * @todo this method should be changed to make sure not to generate invalid elements
  */
-template <typename REGIONMESH, typename RMTYPE >
-template <typename VECTOR>
-void MeshTransformer<REGIONMESH, RMTYPE >::moveMesh ( const VECTOR& disp, UInt dim )
+template <typename RegionMeshType, typename MarkerCommonType >
+template <typename VectorType>
+void MeshTransformer<RegionMeshType, MarkerCommonType >::moveMesh ( const VectorType& disp, UInt dim )
 {
     // the method must be called with a Repeated vector
     if ( disp.mapType() == Unique )
@@ -194,7 +192,7 @@ void MeshTransformer<REGIONMESH, RMTYPE >::moveMesh ( const VECTOR& disp, UInt d
         std::cerr << "Info: moveMesh() requires a Repeated vector, a copy of the passed Unique vector will be created.\n"
                   << "To optimize your code, you should pass a repeated vector to avoid the conversion." << std::endl;
 #endif
-        this->moveMesh ( VECTOR ( disp, Repeated ), dim );
+        this->moveMesh ( VectorType ( disp, Repeated ), dim );
         return;
     }
 
@@ -203,7 +201,7 @@ void MeshTransformer<REGIONMESH, RMTYPE >::moveMesh ( const VECTOR& disp, UInt d
         this->savePoints();
     }
 
-    typedef typename REGIONMESH::points_Type points_Type;
+    typedef typename RegionMeshType::points_Type points_Type;
     points_Type& pointList ( M_mesh.pointList );
     for ( UInt i = 0; i < M_mesh.pointList.size(); ++i )
     {
@@ -216,8 +214,8 @@ void MeshTransformer<REGIONMESH, RMTYPE >::moveMesh ( const VECTOR& disp, UInt d
     }
 }
 
-template<typename REGIONMESH, typename RMTYPE >
-void MeshTransformer<REGIONMESH, RMTYPE >::savePoints()
+template<typename RegionMeshType, typename MarkerCommonType >
+void MeshTransformer<RegionMeshType, MarkerCommonType >::savePoints()
 {
     if (M_pointList.capacity() < M_mesh.pointList.size() )
     {
@@ -234,30 +232,28 @@ void MeshTransformer<REGIONMESH, RMTYPE >::savePoints()
     }
 }
 
-//  The Template RMTYPE is used to compile with IBM compilers
-template <typename REGIONMESH, typename RMTYPE >
-const typename REGIONMESH::point_Type&
-MeshTransformer<REGIONMESH, RMTYPE >::pointInitial ( ID const i ) const
+template <typename RegionMeshType, typename MarkerCommonType >
+const typename RegionMeshType::point_Type&
+MeshTransformer<RegionMeshType, MarkerCommonType >::pointInitial ( ID const i ) const
 {
     ASSERT_BD ( i < M_mesh.pointList.size() );
     return M_pointList.empty() ? M_mesh.pointList[i] : this->M_pointList[i];
 }
 
-template <typename REGIONMESH, typename RMTYPE >
-const typename REGIONMESH::points_Type&
-MeshTransformer<REGIONMESH, RMTYPE >::pointListInitial() const
+template <typename RegionMeshType, typename MarkerCommonType >
+const typename RegionMeshType::points_Type&
+MeshTransformer<RegionMeshType, MarkerCommonType >::pointListInitial() const
 {
     return M_pointList.empty() ? M_mesh.points_Type : M_pointList;
 }
 
-//  The Template RMTYPE is used to compile with IBM compilers
 //! @todo Change using homogeneous coordinates to make it more efficient.
-template <typename REGIONMESH, typename RMTYPE >
-template <typename VECTOR>
-void MeshTransformer<REGIONMESH, RMTYPE >::transformMesh ( const VECTOR& scale, const VECTOR& rotate, const VECTOR& translate )
+template <typename RegionMeshType, typename MarkerCommonType >
+template <typename VectorType>
+void MeshTransformer<RegionMeshType, MarkerCommonType >::transformMesh ( const VectorType& scale, const VectorType& rotate, const VectorType& translate )
 {
     // Make life easier
-    typename REGIONMESH::points_Type& pointList (M_mesh.pointList);
+    typename RegionMeshType::points_Type& pointList (M_mesh.pointList);
 
     //Create the 3 planar rotation matrix and the scale matrix
     boost::numeric::ublas::matrix<Real> R (3, 3), R1 (3, 3), R2 (3, 3), R3 (3, 3), S (3, 3);
@@ -331,17 +327,17 @@ void MeshTransformer<REGIONMESH, RMTYPE >::transformMesh ( const VECTOR& scale, 
     }
 }
 
-//  The Template RMTYPE is used to compile with IBM compilers
-template <typename REGIONMESH, typename RMTYPE >
-template <typename function>
-void MeshTransformer<REGIONMESH, RMTYPE >::transformMesh ( const function& meshMapping)
+//  The Template MarkerCommonType is used to compile with IBM compilers
+template <typename RegionMeshType, typename MarkerCommonType >
+template <typename FunctionType>
+void MeshTransformer<RegionMeshType, MarkerCommonType >::transformMesh ( const FunctionType& meshMapping)
 {
     // Make life easier
-    typename REGIONMESH::points_Type& pointList (M_mesh.pointList);
+    typename RegionMeshType::points_Type& pointList (M_mesh.pointList);
 
     for ( UInt i = 0; i < pointList.size(); ++i )
     {
-        typename REGIONMESH::point_Type& p = pointList[ i ];
+        typename RegionMeshType::point_Type& p = pointList[ i ];
         meshMapping (p.coordinate (0), p.coordinate (1), p.coordinate (2) );
     }
 }
