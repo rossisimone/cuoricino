@@ -1,7 +1,6 @@
 SET(array_HEADERS
   array/ETMatrixElemental.hpp
   array/ETVectorElemental.hpp
-  array/MatrixSmall.hpp
   array/OperationSmallAddition.hpp
   array/OperationSmallDivision.hpp
   array/OperationSmallDot.hpp
