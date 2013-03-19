@@ -72,6 +72,7 @@
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
 #include <lifev/heart/solver/HeartIonicSolver.hpp>
+#include <lifev/heart/utility/HeartUtility.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
@@ -139,6 +140,7 @@ Int main ( Int argc, char** argv )
     //  chronoinitialsettings.start();
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
+    typedef boost::shared_ptr< RegionMesh<LinearTetra> >	   meshPtr_Type;
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
@@ -256,12 +258,17 @@ Int main ( Int argc, char** argv )
         cout << "\n\nsetting fibers:  " ;
     }
 
-    VectorSmall<3> fibers;
-    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2) / 2.0 );
-    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2) / 2.0 );
-    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+    ( new FESpace< mesh_Type, MapEpetra > ( splitting -> localMeshPtr(), "P1", 3, splitting -> commPtr() ) );
 
-    splitting ->setupFibers (fibers);
+    boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
+    std::string fibersDirectory = monodomainList.get ("fiber_path", "./" );
+    std::string fibersFile = monodomainList.get ("fiber_file", "fibers.dat" );
+
+    HeartUtility::importFibers(fiber,fibersFile, fibersDirectory);
+
+    splitting -> setFiberPtr(fiber);
+
     if ( Comm->MyPID() == 0 )
     {
         cout << "Done! \n" ;
@@ -272,27 +279,27 @@ Int main ( Int argc, char** argv )
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        cout << "\n\nexporting fibers:  " ;
+        cout << "\n\nexporting fibers:  \n\n" ;
     }
 
     splitting -> exportFiberDirection();
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "Done! \n" ;
-    }
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
-    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-    ( new FESpace< mesh_Type, MapEpetra > ( splitting -> localMeshPtr(), "P1", 3, splitting -> commPtr() ) );
 
-    ExporterHDF5<mesh_Type> exp;
-    exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
-    exp.setPrefix ("FiberDirection");
-    exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", Space3D, splitting -> fiberPtr(), UInt (0) );
-    exp.postProcess (0);
-    exp.closeFile();
+
+//    ExporterHDF5<mesh_Type> exp;
+//    exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
+//    exp.setPrefix ("FiberDirection");
+//    exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", Space3D, splitting -> fiberPtr(), UInt (0) );
+//    exp.postProcess (0);
+//    exp.closeFile();
+
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\n\nDone! \n" ;
+    }
 
     //********************************************//
     // Creating exporters to save the solution    //
@@ -305,44 +312,48 @@ Int main ( Int argc, char** argv )
 
     std::string name ( "FiberDirection" );
     monodomainSolver_Type::vectorPtr_Type newFiber ( new VectorEpetra ( Space3D -> map(), LifeV::Unique ) );
-    exporterData_Type impData (exporterData_Type::VectorField, "fibers.00000", Space3D,
-                               newFiber, UInt (0), exporterData_Type::UnsteadyRegime);
 
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "Done! \n" ;
-    }
 
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\n Restarting ..." ;
-    }
 
+//    exporterData_Type impData (exporterData_Type::VectorField, "fibers.00000", Space3D,
+//                               newFiber, UInt (0), exporterData_Type::UnsteadyRegime);
+//
+//    if ( Comm->MyPID() == 0 )
+//    {
+//        cout << "Done! \n" ;
+//    }
+//
+//    if ( Comm->MyPID() == 0 )
+//    {
+//        cout << "\n Restarting ..." ;
+//    }
+//
     typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > > filterPtr_Type;
     typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >  hdf5Filter_Type;
     typedef boost::shared_ptr<hdf5Filter_Type>                  hdf5FilterPtr_Type;
-
-    //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
-    filterPtr_Type importer ( new hdf5Filter_Type() );
-
-    importer -> setMeshProcId ( splitting -> localMeshPtr(), Comm -> MyPID() );
+//
+//    //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
+//    filterPtr_Type importer ( new hdf5Filter_Type() );
+//
+//    importer -> setMeshProcId ( splitting -> localMeshPtr(), Comm -> MyPID() );
     std::string const Name = "fiberdirection";
-    importer-> setPrefix (name);
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "Done! \n" ;
-    }
+//    importer-> setPrefix (name);
+//    if ( Comm->MyPID() == 0 )
+//    {
+//        cout << "Done! \n" ;
+//    }
+//
+//    importer -> readVariable (impData);
+//
+//    importer -> closeFile();
 
-    importer -> readVariable (impData);
-
-    importer -> closeFile();
-
-
+    HeartUtility::importFibers(newFiber, name, splitting -> localMeshPtr() );
+//    HeartUtility::importFibers(newFiber, splitting -> localMeshPtr() );
 
     ExporterHDF5<mesh_Type> Exp;
     Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
     Exp.setPrefix (Name);
-    (*newFiber) *= 100.0;
+//    (*newFiber) *= 100.0;
     Exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "ciccia", Space3D, newFiber, UInt (0) );
     Exp.postProcess (0);
     Exp.closeFile();
@@ -374,7 +385,7 @@ Int main ( Int argc, char** argv )
     //================================================
     std::string sol ( "Splitting" );
     monodomainSolver_Type::vectorPtr_Type newSol ( new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ) );
-    exporterData_Type ImportData (exporterData_Type::ScalarField, "Variable0.00010", splitting -> feSpacePtr(),
+    exporterData_Type ImportData (exporterData_Type::ScalarField, "Variable0.00001", splitting -> feSpacePtr(),
                                   newSol, UInt (0), exporterData_Type::UnsteadyRegime);
 
     //================================================
@@ -418,17 +429,21 @@ Int main ( Int argc, char** argv )
 
     //    vectorPtr_Type vec( new vector_Type( splitting -> feSpacePtr() -> map(), Unique ) );
     vectorPtr_Type vec ( new vector_Type ( space -> map(), Unique ) );
+//    meshPtr_Type mesh1 ( new mesh_Type ( Comm ) );
+//    meshPtr_Type fullMesh1 ( new mesh_Type ( Comm ) );
+//    MeshUtility::fillWithFullMesh (mesh1, fullMesh1, meshName, meshPath);
 
     for ( UInt j (0); j < vec -> epetraVector().MyLength() ; ++j)
     {
 
         if ( splitting -> fullMeshPtr() -> point ( vec -> blockMap().GID (j) ).markerID() == 15 )
         {
-            if ( vec -> blockMap().LID ( vec -> blockMap().GID (j) ) != -1 )
-            {
+            //if ( vec -> blockMap().LID ( vec -> blockMap().GID (j) ) != -1 )
+            //{
                 (*vec) ( vec -> blockMap().GID (j) ) = 1.0;
-            }
+            //}
         }
+
         if ( splitting -> fullMeshPtr() -> point ( vec -> blockMap().GID (j) ).markerID() == 14 )
         {
             if ( vec -> blockMap().LID ( vec -> blockMap().GID (j) ) != -1 )
