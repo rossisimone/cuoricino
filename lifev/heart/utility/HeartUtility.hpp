@@ -38,15 +38,6 @@
 #ifndef HEARTUTILITY_H
 #define HEARTUTILITY_H 1
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-#include <fstream>
-#include <string>
-
-#pragma GCC diagnostic warning "-Wunused-variable"
-#pragma GCC diagnostic warning "-Wunused-parameter"
-
 #include <lifev/core/LifeV.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
@@ -58,11 +49,6 @@
 #include <lifev/core/mesh/RegionMesh.hpp>
 #include <lifev/core/fem/FESpace.hpp>
 
-#include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
-#include <lifev/heart/solver/HeartIonicSolver.hpp>
-#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
-
-
 namespace LifeV
 {
 
@@ -71,7 +57,7 @@ namespace LifeV
 namespace HeartUtility
 {
 
-void importFibers( boost::shared_ptr<VectorEpetra> fiber, std::string& name, boost::shared_ptr< RegionMesh<LinearTetra> > mesh  )
+inline void importFibers( boost::shared_ptr<VectorEpetra> fiber, std::string& name, boost::shared_ptr< RegionMesh<LinearTetra> > mesh  )
 {
     typedef RegionMesh<LinearTetra>                         mesh_Type;
     typedef ExporterData<mesh_Type> 						   exporterData_Type;
@@ -95,7 +81,7 @@ void importFibers( boost::shared_ptr<VectorEpetra> fiber, std::string& name, boo
 
 }
 
-void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath )
+inline void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath )
 {
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
@@ -143,7 +129,7 @@ void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::string file
 
 }
 
-void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, std::vector<UInt> flags)
+inline void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, std::vector<UInt> flags)
 {
 
 	for( UInt j (0); j < vec.epetraVector().MyLength() ; ++j )
@@ -161,7 +147,7 @@ void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<Linea
     }
 }
 
-void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, UInt flag)
+inline void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, UInt flag)
 {
 
 	for( UInt j (0); j < vec.epetraVector().MyLength() ; ++j )
@@ -180,5 +166,5 @@ void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<Linea
 
 } // namespace LifeV
 
-#endif /* MESHUTILITY_H */
+#endif /* HEARTUTILITY_H */
 
