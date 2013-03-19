@@ -41,11 +41,8 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#include <algorithm>
-#include <iterator>
-
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/io.hpp>
+#include <fstream>
+#include <string>
 
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
@@ -59,6 +56,12 @@
 #include <lifev/core/filter/ExporterEmpty.hpp>
 #include <lifev/core/filter/Exporter.hpp>
 #include <lifev/core/mesh/RegionMesh.hpp>
+#include <lifev/core/fem/FESpace.hpp>
+
+#include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
+#include <lifev/heart/solver/HeartIonicSolver.hpp>
+#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
+
 
 namespace LifeV
 {
@@ -68,9 +71,8 @@ namespace LifeV
 namespace HeartUtility
 {
 
-void importFibers( boost::shared_ptr<VectorEpetra>& fiberVector, std::string filename, RegionMesh<LinearTetra>& mesh  )
+void importFibers( boost::shared_ptr<VectorEpetra> fiber, std::string& name, boost::shared_ptr< RegionMesh<LinearTetra> > mesh  )
 {
-
     typedef RegionMesh<LinearTetra>                         mesh_Type;
     typedef ExporterData<mesh_Type> 						   exporterData_Type;
     typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > > filterPtr_Type;
@@ -78,24 +80,22 @@ void importFibers( boost::shared_ptr<VectorEpetra>& fiberVector, std::string fil
     typedef boost::shared_ptr<hdf5Filter_Type>                  hdf5FilterPtr_Type;
 
 
-    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > fiberSpace
-    				( new FESpace< mesh_Type, MapEpetra > ( mesh, "P1", 3, fiberVector -> comm() ) );
+    boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > fiberSpace( new FESpace< mesh_Type, MapEpetra > ( mesh, "P1", 3, comm ) );
 
-    boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( fiberVector -> map(), LifeV::Unique ) );
     exporterData_Type impData (exporterData_Type::VectorField, "fibers.00000", fiberSpace,
-    							fiberVector, UInt (0), exporterData_Type::UnsteadyRegime);
-
+                               fiber, UInt (0), exporterData_Type::UnsteadyRegime);
 
     //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
     filterPtr_Type importer ( new hdf5Filter_Type() );
-
-    importer -> setMeshProcId ( mesh, fiberVector -> comm() );
-    importer -> setPrefix (filename);
+    importer -> setMeshProcId ( mesh, comm -> MyPID() );
+    importer-> setPrefix (name);
     importer -> readVariable (impData);
     importer -> closeFile();
+
 }
 
-void importFibers(boost::shared_ptr<VectorEpetra>& fiberVector, std::string filename, std::string filepath )
+void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath )
 {
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
@@ -103,7 +103,7 @@ void importFibers(boost::shared_ptr<VectorEpetra>& fiberVector, std::string file
     typedef VectorEpetra                                    vector_Type;
     typedef boost::shared_ptr<vector_Type>                  vectorPtr_Type;
 
-    ifstream fibers ( (fibersDirectory+fibersFile).c_str() );
+    std::ifstream fibers ( (filepath+filename).c_str() );
 
 	UInt NumGlobalElements =  fiberVector -> size();
 	std::vector<Real> fiber_global_vector (NumGlobalElements);
@@ -122,7 +122,7 @@ void importFibers(boost::shared_ptr<VectorEpetra>& fiberVector, std::string file
 
 	//std::cout << "\nAssigning fibers to the vector epetra...";
 
-	for (UInt l = 0; l < d; ++l)
+    for (UInt l = 0; l < d; ++l)
 	{
 	i = (*fiberVector).blockMap().GID (l);
 	j = (*fiberVector).blockMap().GID (l + d);
@@ -143,6 +143,38 @@ void importFibers(boost::shared_ptr<VectorEpetra>& fiberVector, std::string file
 
 }
 
+void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, std::vector<UInt> flags)
+{
+
+	for( UInt j (0); j < vec.epetraVector().MyLength() ; ++j )
+	{
+		for ( UInt k(0); k < flags.size(); k++ )
+		{
+			if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flags.at(k) )
+			{
+				if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
+				{
+					(vec) ( vec.blockMap().GID (j) ) = value;
+				}
+			}
+		}
+    }
+}
+
+void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, UInt flag)
+{
+
+	for( UInt j (0); j < vec.epetraVector().MyLength() ; ++j )
+	{
+		if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flag )
+		{
+			if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
+			{
+				(vec) ( vec.blockMap().GID (j) ) = value;
+			}
+		}
+    }
+}
 
 } // namespace HeartUtility
 
