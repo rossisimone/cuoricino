@@ -738,7 +738,7 @@ public:
     //! partition the mesh
     void inline partitionMesh ( std::string  meshName, std::string   meshPath)
     {
-        MeshUtility::fillWithFullMesh ( M_fullMeshPtr, M_localMeshPtr, meshName, meshPath );
+        MeshUtility::fillWithFullMesh ( M_localMeshPtr, M_fullMeshPtr, meshName, meshPath );
     }
     //! given an boost function initialize the potential
     void inline setPotentialFromFunction ( function_Type f )
@@ -1499,8 +1499,8 @@ solveSplitting()
 {
     for ( Real t = M_initialTime; t < M_endTime; )
     {
-        solveOneSplittingStep();
         t = t + M_timeStep;
+        solveOneSplittingStep();
     }
 }
 
@@ -1508,12 +1508,13 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
 solveSplitting (exporter_Type& exporter)
 {
-    for ( Real t = M_initialTime; t < M_endTime; )
-    {
-        t = t + M_timeStep;
-        solveOneSplittingStep (exporter, t);
-
-    }
+	if( M_endTime > M_timeStep){
+		for ( Real t = M_initialTime; t < M_endTime; )
+		{
+			t = t + M_timeStep;
+			solveOneSplittingStep (exporter, t);
+		}
+	}
 }
 
 
@@ -1618,9 +1619,12 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
 solveICI (exporter_Type& exporter)
 {
-    for ( Real t = M_initialTime; t < M_endTime; )
+
+	Real dt = M_timeStep;
+	for ( Real t = M_initialTime; t < M_endTime; )
     {
-        t = t + M_timeStep;
+        t += M_timeStep;
+        if( t > M_endTime) M_timeStep = M_endTime - ( t - dt );
         solveOneStepGatingVariablesFE();
         solveOneICIStep ( exporter, t);
     }
