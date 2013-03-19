@@ -39,73 +39,81 @@ int main (int argc, char** argv)
     {
         cout << "\n\nReading and partitioning the cube mesh without saving the global mesh: ... \n";
     }
-    //Create the mesh data and read and partitioned the mesh
-    boost::shared_ptr< RegionMesh <LinearTetra> > meshPtr ( new RegionMesh <LinearTetra> ( comm ) );
+
     std::string meshName = dataFile ("mesh/mesh_file", "cube4x4.mesh");
     std::string meshPath =  dataFile ("mesh/mesh_dir", "./");
     std::string meshOrder =  dataFile ("mesh/mesh_order", "P1");
     bool isPartitioned = false;
-    MeshUtility::fillWithMesh ( meshPtr, isPartitioned, meshName, meshPath, meshOrder );
-    if ( comm -> MyPID() == 0 )
+
     {
-        cout << "... DONE! ";
+        //Create the mesh data and read and partitioned the mesh
+        boost::shared_ptr< RegionMesh <LinearTetra> > meshPtr ( new RegionMesh <LinearTetra> ( comm ) );
+        MeshUtility::fillWithMesh ( meshPtr, isPartitioned, meshName, meshPath, meshOrder );
+        if ( comm -> MyPID() == 0 )
+        {
+            cout << "... DONE! ";
+        }
     }
 
-
-    //create the mesh data and read and save both the global mesh and the partitioned mesh
-    if ( comm -> MyPID() == 0 )
     {
-        cout << "\n\nReading and partitioning the cube mesh saving the global mesh: ... \n";
-    }
-    boost::shared_ptr< RegionMesh <LinearTetra> > meshFullPtr ( new RegionMesh <LinearTetra> ( comm ) );
-    boost::shared_ptr< RegionMesh <LinearTetra> > meshLocalPtr ( new RegionMesh <LinearTetra> ( comm ) );
-    MeshUtility::fillWithMesh ( meshLocalPtr, meshFullPtr, isPartitioned, meshName, meshPath, "P1" );
-    if ( comm -> MyPID() == 0 )
-    {
-        cout << "... DONE! ";
-    }
-
-    //create a 3D structured mesh
-    if ( comm -> MyPID() == 0 )
-    {
-        cout << "\n\nCreating a structured mesh without saving the full mesh: ... \n";
-    }
-    boost::shared_ptr< RegionMesh <LinearTetra> > meshStructPtr ( new RegionMesh <LinearTetra> ( comm ) );
-    MeshUtility::fillWithStructuredMesh ( meshStructPtr,
-                                          1,
-                                          std::vector<UInt> (3, 5),
-                                          true,
-                                          Vector3D ( 1., 1. , 1. ),
-                                          Vector3D ( 0., 0., 0. ) );
-
-
-    if ( comm -> MyPID() == 0 )
-    {
-        cout << "... DONE!\n\n ";
+        //create the mesh data and read and save both the global mesh and the partitioned mesh
+        if ( comm -> MyPID() == 0 )
+        {
+            cout << "\n\nReading and partitioning the cube mesh saving the global mesh: ... \n";
+        }
+        boost::shared_ptr< RegionMesh <LinearTetra> > meshFullPtr ( new RegionMesh <LinearTetra> ( comm ) );
+        boost::shared_ptr< RegionMesh <LinearTetra> > meshLocalPtr ( new RegionMesh <LinearTetra> ( comm ) );
+        MeshUtility::fillWithMesh ( meshLocalPtr, meshFullPtr, isPartitioned, meshName, meshPath, "P1" );
+        if ( comm -> MyPID() == 0 )
+        {
+            cout << "... DONE! ";
+        }
     }
 
-
-    //create a 3D structured mesh saving the full mesh
-    if ( comm -> MyPID() == 0 )
     {
-        cout << "\n\nCreating a structured mesh saving the full mesh: ... \n";
+        //create a 3D structured mesh
+        if ( comm -> MyPID() == 0 )
+        {
+            cout << "\n\nCreating a structured mesh without saving the full mesh: ... \n";
+        }
+        boost::shared_ptr< RegionMesh <LinearTetra> > meshStructPtr ( new RegionMesh <LinearTetra> ( comm ) );
+        MeshUtility::fillWithStructuredMesh ( meshStructPtr,
+                                              1,
+                                              std::vector<UInt> (3, 5),
+                                              true,
+                                              Vector3D ( 1., 1. , 1. ),
+                                              Vector3D ( 0., 0., 0. ) );
+
+
+        if ( comm -> MyPID() == 0 )
+        {
+            cout << "... DONE!\n\n ";
+        }
     }
-    boost::shared_ptr< RegionMesh <LinearTetra> > meshLocalStructPtr ( new RegionMesh <LinearTetra> ( comm ) );
-    boost::shared_ptr< RegionMesh <LinearTetra> > meshFullStructPtr ( new RegionMesh <LinearTetra> ( comm ) );
-    MeshUtility::fillWithStructuredMesh (meshStructPtr,
-                                         meshLocalStructPtr,
-                                         1,
-                                         std::vector<UInt> (3, 5),
-                                         true,
-                                         Vector3D ( 1., 1. , 1. ),
-                                         Vector3D ( 0., 0., 0. ) );
 
-
-    if ( comm -> MyPID() == 0 )
     {
-        cout << "... DONE!\n\n ";
-    }
 
+        //create a 2D structured mesh saving the full mesh
+        if ( comm -> MyPID() == 0 )
+        {
+            cout << "\n\nCreating a structured mesh saving the full mesh: ... \n";
+        }
+        boost::shared_ptr< RegionMesh <LinearTriangle> > meshLocalStructPtr ( new RegionMesh <LinearTriangle> ( comm ) );
+        boost::shared_ptr< RegionMesh <LinearTriangle> > meshFullStructPtr ( new RegionMesh <LinearTriangle> ( comm ) );
+        MeshUtility::fillWithStructuredMesh (meshLocalStructPtr,
+                                             meshFullStructPtr,
+                                             1,
+                                             std::vector<UInt> (2, 5),
+                                             true,
+                                             Vector3D ( 1., 1. , 1. ),
+                                             Vector3D ( 0., 0., 0. ) );
+
+
+        if ( comm -> MyPID() == 0 )
+        {
+            cout << "... DONE!\n\n ";
+        }
+    }
 
     comm.reset();
 
