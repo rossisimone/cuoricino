@@ -63,6 +63,7 @@
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/mesh/MeshData.hpp>
 #include <lifev/core/mesh/MeshUtility.hpp>
+#include <lifev/heart/utility/HeartUtility.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
@@ -184,57 +185,7 @@ Int main ( Int argc, char** argv )
     std::string fibersDirectory = list1.get ("fiber_path", "./" );
     std::string fibersFile = list1.get ("fiber_file", "fibers.dat" );
 
-   ifstream fibers ( (fibersDirectory+fibersFile).c_str() );
-
-	UInt NumGlobalElements =  fiber1 -> size();
-	std::vector<Real> fiber_global_vector (NumGlobalElements);
-
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "\nImporting the fibers...";
-    }
-	for ( UInt i = 0; i < NumGlobalElements; ++i)
-	{
-		fibers >> fiber_global_vector[i];
-	}
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << " Done!\n";
-    }
-
-	int n1 = (*fiber1).epetraVector().MyLength();
-	int d1 = n1 / 3;
-	int i (0);
-	int j (0);
-	int k (0);
-
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "\nAssigning fibers to the vector epetra...";
-    }
-	for (UInt l = 0; l < d1; ++l)
-	{
-	i = (*fiber1).blockMap().GID (l);
-	j = (*fiber1).blockMap().GID (l + d1);
-	k = (*fiber1).blockMap().GID (l + 2 * d1);
-	(*fiber1) [i] = fiber_global_vector[3 * i];
-	(*fiber1) [j] = fiber_global_vector[3 * i + 1];
-	(*fiber1) [k] = fiber_global_vector[3 * i + 2];
-
-	//normalizing
-    Real norm1 = std::sqrt( (*fiber1) [i] * (*fiber1) [i] + (*fiber1) [j] * (*fiber1) [j] + (*fiber1) [k] * (*fiber1) [k] );
-
-    (*fiber1) [i] = (*fiber1) [i] / norm1;
-    (*fiber1) [j] = (*fiber1) [j] / norm1;
-    (*fiber1) [k] = (*fiber1) [k] / norm1;
-	}
-	std::cout << std::endl;
-	fiber_global_vector.clear();
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << " Done!\n";
-    }
-
+    HeartUtility::importFibers(fiber1,fibersFile, fibersDirectory);
 
     //********************************************//
     // Create the new fiber direction in the finer//
