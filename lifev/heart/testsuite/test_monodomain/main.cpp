@@ -1,0 +1,287 @@
+//@HEADER
+/*
+*******************************************************************************
+
+    Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
+    Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
+
+    This file is part of LifeV.
+
+    LifeV is free software; you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    LifeV is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
+
+*******************************************************************************
+*/
+//@HEADER
+
+/*!
+    @file
+    @brief 0D test with the Negroni Lascano model of 1996.
+
+    @date 01−2013
+    @author Simone Rossi <simone.rossi@epfl.ch>
+
+    @contributor
+    @mantainer Simone Rossi <simone.rossi@epfl.ch>
+ */
+
+// Tell the compiler to ignore specific kind of warnings:
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+#include <Epetra_ConfigDefs.h>
+#ifdef EPETRA_MPI
+#include <mpi.h>
+#include <Epetra_MpiComm.h>
+#else
+#include <Epetra_SerialComm.h>
+#endif
+
+//Tell the compiler to restore the warning previously silented
+#pragma GCC diagnostic warning "-Wunused-variable"
+#pragma GCC diagnostic warning "-Wunused-parameter"
+
+
+
+#include <fstream>
+#include <string>
+
+#include <lifev/core/array/VectorSmall.hpp>
+
+#include <lifev/core/array/VectorEpetra.hpp>
+#include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/array/MapEpetra.hpp>
+#include <lifev/core/mesh/MeshData.hpp>
+#include <lifev/core/mesh/MeshUtility.hpp>
+#include <lifev/core/mesh/MeshPartitioner.hpp>
+#include <lifev/core/filter/ExporterEnsight.hpp>
+#include <lifev/core/filter/ExporterHDF5.hpp>
+#include <lifev/core/filter/ExporterEmpty.hpp>
+
+#include <lifev/core/algorithm/LinearSolver.hpp>
+#include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
+#include <lifev/heart/solver/HeartIonicSolver.hpp>
+
+#include <lifev/core/filter/ExporterEnsight.hpp>
+#ifdef HAVE_HDF5
+#include <lifev/core/filter/ExporterHDF5.hpp>
+#endif
+#include <lifev/core/filter/ExporterEmpty.hpp>
+
+#include <lifev/heart/solver/IonicModels/IonicAlievPanfilov.hpp>
+#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
+#include <lifev/heart/utility/HeartUtility.hpp>
+#include <lifev/core/LifeV.hpp>
+
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include "Teuchos_XMLParameterListHelpers.hpp"
+
+
+using namespace LifeV;
+
+
+
+
+Int main ( Int argc, char** argv )
+{
+
+    //! Initializing Epetra communicator
+    MPI_Init (&argc, &argv);
+    boost::shared_ptr<Epetra_Comm>  Comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "% using MPI" << endl;
+    }
+
+    //********************************************//
+    // Starts the chronometer.                    //
+    //********************************************//
+    //  LifeChrono chronoinitialsettings;
+    //  chronoinitialsettings.start();
+
+    typedef RegionMesh<LinearTetra>                         mesh_Type;
+    typedef boost::function < Real (const Real& /*t*/,
+                                    const Real &   x,
+                                    const Real &   y,
+                                    const Real& /*z*/,
+                                    const ID&   /*i*/ ) >   function_Type;
+
+    typedef HeartETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
+    typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
+
+    //********************************************//
+    // Import parameters from an xml list. Use    //
+    // Teuchos to create a list from a given file //
+    // in the execution directory.                //
+    //********************************************//
+
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Importing parameters list...";
+    }
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Done!" << endl;
+    }
+
+    //********************************************//
+    // Creates a new model object representing the//
+    // model from Aliev and Panfilov 1996.  The   //
+    // model input are the parameters. Pass  the  //
+    // parameter list in the constructor          //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Building Constructor for Minimal Model with parameters ... ";
+    }
+    boost::shared_ptr<IonicMinimalModel>  model ( new IonicMinimalModel() );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Done!" << endl;
+    }
+
+
+    //********************************************//
+    // In the parameter list we need to specify   //
+    // the mesh name and the mesh path.           //
+    //********************************************//
+    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
+    std::string meshPath = monodomainList.get ("mesh_path", "./");
+
+    //********************************************//
+    // We need the GetPot datafile for to setup   //
+    // the preconditioner.                        //
+    //********************************************//
+    GetPot command_line (argc, argv);
+    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+    GetPot dataFile (data_file_name);
+
+    //********************************************//
+    // We create three solvers to solve with:     //
+    // 1) Operator Splitting method               //
+    // 2) Ionic Current Interpolation             //
+    // 3) State Variable Interpolation            //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Building Monodomain Solvers... ";
+    }
+
+    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Splitting solver done... ";
+    }
+
+
+    //********************************************//
+    // Setting up the initial condition form      //
+    // a given function.                          //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nInitializing potential:  " ;
+    }
+
+    HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 43 );
+    HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 45 );
+
+
+    //setting up initial conditions
+    * ( splitting -> globalSolution().at (1) ) = 1.0;
+    * ( splitting -> globalSolution().at (2) ) = 1.0;
+    * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
+
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "Done! \n" ;
+    }
+
+    //********************************************//
+    // Setting up the time data                   //
+    //********************************************//
+    splitting -> setParameters ( monodomainList );
+
+    //********************************************//
+    // Create a fiber direction                   //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nImporting fibers:  " ;
+    }
+
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+    ( new FESpace< mesh_Type, MapEpetra > ( splitting -> localMeshPtr(), "P1", 3, splitting -> commPtr() ) );
+
+    boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
+	std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
+    HeartUtility::importFibers( fiber, nm, splitting -> localMeshPtr() );
+    splitting -> setFiberPtr(fiber);
+
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "Done! \n" ;
+    }
+    //********************************************//
+    // Create the global matrix: mass + stiffness //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nSetup operators:  " ;
+    }
+
+    splitting -> setupLumpedMassMatrix();
+    splitting -> setupStiffnessMatrix();
+    splitting -> setupGlobalMatrix();
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "Done! \n" ;
+    }
+    //********************************************//
+    // Creating exporters to save the solution    //
+    //********************************************//
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+
+    splitting -> setupExporter ( exporterSplitting, "Splitting" );
+
+    splitting -> exportSolution ( exporterSplitting, 0);
+
+    //********************************************//
+    // Solving the system                         //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nstart solving:  " ;
+    }
+
+
+    splitting   -> solveSplitting ( exporterSplitting );
+    exporterSplitting.closeFile();
+
+
+    //********************************************//
+    // Saving Fiber direction to file             //
+    //********************************************//
+    splitting -> exportFiberDirection();
+
+
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+    }
+    MPI_Barrier (MPI_COMM_WORLD);
+    MPI_Finalize();
+    return ( EXIT_SUCCESS );
+}
