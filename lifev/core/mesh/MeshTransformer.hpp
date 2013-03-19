@@ -40,6 +40,7 @@
 
 #include <lifev/core/LifeV.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
+#include <lifev/core/array/MatrixSmall.hpp>
 
 // Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -256,7 +257,7 @@ void MeshTransformer<RegionMeshType, MarkerCommonType >::transformMesh ( const V
     typename RegionMeshType::points_Type& pointList (M_mesh.pointList);
 
     //Create the 3 planar rotation matrix and the scale matrix
-    boost::numeric::ublas::matrix<Real> R (3, 3), R1 (3, 3), R2 (3, 3), R3 (3, 3), S (3, 3);
+    MatrixSmall<3, 3> R, R1, R2, R3, S;
 
     R1 (0, 0) =  1.;
     R1 (0, 1) =  0.;
@@ -300,30 +301,21 @@ void MeshTransformer<RegionMeshType, MarkerCommonType >::transformMesh ( const V
 
     //The total rotation is: R = R1*R2*R3 (as in Paraview we rotate first around z, then around y, and finally around x).
     //We also post-multiply by S to apply the scale before the rotation.
-    R = prod ( R3, S );
-    R = prod ( R2, R );
-    R = prod ( R1, R );
+    R = R3 * S;
+    R = R2 * R;
+    R = R1 * R;
 
     //Create the 3D translate vector
-    boost::numeric::ublas::vector<Real> P (3), T (3);
-    T (0) = translate[0];
-    T (1) = translate[1];
-    T (2) = translate[2];
+    Vector3D T = castToVector3D ( translate );
 
     //Apply the transformation
     for ( UInt i (0); i < pointList.size(); ++i )
     {
-        //P = pointList[ i ].coordinate(); // Try to avoid double copy if possible
+        Vector3D P = pointList[ i ].coordinates();
 
-        P ( 0 ) = pointList[ i ].coordinate ( 0 );
-        P ( 1 ) = pointList[ i ].coordinate ( 1 );
-        P ( 2 ) = pointList[ i ].coordinate ( 2 );
+        P = T + R * P;
 
-        P = T + prod ( R, P );
-
-        pointList[ i ].coordinate ( 0 ) = P ( 0 );
-        pointList[ i ].coordinate ( 1 ) = P ( 1 );
-        pointList[ i ].coordinate ( 2 ) = P ( 2 );
+        pointList[ i ].setCoordinates ( P );
     }
 }
 
