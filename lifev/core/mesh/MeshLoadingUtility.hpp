@@ -92,6 +92,19 @@ getMeshData ( const std::string& meshName,
     return meshData;
 }
 
+template< typename RegionMeshType>
+void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
+                               const std::string& meshName,
+                               const std::string& resourcesPath = "./" );
+
+template< typename RegionMeshType>
+void fillWithFullMesh (  boost::shared_ptr< RegionMeshType >& meshLocal,
+                         boost::shared_ptr< RegionMeshType >& meshFull,
+                         const std::string& meshName,
+                         const std::string& resourcesPath = "./",
+                         const std::string& meshOrder = "P1" );
+
+
 //! Read and partitioned a *.mesh file
 /*!
   @param meshLocal The partitioned mesh that we want to generate
@@ -160,8 +173,8 @@ template< typename RegionMeshType>
 void fillWithFullMesh (  boost::shared_ptr< RegionMeshType >& meshLocal,
                          boost::shared_ptr< RegionMeshType >& meshFull,
                          const std::string& meshName,
-                         const std::string& resourcesPath = "./",
-                         const std::string& meshOrder = "P1" )
+                         const std::string& resourcesPath,
+                         const std::string& meshOrder )
 {
 #ifdef HAVE_MPI
     boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
@@ -206,7 +219,7 @@ void fillWithFullMesh (  boost::shared_ptr< RegionMeshType >& meshLocal,
 template< typename RegionMeshType>
 void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
                                const std::string& meshName,
-                               const std::string& resourcesPath = "./" )
+                               const std::string& resourcesPath )
 {
 #ifdef HAVE_MPI
     boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
