@@ -61,7 +61,7 @@ along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <lifev/core/fem/AssemblyElemental.hpp>
 #include <lifev/structure/fem/AssemblyElementalStructure.hpp>
-#include <lifev/heart/fem/AssemblyElementalActiveStructure.hpp>
+#include <lifev/structure/fem/AssemblyElementalActiveStructure.hpp>
 #include <lifev/core/fem/Assembly.hpp>
 #include <lifev/core/fem/BCManage.hpp>
 #include <lifev/core/fem/FESpace.hpp>

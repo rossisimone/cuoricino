@@ -34,7 +34,7 @@
 #ifndef ELEMOPERSTRUCTURE_CPP
 #define ELEMOPERSTRUCTURE_CPP 1
 
-#include <lifev/heart/fem/AssemblyElementalActiveStructure.hpp>
+#include <lifev/structure/fem/AssemblyElementalActiveStructure.hpp>
 
 namespace LifeV
 {
@@ -340,7 +340,7 @@ void stiff_Jac_NH_S1term_Act ( Real       coef,
         MatrixElemental::matrix_view mat = elmat.block ( icoor, icoor );
         mat += mat_tmp;
     }
-    Real s;
+
 }
 
 //! 7. Jacobian matrix S2 : Int { -2/3* coef * g(Gammaf) * J^(-5/3) *( CofF : \nabla \delta ) ( F [fo\otimes fo]: \nabla \v ) }
