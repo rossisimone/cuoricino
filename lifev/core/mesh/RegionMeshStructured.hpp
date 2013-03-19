@@ -52,53 +52,53 @@ namespace MeshDetails
 
 // 3D specialization
 template <typename MeshType>
-inline void regularMesh( MeshType& mesh, typename MeshType::threeD_Type, markerID_Type regionFlag,
-                         const std::vector<UInt> numberOfElements, bool verbose, const Vector3D length, const Vector3D origin )
+inline void regularMesh ( MeshType& mesh, typename MeshType::threeD_Type, markerID_Type regionFlag,
+                          const std::vector<UInt> numberOfElements, bool verbose, const Vector3D length, const Vector3D origin )
 {
-    ASSERT( numberOfElements.size() > 2, "the numberOfElements vector is too small" );
+    ASSERT ( numberOfElements.size() > 2, "the numberOfElements vector is too small" );
 
-    regularMesh3D( mesh, regionFlag,
-                   numberOfElements[0], numberOfElements[1], numberOfElements[2], verbose,
-                   length[0], length[1], length[2],
-                   origin[0], origin[1], origin[2] );
+    regularMesh3D ( mesh, regionFlag,
+                    numberOfElements[0], numberOfElements[1], numberOfElements[2], verbose,
+                    length[0], length[1], length[2],
+                    origin[0], origin[1], origin[2] );
 }
 
 // 2D specialization
 template <typename MeshType>
-inline void regularMesh( MeshType& mesh, typename MeshType::twoD_Type, markerID_Type regionFlag,
-                         const std::vector<UInt> numberOfElements, bool verbose, const Vector3D length, const Vector3D origin )
+inline void regularMesh ( MeshType& mesh, typename MeshType::twoD_Type, markerID_Type regionFlag,
+                          const std::vector<UInt> numberOfElements, bool verbose, const Vector3D length, const Vector3D origin )
 {
-    ASSERT( numberOfElements.size() > 1, "the numberOfElements vector is too small" );
+    ASSERT ( numberOfElements.size() > 1, "the numberOfElements vector is too small" );
 
-    regularMesh2D( mesh, regionFlag,
-                   numberOfElements[0], numberOfElements[1], verbose,
-                   length[0], length[1],
-                   origin[0], origin[1] );
+    regularMesh2D ( mesh, regionFlag,
+                    numberOfElements[0], numberOfElements[1], verbose,
+                    length[0], length[1],
+                    origin[0], origin[1] );
 }
 
 // 1D specialization
 template <typename MeshType>
-inline void regularMesh( MeshType& mesh, typename MeshType::oneD_Type, markerID_Type regionFlag,
-                         const std::vector<UInt> numberOfElements, bool verbose, const Vector3D length, const Vector3D origin )
+inline void regularMesh ( MeshType& mesh, typename MeshType::oneD_Type, markerID_Type regionFlag,
+                          const std::vector<UInt> numberOfElements, bool verbose, const Vector3D length, const Vector3D origin )
 {
-    ASSERT( numberOfElements.size() > 0, "the numberOfElements vector is too small" );
+    ASSERT ( numberOfElements.size() > 0, "the numberOfElements vector is too small" );
 
-    regularMesh1D( mesh, regionFlag,
-                   numberOfElements[0], verbose,
-                   length[0], origin[0] );
+    regularMesh1D ( mesh, regionFlag,
+                    numberOfElements[0], verbose,
+                    length[0], origin[0] );
 }
 
 } // namespace MeshDetails
 
 template <typename MeshType>
 inline void regularMesh ( MeshType& mesh,
-                   markerID_Type regionFlag,
-                   const std::vector<UInt> numberOfElements,
-                   bool verbose = false,
-                   const Vector3D length = Vector3D( 1., 1., 1. ),
-                   const Vector3D origin = Vector3D( 0., 0., 0. ) )
+                          markerID_Type regionFlag,
+                          const std::vector<UInt> numberOfElements,
+                          bool verbose = false,
+                          const Vector3D length = Vector3D ( 1., 1., 1. ),
+                          const Vector3D origin = Vector3D ( 0., 0., 0. ) )
 {
-    MeshDetails::regularMesh( mesh, mesh.geoDim(), regionFlag, numberOfElements, verbose, length, origin );
+    MeshDetails::regularMesh ( mesh, mesh.geoDim(), regionFlag, numberOfElements, verbose, length, origin );
 }
 
 } // Namespace LifeV
