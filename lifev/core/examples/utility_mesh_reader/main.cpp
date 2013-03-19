@@ -75,8 +75,8 @@ int main (int argc, char** argv)
                                           1,
                                           std::vector<UInt> (3, 5),
                                           true,
-                                          std::vector<UInt> (3, 1),
-                                          std::vector<UInt> (3, 0) );
+                                          Vector3D ( 1., 1. , 1. ),
+                                          Vector3D ( 0., 0., 0. ) );
 
 
     if ( comm -> MyPID() == 0 )
@@ -97,8 +97,8 @@ int main (int argc, char** argv)
                                          1,
                                          std::vector<UInt> (3, 5),
                                          true,
-                                         std::vector<UInt> (3, 1),
-                                         std::vector<UInt> (3, 0) );
+                                         Vector3D ( 1., 1. , 1. ),
+                                         Vector3D ( 0., 0., 0. ) );
 
 
     if ( comm -> MyPID() == 0 )

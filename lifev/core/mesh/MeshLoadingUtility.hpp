@@ -56,9 +56,7 @@
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/PartitionIO.hpp>
 #include <lifev/core/mesh/MeshUtility.hpp>
-#include <lifev/core/mesh/RegionMesh1DStructured.hpp>
-#include <lifev/core/mesh/RegionMesh2DStructured.hpp>
-#include <lifev/core/mesh/RegionMesh3DStructured.hpp>
+#include <lifev/core/mesh/RegionMeshStructured.hpp>
 #include <lifev/core/mesh/MeshData.hpp>
 #include <lifev/core/mesh/RegionMesh.hpp>
 
@@ -252,10 +250,10 @@ template< typename RegionMeshType>
 void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
                               boost::shared_ptr< RegionMeshType >& meshFull,
                               markerID_Type regionFlag,
-                              const std::vector<UInt>& m,
+                              const std::vector<UInt> m,
                               bool verbose = false,
-                              const std::vector<UInt>& l = std::vector<UInt> (3, 1),
-                              const std::vector<UInt>& t = std::vector<UInt> (3, 0) )
+                              const Vector3D l = Vector3D ( 1., 1., 1. ),
+                              const Vector3D t = Vector3D ( 0., 0., 0. ) )
 {
 #ifdef HAVE_MPI
     boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
@@ -267,23 +265,7 @@ void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
     LifeChrono meshBuildChrono;
     meshBuildChrono.start();
     boost::shared_ptr< RegionMeshType > fullMesh ( new RegionMeshType ( Comm ) );
-    if ( m.size() == 1)
-    {
-        //TODO structured mesh in 1D
-    }
-    else if ( m.size() == 2)
-    {
-        //TODO structured mesh in 2D
-    }
-    else
-    {
-        regularMesh3D ( *fullMesh,
-                        regionFlag,
-                        m[0], m[1], m[2],
-                        verbose,
-                        l[0], l[1], l[2],
-                        t[0], t[1], t[2] );
-    }
+    regularMesh ( *fullMesh, regionFlag, m, verbose, l, t );
     printMeshInfos ( fullMesh );
     meshBuildChrono.stop();
     displayer.leaderPrint ("Building time: ", meshBuildChrono.diff(), " s.\n");
@@ -319,10 +301,10 @@ void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
 template< typename RegionMeshType>
 void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
                               markerID_Type regionFlag,
-                              const std::vector<UInt>& m,
+                              const std::vector<UInt> m,
                               bool verbose = false,
-                              const std::vector<UInt>& l = std::vector<UInt> (3, 1),
-                              const std::vector<UInt>& t = std::vector<UInt> (3, 0) )
+                              const Vector3D l = Vector3D ( 1., 1., 1. ),
+                              const Vector3D t = Vector3D ( 0., 0., 0. ) )
 {
     boost::shared_ptr< RegionMeshType > tmpMeshFull ( new RegionMeshType );
     fillWithStructuredMesh ( mesh, tmpMeshFull, regionFlag, m, verbose, l, t );
@@ -333,5 +315,5 @@ void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
 
 } // namespace LifeV
 
-#endif /* MESHUTILITY_H */
+#endif /* MESHLOADINGUTILITY_H */
 
