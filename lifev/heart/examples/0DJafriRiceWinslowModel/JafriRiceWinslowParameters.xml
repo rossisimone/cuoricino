@@ -2,6 +2,7 @@
 <ParameterList name="Jafri Rice Winslow: Parameter list">
 	<Parameter name="endTime" type="double" value="2000.0"/>
 	<Parameter name="timeStep" type="double" value="5.77e-4"/>
+	<Parameter name="firstStimuliTime" type="double" value="400.0"/>
 	<Parameter name="stimuliTime" type="double" value="400.0"/>
 	<Parameter name="areaCap" type="double" value="546.69"/>
 	<Parameter name="volMyo" type="double" value="0.92"/>

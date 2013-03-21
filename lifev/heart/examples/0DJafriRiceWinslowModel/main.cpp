@@ -175,9 +175,10 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF = parameterList.get ( "endTime", 5.0 );
-    Real dt = parameterList.get ( "timeStep", 5.77e-5 );
-    Real st = parameterList.get ( "stimuliTime", 400.0 );
+    Real TF = parameterList.get      ( "endTime", 5.0 );
+    Real dt = parameterList.get      ( "timeStep", 5.77e-5 );
+    Real firstst = parameterList.get ( "firstStimuliTime", 1.0 );
+    Real st = parameterList.get      ( "stimuliTime", 400.0 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -201,10 +202,10 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if ( t > st && t < st +1 )
+        if ( t > firstst && t < firstst + 1 )
         {
-        	Iapp = 0.516289;
-        	st   += 400;
+        	Iapp    = 0.516289;
+        	firstst = firstst + st;
         }
         else
         {
