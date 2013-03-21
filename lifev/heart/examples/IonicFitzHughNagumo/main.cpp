@@ -308,7 +308,7 @@ Int main ( Int argc, char** argv )
         {
         	cout<<"Defining variables"<<endl;
         	function_Type g = &Cut;
-        	vectorPtr_Type M_Cut(new VectorEpetra);
+        	vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
         	const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
         	feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
         	cout<<"Interpolating"<<endl;
