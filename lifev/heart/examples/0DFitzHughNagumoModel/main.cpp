@@ -75,13 +75,14 @@ using namespace LifeV;
 
 void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
 
-void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
+void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
+			const Real& I, std::ofstream& output);
 
 template<UInt n, UInt s>
 void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0, Real t0, Real TF, Real dt_init,
 							Real g,	const MatrixSmall<s,s>& A, const MatrixSmall<s,s>& C, const VectorSmall<s>& gammai,
 							const VectorSmall<s>& a, const VectorSmall<s>& m, const VectorSmall<s>& mhat,
-							const Real& Iapp, std::ofstream& output );
+							const Real& S, const Real& D, const Real& Iapp, std::ofstream& output );
 
 MatrixSmall<2,2> Invert(const MatrixSmall<2,2>& A);
 template<UInt Dim1, UInt Dim2> void setCol(MatrixSmall<Dim1,Dim2>& A, const VectorSmall<Dim1>& b, const Int& j);
@@ -131,8 +132,10 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF (FHNParameterList.get ("TF", 300.0) );
-    Real dt (FHNParameterList.get ("dt", 0.01) );
+    Real TF ( FHNParameterList.get ("TF", 300.0) );
+    Real dt ( FHNParameterList.get ("dt", 0.01) );
+    Real S ( FHNParameterList.get ("S", 0.9) );
+    Real D ( FHNParameterList.get ("D", 10.0) );
 
     cout << "Time parameters : " << endl;
     cout << "TF = " << TF << endl;
@@ -157,7 +160,7 @@ Int main ( Int argc, char** argv )
     if ( FHNParameterList.get ("Rosen", 1.0) == 0.0 )
         EulerExplicit (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
     else
-        ROS3P (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
+        ROS3P (dt, TF, model, S, D, FHNParameterList.get ("Iapp", 2000.0), output);
 
     chrono.stop();
     std::cout << "\n...Time loop ends.\n";
@@ -227,7 +230,8 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
     }
 }
 
-void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output)
+void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
+			const Real& I, std::ofstream& output)
 {
 	cout << "Computing using ROS3P." << endl;
 
@@ -254,7 +258,7 @@ void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, 
 
 	//Call of the general Rosenbrock, passing ROS3P parameters, right side and initial values.
 	//Implemented with variable changes to avoid some matrix*vector multiplications
-	RosenbrockTransformed < 2, 3 > ( model, y0, t0, TF, dt, g, A, C, gammai, a, m, mhat, I, output );
+	RosenbrockTransformed < 2, 3 > ( model, y0, t0, TF, dt, g, A, C, gammai, a, m, mhat, S, D, I, output );
 
 }
 
@@ -262,7 +266,7 @@ template<UInt n, UInt s>
 void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0, Real t0, Real TF, Real dt_init,
 							Real g,	const MatrixSmall<s,s>& A, const MatrixSmall<s,s>& C, const VectorSmall<s>& gammai,
 							const VectorSmall<s>& a, const VectorSmall<s>& m, const VectorSmall<s>& mhat,
-							const Real& Iapp, std::ofstream& output )
+							const Real& S, const Real& D, const Real& Iapp, std::ofstream& output )
 {
 	// Constants
 	Int N = (TF-t0)/(100*dt_init);	//Initial size of the vector containing the solution
@@ -276,13 +280,15 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 	Real t(t0);						//time t_k
 	Real dt(dt_init);				//time step dt_k
 	Real dt_old(dt_init);
+	Real h = 1.0e-8;
 
 	//Stepsize control variables
-	Real S = 0.9;						//Safety parameter for the new time step
+	//Real S = 0.9;						//Safety parameter for the new time step
 	Real abs_tol = 0.0000001;			//absolute error tolerance
 	Real rel_tol = 0.00001;				//relative error tolerance
 	Real p = 3.0; 						//order of the method, which is also phat+1
 	Real p_1 = 1/p;						//used in computations
+	//Real D = 2.0;
 
 	//The Rosenbrock method requires the multiplication J*(sum_{j=1}^{i-1} alpha(i,j)*K_j)
 	//This multiplication can be avoided using U_i = sum_{j=1}^{i-1} alpha(i,j)*K_j
@@ -300,9 +306,11 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 	Real fac_max = 5.0;					//maximal value for this factor, dt(k+1) < dt(k)*fac_max
 	Real Tol;							//tolerance, which depends on abs_tol, rel_tol and y_k
 	Int k = 1;							//iteration counter
-	Int rejections = 0;					//used to know if a step is rejected two times consecutively
+	Int rejected = 0;					//used to know if a step is rejected two times consecutively
+	Int tot_rej = 0;
+	Int dub_rej = 0;
 
-	output << t << " " << y(0) << " " << y(1) << " " << dt <<"\n";
+	output << t << " " << y(0) << " " << y(1) << " " << dt << " " <<rejected<<"\n";
 
 	//First step, to set err_n_1
 	cout<<"Begin of iteration k = 0"<<endl;
@@ -327,7 +335,7 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 	cout<<"dt(k+1) = "<<dt<<endl;
 	cout<<"Iteration 0 finished."<<endl<<endl;
 
-	output << t << " " << y(0) << " " << y(1) << " " << dt << "\n";
+	output << t << " " << y(0) << " " << y(1) << " " << dt << " " <<rejected<<"\n";
 
 	while (t < TF)
 	{
@@ -336,7 +344,7 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 		cout<<"dt("<<k<<") = "<<dt<<endl;
 
 		U *= 0.0;									//U variables initilized at 0
-		B = I/(dt*g) - model.computeJ( t, y );		//Building linear system matrix
+		B = I/(dt*g) - model.computeNumJ( t, y, h );		//Building linear system matrix
 		B = Invert(B);								//Computing the inverse, which will be used s times
 
 		for (int i = 0; i<s; i++)					//Computing the s stages
@@ -366,15 +374,20 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 		if (err_n > Tol)							//the step is rejected
 		{
 			cout<<"Rejected step at time "<<t<<" with dt = "<<dt<<" and fac = "<<fac<<endl<<endl;
-			if (rejections >= 1)					//if it is the second time that it is rejected we
-				dt /= 10.0;							//divide the time step by 10
+			if (rejected == 1)						//if it is the second time that it is rejected we
+			{
+				dt /= D;							//divide the time step by D
+				dub_rej++;							//increase the counter of double rejections
+			}
 			else									//else dt = dt*fac, if the previous step has not grown too much then
 				dt *= fac;							//fac<1, if fac>1 it will be rejected one more time and dt will be
 													//divided by 10.
-			rejections++;							//increase the number of rejections
+			rejected = 1;							//this timestep has been rejected
+			tot_rej++;								//increase the total number of rejections
 			continue;								//redo the iteration with the new time step
 		}
-		rejections = 0;								//here the step has been accepted, reset rejections to 0
+
+		//This part of the cycle is executed only if the time step has been accepted
 
 		y = y + U*m;								//upgrading the solution
 		t = t + dt;									//upgrading the time
@@ -388,8 +401,13 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 		cout<<"dt("<<k<<") = "<<dt<<endl;
 		cout<<"Iteration "<<k-1<<" finished."<<endl<<endl;
 
-		output << t << " " << y(0) << " " << y(1) << " " <<dt<<"\n";
+		output << t << " " << y(0) << " " << y(1) << " " <<dt<< " " << rejected <<"\n";
+
+		rejected = 0;								//here the step has been accepted, reset rejections to 0
 	}
+
+	cout<<"Total rejections : "<<tot_rej<<endl;
+	cout<<"Double rejections : "<<dub_rej<<endl<<endl;
 
 
 }

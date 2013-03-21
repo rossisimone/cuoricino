@@ -173,6 +173,7 @@ public:
     //compute the Jacobian
     MatrixSmall<2,2> computeJ (const Real& t, const std::vector<Real>& v);
     MatrixSmall<2,2> computeJ (const Real& t, const VectorSmall<2>& v);
+    MatrixSmall<2,2> computeNumJ (const Real& t, const VectorSmall<2>& v, const Real& h);
 
     //! Display information about the model
     void showMe();
@@ -322,7 +323,33 @@ MatrixSmall<2,2> IonicFitzHughNagumo::computeJ (const Real& t, const VectorSmall
 
     return J;
 }
+MatrixSmall<2,2> IonicFitzHughNagumo::computeNumJ (const Real& t, const VectorSmall<2>& v, const Real& h)
+{
+	Real Iapp = 0.0;
 
+	VectorSmall<2> y1(v);			y1(0) = y1(0) + h;
+	VectorSmall<2> y2(v);			y2(0) = y2(0) - h;
+	VectorSmall<2> f1,f2;
+
+	this->computeRhs(y1, Iapp, f1);
+	this->computeRhs(y2, Iapp, f2);
+
+	VectorSmall<2> df1 = (f1-f2)/(2.0*h);
+
+	y1 = v;			y1(1) = y1(1) + h;
+	y2 = v;			y2(1) = y2(1) - h;
+
+	this->computeRhs(y1, Iapp, f1);
+	this->computeRhs(y2, Iapp, f2);
+
+	VectorSmall<2> df2 = (f1-f2)/(2.0*h);
+
+	MatrixSmall<2,2> J;
+	J(0,0) = df1(0);	J(0,1) = df2(0);
+	J(1,0) = df1(1);	J(1,1) = df2(1);
+
+	return J;
+}
 
 void IonicFitzHughNagumo::showMe()
 {

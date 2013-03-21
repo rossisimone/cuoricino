@@ -10,4 +10,6 @@
 	<Parameter name="TF" type="double" value="300.0"  />
 	<Parameter name="dt" type="double" value="0.01"  />
 	<Parameter name="Rosen" type="double" value="1.0"  />
+	<Parameter name="S" type="double" value="0.95"  />
+	<Parameter name="D" type="double" value="1.5"  />
 </ParameterList>

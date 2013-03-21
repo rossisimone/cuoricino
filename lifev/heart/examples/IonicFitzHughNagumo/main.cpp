@@ -304,20 +304,20 @@ Int main ( Int argc, char** argv )
         t = t + dt;
         splitting -> solveOneSplittingStep (exporterSplitting, t);
 
-//        if( t >= 34.95 && t<=35.05)
-//        {
-//        	cout<<"Defining variables"<<endl;
-//        	function_Type g = &Cut;
-//        	vectorPtr_Type M_Cut(new VectorEpetra);
-//        	const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
-//        	feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
-//        	cout<<"Interpolating"<<endl;
-//        	(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
-//        	cout<<"Multiplying"<<endl;
-//        	*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
-//        	*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
-//        	cout<<"End"<<endl;
-//        }
+        if( t >= 34.95 && t<=35.05)
+        {
+        	cout<<"Defining variables"<<endl;
+        	function_Type g = &Cut;
+        	vectorPtr_Type M_Cut(new VectorEpetra);
+        	const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
+        	feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
+        	cout<<"Interpolating"<<endl;
+        	(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
+        	cout<<"Multiplying"<<endl;
+        	*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
+        	*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
+        	cout<<"End"<<endl;
+        }
 
         std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
 
