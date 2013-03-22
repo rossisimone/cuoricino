@@ -1239,7 +1239,7 @@
 		Real iCaMax = M_PCa * 4 * (V * pow(M_F, 2) ) / ( M_R * M_T ) * ( 0.001 * exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 0.341 * M_CaO )
 						/ ( exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 1.0 );
 		Real iCa    = y * ( o + oCa ) * iCaMax;
-		Real pK     = M_PK / ( 1.0 + iCaMax / M_ICaHalf );
+		Real pK     = M_PK / ( 1.0 + iCa / M_ICaHalf );
 		Real iCaK   = pK * y * (o + oCa ) * (V * pow(M_F, 2) ) / ( M_R * M_T ) * ( cKi * exp( ( V * M_F ) / ( M_R * M_T ) ) - cKo )
 						/ ( exp( ( V * M_F ) / ( M_R * M_T ) ) - 1.0 );
 
