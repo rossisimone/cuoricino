@@ -3,6 +3,7 @@ SET( IonicModels_HEADERS
   IonicModels/IonicFitzHughNagumo.hpp
   IonicModels/IonicMitchellSchaeffer.hpp
   IonicModels/IonicJafriRiceWinslow.hpp
+  IonicModels/IonicTenTusscher.hpp
   IonicModels/IonicMinimalModel.hpp
   IonicModels/HeartIonicModel.hpp
 CACHE INTERNAL "")
