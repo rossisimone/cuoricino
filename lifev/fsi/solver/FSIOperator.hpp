@@ -69,6 +69,7 @@
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinear.hpp>
+#include <lifev/structure/solver/VenantKirchhoffMaterialNonLinearPenalized.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
 #include <lifev/structure/solver/ExponentialMaterialNonLinear.hpp>
 #include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
@@ -80,6 +81,7 @@
 #include <lifev/core/fem/BCFunction.hpp>
 #include <lifev/core/fem/TimeAdvanceBDF.hpp>
 #include <lifev/core/fem/FESpace.hpp>
+#include <lifev/eta/fem/ETFESpace.hpp>
 
 #ifdef HAVE_HDF5
 #include <lifev/core/filter/ExporterHDF5Mesh3D.hpp>
@@ -303,7 +305,7 @@ public:
     virtual void initialize ( fluidPtr_Type::value_type::function_Type const& u0,
                               fluidPtr_Type::value_type::function_Type const& p0,
                               solidPtr_Type::value_type::function const& d0,
-                              solidPtr_Type::value_type::function const& w0,
+                              solidPtr_Type::value_type::function const& /*w0*/,
                               fluidPtr_Type::value_type::function_Type const& df0 );
 
     //@}
@@ -342,6 +344,11 @@ public:
     {
         return new NeoHookeanMaterialNonLinear< FSIOperator::mesh_Type >();
     }
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createVenantKirchhoffNonLinearPenalized()
+    {
+        return new VenantKirchhoffMaterialNonLinearPenalized< FSIOperator::mesh_Type >();
+    }
+
 
     static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createNeoHookeanMaterialActivated()
     {
@@ -362,6 +369,8 @@ public:
      */
     void initializeTimeAdvance ( const std::vector<vectorPtr_Type>& initialFluidVel, const std::vector<vectorPtr_Type>& initialSolidDisp, const std::vector<vectorPtr_Type>&  initialFluiDisp);
 
+    virtual void initializeMonolithicOperator ( std::vector< vectorPtr_Type> /*u0*/, std::vector< vectorPtr_Type> /*ds0*/, std::vector< vectorPtr_Type> /*df0*/) {}
+
     //! initializes the fluid solver with vectors
     /**
        \param velAndPressure: initial vector containing the velocity and pressure
@@ -374,7 +383,7 @@ public:
        \param displacement: initial vector containing the structure displacement
        \param velocity: initial vector containing the velocity, used for the initialization of the TimeAdvanceNewmark scheme
      */
-    void initializeSolid ( vectorPtr_Type displacement, vectorPtr_Type velocity );
+    void initializeSolid ( vectorPtr_Type displacement, vectorPtr_Type /*velocity*/ );
 
     //!moves the mesh using the solution of the harmonic extension equation
     /**
@@ -684,13 +693,22 @@ public:
         return M_pFESpace;
     }
     //!getter for the solid displacement FESpace
-    const FESpace<mesh_Type, MapEpetra>& dFESpace()               const
+    const FESpace<mesh_Type, MapEpetra>& dFESpace() const
     {
         return *M_dFESpace;
     }
     boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dFESpacePtr() const
     {
         return M_dFESpace;
+    }
+    //!getter for the solid displacement FESpace
+    const ETFESpace<mesh_Type, MapEpetra, 3, 3>& dFESpaceET() const
+    {
+        return *M_dETFESpace;
+    }
+    boost::shared_ptr<ETFESpace<mesh_Type, MapEpetra, 3, 3> > dFESpaceETPtr() const
+    {
+        return M_dETFESpace;
     }
     //!getter for the harmonic extension solution FESpace
     const FESpace<mesh_Type, MapEpetra>& mmFESpace()              const
@@ -1162,6 +1180,7 @@ protected:
     boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > M_uFESpace;
     boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > M_pFESpace;
     boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > M_dFESpace;
+    boost::shared_ptr<ETFESpace<mesh_Type, MapEpetra, 3, 3> > M_dETFESpace;
     boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > M_mmFESpace;
 
     boost::shared_ptr<mesh_Type>                      M_fluidMesh;

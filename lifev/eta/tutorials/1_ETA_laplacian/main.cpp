@@ -148,7 +148,7 @@ int main ( int argc, char** argv )
 
     const UInt Nelements (10);
 
-    boost::shared_ptr< mesh_Type > fullMeshPtr (new mesh_Type);
+    boost::shared_ptr< mesh_Type > fullMeshPtr (new mesh_Type ( Comm ) );
 
     regularMesh3D ( *fullMeshPtr, 1, Nelements, Nelements, Nelements, false,
                     2.0,   2.0,   2.0,
@@ -205,6 +205,13 @@ int main ( int argc, char** argv )
     }
 
     boost::shared_ptr<matrix_Type> systemMatrix (new matrix_Type ( uSpace->map() ) );
+
+    *systemMatrix *= 0.0;
+
+    if (verbose)
+    {
+        std::cout << " done! " << std::endl;
+    }
 
     *systemMatrix *= 0.0;
 
@@ -327,6 +334,11 @@ int main ( int argc, char** argv )
     // ---------------------------------------------------------------
 
     Real matrixNormDiff (std::abs (matrixNorm - 3.2) );
+
+    if (verbose)
+    {
+        std::cout << " Error : " << matrixNormDiff << std::endl;
+    }
 
     if (verbose)
     {
