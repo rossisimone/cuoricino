@@ -117,10 +117,10 @@ Real Stimulus1 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, 
 
 Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( x<= 0.1 )
+    if ( x<= 0.025 )
     	return 80.0;
-    else if( x<= 0.2)
-    	return 80.0*( 0.2 - x )/(0.1);
+    else if( x<= 0.05)
+    	return 80.0*( 0.05 - x )/(0.025);
     else
     	return 0.0;
 }
@@ -296,6 +296,8 @@ Int main ( Int argc, char** argv )
 
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
+    Real TCut1 = monodomainList.get ("TCut", 35.0) - 0.05;
+    Real TCut2 = monodomainList.get ("TCut", 35.0) + 0.05;
 
     //splitting   -> solveSplitting ( exporterSplitting );
 
@@ -304,7 +306,7 @@ Int main ( Int argc, char** argv )
         t = t + dt;
         splitting -> solveOneSplittingStep (exporterSplitting, t);
 
-        if( t >= 34.95 && t<=35.05)
+        if( t >= TCut1 && t<=TCut2)
         {
         	cout<<"Defining variables"<<endl;
         	function_Type g = &Cut;
