@@ -3,7 +3,7 @@ ADD_SUBDIRECTORIES(
 	IonicModels
 )
 SET(solver_HEADERS
-  solver/HeartAlievPanfilov.hpp
+#  solver/HeartAlievPanfilov.hpp
   solver/HeartMonodomainData.hpp
   solver/HeartStiffnessFibers.hpp
   solver/HeartIonicData.hpp
