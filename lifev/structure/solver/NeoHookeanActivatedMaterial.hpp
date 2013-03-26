@@ -516,12 +516,12 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
     //     Real bulk   = dataMaterial->bulk(marker);
 
     //Macros to make the assembly more readable
-//#define deformationGradientTensor ( grad( this->M_dispETFESpace,  disp, this->M_offset) + value(this->M_identity) )
-//#define detDeformationGradientTensor det( deformationGradientTensor )
-//#define deformationGradientTensor_T  minusT(deformationGradientTensor)
-//#define RIGHTCAUCHYGREEN transpose(deformationGradientTensor) * deformationGradientTensor
-//#define firstInvariantC trace( RIGHTCAUCHYGREEN )
-//#define firstInvariantCbar pow( detDeformationGradientTensor, (-2.0/3.0) ) * firstInvariantC
+#define deformationGradientTensor ( grad( this->M_dispETFESpace,  disp, this->M_offset) + value(this->M_identity) )
+#define detDeformationGradientTensor det( deformationGradientTensor )
+#define deformationGradientTensor_T  minusT(deformationGradientTensor)
+#define RIGHTCAUCHYGREEN transpose(deformationGradientTensor) * deformationGradientTensor
+#define firstInvariantC trace( RIGHTCAUCHYGREEN )
+
 //
 //#define F ( grad( this->M_dispETFESpace,  disp, this->M_offset) + value(this->M_identity) )
 //#define J det( F )
@@ -529,24 +529,27 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 //#define C transpose(F) * F
 //#define I1 trace( C )
 //#define J23 pow( J, (-2.0/3.0) )
-//#define Gammaf ( ( value( this->M_activationSpace, M_Gammaf ) ) )
-//#define GammaPlusOne Gammaf + value(1.0)
-//#define gGammaf ( - Gammaf * (1.0 + ( Gammaf + 2.0 ) * pow ( ( Gammaf + 1.0 ), -2.) ) )
-//#define fiber       ( value( this->M_dispETFESpace, M_fiberVector) )
-//#define I4f     dot( fiber, fiber )
-//#define mu1 	parameter ( (* (this->M_vectorsParameters) ) [0] )
-
-//#define Stress	( mu1 * J23 * ( GammaPlusOne * ( F - value( 1.0 / 3.0 ) * I1 * FinvT ) + gGammaf * ( F * outerProduct(fiber, fiber) - value( 1.0 / 3.0 ) * I4f * FinvT ) ) )
+#define J23 pow( detDeformationGradientTensor, (-2.0/3.0) )
+#define Gammaf ( value( this->M_activationSpace, M_Gammaf ) )
+#define GammaPlusOne Gammaf + value(1.0)
+#define gGammaf ( value(-1.0) *  Gammaf * (1.0 + ( Gammaf + 2.0 ) * pow ( ( Gammaf + 1.0 ), -2.) ) )
+#define fiber       ( value( this->M_dispETFESpace, M_fiberVector) )
+#define I4f     dot( fiber, fiber )
 //
-//#define dPpt1  ( value( - 2.0 /3.0 ) * dot( FinvT, grad( phi_j ) ) * dot( Stress, grad( phi_i ) ) )
-//
-//#define dPpt2  ( 						 J23 * mu1 * GammaPlusOne * dot( grad(phi_j), grad(phi_i) ) )
-//#define dPpt3  ( value( 1.0 / 3.0 ) * J23 * mu1 * GammaPlusOne * I1 *  dot( FinvT * transpose ( grad(phi_j) ) * FinvT, grad(phi_i) ) )
-//#define dPpt4  ( value( - 2.0 / 3.0 ) * J23 * mu1 * GammaPlusOne * dot( F, grad( phi_j ) ) * dot( FinvT, grad(phi_i) ) )
-//
-//#define dPpt5  ( 						 J23 * mu1 * gGammaf * dot( grad(phi_j) * outerProduct( fiber, fiber ), grad(phi_i) ) )
-//#define dPpt6  ( 	value( 1.0 / 3.0 ) * J23 * mu1 * gGammaf * I4f *  dot( FinvT * transpose ( grad(phi_j) ) * FinvT, grad(phi_i) ) )
-//#define dPpt7  ( value( - 2.0 / 3.0 ) * J23 * mu1 * gGammaf * dot( F * outerProduct( fiber, fiber ), grad( phi_j ) ) * dot( FinvT, grad(phi_i) ) )
+////#define Stress	( mu1 * J23 * ( GammaPlusOne * ( F - value( 1.0 / 3.0 ) * I1 * FinvT ) + gGammaf * ( F * outerProduct(fiber, fiber) - value( 1.0 / 3.0 ) * I4f * FinvT ) ) )
+#define Stress	( parameter ( (* (this->M_vectorsParameters) ) [0] ) * J23 * ( GammaPlusOne * ( deformationGradientTensor + value(- 1.0 / 3.0 ) * firstInvariantC *  deformationGradientTensor_T ) + gGammaf * ( deformationGradientTensor * outerProduct(fiber, fiber) + value(- 1.0 / 3.0 ) * I4f * deformationGradientTensor_T ) ) )
+////
+////    //
+//////#define dPpt1  ( value( - 2.0 /3.0 ) * dot( FinvT, grad( phi_j ) ) * dot( Stress, grad( phi_i ) ) )
+#define dPpt1  ( value( - 2.0 /3.0 ) * dot( deformationGradientTensor_T, grad( phi_j ) ) * dot( Stress, grad( phi_i ) ) )
+//////
+#define dPpt2  ( 						 J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * dot( grad(phi_j), grad(phi_i) ) )
+#define dPpt3  ( value( 1.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * I1 *  dot( deformationGradientTensor_T * transpose ( grad(phi_j) ) * deformationGradientTensor_T, grad(phi_i) ) )
+#define dPpt4  ( value( - 2.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * dot( deformationGradientTensor, grad( phi_j ) ) * dot( deformationGradientTensor_T, grad(phi_i) ) )
+//////
+#define dPpt5  ( 						 J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( grad(phi_j) * outerProduct( fiber, fiber ), grad(phi_i) ) )
+#define dPpt6  ( 	value( 1.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * I4f *  dot( deformationGradientTensor_T * transpose ( grad(phi_j) ) * deformationGradientTensor_T, grad(phi_i) ) )
+#define dPpt7  ( value( - 2.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( deformationGradientTensor * outerProduct( fiber, fiber ), grad( phi_j ) ) * dot( deformationGradientTensor_T, grad(phi_i) ) )
 
 
     //Assembling Volumetric Part
@@ -577,7 +580,7 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
                 this->M_dispETFESpace,
-                /*value(1.0 / 3.0 ) */  dot( grad(phi_j), grad(phi_i) )
+                  dot( deformationGradientTensor, grad(phi_i) )
               ) >> jacobian;
 
 
@@ -695,8 +698,8 @@ void NeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type
 //                this->M_dispETFESpace,
 //                value (1.0 / 2.0) * parameter ( (* (this->M_vectorsParameters) ) [1] ) * ( pow ( detDeformationGradientTensor , 2.0) - detDeformationGradientTensor + log (detDeformationGradientTensor) ) * dot (  deformationGradientTensor_T, grad (phi_i) )
 //              ) >> M_stiff;
-
-    //Computation of the isochoric part \mu J^-2/3 ( 1 + gammaf ) (F - Ic / 3 F^-T)
+//
+//    //Computation of the isochoric part \mu J^-2/3 ( 1 + gammaf ) (F - Ic / 3 F^-T)
 //    integrate ( elements ( this->M_dispETFESpace->mesh() ),
 //                this->M_dispFESpace->qr(),
 //                this->M_dispETFESpace,
