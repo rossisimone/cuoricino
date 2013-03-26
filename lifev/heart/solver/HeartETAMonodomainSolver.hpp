@@ -800,6 +800,8 @@ public:
     void solveOneSplittingStep ( exporter_Type& exporter, Real t );
     //!Solve the system with operator splitting from M_initialTime to the M_endTime with time step M_timeStep and export the solution
     void solveSplitting ( exporter_Type& exporter );
+    //!Solve the system with operator splitting from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
+    void solveSplitting ( exporter_Type& exporter, Real dt );
     //! add to a given exporter the pointer to the potential
     void setupPotentialExporter (exporter_Type& exporter);
     //! add to a given exporter the pointer to the potential and to the gating variables
@@ -1513,6 +1515,22 @@ solveSplitting (exporter_Type& exporter)
 		{
 			t = t + M_timeStep;
 			solveOneSplittingStep (exporter, t);
+		}
+	}
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveSplitting (exporter_Type& exporter, Real dt)
+{
+	UInt iter( dt / M_timeStep );
+	if( M_endTime > M_timeStep){
+		for ( Real t = M_initialTime; t < M_endTime; )
+		{
+			t += M_timeStep;
+			if( fmod( (t / M_timeStep), iter) == 0 ) solveOneSplittingStep (exporter, t);
+			else solveOneSplittingStep ();
+
 		}
 	}
 }
