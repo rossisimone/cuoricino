@@ -1845,7 +1845,7 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::solveIonicModel ( const vector
 
         // time independant K current
         M_EKl = (M_R * M_temperature / M_F ) * log (M_K0 / M_vectorConcentrationK[ig]);
-        M_Klinf = 1.0 / (1.0 + exp (0.07 * (u_ig + 80.0) ) );
+        M_Klinf = 1.0 / (1.0 + std::exp (0.07 * (u_ig + 80.0) ) );
         M_IKl = M_gKl * M_Klinf * (u_ig - M_EKl);
 
         // transient outward K current
@@ -1853,11 +1853,11 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::solveIonicModel ( const vector
         M_Ito = M_gTo * M_solutionGatingAA[ig] * M_solutionGatingAA[ig] * M_solutionGatingAA[ig] * M_solutionGatingAI[ig] * (u_ig - M_EK);
 
         // ultra rapid  delayed rectifier K current
-        M_gKur = 0.005 + 0.05 / (1.0 + exp (- (u_ig - 15.0) / 13.0) );
+        M_gKur = 0.005 + 0.05 / (1.0 + std::exp (- (u_ig - 15.0) / 13.0) );
         M_IKur = M_gKur * M_solutionGatingUA[ig] * M_solutionGatingUA[ig] * M_solutionGatingUA[ig] * M_solutionGatingUI[ig] * (u_ig - M_EK);
 
         // rapid  delayed rectifier outward K current
-        M_IKr = M_gKr * M_solutionGatingXR[ig] * (u_ig - M_EK) / (1.0 + exp ( (u_ig + 15) / 22.4) );
+        M_IKr = M_gKr * M_solutionGatingXR[ig] * (u_ig - M_EK) / (1.0 + std::exp ( (u_ig + 15) / 22.4) );
 
         // slow  delayed rectifier outward K current
         M_IKs = M_gKs * M_solutionGatingXS[ig] * M_solutionGatingXS[ig] * (u_ig - M_EK);
@@ -1869,14 +1869,14 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::solveIonicModel ( const vector
         satiga =
             // Na-K pump
             M_INaK = M_INaKmax * (1.0 / (1.0 + 0.1245
-                                         * exp (-0.1 * u_ig * M_F / (M_R * M_temperature) )
-                                         + 0.0365 / 7.0 * (exp (M_Na0 / 67.3) - 1.0)
-                                         * exp (-u_ig * M_F / (M_R * M_temperature) ) ) )
-                     * (1.0 / (1.0 + pow (M_KmNai / M_vectorConcentrationNa[ig], 1.5) ) ) * (M_K0 / (M_K0 + M_KmK0) );
+                                         * std::exp (-0.1 * u_ig * M_F / (M_R * M_temperature) )
+                                         + 0.0365 / 7.0 * (std::exp (M_Na0 / 67.3) - 1.0)
+                                         * std::exp (-u_ig * M_F / (M_R * M_temperature) ) ) )
+                     * (1.0 / (1.0 + std::pow (M_KmNai / M_vectorConcentrationNa[ig], 1.5) ) ) * (M_K0 / (M_K0 + M_KmK0) );
 
         // Na-Ca exchanger
-        M_INaCa = M_INaCamax / ( (pow (M_KmNa, 3.0) + pow (M_Na0, 3.0) ) * (M_KmCa + M_Ca0) * (1.0 + 0.1 * exp ( (0.35 - 1.0) * u_ig * M_F / (M_R * M_temperature) ) )
-                                 * (exp (0.35 * u_ig * M_F / (M_R * M_temperature) ) * pow (M_vectorConcentrationNa[ig], 3.0) * M_Ca0 - exp ( (0.35 - 1.0) * u_ig * M_F / (M_R * M_temperature) ) * pow (M_Na0, 3.0) * M_vectorConcentrationCa[ig]) );
+        M_INaCa = M_INaCamax / ( (std::pow (M_KmNa, 3.0) + std::pow (M_Na0, 3.0) ) * (M_KmCa + M_Ca0) * (1.0 + 0.1 * std::exp ( (0.35 - 1.0) * u_ig * M_F / (M_R * M_temperature) ) )
+                                 * (std::exp (0.35 * u_ig * M_F / (M_R * M_temperature) ) * std::pow (M_vectorConcentrationNa[ig], 3.0) * M_Ca0 - std::exp ( (0.35 - 1.0) * u_ig * M_F / (M_R * M_temperature) ) * std::pow (M_Na0, 3.0) * M_vectorConcentrationCa[ig]) );
 
         // background current
         M_ECan = 0.5 * (M_R * M_temperature) / M_F * log (M_Ca0 / M_vectorConcentrationCa[ig]);
@@ -1891,7 +1891,7 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::solveIonicModel ( const vector
 
         // Ca release current from JSR
         M_vectorFn.epetraVector().ReplaceGlobalValue (ig, 0,
-                                                      M_Vrel * M_vectorCurrentIrel[ig] - ( (5.0 * pow (10.0, 2.0) / M_F) * (0.5 * M_ICal) - 0.2 * M_INaCa) );
+                                                      M_Vrel * M_vectorCurrentIrel[ig] - ( (5.0 * std::pow (10.0, 2.0) / M_F) * (0.5 * M_ICal) - 0.2 * M_INaCa) );
         M_vectorCurrentIrel.epetraVector().ReplaceGlobalValue (ig, 0,
                                                                M_krel * M_solutionGatingPU[ig]*M_solutionGatingPU[ig]*M_solutionGatingPV[ig]*M_solutionGatingPW[ig] * (M_vectorConcentrationCaRel[ig] - M_vectorConcentrationCa[ig]) );
 
@@ -1924,30 +1924,30 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::solveIonicModel ( const vector
                                                                  -M_C * M_INatot / (M_F * M_Vi) );
         M_vectorIonicChangeCa.epetraVector().ReplaceGlobalValue (ig, 0,
                                                                  (-M_C * M_ICatot / (2.0 * M_F * M_Vi) + (M_Vup * (M_Iupleak - M_Iup)
-                                                                         + M_Irel * M_Vrel) / M_Vi) / (1.0 + (M_consTrpnMax * M_KmTrpn / (pow ( M_vectorConcentrationCa[ig] + M_KmTrpn, 2.0) ) ) + (M_consCmdnMax * M_KmCmdn / (pow (M_vectorConcentrationCa[ig] + M_KmCmdn, 2.0) ) ) ) );
+                                                                         + M_Irel * M_Vrel) / M_Vi) / (1.0 + (M_consTrpnMax * M_KmTrpn / (std::pow ( M_vectorConcentrationCa[ig] + M_KmTrpn, 2.0) ) ) + (M_consCmdnMax * M_KmCmdn / (std::pow (M_vectorConcentrationCa[ig] + M_KmCmdn, 2.0) ) ) ) );
         M_vectorIonicChangeCaUp.epetraVector().ReplaceGlobalValue (ig, 0,
                                                                    M_Iup - M_Iupleak - M_Itr * M_Vrel / M_Vup);
         M_vectorIonicChangeCaRel.epetraVector().ReplaceGlobalValue (ig, 0,
-                                                                    (M_Itr - M_Irel) / (1.0 + M_consCsqnMax * M_KmCsqn / pow (M_vectorConcentrationCaRel[ig] + M_KmCsqn, 2.0) ) );
+                                                                    (M_Itr - M_Irel) / (1.0 + M_consCsqnMax * M_KmCsqn / std::pow (M_vectorConcentrationCaRel[ig] + M_KmCsqn, 2.0) ) );
         M_ionicCurrent.epetraVector().ReplaceGlobalValue (ig, 0,
                                                           M_INatot  + M_IKtot + M_ICatot);
 
         //evolution of gating variables.
-        M_vectorExponentialh.epetraVector().ReplaceGlobalValue (ig, 0, exp (-timeStep / M_tauh) );
-        M_vectorExponentialj.epetraVector().ReplaceGlobalValue (ig, 0, exp (-timeStep / M_tauj) );
-        M_vectorExponentialm.epetraVector().ReplaceGlobalValue (ig, 0, exp (-timeStep / M_taum) );
-        M_vectorExponentialaa.epetraVector().ReplaceGlobalValue (ig, 0, exp (-timeStep / M_tauaa) );
-        M_vectorExponentialai.epetraVector().ReplaceGlobalValue (ig, 0, exp (-timeStep / M_tauai) );
-        M_vectorExponentialua.epetraVector().ReplaceGlobalValue (ig, 0, exp (-timeStep / M_tauua) );
-        M_vectorExponentialui.epetraVector().ReplaceGlobalValue (ig, 0, exp (-timeStep / M_tauui) );
-        M_vectorExponentialxr.epetraVector().ReplaceGlobalValue (ig,  0,  exp (-timeStep / M_tauxr) );
-        M_vectorExponentialxs.epetraVector().ReplaceGlobalValue (ig,  0, exp (-timeStep / M_tauxs) );
-        M_vectorExponentiald.epetraVector().ReplaceGlobalValue (ig,  0, exp (-timeStep / M_taud) );
-        M_vectorExponentialf.epetraVector().ReplaceGlobalValue (ig, 0,  exp (-timeStep / M_tauf) );
-        M_vectorExponentialfca.epetraVector().ReplaceGlobalValue (ig,  0,  exp (-timeStep / M_taufca) );
-        M_vectorExponentialpu.epetraVector().ReplaceGlobalValue (ig,  0,  exp (-timeStep / M_taupu) );
-        M_vectorExponentialpv.epetraVector().ReplaceGlobalValue (ig,  0,  exp (-timeStep / M_taupv) );
-        M_vectorExponentialpw.epetraVector().ReplaceGlobalValue (ig, 0,  exp (-timeStep / M_taupw) );
+        M_vectorExponentialh.epetraVector().ReplaceGlobalValue (ig, 0, std::exp (-timeStep / M_tauh) );
+        M_vectorExponentialj.epetraVector().ReplaceGlobalValue (ig, 0, std::exp (-timeStep / M_tauj) );
+        M_vectorExponentialm.epetraVector().ReplaceGlobalValue (ig, 0, std::exp (-timeStep / M_taum) );
+        M_vectorExponentialaa.epetraVector().ReplaceGlobalValue (ig, 0, std::exp (-timeStep / M_tauaa) );
+        M_vectorExponentialai.epetraVector().ReplaceGlobalValue (ig, 0, std::exp (-timeStep / M_tauai) );
+        M_vectorExponentialua.epetraVector().ReplaceGlobalValue (ig, 0, std::exp (-timeStep / M_tauua) );
+        M_vectorExponentialui.epetraVector().ReplaceGlobalValue (ig, 0, std::exp (-timeStep / M_tauui) );
+        M_vectorExponentialxr.epetraVector().ReplaceGlobalValue (ig,  0,  std::exp (-timeStep / M_tauxr) );
+        M_vectorExponentialxs.epetraVector().ReplaceGlobalValue (ig,  0, std::exp (-timeStep / M_tauxs) );
+        M_vectorExponentiald.epetraVector().ReplaceGlobalValue (ig,  0, std::exp (-timeStep / M_taud) );
+        M_vectorExponentialf.epetraVector().ReplaceGlobalValue (ig, 0,  std::exp (-timeStep / M_tauf) );
+        M_vectorExponentialfca.epetraVector().ReplaceGlobalValue (ig,  0,  std::exp (-timeStep / M_taufca) );
+        M_vectorExponentialpu.epetraVector().ReplaceGlobalValue (ig,  0,  std::exp (-timeStep / M_taupu) );
+        M_vectorExponentialpv.epetraVector().ReplaceGlobalValue (ig,  0,  std::exp (-timeStep / M_taupv) );
+        M_vectorExponentialpw.epetraVector().ReplaceGlobalValue (ig, 0,  std::exp (-timeStep / M_taupw) );
         M_vectorInfimumh.epetraVector().ReplaceGlobalValue (ig, 0, M_hinf);
         M_vectorInfimumj.epetraVector().ReplaceGlobalValue (ig,  0,  M_jinf);
         M_vectorInfimumm.epetraVector().ReplaceGlobalValue (ig, 0, M_minf);
@@ -2145,20 +2145,20 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::computeODECoefficients ( const
     if (u_ig >= -40.)
     {
         M_ah = 0.;
-        M_bh = 1. / (0.13 * (1. + exp ( (u_ig + 10.66) / (-11.1) ) ) );
+        M_bh = 1. / (0.13 * (1. + std::exp ( (u_ig + 10.66) / (-11.1) ) ) );
         M_aj = 0.;
-        M_bj = 0.3 * exp (-2.535e-7 * u_ig) / (1. + exp (-0.1 * (u_ig + 32.) ) );
+        M_bj = 0.3 * std::exp (-2.535e-7 * u_ig) / (1. + std::exp (-0.1 * (u_ig + 32.) ) );
     }
     else
     {
-        M_ah = 0.135 * exp ( (80. + u_ig) / -6.8);
-        M_bh = 3.56 * exp (0.079 * u_ig) + 3.1e5 * exp (0.35 * u_ig);
-        M_aj = (-1.2714e5 * exp (0.2444 * u_ig) - 3.474e-5 * exp (-0.04391 * u_ig) ) *
-               (u_ig + 37.78) / (1 + exp (0.311 * (u_ig + 79.23) ) );
-        M_bj = 0.1212 * exp (-0.01052 * u_ig) / (1. + exp (-0.1378 * (u_ig + 40.14) ) );
+        M_ah = 0.135 * std::exp ( (80. + u_ig) / -6.8);
+        M_bh = 3.56 * std::exp (0.079 * u_ig) + 3.1e5 * std::exp (0.35 * u_ig);
+        M_aj = (-1.2714e5 * std::exp (0.2444 * u_ig) - 3.474e-5 * std::exp (-0.04391 * u_ig) ) *
+               (u_ig + 37.78) / (1 + std::exp (0.311 * (u_ig + 79.23) ) );
+        M_bj = 0.1212 * std::exp (-0.01052 * u_ig) / (1. + std::exp (-0.1378 * (u_ig + 40.14) ) );
     }
-    M_am = 0.32 * (u_ig + 47.13) / (1. - exp (-0.1 * (u_ig + 47.13) ) );
-    M_bm = 0.08 * exp (-u_ig / 11.);
+    M_am = 0.32 * (u_ig + 47.13) / (1. - std::exp (-0.1 * (u_ig + 47.13) ) );
+    M_bm = 0.08 * std::exp (-u_ig / 11.);
 
     M_hinf = M_ah   / (M_ah  + M_bh);
     M_tauh = 1.   / (M_ah + M_bh);
@@ -2169,57 +2169,57 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::computeODECoefficients ( const
 
     // transient outward K current
 
-    M_aaa = 0.65 * 1.0 / (exp (- (u_ig + 10.0) / 8.5) + exp (- (u_ig - 30.0) / 59.0) );
-    M_baa = 0.65 * 1.0 / (2.5 + exp ( (u_ig + 82.0) / 17.0) );
+    M_aaa = 0.65 * 1.0 / (std::exp (- (u_ig + 10.0) / 8.5) + std::exp (- (u_ig - 30.0) / 59.0) );
+    M_baa = 0.65 * 1.0 / (2.5 + std::exp ( (u_ig + 82.0) / 17.0) );
 
-    M_aai = 1.0 / (18.53 + exp ( (u_ig + 113.7) / 10.95) );
-    M_bai = 1.0 / (35.56 + exp (- (u_ig + 1.26) / 7.44) );
+    M_aai = 1.0 / (18.53 + std::exp ( (u_ig + 113.7) / 10.95) );
+    M_bai = 1.0 / (35.56 + std::exp (- (u_ig + 1.26) / 7.44) );
 
     M_tauaa = 1.0 / ( (M_aaa + M_baa) * 3.0);
-    M_aainf = 1.0 / (1.0 + exp (- (u_ig + 20.47) / 17.54) );
+    M_aainf = 1.0 / (1.0 + std::exp (- (u_ig + 20.47) / 17.54) );
 
     M_tauai = 1.0 / ( (M_aai + M_bai) * 3.0);
-    M_aiinf = 1.0 / (1.0 + exp ( (u_ig + 43.1) / 5.3) );
+    M_aiinf = 1.0 / (1.0 + std::exp ( (u_ig + 43.1) / 5.3) );
 
 
     // ultra rapid delayed rectifier K current
 
-    M_aua = 0.65 * 1.0 / (exp (- (u_ig + 10.0) / 8.5) + exp (- (u_ig - 30.0) / 59.0) );
-    M_bua = 0.65 * 1.0 / (2.5 + exp ( (u_ig + 82.0) / 17.0) );
+    M_aua = 0.65 * 1.0 / (std::exp (- (u_ig + 10.0) / 8.5) + std::exp (- (u_ig - 30.0) / 59.0) );
+    M_bua = 0.65 * 1.0 / (2.5 + std::exp ( (u_ig + 82.0) / 17.0) );
 
-    M_aui = 1.0 / (21.0 + exp (- (u_ig - 185.0) / 28.0) );
-    M_bui = exp ( (u_ig - 158.0) / 16.0);
+    M_aui = 1.0 / (21.0 + std::exp (- (u_ig - 185.0) / 28.0) );
+    M_bui = std::exp ( (u_ig - 158.0) / 16.0);
 
     M_tauua = (1.0 / (M_aua + M_bua) ) / 3.0;
-    M_uainf = 1.0 / (1.0 + exp (- (u_ig + 30.3) / 9.6) );
+    M_uainf = 1.0 / (1.0 + std::exp (- (u_ig + 30.3) / 9.6) );
 
     M_tauui = (1.0 / (M_aui + M_bui) ) / 3.0;
-    M_uiinf = 1.0 / (1.0 + exp ( (u_ig - 99.45) / 27.48) );
+    M_uiinf = 1.0 / (1.0 + std::exp ( (u_ig - 99.45) / 27.48) );
 
 
     // rapid delayed rectifier outward K current
-    M_axr = 0.0003 * (u_ig + 14.1) / (1.0 - exp (- (u_ig + 14.1) / 5.0) );
-    M_bxr = 7.3898e-5 * (u_ig - 3.3328) / (exp ( (u_ig - 3.3328) / 5.1237) - 1.0);
+    M_axr = 0.0003 * (u_ig + 14.1) / (1.0 - std::exp (- (u_ig + 14.1) / 5.0) );
+    M_bxr = 7.3898e-5 * (u_ig - 3.3328) / (std::exp ( (u_ig - 3.3328) / 5.1237) - 1.0);
 
     M_tauxr = 1.0 / (M_axr + M_bxr);
-    M_xrinf = 1.0 / (1.0 + exp (- (u_ig + 14.1) / 6.5) );
+    M_xrinf = 1.0 / (1.0 + std::exp (- (u_ig + 14.1) / 6.5) );
 
 
     // slow  delayed rectifier outward K current
-    M_axs = 4e-5 * (u_ig - 19.9) / (1.0 - exp (- (u_ig - 19.9) / 17.0) );
-    M_bxs = 3.5e-5 * (u_ig - 19.9) / (exp ( (u_ig - 19.9) / 9.0) - 1.0);
+    M_axs = 4e-5 * (u_ig - 19.9) / (1.0 - std::exp (- (u_ig - 19.9) / 17.0) );
+    M_bxs = 3.5e-5 * (u_ig - 19.9) / (std::exp ( (u_ig - 19.9) / 9.0) - 1.0);
 
     M_tauxs = 0.5 / (M_axs + M_bxs);
-    M_xsinf = pow ( (1.0 + exp (- (u_ig - 19.9) / 12.7) ), (-1.0 / 2.0) );
+    M_xsinf = std::pow ( (1.0 + std::exp (- (u_ig - 19.9) / 12.7) ), (-1.0 / 2.0) );
 
 
     // L-type Ca current
 
-    M_taud = (1.0 - exp (- (u_ig + 10.0) / 6.24) ) / (0.035 * (u_ig + 10.0) * (1.0 + exp (- (u_ig + 10.0) / 6.24) ) );
-    M_dinf = 1.0 / (1.0 + exp (- (u_ig + 10.0) / 8.0) );
+    M_taud = (1.0 - std::exp (- (u_ig + 10.0) / 6.24) ) / (0.035 * (u_ig + 10.0) * (1.0 + std::exp (- (u_ig + 10.0) / 6.24) ) );
+    M_dinf = 1.0 / (1.0 + std::exp (- (u_ig + 10.0) / 8.0) );
 
-    M_tauf = 9.0 * 1.0 / (0.0197 * exp (-pow (0.0337, 2.0) * pow ( (u_ig + 10.0), 2.0) ) + 0.02);
-    M_finf = 1.0 / (1.0 + exp ( (u_ig + 28.0) / 6.9) );
+    M_tauf = 9.0 * 1.0 / (0.0197 * std::exp (-std::pow (0.0337, 2.0) * std::pow ( (u_ig + 10.0), 2.0) ) + 0.02);
+    M_finf = 1.0 / (1.0 + std::exp ( (u_ig + 28.0) / 6.9) );
 
     M_taufca = 2.0;
     M_fCainf = 1.0 / (1.0 + (M_vectorConcentrationCa[ig] / 0.00035) );
@@ -2229,14 +2229,14 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::computeODECoefficients ( const
     //following expressions using Fn). Furthermore, a modification has been done : instead of 10^-13, we put 10^-10
 
     M_taupu = 8.0;
-    M_puinf = 1.0 / (1.0 + exp (- (M_vectorFn[ig] * pow (10, 4) - 3.4175 * pow (10, 3) ) / (13.67) ) );
+    M_puinf = 1.0 / (1.0 + std::exp (- (M_vectorFn[ig] * std::pow (10, 4) - 3.4175 * std::pow (10, 3) ) / (13.67) ) );
 
-    M_taupv = 1.91 + 2.09 / (1.0 + exp (- (M_vectorFn[ig] * pow (10, 4.0) - 3.4175 * pow (10, 3) ) / (13.67) ) );
-    M_pvinf = 1.0 - 1.0 / (1.0 + exp (- (M_vectorFn[ig] * pow (10, 4.0) - 6.835 * pow (10, 2) ) / (13.67) ) );
+    M_taupv = 1.91 + 2.09 / (1.0 + std::exp (- (M_vectorFn[ig] * std::pow (10, 4.0) - 3.4175 * std::pow (10, 3) ) / (13.67) ) );
+    M_pvinf = 1.0 - 1.0 / (1.0 + std::exp (- (M_vectorFn[ig] * std::pow (10, 4.0) - 6.835 * std::pow (10, 2) ) / (13.67) ) );
 
 
-    M_taupw = 6.0 * (1.0 - exp (- (u_ig - 7.9) / 5.0) ) / ( (1.0 + 0.3 * exp (- (u_ig - 7.9) / 5.0) ) * (u_ig - 7.9) );
-    M_pwinf = 1.0 - 1.0 / (1.0 + exp (- (u_ig - 40.0) / 17.0) );
+    M_taupw = 6.0 * (1.0 - std::exp (- (u_ig - 7.9) / 5.0) ) / ( (1.0 + 0.3 * std::exp (- (u_ig - 7.9) / 5.0) ) * (u_ig - 7.9) );
+    M_pwinf = 1.0 - 1.0 / (1.0 + std::exp (- (u_ig - 40.0) / 17.0) );
 }
 
 template<typename Mesh, typename SolverType>
