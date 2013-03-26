@@ -267,7 +267,7 @@ Int main ( Int argc, char** argv )
     }
 
 
-    splitting   -> solveSplitting ( exporterSplitting );
+    splitting   -> solveSplitting ( exporterSplitting, 1.0 );
     exporterSplitting.closeFile();
 
 
