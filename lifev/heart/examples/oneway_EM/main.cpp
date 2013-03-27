@@ -386,6 +386,11 @@ ElectroMech::run()
     typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
     typedef boost::shared_ptr< TimeAdvance< vector_Type > >       timeAdvance_type;
 
+    typedef RegionMesh<LinearTetra>							MeshType;
+    typedef ETFESpace<MeshType, MapEpetra, 3, 3 >         ETFESpace_Type;
+    typedef boost::shared_ptr<ETFESpace_Type>             ETFESpacePtr_Type;
+
+
     LifeChrono chronoinitialsettings;
     LifeChrono chronototaliterations;
     chronoinitialsettings.start();
@@ -580,11 +585,14 @@ ElectroMech::run()
     std::cout << "buildsystem electrical ok" << std::endl;
 
 
+    ETFESpacePtr_Type dETFESpace( new ETFESpace_Type (meshPart, refFE_u, M_heart_fct->M_comm) );
     //! Setup of the structuralSolver
-    solid.setup (dataStructure,
-                 dFESpace,
-                 BChS,
-                 parameters->comm);
+    solid.setup ( dataStructure,
+            		dFESpace,
+            		dETFESpace,
+            	BChS,
+            	parameters -> comm);
+//    M_material->setup ( dFESpace, dETFESpace, M_localMap, M_offset, M_data, M_Displayer );
     std::cout << "mechanical setup ok" << std::endl;
     solid.setDataFromGetPot (dataFile);
 

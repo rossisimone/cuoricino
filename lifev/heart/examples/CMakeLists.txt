@@ -11,7 +11,7 @@ ADD_SUBDIRECTORIES(
   0DFitzHughNagumoModel
   FiberInterpolation
 #  ActiveStrainODE
-  AlievPanfilov
+#  AlievPanfilov
   basic_example
   ETA_MonodomainSolver
   integrated_heart
