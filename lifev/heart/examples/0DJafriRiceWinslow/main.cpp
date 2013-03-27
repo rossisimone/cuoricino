@@ -57,7 +57,7 @@
 
 #include <lifev/core/array/MatrixEpetra.hpp>
 
-#include <lifev/heart/solver/IonicModels/JafriRiceWinslow.hpp>
+#include <lifev/heart/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -85,20 +85,20 @@ Int main ( Int argc, char** argv )
     // in the execution directory.                //
     //********************************************//
 
-    std::cout << "Importing parameters list...";
-    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslow.xml" ) );
-    std::cout << " Done!" << endl;
+    cout << "Importing parameters list...";
+    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    cout << " Done!" << endl;
 
 
     //********************************************//
     // Creates a new model object representing the//
-    // model from Negroni and Lascano 1996. The   //
+    // model from Jafri Rice Winslow 1998. The    //
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
-    std::cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
-    IonicJafriRiceWinslow  model ( ParameterList );
-    std::cout << " Done!" << endl;
+    cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
+    IonicJafriRiceWinslow  model ( parameterList );
+    cout << " Done!" << endl;
 
 
     //********************************************//
@@ -115,38 +115,40 @@ Int main ( Int argc, char** argv )
     // the model. rStates is the reference to the //
     // the vector states                          //
     //********************************************//
-    std::cout << "Initializing solution vector...";
+    cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
+    unknowns[0] = - 84.1638;
     unknowns[1] = 0.0328302;
     unknowns[2] = 0.988354;
     unknowns[3] = 0.992540;
     unknowns[4] = 0.000928836;
     unknowns[5] = 10.2042;
     unknowns[6] = 143.727;
-    unknowns[7] = 0.0000994893;
-    unknowns[8] = 1.24891;
-    unknowns[9] = 0.000136058;
-    unknowns[10] = 1.17504;
-    unknowns[11] = 0.762527;
-    unknowns[12] = 0.00119168;
-    unknowns[13] = 0.00000000630613;
-    unknowns[14] = 0.236283;
-    unknowns[15] = 0.997208;
-    unknowns[16] = 0.0000638897;
-    unknowns[17] = 0.00000000153500;
-    unknowns[18] = 0.0000000000000163909;
-    unknowns[19] = 0.0000000000000000000656337;
-    unknowns[20] = 0.00000000000000000000984546;
-    unknowns[21] = 0.00272826;
-    unknowns[22] = 0.000000699215;
-    unknowns[23] = 0.0000000000671989;
-    unknowns[24] = 0.00000000000000287031;
-    unknowns[25] = 0.0000000000000000000459752;
-    unknowns[26] = 0.0;
-    unknowns[27] = 0.998983;
-    unknowns[28] = 0.6349973;
-    unknowns[29] = 135.9813;
-    std::cout << " Done!" << endl;
+    unknowns[7] = 5.4;
+    unknowns[8] = 9.94893e-11;
+    unknowns[9] = 1.243891;
+    unknowns[10] = 1.36058e-4;
+    unknowns[11] = 1.17504;
+    unknowns[12] = 0.762527;
+    unknowns[13] = 1.19168e-3;
+    unknowns[14] = 6.30613e-9;
+    unknowns[15] = 0.236283;
+    unknowns[16] = 0.997208;
+    unknowns[17] = 6.38897e-5;
+    unknowns[18] = 1.535e-9;
+    unknowns[19] = 1.63909e-14;
+    unknowns[20] = 6.56337e-20;
+    unknowns[21] = 9.84546e-21;
+    unknowns[22] = 2.72826e-3;
+    unknowns[23] = 6.99215e-7;
+    unknowns[24] = 6.71989e-11;
+    unknowns[25] = 2.87031e-15;
+    unknowns[26] = 4.59752e-20;
+    unknowns[27] = 0.0;
+    unknowns[28] = 0.998983;
+    unknowns[29] = 0.00635;
+    unknowns[30] = 0.13598;
+    cout << " Done!" << endl;
 
 
     //********************************************//
@@ -156,11 +158,9 @@ Int main ( Int argc, char** argv )
     // variables, that is, the right hand side of //
     // the differential equation.                 //
     //********************************************//
-    std::cout << "Initializing rhs..." ;
+    cout << "Initializing rhs..." ;
     std::vector<Real> rhs (model.Size(), 0);
-    std::cout << " Done! "  << endl;
-
-
+    cout << " Done! "  << endl;
 
 
     //********************************************//
@@ -175,70 +175,130 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (400);
-    Real dt (0.02);
-
+    Real TF     = parameterList.get( "endTime", 5.0 );
+    Real dt     = parameterList.get( "timeStep", 5.77e-5 );
+    Real timeSt = parameterList.get( "stimuliTime", 1.0 );
+    Real stInt  = parameterList.get( "stimuliInterval", 400.0 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
     string filename = "output.txt";
-    std::ofstream output ("output.txt");
+    std::ofstream output  ("output.txt");
 
 
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
-    std::cout << "Time loop starts...\n";
+    cout << "Time loop starts...\n";
+
+
+
     for ( Real t = 0; t < TF; )
     {
 
-        //********************************************//
+    	//********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if ( t > 1 && t < 2 )
+        if ( t >= timeSt && t <= timeSt + 1.0 )
         {
-        	Iapp = 0.1;
+        	Iapp = 0.516289;
+        	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
+        		timeSt = timeSt + stInt;
         }
         else
         {
-            Iapp = 0;
+        	Iapp = 0;
         }
 
-        std::cout << "\r " << t << " ms.       " << std::flush;
+        cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.computeRhs ( unknowns, Iapp, rhs);
-
-        //********************************************//
-        // Use forward Euler method to advance the    //
-        // solution in time.                          //
-        //********************************************//
-        unknowns.at (0) = unknowns.at (0)  + dt * rhs.at (0);
-        unknowns.at (1) = unknowns.at (1)  + dt * rhs.at (1);
+        model.computeRhs ( unknowns, Iapp, rhs );
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << "\n";
 
-        //********************************************//
-        // Update the time.                           //
-        //********************************************//
-        t = t + dt;
-    }
-    std::cout << "\n...Time loop ends.\n";
-    std::cout << "Solution written on file: " << filename << "\n";
+        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
+       		 << unknowns.at (2) << ", " << unknowns.at (3) << ", "
+       		 << unknowns.at (4) << ", " << unknowns.at (5) << ", "
+       		 << unknowns.at (6) << ", " << unknowns.at (7) << ", "
+       		 << unknowns.at (8) << ", " << unknowns.at (9) << ", "
+       		 << unknowns.at (10) << ", " << unknowns.at (11) << ", "
+       		 << unknowns.at (12) << ", " << unknowns.at (13) << ", "
+       		 << unknowns.at (14) << ", " << unknowns.at (15) << ", "
+       		 << unknowns.at (16) << ", " << unknowns.at (17) << ", "
+       		 << unknowns.at (18) << ", " << unknowns.at (19) << ", "
+             << unknowns.at (20) << ", " << unknowns.at (21) << ", "
+             << unknowns.at (22) << ", " << unknowns.at (23) << ", "
+             << unknowns.at (24) << ", " << unknowns.at (25) << ", "
+             << unknowns.at (26) << ", " << unknowns.at (27) << ", "
+             << unknowns.at (28) << ", " << unknowns.at (29) << ", "
+             << unknowns.at (30) << "\n";
+
+
+
+         //********************************************//
+         // Use forward Euler method to advance the    //
+         // solution in time.                          //
+         //********************************************//
+
+    	 for(int j(0); j <= 30; ++j)
+         {
+//    		 if( ( t > 21 && t < 26.5 ) || ( t > 421 && t < 426.5 ) ||
+//    	        		( t > 821 && t < 826.5 ) || ( t > 1221 && t < 1226.5 ) || ( t > 1621 && t < 1626.5 ) ||
+//    	        		( t > 2001 && t < 2036.5 ) || ( t > 2401 && t < 2436.5 ) || ( t > 2801 && t < 2866.5 ) )
+//    		 {
+				 if(j!= 10)
+					 unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+				 else
+				 {
+//					 for( int k(0) ; k < 150; k++ )
+//					 {
+//						 unknowns.at (10) = unknowns.at (10)   + dt / 150 * rhs.at (10);
+//						 model.computeRhs ( unknowns, Iapp, rhs );
+//					 }
+					 unknowns.at (10) = model.computeNewtonCaSS(unknowns, dt, 10);
+				 }
+//    		 }
+//    		 else unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+         }
+
+//         unknowns.at(1) = ( unknowns.at(1) / dt + model.fastINa(unknowns).at(1) )
+//        		 / ( 1 / dt + model.fastINa(unknowns).at(1) + model.fastINa(unknowns).at(2) );
+//      	 unknowns.at(2) = ( unknowns.at(2) / dt + model.fastINa(unknowns).at(3) )
+//      			 / ( 1 / dt + model.fastINa(unknowns).at(3) + model.fastINa(unknowns).at(5) );
+//    	 unknowns.at(3) = ( unknowns.at(3) / dt + model.fastINa(unknowns).at(4) )
+//    			 / ( 1 / dt + model.fastINa(unknowns).at(4) + model.fastINa(unknowns).at(6) );
+//    	 unknowns.at(4) = ( unknowns.at(4) / dt + model.timeDIK(unknowns).at(1) )
+//    			 / ( 1 / dt + model.timeDIK(unknowns).at(1) + model.timeDIK(unknowns).at(2) );
+
+
+//    	 unknowns.at (28) = ( unknowns.at(28) / dt + model.computeYParameters(unknowns).at(0) /  model.computeYParameters(unknowns).at(1) )
+//    			 / ( 1 / dt + 1 /  model.computeYParameters(unknowns).at(1) );
+
+
+         //********************************************//
+         // Update the time.                           //
+         //********************************************//
+         t = t + dt;
+       }
+
+    cout << "\n...Time loop ends.\n";
+    cout << "Solution written on file: " << filename << "\n";
+
     //********************************************//
     // Close exported file.                       //
     //********************************************//
     output.close();
 
+
     //! Finalizing Epetra communicator
     MPI_Finalize();
     return ( EXIT_SUCCESS );
-}
+   }
