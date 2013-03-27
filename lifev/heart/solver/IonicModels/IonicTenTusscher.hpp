@@ -405,7 +405,7 @@
 
 		inline const Real& maxCourUp() const
 		{
-			return M_VmaxUp;
+			return M_VMaxUp;
 		}
 		inline void setVmaxUp(const Real& maxCourUp)
 		{
@@ -608,15 +608,15 @@
 	// ===================================================
 	IonicTenTusscher::IonicTenTusscher()    :
 		super      ( 17 ),
-		M_R        ( 96.4867 ),
+		M_R        ( 8314.472 ),
 		M_T        ( 310.0 ),
-		M_F        ( 8.3143 ),
-		M_Cm       ( 2.0 ),
+		M_F        ( 96485.3415 ),
+		M_Cm       ( 0.185 ),
 		M_S        ( 0.2 ),
 		M_rho      ( 162.0 ),
-		M_VCyt     ( 16404.0 ),
-		M_VSr      ( 1094.0 ),
-		M_KO       ( 5.4  ),
+		M_VCyt     ( 0.016404 ),
+		M_VSr      ( 0.001094 ),
+		M_KO       ( 5.4 ),
 		M_NaO      ( 140.0 ),
 		M_CaO      ( 2.0 ),
 		M_GNa      ( 14.838 ),
@@ -625,9 +625,9 @@
 		M_GToEndo  ( 0.073 ),
 		M_GKr      ( 0.096 ),
 		M_GKs      ( 0.245 ),
-		M_GKsM      ( 0.062 ),
+		M_GKsM     ( 0.062 ),
 		M_pKNa     ( 0.03 ),
-		M_GCaL     ( 1.7 ),
+		M_GCaL     ( 0.000175 ),
 		M_kNaCa    ( 1000 ),
 		M_gamma    ( 0.35 ),
 		M_KmCa     ( 1.38 ),
@@ -638,15 +638,15 @@
 		M_KmK      ( 1.0 ),
 		M_KmNa     ( 40.0 ),
 		M_GKp      ( 0.0146 ),
-		M_GCap     ( 0.025 ),
+		M_GCap     ( 0.825 ),
 		M_KpCa     ( 0.0005 ),
 		M_GNab     ( 0.00029 ),
 		M_GCab     ( 0.000592 ),
 		M_VMaxUp   ( 0.000425 ),
 		M_Kup      ( 0.00025 ),
-		M_aRel     ( 16.464 ),
+		M_aRel     ( 0.016464 ),
 		M_bRel     ( 0.25 ),
-		M_cRel     ( 8.232 ),
+		M_cRel     ( 0.008232 ),
 		M_VLeak    ( 0.00008 ),
 		M_Buffc    ( 0.15 ),
 		M_KBuffc   ( 0.001 ),
@@ -658,14 +658,14 @@
 	IonicTenTusscher::IonicTenTusscher ( Teuchos::ParameterList& parameterList ) :
 		super       ( 17 )
 	{
-		M_R        = parameterList.get ( "gasConst", 96.4867 );
+		M_R        = parameterList.get ( "gasConst", 8314.472 );
 		M_T        = parameterList.get ( "temp", 310.0 );
-		M_F        = parameterList.get ( "farad", 8.3143 );
-		M_Cm       = parameterList.get ( "capMem", 2.0 );
+		M_F        = parameterList.get ( "farad", 96485.3415 );
+		M_Cm       = parameterList.get ( "capMem", 0.185 );
 		M_S        = parameterList.get ( "svRatio", 0.2 );
 		M_rho      = parameterList.get ( "resCell", 162.0 );
-		M_VCyt     = parameterList.get ( "volCyt", 16404.0 );
-		M_VSr      = parameterList.get ( "volSR", 1094.0 );
+		M_VCyt     = parameterList.get ( "volCyt", 0.016404 );
+		M_VSr      = parameterList.get ( "volSR", 0.001094  );
 		M_KO       = parameterList.get ( "concKO", 5.4  );
 		M_NaO      = parameterList.get ( "concNaO", 140.0 );
 		M_CaO      = parameterList.get ( "concCaO", 2.0 );
@@ -677,7 +677,7 @@
 		M_GKs      = parameterList.get ( "maxCondKs", 0.245 );
 		M_GKsM      = parameterList.get ( "maxCondKsM", 0.062 );
 		M_pKNa     = parameterList.get ( "relPermKNa", 0.03 );
-		M_GCaL     = parameterList.get ( "maxCondCaL", 1.7 );
+		M_GCaL     = parameterList.get ( "maxCondCaL", 0.000175 );
 		M_kNaCa    = parameterList.get ( "maxCourNaCa", 1000.0 );
 		M_gamma    = parameterList.get ( "gamma", 0.35 );
 		M_KmCa     = parameterList.get ( "constmCa", 1.38 );
@@ -688,15 +688,15 @@
 		M_KmK      = parameterList.get ( "constmK", 1.0 );
 		M_KmNa     = parameterList.get ( "constmNa", 40.0 );
 		M_GKp      = parameterList.get ( "maxCondKp", 0.0146 );
-		M_GCap     = parameterList.get ( "maxCondCap", 0.025 );
+		M_GCap     = parameterList.get ( "maxCondCap", 0.825 );
 		M_KpCa     = parameterList.get ( "constpCa", 0.0005 );
 		M_GNab     = parameterList.get ( "maxCondNab", 0.00029 );
 		M_GCab     = parameterList.get ( "maxCondCab", 0.000592 );
 		M_VMaxUp   = parameterList.get ( "maxCourUp", 0.000425 );
 		M_Kup      = parameterList.get ( "constUp", 0.00025 );
-		M_aRel     = parameterList.get ( "aRel", 16.464 );
+		M_aRel     = parameterList.get ( "aRel", 0.016464 );
 		M_bRel     = parameterList.get ( "bRel", 0.25 );
-		M_cRel     = parameterList.get ( "cRel", 8.232 );
+		M_cRel     = parameterList.get ( "cRel", 0.008232 );
 		M_VLeak    = parameterList.get ( "maxCourLeak", 0.00008 );
 		M_Buffc    = parameterList.get ( "buffCyt", 0.15 );
 		M_KBuffc   = parameterList.get ( "constBuffc", 0.001 );
@@ -859,24 +859,25 @@
 					+ courIKs[0] + courSubSysCa[0] + exINaCa(v) + pumpINaK(v) 
 					+ pumpIpCa(v) + backICab(v) + backINab(v);
 		
-		return  ( - 1.0 / M_Cm ) * ( iIon + Istim );
+		return  - ( iIon + Istim ) ;
 	}
 
 	std::vector<Real> IonicTenTusscher::computeLocalGatingRhs ( const std::vector<Real>& v )
 	{
-		std::vector<Real> gatingRhs (12);
 		std::vector<Real> gatingINa (fastINa(v));
 		std::vector<Real> gatingIKr (rapDelIKr(v));
 		std::vector<Real> gatingIKs (slowIKs(v));
 		std::vector<Real> gatingICa (computeLocalSubSysCaRhs(v));
 		std::vector<Real> gatingIto (transientIto(v));
 	
-		std::copy( gatingINa.begin(), gatingINa.end(), gatingRhs.begin() );
+		std::vector<Real> gatingRhs (12);
+
+		std::copy( gatingINa.begin() + 1, gatingINa.end(), gatingRhs.begin() );
 		std::copy( gatingIKr.begin() + 1, gatingIKr.end(), gatingRhs.begin() + 3 );
 		gatingRhs[5] = gatingIKs[1];
-		std::copy( gatingICa.begin() + 6, gatingICa.end() - 1, gatingRhs.begin() + 5 );
-		std::copy( gatingIto.begin() + 1, gatingIto.end(), gatingRhs.begin() + 8 );	
-		gatingRhs[12] = gatingICa[7];
+		std::copy( gatingICa.begin() + 6, gatingICa.end() - 1, gatingRhs.begin() + 6 );
+		std::copy( gatingIto.begin() + 1, gatingIto.end(), gatingRhs.begin() + 9 );
+		gatingRhs[12] = gatingICa[9];
 
 		return gatingRhs;
 	}
@@ -892,10 +893,11 @@
 		
 		std::vector<Real> concRhs(4);
 
-		concRhs[0] = - ( courSubSysCa(0) + backICab(v) + pumpIpCa(v) - 2 * exINaCa(v) ) / ( 2 * M_Vcyt * M_F ) + courSubSysCa(1) - courSubSysCa(2) + courSubSysCa(3);
-		concRhs[1] = ( M_VCyt / M_VSR ) * ( - courSubSysCa(1) + courSubSysCa(2) - courSubSysCa(3) );
+		concRhs[0] = courSubSysCa[4] *( courSubSysCa[1] - courSubSysCa[2] + courSubSysCa[3] -
+						M_Cm * ( courSubSysCa[0] + backICab(v) + pumpIpCa(v) - 2 * exINaCa(v) ) / ( 2 * M_VCyt * M_F ) );
+		concRhs[1] = courSubSysCa[5] * ( M_VCyt / M_VSr ) * ( - courSubSysCa[1] + courSubSysCa[2] - courSubSysCa[3] );
 		concRhs[2] = - ( courINa[0] + backINab(v) + 3 * exINaCa(v) + 3 * pumpINaK(v) ) * M_Cm / ( M_VCyt * M_F );
-		concRhs[3] = - ( timeIIK1(v) + courIto[0] + courIKr[0] + courIKs[0] + pumpIpK(v) - 2 * pumpINaK(v) ) * M_Cm / ( M_VMyo * M_F );
+		concRhs[3] = - ( inwardIK1(v) + courIto[0] + courIKr[0] + courIKs[0] - 2 * pumpINaK(v) + pumpIpK(v) ) * M_Cm / ( M_VCyt * M_F );
 		
 		return concRhs;
 	}
@@ -911,10 +913,11 @@
 		
 		std::vector<Real> concRhs(4);
 
-		concRhs[0] = - ( courSubSysCa(0) + backICab(v) + pumpIpCa(v) - 2 * exINaCa(v) ) / ( 2 * M_Vcyt * M_F ) + courSubSysCa(1) - courSubSysCa(2) + courSubSysCa(3);
-		concRhs[1] = ( M_VCyt / M_VSR ) * ( - courSubSysCa(1) + courSubSysCa(2) - courSubSysCa(3) );
+		concRhs[0] = courSubSysCa[4] *( courSubSysCa[1] - courSubSysCa[2] + courSubSysCa[3] -
+						M_Cm * ( courSubSysCa[0] + backICab(v) + pumpIpCa(v) - 2 * exINaCa(v) ) / ( 2 * M_VCyt * M_F ) );
+		concRhs[1] = courSubSysCa[5] * ( M_VCyt / M_VSr ) * ( - courSubSysCa[1] + courSubSysCa[2] - courSubSysCa[3] );
 		concRhs[2] = - ( courINa[0] + backINab(v) + 3 * exINaCa(v) + 3 * pumpINaK(v) ) * M_Cm / ( M_VCyt * M_F );
-		concRhs[3] = - ( timeIIK1(v) + courIto[0] + courIKr[0] + courIKs[0] + pumpIpK(v) + Istim - 2 * pumpINaK(v) ) * M_Cm / ( M_VMyo * M_F );
+		concRhs[3] = - ( inwardIK1(v) + courIto[0] + courIKr[0] + courIKs[0] - 2 * pumpINaK(v) + pumpIpK(v) + Istim ) * M_Cm / ( M_VCyt * M_F );
 		
 		return concRhs;
 	}
@@ -926,35 +929,36 @@
 		std::vector<Real> subSysCaRHS(10);
 
 		Real V 	   ( v[0] );
-		Real Xs    ( v[6] );
 		Real d     ( v[7] );
 		Real f     ( v[8] );
 		Real fCa   ( v[9] );
 		Real g     ( v[12] );
-		Real fCa   ( v[16] );
 		Real cCa   ( v[13] );
 		Real cCaSR ( v[14] );
 
 		// Internal Parameters
 
 		Real jLeak = M_VLeak * ( cCaSR - cCa );
-		Real jUp   = M_VMaxUp * ( pow(cCa, 2) / ( pow(M_KmUp, 2) + pow(cCa, 2) ) );
+		Real jUp   = M_VMaxUp * ( pow(cCa, 2) / ( pow(M_Kup, 2) + pow(cCa, 2) ) );
 		Real jRel  = ( M_aRel * pow(cCaSR, 2) / ( pow(M_bRel, 2) + pow(cCaSR, 2) ) + M_cRel ) * d * g ;
 		
+		Real g_inf (0);
+
 		if ( cCa <= 0.00035 )
-			Real g_inf = 1.0 / ( 1.0 + pow(cCa / 0.00035, 6) );
+			g_inf = 1.0 / ( 1.0 + pow(cCa / 0.00035, 6) );
 		else
-			Real g_inf = 1.0 / ( 1.0 + pow(cCa / 0.00035, 16) );
+			g_inf = 1.0 / ( 1.0 + pow(cCa / 0.00035, 16) );
 		
 		Real tau_g (2.0);
 		
+		int k_g (0);
 		if ( ( g_inf > g ) && ( V > -60 ) )
-			int k_g (0);
+			k_g = 0;
 		else 
-			int k_g (1);
+			k_g = 1;
 		
-		Real cCai_bufc   = 1.0 / ( 1.0 + M_Buffc + M_KBuffc / pow(cCaSR + M_KBuffc,2) ) ;
-		Real cCaSR_bufsr = 1.0 / ( 1.0 + M_BuffSR + M_KBuffSR / pow(cCaSR + M_KBuffSR,2) ) ;
+		Real cCai_bufc   = 1.0 / ( 1.0 + M_Buffc * M_KBuffc / pow(cCa + M_KBuffc, 2) );
+		Real cCaSR_bufsr = 1.0 / ( 1.0 + M_BuffSR * M_KBuffSR / pow(cCaSR + M_KBuffSR, 2) );
 
 		Real d_inf   = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 7.5 ) );
 		Real alpha_d = 1.4 / ( 1.0 + exp( ( -35.0 - V ) / 13.0 ) ) + 0.25;
@@ -970,10 +974,12 @@
 		Real gamma_fCa = 0.2 / ( 1.0 + exp( ( cCa - 0.00075 ) / 0.0008 ) );
 		Real fCa_inf   = ( alpha_fCa + beta_fCa + gamma_fCa + 0.23 ) / 1.46; 
 		Real tau_fCa   ( 2 );
+
+		int k_f (0);
 		if ( ( f_inf > f ) && ( V > -60 ) )
-			int k_g (0);
+			k_f = 0;
 		else 
-			int k_g (1);
+			k_f = 1;
 		
 		// RHS of the Ca2+ subsystem
 
@@ -985,8 +991,8 @@
 		subSysCaRHS[5] = cCaSR_bufsr;
 		subSysCaRHS[6] = ( d_inf - d ) / tau_d;
 		subSysCaRHS[7] = ( f_inf - f ) / tau_f;
-		subSysCaRHS[8] = ( fCa_inf - fCa ) / tau_fCa;
-		subSysCaRHS[9] = ( g_inf - g ) / tau_g;
+		subSysCaRHS[8] = k_f * ( fCa_inf - fCa ) / tau_fCa;
+		subSysCaRHS[9] = k_g * ( g_inf - g ) / tau_g;
 
 		return subSysCaRHS;
 	}
@@ -1009,37 +1015,43 @@
 		fastNa[0] = M_GNa * pow(m, 3) * h * j * ( V - potNa );
 		
 		// Fast Na+ current m gate
-		m_inf    = 1.0 / pow( 1.0 + exp( ( -58.6 - V ) / 9.03), 2);
+		Real m_inf   = 1.0 / pow( 1.0 + exp( ( -58.6 - V ) / 9.03), 2);
 		Real alpha_m = 1.0 / ( 1.0 + exp( ( -60.0 - V ) / 5.0 ) );
 		Real beta_m  = 0.1 / ( 1.0 + exp( ( V + 35.0 ) / 5.0 ) ) +  0.1 / ( 1.0 + exp( ( V - 50.0 ) / 200.0 ) );
-		tau_m        = alpha_m * beta_m;
+		Real tau_m   = alpha_m * beta_m;
 		
 		fastNa[1] = ( m_inf - m ) / tau_m;
 
 		// Fast Na+ current h and j gate
-		h_inf   = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
-		j_inf   = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
+		Real h_inf   = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
+		Real j_inf   = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
 		
+
+		Real alpha_h (0);
+		Real alpha_j (0);
+		Real beta_h  (0);
+		Real beta_j  (0);
+
 		if (V >= -40)
 		{
 			alpha_h = 0.0;
 			alpha_j = 0.0;
-			beta_h  = 0.77 / ( 0.13 * ( 1.0 + exp( ( V + 10.66 ) / -11.1 ) ) );
+			beta_h  = 0.77 / ( 0.13 * ( 1.0 + exp( -( V + 10.66 ) / 11.1 ) ) );
 			beta_j  = 0.6 * exp( 0.057 * V) / ( 1.0 + exp( -0.1 * ( V + 32.0 ) ) );
 		}
 		else
 		{
-			alpha_h = 0.057 * exp( ( 80 + V ) / -6.8 );
+			alpha_h = 0.057 * exp( -( 80 + V ) / 6.8 );
 			alpha_j = ( -25428 * exp( 0.2444 * V) - 6.948e-6 * exp( -0.04391 * V ) ) * ( V + 37.78 ) / ( 1.0 + exp ( 0.311 * ( V + 79.23 ) ) );
 			beta_h  = 2.7 * exp( 0.079 * V ) + 3.1e5 * exp( 0.3485 * V ) ;
 			beta_j  = 0.02424 * exp( -0.01052 * V ) / ( 1.0 + exp( -0.1378 * ( V + 40.14 ) ) );
 		}
 		
-		tau_h 	= 1.0 / ( alpha_h + beta_h );
-		tau_j   = 1.0 / ( alpha_j + beta_j );
+		Real tau_h 	= 1.0 / ( alpha_h + beta_h );
+		Real tau_j  = 1.0 / ( alpha_j + beta_j );
 	
-		fastNa[2] = ( h_inf - h ) / tau_h;
-		fastNa[3] = ( j_inf - j ) / tau_j;
+		fastNa[2] = ( j_inf - j ) / tau_j;
+		fastNa[3] = ( h_inf - h ) / tau_h;
 		
 		return fastNa;
 	}
@@ -1064,13 +1076,17 @@
 			transIto[0] = M_GToEpiM * r * s * ( V - potK );
 
 
-		r_inf = 1.0 / ( 1.0 + exp( ( 20.0 - V ) / 6.0 ) );		
-		tau_r = 9.5 * exp( - pow( V + 40, 2) / 1800.0 ) + 0.8;
+		Real r_inf = 1.0 / ( 1.0 + exp( ( 20.0 - V ) / 6.0 ) );
+		Real tau_r = 9.5 * exp( - pow( V + 40, 2) / 1800.0 ) + 0.8;
 		
+
+		Real s_inf (0);
+		Real tau_s (0);
+
 		if ( ( M_typeCell == "epicardial" ) || ( M_typeCell == "M cell" ) )
 		{
 			s_inf = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 5.0 ) );
-			tau_s = 85.0 * exp( - pow( V + 45.0, 2) / 320.0 ) + 5.0 / ( 1.0 + exp( ( 20.0 - V ) / 5.0 ) ) + 3.0;
+			tau_s = 85.0 * exp( - pow( V + 45.0, 2) / 320.0 ) + 5.0 / ( 1.0 + exp( ( -20.0 + V ) / 5.0 ) ) + 3.0;
 		}
 		else if ( M_typeCell == "endocardial" )
 		{
@@ -1080,7 +1096,7 @@
 		else
 		{
 			s_inf = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 5.0 ) );
-			tau_s = 85.0 * exp( - pow( V + 45.0, 2) / 320.0 ) + 5.0 / ( 1.0 + exp( ( 20.0 - V ) / 5.0 ) ) + 3.0;
+			tau_s = 85.0 * exp( - pow( V + 45.0, 2) / 320.0 ) + 5.0 / ( 1.0 + exp( ( -20.0 + V ) / 5.0 ) ) + 3.0;
 		}
 
 
@@ -1101,8 +1117,8 @@
 		std::vector<Real> slowIKs(2);
 		
 		Real potKs    = ( M_R * M_T / M_F ) * log( ( M_KO + M_pKNa * M_NaO ) / ( cKi + M_pKNa * cNa ) );
-		Real alpha_xs = 1100 / sqrt( 1.0 + exp( ( -10.0 - V ) / 6.0 ) );
-		Real beta_xs  = 1 / ( 1.0 + exp( ( V - 60.0 ) / 20.0 ) );
+		Real alpha_xs = 1100.0 / sqrt( 1.0 + exp( ( -10.0 - V ) / 6.0 ) );
+		Real beta_xs  = 1.0 / ( 1.0 + exp( ( V - 60.0 ) / 20.0 ) );
 		
 
 		if ( ( M_typeCell == "epicardial" ) || ( M_typeCell == "endocardial" ) )
@@ -1112,8 +1128,8 @@
 		else
 			slowIKs[0] = M_GKs * pow(Xs, 2) * ( V - potKs );
 
-		Xs_inf = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 14.0 ) );
-		tau_xs = alpha_xs * beta_xs;
+		Real Xs_inf = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 14.0 ) );
+		Real tau_xs = alpha_xs * beta_xs;
 		
 		slowIKs[1] = ( Xs_inf - Xs ) / tau_xs;
 		
@@ -1139,10 +1155,10 @@
 		
 		rapidIKr[0] = M_GKr * sqrt( M_KO / 5.4 ) * Xr1 * Xr2 * ( V - potK );
 		
-		Xr1_inf = 1.0 / ( 1.0 + exp( ( -26.0 - V ) / 7.0 ) );
-		tau_xr1 = alpha_xr1 * beta_xr1;
-		Xr2_inf = 1.0 / ( 1.0 + exp( ( 88.0 + V ) / 24.0 ) );
-		tau_xr2 = alpha_xr2 * beta_xr2;
+		Real Xr1_inf = 1.0 / ( 1.0 + exp( ( -26.0 - V ) / 7.0 ) );
+		Real tau_xr1 = alpha_xr1 * beta_xr1;
+		Real Xr2_inf = 1.0 / ( 1.0 + exp( ( 88.0 + V ) / 24.0 ) );
+		Real tau_xr2 = alpha_xr2 * beta_xr2;
 		
 		rapidIKr[1] = ( Xr1_inf - Xr1 ) / tau_xr1;
 		rapidIKr[2] = ( Xr2_inf - Xr2 ) / tau_xr2;
@@ -1154,7 +1170,6 @@
 	Real IonicTenTusscher::inwardIK1( const std::vector<Real>& v )
 	{
 		Real V   ( v[0] );
-		Real Xs  ( v[6] );
 		Real cKi ( v[16] );
 		
 		Real potK    = ( M_R * M_T / M_F ) * log( M_KO / cKi );
@@ -1162,9 +1177,9 @@
 		Real alpha_K1 = 0.1 / ( 1.0 + exp( 0.06 * ( V - potK - 200.0 ) ) );
 		Real beta_K1  = ( 3.0 * exp( 0.0002 * ( V - potK + 100.0 ) ) + exp( 0.1 * ( V - potK - 10.0 ) ) )
 						/ ( 1.0 + exp( -0.5 * ( V - potK ) ) );
-		Real XK1_inf   = alpha_k1 / ( alpha_k1 + beta_k1 );
+		Real XK1_inf   = alpha_K1 / ( alpha_K1 + beta_K1 );
 		
-		return  M_GK1 * Xk1_inf * sqrt( M_KO / 5.4 ) * ( V - potK );
+		return  M_GK1 * XK1_inf * sqrt( M_KO / 5.4 ) * ( V - potK );
 	}
 	
 	
@@ -1177,7 +1192,7 @@
 		Real cCa ( v[13] );
 
 
-		return M_kNaCa * ( 1.0 / ( pow(M_KmNa, 3) + pow(M_NaO, 3) ) ) * ( 1.0 / ( M_KmCa + M_CaO ) )
+		return M_kNaCa * ( 1.0 / ( pow(M_KmNai, 3) + pow(M_NaO, 3) ) ) * ( 1.0 / ( M_KmCa + M_CaO ) )
 			* (1.0 / ( 1.0 + M_kSat * exp( ( M_gamma - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) )
 			* ( exp( M_gamma * ( V * M_F ) / ( M_R * M_T ) ) * pow(cNa, 3) * M_CaO -
 						exp( ( M_gamma - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) * pow(M_NaO, 3) * cCa );
@@ -1191,7 +1206,7 @@
 
 		Real fNaK  = 1.0 / ( 1.0 + 0.1245 * exp( -0.1 * ( V * M_F ) / ( M_R * M_T ) ) + 0.0353 * exp( -( V * M_F ) / ( M_R * M_T ) ) );
 
-		return M_PNaK * fNaK * ( cNa / ( M_KmNai + cNa ) ) * ( M_KO / ( M_KO + M_KmK ) );
+		return M_PNaK * fNaK * ( cNa / ( M_KmNa + cNa ) ) * ( M_KO / ( M_KO + M_KmK ) );
 	}
 
 	// Sarcolemmal Ca2+ pump current IpCa
@@ -1208,7 +1223,7 @@
 		
 		Real potK    = ( M_R * M_T / M_F ) * log( M_KO / cKi );
 		
-		return M_GpK * ( V - potK ) / ( 1 + exp( ( 25.0 - V ) / 5.98 ) );
+		return M_GKp * ( V - potK ) / ( 1 + exp( ( 25.0 - V ) / 5.98 ) );
 	}
 
 	// Ca2+ background current ICab
@@ -1226,7 +1241,7 @@
 	Real IonicTenTusscher::backINab( const std::vector<Real>& v )
 	{
 		Real V   ( v[0] );
-		Real cNa ( v[5] );
+		Real cNa ( v[15] );
 
 		Real potNaN = M_R * M_T / M_F * log( M_NaO / cNa );
 
@@ -1256,7 +1271,7 @@
 		std::cout << "maxCondToEndo: " << this->maxCondToEndo() << std::endl;
 		std::cout << "maxCondKr: " << this->maxCondKr() << std::endl;
 		std::cout << "maxCondKs: " << this->maxCondKs() << std::endl;
-		std::cout << "maxCondKsm: " << this->maxCondKsm() << std::endl;
+		std::cout << "maxCondKsM: " << this->maxCondKsM() << std::endl;
 		std::cout << "relPermKNa: " << this->relPermKNa() << std::endl;
 		std::cout << "maxCondCaL: " << this->maxCondCaL() << std::endl;
 		std::cout << "maxCourNaCa: " << this->maxCourNaCa() << std::endl;

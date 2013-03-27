@@ -26,7 +26,7 @@
 
 /*!
     @file
-    @brief 0D test with the Jafri Rice Winslow model
+    @brief 0D test with the Ten Tusscher model
 
     @date 04−2013
     @author Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
@@ -86,7 +86,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Importing parameters list...";
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
     cout << " Done!" << endl;
 
 
@@ -96,7 +96,7 @@ Int main ( Int argc, char** argv )
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
-    cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
+    cout << "Building Constructor for TenTusscher Model with parameters ... ";
     IonicTenTusscher  model ( parameterList );
     cout << " Done!" << endl;
 
@@ -130,7 +130,7 @@ Int main ( Int argc, char** argv )
     unknowns[10] = 0.0;
     unknowns[11] = 1.0;
     unknowns[12] = 1.0;
-    unknowns[13] = 0.0002;
+    unknowns[13] = 2e-4;
     unknowns[14] = 0.2;
     unknowns[15] = 11.6;
     unknowns[16] = 138.3;
@@ -162,9 +162,9 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
     Real TF     = parameterList.get( "endTime", 5.0 );
-    Real dt     = parameterList.get( "timeStep", 5.77e-5 );
-    Real timeSt = parameterList.get( "stimuliTime", 1.0 );
-    Real stInt  = parameterList.get( "stimuliInterval", 400.0 );
+    Real dt     = parameterList.get( "timeStep", 5.77e-4 );
+    Real timeSt = parameterList.get( "stimuliTime", 10.0 );
+    Real stInt  = parameterList.get( "stimuliInterval", 1000.0 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -190,7 +190,7 @@ Int main ( Int argc, char** argv )
         //********************************************//
         if ( t >= timeSt && t <= timeSt + 1.0 )
         {
-        	Iapp = 0.516289;
+        	Iapp = -52.0;
         	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
         		timeSt = timeSt + stInt;
         }
@@ -221,7 +221,6 @@ Int main ( Int argc, char** argv )
        		 << unknowns.at (16) << "\n";
 
 
-
          //********************************************//
          // Use forward Euler method to advance the    //
          // solution in time.                          //
@@ -229,7 +228,7 @@ Int main ( Int argc, char** argv )
 
     	 for(int j(0); j <= 16; ++j)
          {
-			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+  			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
          }
 
          //********************************************//
