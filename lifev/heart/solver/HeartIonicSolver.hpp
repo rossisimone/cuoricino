@@ -1839,17 +1839,17 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::solveIonicModel ( const vector
         Real u_ig = u[ig];
         computeODECoefficients (u_ig, ig);
 
-        M_ENa = (M_R * M_temperature / M_F ) * log (M_Na0 / M_vectorConcentrationNa[ig]);
+        M_ENa = (M_R * M_temperature / M_F ) * std::log (M_Na0 / M_vectorConcentrationNa[ig]);
         // fast Na current
         M_INa = M_gNa * M_solutionGatingM[ig] * M_solutionGatingM[ig] * M_solutionGatingM[ig] * M_solutionGatingH[ig] * M_solutionGatingJ[ig] * (u_ig - M_ENa);
 
         // time independant K current
-        M_EKl = (M_R * M_temperature / M_F ) * log (M_K0 / M_vectorConcentrationK[ig]);
+        M_EKl = (M_R * M_temperature / M_F ) * std::log (M_K0 / M_vectorConcentrationK[ig]);
         M_Klinf = 1.0 / (1.0 + std::exp (0.07 * (u_ig + 80.0) ) );
         M_IKl = M_gKl * M_Klinf * (u_ig - M_EKl);
 
         // transient outward K current
-        M_EK = (M_R * M_temperature / M_F ) * log (M_K0 / M_vectorConcentrationK[ig]);
+        M_EK = (M_R * M_temperature / M_F ) * std::log (M_K0 / M_vectorConcentrationK[ig]);
         M_Ito = M_gTo * M_solutionGatingAA[ig] * M_solutionGatingAA[ig] * M_solutionGatingAA[ig] * M_solutionGatingAI[ig] * (u_ig - M_EK);
 
         // ultra rapid  delayed rectifier K current
@@ -1879,9 +1879,9 @@ void CourtemancheRamirezNattel<Mesh, SolverType>::solveIonicModel ( const vector
                                  * (std::exp (0.35 * u_ig * M_F / (M_R * M_temperature) ) * std::pow (M_vectorConcentrationNa[ig], 3.0) * M_Ca0 - std::exp ( (0.35 - 1.0) * u_ig * M_F / (M_R * M_temperature) ) * std::pow (M_Na0, 3.0) * M_vectorConcentrationCa[ig]) );
 
         // background current
-        M_ECan = 0.5 * (M_R * M_temperature) / M_F * log (M_Ca0 / M_vectorConcentrationCa[ig]);
+        M_ECan = 0.5 * (M_R * M_temperature) / M_F * std::log (M_Ca0 / M_vectorConcentrationCa[ig]);
         M_ICab = M_gbCa * (u_ig - M_ECan);
-        M_ENa = (M_R * M_temperature) * log (M_Na0 / M_vectorConcentrationNa[ig]);
+        M_ENa = (M_R * M_temperature) * std::log (M_Na0 / M_vectorConcentrationNa[ig]);
         M_INab = M_gbNa * (u_ig - M_ENa);
 
         // Ca pump
