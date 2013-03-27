@@ -22,5 +22,6 @@ ADD_SUBDIRECTORIES(
   IonicFitzHughNagumo
   IonicMinimalModel
   Restart
+  RosenbrockTest  
 #  RiceModel
 )
