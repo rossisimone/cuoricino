@@ -90,7 +90,11 @@
 
 using namespace LifeV;
 
+Real smoothing (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& z, const ID& /*i*/)
+{
+    return ( 0.5 + 0.5 * ( std::tanh ( - ( z - 50 ) / 5.0 ) ) );
 
+}
 
 
 Int main ( Int argc, char** argv )
@@ -119,7 +123,8 @@ Int main ( Int argc, char** argv )
 
     typedef HeartETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
-
+    typedef VectorEpetra				vector_Type;
+    typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
     //********************************************//
     // Import parameters from an xml list. Use    //
     // Teuchos to create a list from a given file //
@@ -198,6 +203,11 @@ Int main ( Int argc, char** argv )
     HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 43 );
     HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 45 );
 
+    function_Type f = &smoothing;
+    vectorPtr_Type smoother( new vector_Type( splitting -> potentialPtr() -> map() ) );
+    splitting -> feSpacePtr() -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *smoother , 0);
+    (*smoother) *= *(splitting -> potentialPtr() );
+    splitting -> setPotentialPtr(smoother);
 
     //setting up initial conditions
     * ( splitting -> globalSolution().at (1) ) = 1.0;
@@ -266,8 +276,9 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
+    Real saveStep = monodomainList.get ("saveStep", 1.0);
 
-    splitting   -> solveSplitting ( exporterSplitting, 1.0 );
+    splitting   -> solveSplitting ( exporterSplitting, saveStep );
     exporterSplitting.closeFile();
 
 

@@ -1523,12 +1523,16 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
 solveSplitting (exporter_Type& exporter, Real dt)
 {
-	UInt iter( dt / M_timeStep );
+	assert( dt >= M_timeStep && "Cannot save the solution for step smaller than the timestep!" );
+	int iter( ( dt / M_timeStep ) );
+	int k(0);
 	if( M_endTime > M_timeStep){
 		for ( Real t = M_initialTime; t < M_endTime; )
 		{
+
 			t += M_timeStep;
-			if( fmod( (t / M_timeStep), iter) == 0 ) solveOneSplittingStep (exporter, t);
+			k++;
+			if( k%iter == 0 ) solveOneSplittingStep (exporter, t);
 			else solveOneSplittingStep ();
 
 		}
