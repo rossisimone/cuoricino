@@ -86,6 +86,11 @@ public:
 
     typedef typename super::FESpacePtr_Type          FESpacePtr_Type;
     typedef typename super::ETFESpacePtr_Type        ETFESpacePtr_Type;
+    typedef typename super::ETFESpace_Type				ETFESpace_Type;
+
+    typedef MeshType										mesh_Type;
+    typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 >                        scalarETFESpace_Type;
+    typedef boost::shared_ptr<ETFESpace< mesh_Type, MapEpetra, 3, 1 > >    scalarETFESpacePtr_Type;
 
     //Vector for vector parameters
     typedef typename super::vectorsParameters_Type       vectorsParameters_Type;
@@ -115,16 +120,12 @@ public:
       \param offset: the offset parameter used assembling the matrices
     */
     inline void setup ( const FESpacePtr_Type& dFESpace,
-                         const ETFESpacePtr_Type& ETFESpace,
+                         const ETFESpacePtr_Type& dETFESpace,
                          const boost::shared_ptr<const MapEpetra>&   monolithicMap,
                          const UInt offset, const dataPtr_Type& dataMaterial,
-                         const displayerPtr_Type& displayer  )
-    {
-    	cout << "\n\n You are using the wrong setup method for the neo-hookean activated!";
-    	cout << "\n\n The neo-Hookean activated needs to know the fespace of the activation function!";
-    	exit (EXIT_FAILURE);
+                         const displayerPtr_Type& displayer  );
 
-    }
+
     void setup ( const FESpacePtr_Type& dFESpace,
                  const ETFESpacePtr_Type& dETFESpace,
                  const ETFESpacePtr_Type& activationSpace,
@@ -315,7 +316,7 @@ protected:
     matrixSmall_Type                      M_identity;
 
     vectorPtr_Type						M_Gammaf;
-    ETFESpacePtr_Type					M_activationSpace;
+    scalarETFESpacePtr_Type					M_activationSpace;
     vectorPtr_Type						 M_fiberVector;
 
 };
@@ -340,8 +341,59 @@ NeoHookeanActivatedMaterial<MeshType>::~NeoHookeanActivatedMaterial()
 {}
 
 
+template <typename MeshType>
+void
+NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
+                     const ETFESpacePtr_Type& dETFESpace,
+                     const boost::shared_ptr<const MapEpetra>&   monolithicMap,
+                     const UInt offset, const dataPtr_Type& dataMaterial,
+                     const displayerPtr_Type& displayer  )
+{
+    this->M_displayer = displayer;
+    this->M_dataMaterial  = dataMaterial;
 
+    //    std::cout<<"I am setting up the Material"<<std::endl;
 
+//    M_stiff.
+    this->M_dispFESpace                     = dFESpace;
+    this->M_dispETFESpace                     = dETFESpace;
+    this->M_localMap                    = monolithicMap;
+    this->M_offset                      = offset;
+    this->M_dataMaterial                = dataMaterial;
+    this->M_displayer                   = displayer;
+
+    M_stiff.reset                   ( new vector_Type (*this->M_localMap) );
+    M_fiberVector.reset				( new vector_Type (*this->M_localMap) );
+    M_Gammaf.reset 					( new vector_Type ( M_activationSpace -> map() ) );
+
+#ifdef HAVE_MPI
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
+#else
+    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
+#endif
+
+    M_activationSpace.reset 		( new scalarETFESpace_Type(	dETFESpace -> mesh(),
+    															&feTetraP1,
+    															Comm ) );
+
+    M_identity (0, 0) = 1.0;
+    M_identity (0, 1) = 0.0;
+    M_identity (0, 2) = 0.0;
+    M_identity (1, 0) = 0.0;
+    M_identity (1, 1) = 1.0;
+    M_identity (1, 2) = 0.0;
+    M_identity (2, 0) = 0.0;
+    M_identity (2, 1) = 0.0;
+    M_identity (2, 2) = 1.0;
+
+    // The 2 is because the law uses three parameters (mu, bulk).
+    // another way would be to set up the number of constitutive parameters of the law
+    // in the data file to get the right size. Note the comment below.
+    this->M_vectorsParameters.reset ( new vectorsParameters_Type ( 2 ) );
+
+    this->setupVectorsParameters();
+
+}
 
 template <typename MeshType>
 void
@@ -530,10 +582,10 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 //#define I1 trace( C )
 //#define J23 pow( J, (-2.0/3.0) )
 #define J23 pow( detDeformationGradientTensor, (-2.0/3.0) )
-#define Gammaf ( value( this->M_activationSpace, M_Gammaf ) )
-#define GammaPlusOne Gammaf + value(1.0)
+#define Gammaf ( value( this->M_activationSpace, *M_Gammaf ) )
+#define GammaPlusOne ( Gammaf + value(1.0) )
 #define gGammaf ( value(-1.0) *  Gammaf * (1.0 + ( Gammaf + 2.0 ) * pow ( ( Gammaf + 1.0 ), -2.) ) )
-#define fiber       ( value( this->M_dispETFESpace, M_fiberVector) )
+#define fiber       ( value( this->M_dispETFESpace, *M_fiberVector) )
 #define I4f     dot( fiber, fiber )
 //
 ////#define Stress	( mu1 * J23 * ( GammaPlusOne * ( F - value( 1.0 / 3.0 ) * I1 * FinvT ) + gGammaf * ( F * outerProduct(fiber, fiber) - value( 1.0 / 3.0 ) * I4f * FinvT ) ) )
@@ -544,7 +596,7 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 #define dPpt1  ( value( - 2.0 /3.0 ) * dot( deformationGradientTensor_T, grad( phi_j ) ) * dot( Stress, grad( phi_i ) ) )
 //////
 #define dPpt2  ( 						 J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * dot( grad(phi_j), grad(phi_i) ) )
-#define dPpt3  ( value( 1.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * I1 *  dot( deformationGradientTensor_T * transpose ( grad(phi_j) ) * deformationGradientTensor_T, grad(phi_i) ) )
+#define dPpt3  ( value( 1.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * firstInvariantC *  dot( deformationGradientTensor_T * transpose ( grad(phi_j) ) * deformationGradientTensor_T, grad(phi_i) ) )
 #define dPpt4  ( value( - 2.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * dot( deformationGradientTensor, grad( phi_j ) ) * dot( deformationGradientTensor_T, grad(phi_i) ) )
 //////
 #define dPpt5  ( 						 J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( grad(phi_j) * outerProduct( fiber, fiber ), grad(phi_i) ) )
@@ -553,86 +605,86 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 
 
     //Assembling Volumetric Part
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                this->M_dispETFESpace,
-//                value ( 1.0 / 2.0 ) * parameter ( (* (this->M_vectorsParameters) ) [1] ) * ( value (2.0) *pow (J, 2.0) - J + value (1.0) ) * dot ( FinvT, grad (phi_j) ) * dot ( FinvT, grad (phi_i) )
-//              ) >> jacobian;
-//
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                this->M_dispETFESpace,
-//                value ( - 1.0 / 2.0 ) * parameter ( (* (this->M_vectorsParameters) ) [1] ) * ( pow (J, 2.0) - J + log (J) ) * dot ( FinvT * transpose (grad (phi_j) ) * FinvT,  grad (phi_i) )
-//              ) >> jacobian;
-
-
-    //! ISOCHORIC PART
-    //! 1. Stiffness matrix : int { -2/3 * mu * J^(-2/3) *( F^-T : \nabla \delta ) ( F : \nabla \v ) }
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                this->M_dispETFESpace,
-//                dPpt1
-//              ) >> jacobian;
     integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
                 this->M_dispETFESpace,
-                  dot( deformationGradientTensor, grad(phi_i) )
+                value ( 1.0 / 2.0 ) * parameter ( (* (this->M_vectorsParameters) ) [1] )
+                * ( value (2.0) * pow ( detDeformationGradientTensor, 2.0) -  detDeformationGradientTensor + value (1.0) )
+                * dot ( deformationGradientTensor_T, grad (phi_j) )
+                * dot ( deformationGradientTensor_T, grad (phi_i) )
+              ) >> jacobian;
+
+    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                value ( - 1.0 / 2.0 ) * parameter ( (* (this->M_vectorsParameters) ) [1] )
+                * ( pow (detDeformationGradientTensor, 2.0) - detDeformationGradientTensor + log (detDeformationGradientTensor) )
+                * dot ( deformationGradientTensor_T * transpose (grad (phi_j) ) * deformationGradientTensor_T,  grad (phi_i) )
               ) >> jacobian;
 
 
-//    //! 2. Stiffness matrix : int { 2/9 * mu * ( Ic_iso )( F^-T : \nabla \delta ) ( F^-T : \nabla \v ) }
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                this->M_dispETFESpace,
-//                dPpt2
-//              ) >> jacobian;
-//
-//    //! 3. Stiffness matrix : int { mu * J^(-2/3) (\nabla \delta : \nabla \v)}
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                this->M_dispETFESpace,
-//                dPpt3
-//              ) >> jacobian;
-//
-//    //! 4. Stiffness matrix : int { -2/3 * mu * J^(-2/3) ( F : \nabla \delta ) ( F^-T : \nabla \v ) }
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                this->M_dispETFESpace,
-//                dPpt4
-//              ) >> jacobian;
-//
-//
-//
-//    //! 5. Stiffness matrix : int { 1/3 * mu * Ic_iso * (F^-T [\nabla \delta]^t F^-T ) : \nabla \v }
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                this->M_dispETFESpace,
-//                dPpt5
-//              ) >> jacobian;
-//
-//    //! 6. Stiffness matrix : int { 1/3 * mu * Ic_iso * (F^-T [\nabla \delta]^t F^-T ) : \nabla \v }
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                this->M_dispETFESpace,
-//                dPpt6
-//              ) >> jacobian;
-//
-//    //! 7. Stiffness matrix : int { 1/3 * mu * Ic_iso * (F^-T [\nabla \delta]^t F^-T ) : \nabla \v }
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                this->M_dispETFESpace,
-//                dPpt7
-//              ) >> jacobian;
+    //! ISOCHORIC PART
+    //! 1. Stiffness matrix : int { -2/3 * mu * J^(-2/3) *( F^-T : \nabla \delta ) ( F : \nabla \v ) }
+    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                dPpt1
+              ) >> jacobian;
+
+
+
+    //! 2. Stiffness matrix : int { 2/9 * mu * ( Ic_iso )( F^-T : \nabla \delta ) ( F^-T : \nabla \v ) }
+    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                dPpt2
+              ) >> jacobian;
+
+    //! 3. Stiffness matrix : int { mu * J^(-2/3) (\nabla \delta : \nabla \v)}
+    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                dPpt3
+              ) >> jacobian;
+
+    //! 4. Stiffness matrix : int { -2/3 * mu * J^(-2/3) ( F : \nabla \delta ) ( F^-T : \nabla \v ) }
+    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                dPpt4
+              ) >> jacobian;
+
+
+
+    //! 5. Stiffness matrix : int { 1/3 * mu * Ic_iso * (F^-T [\nabla \delta]^t F^-T ) : \nabla \v }
+    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                dPpt5
+              ) >> jacobian;
+
+    //! 6. Stiffness matrix : int { 1/3 * mu * Ic_iso * (F^-T [\nabla \delta]^t F^-T ) : \nabla \v }
+    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                dPpt6
+              ) >> jacobian;
+
+    //! 7. Stiffness matrix : int { 1/3 * mu * Ic_iso * (F^-T [\nabla \delta]^t F^-T ) : \nabla \v }
+    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                dPpt7
+              ) >> jacobian;
 
         }
 
@@ -693,18 +745,18 @@ void NeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type
 
     //Computation of the volumetric part
     //
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ),
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                value (1.0 / 2.0) * parameter ( (* (this->M_vectorsParameters) ) [1] ) * ( pow ( detDeformationGradientTensor , 2.0) - detDeformationGradientTensor + log (detDeformationGradientTensor) ) * dot (  deformationGradientTensor_T, grad (phi_i) )
-//              ) >> M_stiff;
-//
-//    //Computation of the isochoric part \mu J^-2/3 ( 1 + gammaf ) (F - Ic / 3 F^-T)
-//    integrate ( elements ( this->M_dispETFESpace->mesh() ),
-//                this->M_dispFESpace->qr(),
-//                this->M_dispETFESpace,
-//                dot ( Stress, grad (phi_i) )
-//              ) >> M_stiff;
+    integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                value (1.0 / 2.0) * parameter ( (* (this->M_vectorsParameters) ) [1] ) * ( pow ( detDeformationGradientTensor , 2.0) - detDeformationGradientTensor + log (detDeformationGradientTensor) ) * dot (  deformationGradientTensor_T, grad (phi_i) )
+              ) >> M_stiff;
+
+    //Computation of the isochoric part \mu J^-2/3 ( 1 + gammaf ) (F - Ic / 3 F^-T)
+    integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                dot ( Stress, grad (phi_i) )
+              ) >> M_stiff;
 
 
     //    }
