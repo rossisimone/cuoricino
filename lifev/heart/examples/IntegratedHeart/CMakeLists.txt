@@ -5,7 +5,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
 TRIBITS_ADD_EXECUTABLE(
   IntegratedHeart
-  SOURCES integratedHeart.cpp flowConditions.cpp ud_functions.cpp
+  SOURCES main.cpp
   )
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_heart_integrated_heart_data
