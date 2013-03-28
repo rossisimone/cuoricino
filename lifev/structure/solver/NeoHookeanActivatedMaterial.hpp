@@ -84,9 +84,10 @@ public:
     typedef typename super::mapMarkerIndexes_Type    mapMarkerIndexes_Type;
     typedef typename mapMarkerIndexes_Type::const_iterator mapIteratorIndex_Type;
 
+    typedef typename super::FESpace_Type             FESpace_Type;
     typedef typename super::FESpacePtr_Type          FESpacePtr_Type;
     typedef typename super::ETFESpacePtr_Type        ETFESpacePtr_Type;
-    typedef typename super::ETFESpace_Type				ETFESpace_Type;
+    typedef typename super::ETFESpace_Type			 ETFESpace_Type;
 
     typedef MeshType										mesh_Type;
     typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 >                        scalarETFESpace_Type;
@@ -223,7 +224,7 @@ public:
     /*!
       \param dk_loc: the elemental displacement
     */
-    void computeKinematicsVariables ( const VectorElemental& dk_loc ) {}
+    void computeKinematicsVariables ( const VectorElemental& /*dk_loc*/ ) {}
 
     //! ShowMe method of the class (saved on a file the stiffness vector and the jacobian)
     void showMe ( std::string const& fileNameVectStiff,
@@ -355,8 +356,8 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
     //    std::cout<<"I am setting up the Material"<<std::endl;
 
 //    M_stiff.
-    this->M_dispFESpace                     = dFESpace;
-    this->M_dispETFESpace                     = dETFESpace;
+    this->M_dispFESpace                 = dFESpace;
+    this->M_dispETFESpace               = dETFESpace;
     this->M_localMap                    = monolithicMap;
     this->M_offset                      = offset;
     this->M_dataMaterial                = dataMaterial;
@@ -364,7 +365,7 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
 
     M_stiff.reset                   ( new vector_Type (*this->M_localMap) );
     M_fiberVector.reset				( new vector_Type (*this->M_localMap) );
-    M_Gammaf.reset 					( new vector_Type ( M_activationSpace -> map() ) );
+
 
 #ifdef HAVE_MPI
     boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
@@ -375,6 +376,8 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
     M_activationSpace.reset 		( new scalarETFESpace_Type(	dETFESpace -> mesh(),
     															&feTetraP1,
     															Comm ) );
+
+    M_Gammaf.reset                  ( new vector_Type ( M_activationSpace -> map() ) );
 
     M_identity (0, 0) = 1.0;
     M_identity (0, 1) = 0.0;
@@ -393,13 +396,19 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
 
     this->setupVectorsParameters();
 
+    if ( this->M_dataMaterial->fileFiberDirections().compare("") == 0 )
+    {
+        displayer->leaderPrint (" \nReading fibers from " + this->M_dataMaterial->fileFiberDirections() + "\n");
+        //setupFiberVector( this->M_dataMaterial->fileFiberDirections(), "" );
+    }
+
 }
 
 template <typename MeshType>
 void
 NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
                                                const ETFESpacePtr_Type&                    dETFESpace,
-                                               const ETFESpacePtr_Type& activationSpace,
+                                               const ETFESpacePtr_Type&                    activationSpace,
                                                const boost::shared_ptr<const MapEpetra>&   monolithicMap,
                                                const UInt                                  offset,
                                                const dataPtr_Type&                         dataMaterial,
@@ -533,9 +542,9 @@ void NeoHookeanActivatedMaterial<MeshType>::updateJacobianMatrix ( const vector_
 template <typename MeshType>
 void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_Type&       jacobian,
                                                                            const vector_Type&    disp,
-                                                                           const dataPtr_Type&   dataMaterial,
-                                                                           const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                                           const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+                                                                           const dataPtr_Type&   /*dataMaterial*/,
+                                                                           const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
+                                                                           const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
                                                                            const displayerPtr_Type&  displayer )
 {
 	{
@@ -705,9 +714,9 @@ void NeoHookeanActivatedMaterial<MeshType>::apply ( const vector_Type& sol, vect
 template <typename MeshType>
 void NeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type&       disp,
                                                                Real                     /*factor*/,
-                                                               const dataPtr_Type&      dataMaterial,
-                                                               const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                               const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+                                                               const dataPtr_Type&      /*dataMaterial*/,
+                                                               const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
+                                                               const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
                                                                const displayerPtr_Type& displayer )
 {
     using namespace ExpressionAssembly;
@@ -745,6 +754,7 @@ void NeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type
 
     //Computation of the volumetric part
     //
+
     integrate ( elements ( this->M_dispETFESpace->mesh() ),
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,

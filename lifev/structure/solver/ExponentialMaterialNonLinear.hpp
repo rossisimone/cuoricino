@@ -198,7 +198,7 @@ public:
     /*!
       \param dk_loc: the elemental displacement
     */
-    void computeKinematicsVariables ( const VectorElemental& dk_loc )
+    void computeKinematicsVariables ( const VectorElemental& /*dk_loc*/ )
     {
     }
 
@@ -405,9 +405,9 @@ void ExponentialMaterialNonLinear<MeshType>::updateJacobianMatrix ( const vector
 template <typename MeshType>
 void ExponentialMaterialNonLinear<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_Type&         jacobian,
                                                                             const vector_Type&     disp,
-                                                                            const dataPtr_Type&     dataMaterial,
-                                                                            const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                                            const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+                                                                            const dataPtr_Type&     /*dataMaterial*/,
+                                                                            const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
+                                                                            const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
                                                                             const displayerPtr_Type& displayer )
 {
     using namespace ExpressionAssembly;
@@ -545,9 +545,9 @@ void ExponentialMaterialNonLinear<MeshType>::updateNonLinearJacobianTerms ( matr
 template <typename MeshType>
 void ExponentialMaterialNonLinear<MeshType>::computeStiffness ( const vector_Type& disp,
                                                                 Real /*factor*/,
-                                                                const dataPtr_Type& dataMaterial,
-                                                                const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                                const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+                                                                const dataPtr_Type& /*dataMaterial*/,
+                                                                const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
+                                                                const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
                                                                 const displayerPtr_Type& displayer )
 {
 

@@ -193,7 +193,7 @@ public:
     /*!
       \param dk_loc: the elemental displacement
     */
-    void computeKinematicsVariables ( const VectorElemental& dk_loc ) {}
+    void computeKinematicsVariables ( const VectorElemental& /*dk_loc*/ ) {}
 
     //! ShowMe method of the class (saved on a file the stiffness vector and the jacobian)
     void showMe ( std::string const& fileNameVectStiff,
@@ -379,9 +379,9 @@ void NeoHookeanMaterialNonLinear<MeshType>::updateJacobianMatrix ( const vector_
 template <typename MeshType>
 void NeoHookeanMaterialNonLinear<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_Type&       jacobian,
                                                                            const vector_Type&    disp,
-                                                                           const dataPtr_Type&   dataMaterial,
-                                                                           const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                                           const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+                                                                           const dataPtr_Type&   /*dataMaterial*/,
+                                                                           const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
+                                                                           const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
                                                                            const displayerPtr_Type&  displayer )
 {
 
@@ -500,9 +500,9 @@ void NeoHookeanMaterialNonLinear<MeshType>::apply ( const vector_Type& sol, vect
 template <typename MeshType>
 void NeoHookeanMaterialNonLinear<MeshType>::computeStiffness ( const vector_Type&       disp,
                                                                Real                     /*factor*/,
-                                                               const dataPtr_Type&      dataMaterial,
-                                                               const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                               const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+                                                               const dataPtr_Type&      /*dataMaterial*/,
+                                                               const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
+                                                               const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
                                                                const displayerPtr_Type& displayer )
 {
     using namespace ExpressionAssembly;
