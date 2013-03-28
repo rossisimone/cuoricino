@@ -685,7 +685,7 @@ public:
     //! create stiffness matrix given a diagonal diffusion tensor
     void setupStiffnessMatrix (VectorSmall<3> diffusion);
     //! create stiffness matrix given the fiber direction and a diagonal diffusion tensor
-    void setupStiffnessMatrix (VectorEpetra& fiber, VectorSmall<3> diffusion);
+    //void setupStiffnessMatrix (VectorEpetra& fiber, VectorSmall<3> diffusion);
     //! setup the total matrix
     /*!
      *  \f[
@@ -1314,24 +1314,24 @@ setupStiffnessMatrix (VectorSmall<3> diffusion)
 }
 
 
-template<typename Mesh, typename IonicModel>
-void HeartETAMonodomainSolver<Mesh,  IonicModel>::
-setupStiffnessMatrix (VectorEpetra& fiber, VectorSmall<3> diffusion)
-{
-    {
-        using namespace ExpressionAssembly;
-
-        integrate (  elements ( M_localMeshPtr  ),
-                     quadRuleTetra4pt,
-                     M_ETFESpacePtr,
-                     M_ETFESpacePtr,
-                     dot ( rotate ( M_ETFESpacePtr, fiber, diffusion ) * grad (phi_i) , grad (phi_j) )
-                  )
-                >> M_stiffnessMatrixPtr;
-
-    }
-    M_stiffnessMatrixPtr -> globalAssemble();
-}
+//template<typename Mesh, typename IonicModel>
+//void HeartETAMonodomainSolver<Mesh,  IonicModel>::
+//setupStiffnessMatrix (VectorEpetra& fiber, VectorSmall<3> diffusion)
+//{
+//    {
+//        using namespace ExpressionAssembly;
+//
+//        integrate (  elements ( M_localMeshPtr  ),
+//                     quadRuleTetra4pt,
+//                     M_ETFESpacePtr,
+//                     M_ETFESpacePtr,
+//                     dot ( rotate ( M_ETFESpacePtr, fiber, diffusion ) * grad (phi_i) , grad (phi_j) )
+//                  )
+//                >> M_stiffnessMatrixPtr;
+//
+//    }
+//    M_stiffnessMatrixPtr -> globalAssemble();
+//}
 
 
 template<typename Mesh, typename IonicModel>
