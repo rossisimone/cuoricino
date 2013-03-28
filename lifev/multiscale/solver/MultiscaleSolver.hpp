@@ -112,7 +112,7 @@ public:
 
     //@}
 
-private:
+protected:
 
     //! @name Unimplemented Methods
     //@{

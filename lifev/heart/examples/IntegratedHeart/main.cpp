@@ -32,7 +32,7 @@
  *  @author Toni Lassila <toni.lassila@epfl.ch>
  *  @maintainer Toni Lassila <toni.lassila@epfl.ch>
  *
-*/
+ */
 
 // Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -59,8 +59,114 @@
 using namespace LifeV;
 using namespace Multiscale;
 
-Int
-main ( Int argc, char** argv )
+
+class HeartApplication : public MultiscaleSolver
+{
+public:
+
+    bool
+    solveProblem ( const Real& referenceSolution, const Real& tolerance )
+    {
+//        typedef RegionMesh<LinearTetra>                         mesh_Type;
+//        typedef boost::function < Real (const Real& /*t*/,
+//                const Real &   x,
+//                const Real &   y,
+//                const Real& /*z*/,
+//                const ID&   /*i*/ ) >   function_Type;
+//
+//        typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov >       monodomainSolver_Type;
+//        typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
+
+#ifdef HAVE_LIFEV_DEBUG
+        debugStream ( 8000 ) << "HeartApplication::solveProblem() \n";
+#endif
+
+        // Chrono definitions
+        LifeChrono buildUpdateChrono;
+        LifeChrono solveChrono;
+        LifeChrono saveChrono;
+        LifeChrono updateSolutionChrono;
+        LifeChrono globalChrono;
+        Real       totalSimulationTime (0);
+        Real       timeStepTime (0);
+
+        for ( ; M_globalData->dataTime()->canAdvance(); M_globalData->dataTime()->updateTime() )
+        {
+            // Global chrono start
+            globalChrono.start();
+
+            if ( M_comm->MyPID() == 0 )
+            {
+                std::cout << std::endl;
+                std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
+                std::cout << "                   INTEGRATED HEART SIMULATOR                " << std::endl;
+                std::cout << "             time = " << M_globalData->dataTime()->time() << " s;"
+                        << " time step number = " << M_globalData->dataTime()->timeStepNumber() << std::endl;
+                std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl << std::endl;
+            }
+
+            // Solve the electrophysiology problem
+
+            // Pass the activation Gamma_f to the LV material law
+
+            // Update the FSI models
+            buildUpdateChrono.start();
+            if ( M_globalData->dataTime()->isFirstTimeStep() )
+            {
+                M_model->buildModel();
+            }
+            else
+            {
+                M_model->updateModel();
+            }
+            buildUpdateChrono.stop();
+
+            // Solve the activated FSI model
+            solveChrono.start();
+            M_model->solveModel();
+            solveChrono.stop();
+
+            // Update the solution
+            updateSolutionChrono.start();
+            M_model->updateSolution();
+            updateSolutionChrono.stop();
+
+            // Save the solution
+            saveChrono.start();
+            if ( M_globalData->dataTime()->timeStepNumber() % multiscaleSaveEachNTimeSteps == 0 || M_globalData->dataTime()->isLastTimeStep() )
+            {
+                M_model->saveSolution();
+            }
+            saveChrono.stop();
+
+            // Global chrono stop
+            globalChrono.stop();
+
+            // Compute time step time
+            timeStepTime = globalChrono.globalDiff ( *M_comm );
+
+            // Updating total simulation time
+            totalSimulationTime += timeStepTime;
+
+            if ( M_comm->MyPID() == 0 )
+            {
+                std::cout << " MS-  Total iteration time:                    " << timeStepTime << " s" << std::endl;
+                std::cout << " MS-  Total simulation time:                   " << totalSimulationTime << " s" << std::endl;
+            }
+
+            // Save CPU time
+            saveCPUTime ( timeStepTime, buildUpdateChrono.globalDiff ( *M_comm ), solveChrono.globalDiff ( *M_comm ),
+                    updateSolutionChrono.globalDiff ( *M_comm ), saveChrono.globalDiff ( *M_comm ) );
+        }
+
+        return multiscaleExitFlag;
+    }
+
+private:
+
+};
+
+int main (int argc, char** argv)
 {
     //Setup main communicator
     boost::shared_ptr< Epetra_Comm > comm;
@@ -92,19 +198,19 @@ main ( Int argc, char** argv )
     comm.reset ( new Epetra_SerialComm() );
 #endif
 
-    // Setup Multiscale problem
+    // Setup IntegratedHeart solvers
     bool exitFlag = EXIT_SUCCESS;
-    MultiscaleSolver multiscale;
+    HeartApplication IH;
 
     // Set the communicator
-    multiscale.setCommunicator ( comm );
+    IH.setCommunicator ( comm );
 
     // Command line parameters
     GetPot commandLine ( argc, argv );
-    std::string dataFile      = commandLine.follow ( "./Multiscale.dat", 2, "-f", "--file" );
+    std::string dataFile      = commandLine.follow ( "./Run_IntegratedHeart.dat", 2, "-f", "--file" );
     bool verbose              = commandLine.follow ( true, 2, "-s", "--showme" );
     std::string problemFolder = commandLine.follow ( "Output", 2, "-o", "--output" );
-    Real referenceSolution    = commandLine.follow ( -1., 2, "-c", "--check" );
+    Real referenceSolution    = -1;
     UInt coresPerNode         = commandLine.follow (  1, 2, "-ns", "--nodesize" );
     Real tolerance            = commandLine.follow (  1e-8, 2, "-t", "--tolerance" );
 
@@ -125,16 +231,16 @@ main ( Int argc, char** argv )
     }
 
     // Setup the problem
-    multiscale.setupProblem ( dataFile, problemFolder, coresPerNode );
+    IH.setupProblem ( dataFile, problemFolder, coresPerNode );
 
     // Display problem information
     if ( verbose )
     {
-        multiscale.showMe();
+        IH.showMe();
     }
 
-    // Solve the problem
-    exitFlag = multiscale.solveProblem ( referenceSolution, tolerance );
+    // TODO: Electro-mechanical-fluid coupling algorithm
+    exitFlag = IH.solveProblem ( referenceSolution, tolerance );
 
 #ifdef HAVE_MPI
     if ( rank == 0 )
@@ -146,3 +252,7 @@ main ( Int argc, char** argv )
 
     return exitFlag;
 }
+
+
+
+
