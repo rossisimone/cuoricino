@@ -120,9 +120,57 @@ Int main ( Int argc, char** argv )
         cout << "% using MPI" << endl;
     }
 
-    cout<<"test"<<endl;
+    cout<<"Creating map ..."<<endl;
+    MapEpetra mappa(4, Comm);
+
+    cout<<"Creating vector ..."<<endl;
+    VectorEpetra vett1( mappa );			// (mappa, Unique) ???
+    VectorEpetra vett2( mappa );
+
+    cout<<"Creating matrix ..."<<endl;
+    MatrixEpetra<Real> matrice( mappa, vett1.size() );
+
+
+    Int d = vett1.epetraVector().MyLength();
+    const Int* j = vett1.blockMap().MyGlobalElements();
+    const Int* i = vett2.blockMap().MyGlobalElements();
+
+
+    for ( int k (0); k < d; k++)
+    {
+    	cout<<"Componente "<<k<<" di vett1 ha indice "<<j[k]<<endl;
+    	cout<<"Componente "<<k<<" di vett2 ha indice "<<i[k]<<endl;
+
+    	vett1( j[k] ) = k*k;
+    	vett2( i[k] ) = k;
+
+    	cout<<"vett1("<<j[k]<<") = "<<vett1(j[k])<<endl;
+    	cout<<"vett2("<<i[k]<<") = "<<vett2(i[k])<<endl;
+
+    }
+
+
+    cout<<"Done !"<<endl;
+
 
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();
     return ( EXIT_SUCCESS );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

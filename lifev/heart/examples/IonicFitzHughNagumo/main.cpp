@@ -117,9 +117,9 @@ Real Stimulus1 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, 
 
 Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( x<= 0.025 )
+    if ( x<= 0.2 )
     	return 80.0;
-    else if( x<= 0.05)
+    else if( x<= 0.1)
     	return 80.0*( 0.05 - x )/(0.025);
     else
     	return 0.0;
