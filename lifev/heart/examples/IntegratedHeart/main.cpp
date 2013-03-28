@@ -49,6 +49,10 @@
 #include <Epetra_SerialComm.h>
 #endif
 
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include "Teuchos_XMLParameterListHelpers.hpp"
+
 // Tell the compiler to restore the warning previously silented
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
@@ -56,8 +60,16 @@
 #include <lifev/core/LifeV.hpp>
 #include <lifev/multiscale/solver/MultiscaleSolver.hpp>
 
+#include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
+#include <lifev/heart/solver/IonicModels/IonicAlievPanfilov.hpp>
+
 using namespace LifeV;
 using namespace Multiscale;
+
+typedef RegionMesh<LinearTetra> mesh_Type;
+typedef boost::function < Real ( const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/ ) > function_Type;
+typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov > monodomainSolver_Type;
+typedef boost::shared_ptr< monodomainSolver_Type > monodomainSolverPtr_Type;
 
 
 class HeartApplication : public MultiscaleSolver
@@ -65,17 +77,8 @@ class HeartApplication : public MultiscaleSolver
 public:
 
     bool
-    solveProblem ( const Real& referenceSolution, const Real& tolerance )
+    solveProblem ( )
     {
-//        typedef RegionMesh<LinearTetra>                         mesh_Type;
-//        typedef boost::function < Real (const Real& /*t*/,
-//                const Real &   x,
-//                const Real &   y,
-//                const Real& /*z*/,
-//                const ID&   /*i*/ ) >   function_Type;
-//
-//        typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov >       monodomainSolver_Type;
-//        typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
 
 #ifdef HAVE_LIFEV_DEBUG
         debugStream ( 8000 ) << "HeartApplication::solveProblem() \n";
@@ -89,6 +92,78 @@ public:
         LifeChrono globalChrono;
         Real       totalSimulationTime (0);
         Real       timeStepTime (0);
+
+        //********************************************//
+        // Import parameters from an xml list. Use    //
+        // Teuchos to create a list from a given file //
+        // in the execution directory.                //
+        //********************************************//
+
+        if ( M_comm->MyPID() == 0 )
+        {
+            std::cout << "Importing electrophysiology model parameter lists...";
+        }
+        Teuchos::ParameterList APParameterList = * ( Teuchos::getParametersFromXmlFile ( "AlievPanfilovParameters.xml" ) );
+        Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+        if ( M_comm->MyPID() == 0 )
+        {
+            std::cout << " Done!" << endl;
+        }
+
+        //********************************************//
+        // Creates a new model object representing the//
+        // model from Aliev and Panfilov 1996.  The   //
+        // model input are the parameters. Pass  the  //
+        // parameter list in the constructor          //
+        //********************************************//
+        if ( M_comm->MyPID() == 0 )
+        {
+            std::cout << "Building Constructor for Aliev-Panfilov Model with parameters ... ";
+        }
+        boost::shared_ptr<IonicAlievPanfilov>  IonicModel ( new IonicAlievPanfilov ( APParameterList ) );
+        if ( M_comm->MyPID() == 0 )
+        {
+            std::cout << " Done!" << endl;
+        }
+
+        //********************************************//
+        // In the parameter list we need to specify   //
+        // the mesh name and the mesh path.           //
+        //********************************************//
+
+        //********************************************//
+        // We need the GetPot datafile for to setup   //
+        // the preconditioner.                        //
+        //********************************************//
+
+        //********************************************//
+        // We create three solvers to solve with:     //
+        // 1) Operator Splitting method               //
+        // 2) Ionic Current Interpolation             //
+        // 3) State Variable Interpolation            //
+        //********************************************//
+
+        //********************************************//
+        // Setting up the initial condition form      //
+        // a given function.                          //
+        //********************************************//
+
+        //********************************************//
+        // Setting up the time data                   //
+        //********************************************//
+
+        //********************************************//
+        // Create the global matrix: mass + stiffness //
+        //********************************************//
+
+        //********************************************//
+        // Setting up the SVI solver                  //
+        //********************************************//
+
+        //********************************************//
+        // Creating exporters to save the solution    //
+        //********************************************//
+
 
         for ( ; M_globalData->dataTime()->canAdvance(); M_globalData->dataTime()->updateTime() )
         {
@@ -105,11 +180,18 @@ public:
                 std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl << std::endl;
             }
 
-            // Solve the electrophysiology problem
+            //********************************************//
+            // Solving the electrophysiology system      //
+            //********************************************//
 
-            // Pass the activation Gamma_f to the LV material law
+            //********************************************//
+            // Computing activation and passing it to FSI //
+            //********************************************//
 
-            // Update the FSI models
+            //********************************************//
+            // Updating the FSI                           //
+            //********************************************//
+
             buildUpdateChrono.start();
             if ( M_globalData->dataTime()->isFirstTimeStep() )
             {
@@ -121,17 +203,22 @@ public:
             }
             buildUpdateChrono.stop();
 
-            // Solve the activated FSI model
+            //********************************************//
+            // Solving the activated FSI in the ventricle //
+            //********************************************//
+
             solveChrono.start();
             M_model->solveModel();
             solveChrono.stop();
 
-            // Update the solution
             updateSolutionChrono.start();
             M_model->updateSolution();
             updateSolutionChrono.stop();
 
-            // Save the solution
+            //********************************************//
+            // Exporting the FSI solution                 //
+            //********************************************//
+
             saveChrono.start();
             if ( M_globalData->dataTime()->timeStepNumber() % multiscaleSaveEachNTimeSteps == 0 || M_globalData->dataTime()->isLastTimeStep() )
             {
@@ -210,9 +297,7 @@ int main (int argc, char** argv)
     std::string dataFile      = commandLine.follow ( "./Run_IntegratedHeart.dat", 2, "-f", "--file" );
     bool verbose              = commandLine.follow ( true, 2, "-s", "--showme" );
     std::string problemFolder = commandLine.follow ( "Output", 2, "-o", "--output" );
-    Real referenceSolution    = -1;
     UInt coresPerNode         = commandLine.follow (  1, 2, "-ns", "--nodesize" );
-    Real tolerance            = commandLine.follow (  1e-8, 2, "-t", "--tolerance" );
 
     if ( coresPerNode > static_cast<UInt> ( numberOfProcesses ) )
     {
@@ -240,7 +325,7 @@ int main (int argc, char** argv)
     }
 
     // TODO: Electro-mechanical-fluid coupling algorithm
-    exitFlag = IH.solveProblem ( referenceSolution, tolerance );
+    exitFlag = IH.solveProblem ( );
 
 #ifdef HAVE_MPI
     if ( rank == 0 )
