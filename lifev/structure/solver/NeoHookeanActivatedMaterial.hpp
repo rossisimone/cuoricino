@@ -41,6 +41,7 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
+#include <lifev/core/LifeV.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/heart/utility/HeartUtility.hpp>
 #include <lifev/eta/fem/ETFESpace.hpp>
@@ -396,10 +397,12 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
 
     this->setupVectorsParameters();
 
-    if ( this->M_dataMaterial->fileFiberDirections().compare("") == 0 )
+    if ( this->M_dataMaterial->fileFiberDirections().empty() == 0 )
     {
         displayer->leaderPrint (" \nReading fibers from " + this->M_dataMaterial->fileFiberDirections() + "\n");
-        //setupFiberVector( this->M_dataMaterial->fileFiberDirections(), "" );
+        string file(this->M_dataMaterial->fileFiberDirections());
+        string path("");
+        this->setupFiberVector( file, path);
     }
 
 }
@@ -446,6 +449,14 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&           
     this->M_vectorsParameters.reset ( new vectorsParameters_Type ( 2 ) );
 
     this->setupVectorsParameters();
+
+    if ( this->M_dataMaterial->fileFiberDirections().empty() == 0 )
+       {
+           displayer->leaderPrint (" \nReading fibers from " + this->M_dataMaterial->fileFiberDirections() + "\n");
+           string file(this->M_dataMaterial->fileFiberDirections());
+           string path("");
+           this->setupFiberVector( file, path);
+       }
 }
 
 
