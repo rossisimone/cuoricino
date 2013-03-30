@@ -6,7 +6,7 @@
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
     <Parameter name="timeStep" type="double" value="0.1"  />
-    <Parameter name="endTime" type="double" value="50.0"  />
+    <Parameter name="endTime" type="double" value="10.0"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0001"  />
     <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
     <Parameter name="TCut" type="double" value="40.0"  />
@@ -22,6 +22,7 @@
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
+	<Parameter name="OutputFile" type="string" value="Splitting1"/>
 	
 	<!-- Operator specific parameters (AztecOO) -->
 	<ParameterList name="Solver: Operator List">

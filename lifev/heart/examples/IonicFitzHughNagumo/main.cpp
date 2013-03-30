@@ -279,7 +279,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
 
-    splitting -> setupExporter ( exporterSplitting, "Splitting" );
+    splitting -> setupExporter ( exporterSplitting, monodomainList.get ("OutputFile", "Splitting") );
 
     splitting -> exportSolution ( exporterSplitting, 0);
 
@@ -326,7 +326,8 @@ Int main ( Int argc, char** argv )
         	//cout<<"End"<<endl;
         }
 
-        //std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+        if ( Comm->MyPID() == 0 )
+        	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
 
     }
 
