@@ -6,10 +6,10 @@
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
     <Parameter name="timeStep" type="double" value="0.1"  />
-    <Parameter name="endTime" type="double" value="55.0"  />
+    <Parameter name="endTime" type="double" value="50.0"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0001"  />
     <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
-    <Parameter name="TCut" type="double" value="35.0"  />
+    <Parameter name="TCut" type="double" value="40.0"  />
     <Parameter name="saveStep" type="double" value="1.0"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="lid32.mesh"  />

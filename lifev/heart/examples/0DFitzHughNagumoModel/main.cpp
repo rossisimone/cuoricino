@@ -298,8 +298,9 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 	MatrixSmall<n,s> U;					//matrix which columns are the U_i
 	MatrixSmall<n,n> B;					//Linear system matrix
 	VectorSmall<n> ytmp;				//temporary variable
+	VectorSmall<s> line;
 	VectorSmall<n> Utmp;				//temporary variable
-	VectorSmall<n> rhs;					//rhs will be the righ side
+	VectorSmall<n> rhs;					//rhs will be the right side
 	Real err_n;							//error at step n
 	Real err_n_1;						//error at step n-1
 	Real fac;							//factor used for the new time step, dt(k+1) = dt(k) * fac
@@ -314,16 +315,33 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 
 	//First step, to set err_n_1
 	cout<<"Begin of iteration k = 0"<<endl;
-	B = I/(dt*g) - model.computeJ( t, y);
+	cout<<"Manip matrix..."<<endl;
+	B = I/(dt*g);
+	cout<<"Calling class member..."<<endl;
+	B = B - model.computeJ( t, y);
+	cout<<"Inverting B...";
 	B = Invert(B);
+	cout<<"Done !"<<endl;
 	for (int i = 0; i<s; i++)
 	{
+		cout<<"In for...\nExtracting column..."<<endl;
+		line = A.extract(i);
+		cout<<"Multiplying by U..."<<endl;
+		ytmp = U*line;
+		cout<<"Summing..."<<endl;
+		ytmp = y + ytmp;
+		cout<<"All togheter..."<<endl;
 		ytmp = y + U*A.extract(i); 				//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
+		cout<<"One more time..."<<endl;
 		Utmp = (U*C.extract(i))/dt;				//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
+		cout<<"Computing rhs...";
 		model.computeRhs ( y, It, rhs);
+		cout<<"Done!\nUpdating Utmp..."<<endl;
 		Utmp = B*( rhs + Utmp );
 		setCol<n,s>(U, Utmp, i);
+		cout<<"End for cycle"<<endl;
 	}
+	cout<<"Updating solution..."<<endl;
 	y = y + U*m;
 	Utmp = U*m-U*mhat;
 	err_n_1 = Utmp.norm();
