@@ -134,9 +134,6 @@ Real Cut (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const 
     	return 0.0;
 }
 
-
-
-
 Int main ( Int argc, char** argv )
 {
 
@@ -296,15 +293,23 @@ Int main ( Int argc, char** argv )
 
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
-    Real TCut1 = monodomainList.get ("TCut", 35.0) - 0.05;
-    Real TCut2 = monodomainList.get ("TCut", 35.0) + 0.05;
+    Real TCut1 = monodomainList.get ("TCut", 35.0) - dt/2.0;
+    Real TCut2 = monodomainList.get ("TCut", 35.0) + dt/2.0;
+    Real iter = monodomainList.get ("saveStep", 1.0) / dt;
+    Int k(0);
 
     //splitting   -> solveSplitting ( exporterSplitting );
 
     for ( Real t = 0.0; t < TF; )
     {
         t = t + dt;
-        splitting -> solveOneSplittingStep (exporterSplitting, t);
+
+        if( k % iter == 0 )
+        	splitting -> solveOneSplittingStep(exporterSplitting, t);
+        else
+        	splitting -> solveOneSplittingStep ();
+
+        k++;
 
         if( t >= TCut1 && t<=TCut2)
         {
@@ -317,7 +322,7 @@ Int main ( Int argc, char** argv )
         	(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
         	//cout<<"Multiplying"<<endl;
         	*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
-        	*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
+        	//*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
         	//cout<<"End"<<endl;
         }
 
