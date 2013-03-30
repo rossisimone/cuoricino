@@ -295,7 +295,7 @@ Int main ( Int argc, char** argv )
     Real TF = monodomainList.get ("endTime", 150.0);
     Real TCut1 = monodomainList.get ("TCut", 35.0) - dt/2.0;
     Real TCut2 = monodomainList.get ("TCut", 35.0) + dt/2.0;
-    Real iter = monodomainList.get ("saveStep", 1.0) / dt;
+    Int iter = monodomainList.get ("saveStep", 1.0) / dt;
     Int k(0);
 
     //splitting   -> solveSplitting ( exporterSplitting );
