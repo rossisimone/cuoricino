@@ -124,6 +124,17 @@ Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, 
     else
     	return 0.0;
 }
+
+Real Stimulus3 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+{
+    if ( y<= 0.1 )
+    	return 80.0;
+    else if( y<= 0.2)
+    	return 80.0*( 0.2 - y )/(0.1);
+    else
+    	return 0.0;
+}
+
 Real Cut (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
     if ( y<= 0.45 )
