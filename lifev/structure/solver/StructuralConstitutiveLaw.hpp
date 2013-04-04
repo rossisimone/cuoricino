@@ -267,9 +267,9 @@ public:
 
 
     ///EMPTY METHODS FOR ACTIVATED MATERIALS
-    inline  vectorPtr_Type const fiberVector() const { /*return NULL;*/  }
+    virtual  vectorPtr_Type const fiberVector() const { /*return NULL;*/  }
 
-    inline void setFiberVector( const vector_Type& /*fiberVector*/) {  }
+    virtual void setFiberVector( const vector_Type& /*fiberVector*/) {  }
 
     virtual void setGammaf(const vector_Type& /*gammaf*/){}
 

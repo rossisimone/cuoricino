@@ -1069,8 +1069,15 @@ StructuralOperator<Mesh>::iterate ( const bcHandler_Type& bch )
 
     M_BCh = bch;
 
-    Real abstol  = 1.e-7;
-    Real reltol  = 1.e-7;
+//    Int argc; char** argv;
+//    GetPot command_line (argc, argv);
+//    string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+//    GetPot dataFile ( data_file_name );
+//
+//    Real abstol  = dataFile ( "solid/Newton/abstol", 1.e-7 );
+//    Real reltol  = dataFile ( "solid/Newton/reltol", 1.e-7 );
+    Real abstol = 1e-7;
+    Real reltol = 1e-7;
     UInt maxiter = 200;
     Real etamax  = 1e-7;
     Int NonLinearLineSearch = 0;
