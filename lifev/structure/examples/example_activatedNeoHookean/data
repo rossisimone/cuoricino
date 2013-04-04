@@ -58,7 +58,8 @@ verbose   	= 1
 
 [../newton]
 maxiter 	= 1
-reltol  	= 1.e-10
+reltol  	= 1.e-7
+abstol  	= 1.e-7
 
 
 [../solver]
@@ -82,7 +83,7 @@ overlap  	= 2
 
 [./fact]
 ilut_level-of-fill 	= 1
-drop_tolerance          = 1.e-5
+drop_tolerance          = 1.e-8
 relax_value             = 0
 
 [../amesos]
