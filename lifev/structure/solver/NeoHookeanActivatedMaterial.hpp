@@ -184,12 +184,12 @@ public:
                                         const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
                                         const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
                                         const displayerPtr_Type& displayer);
-    void updateWithBroyden (  matrixPtr_Type&       jacobian,
-            const vector_Type&    disp,
-            const dataPtr_Type&   dataMaterial,
-            const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-            const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
-            const displayerPtr_Type&  displayer );
+//    void updateWithBroyden (  matrixPtr_Type&       jacobian,
+//            const vector_Type&    disp,
+//            const dataPtr_Type&   dataMaterial,
+//            const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
+//            const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+//            const displayerPtr_Type&  displayer );
 
     //! Interface method to compute the new Stiffness matrix in StructuralSolver::evalResidual and in
     //! StructuralSolver::updateSystem since the matrix is the expression of the matrix is the same.
@@ -557,88 +557,86 @@ void NeoHookeanActivatedMaterial<MeshType>::updateJacobianMatrix ( const vector_
 }
 
 
-template <typename MeshType>
-void NeoHookeanActivatedMaterial<MeshType>::updateWithBroyden (  matrixPtr_Type&       jacobian,
-        const vector_Type&    disp,
-        const dataPtr_Type&   dataMaterial,
-        const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-        const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
-        const displayerPtr_Type&  displayer )
-{
-
-    displayer->leaderPrint ("   Non-Linear S-  updating non linear terms in the Jacobian Matrix with Broyden (Neo-Hookean)");
-
-	vectorPtr_Type deltaDisp;
-	deltaDisp.reset(new vector_Type( disp ) );
-	*deltaDisp -= *M_oldDisp;
-
-	Real normDeltaDisp = deltaDisp -> norm2();
-	Real normDeltaDispSquared = normDeltaDisp * normDeltaDisp;
-
-    * (jacobian) *= 0.0;
-    LifeChrono jacChrono;
-    jacChrono.start();
-    if( normDeltaDisp != 0)
-	{
-	vectorPtr_Type oldRes;
-	vectorPtr_Type res;
-
-	computeRes(oldRes, (*M_oldDisp), displayer);
-	computeRes(res, disp, displayer);
-
-	vectorPtr_Type tmp;
-	tmp.reset (new vector_Type (*this->M_localMap) );
-	LifeChrono chrono1;
-	chrono1.start();
-	(*tmp) *= 0;
-	(*tmp) = (*M_oldJac)*(*deltaDisp);
-	(*tmp) *= -1.0;
-	(*tmp) += (*res);
-	(*tmp) -= (*oldRes);
-	chrono1.stop();
-
-	cout << "\n\n******************************************\n";
-	    cout << "*\t preliminaries time:  "<< chrono1.diff() << " sec\n";
-	    cout << "******************************************\n\n";
-
-
-	LifeChrono chrono2;
-	chrono2.start();
-	(*jacobian)*=0.0;
-
-	jacobian -> addDyadicProduct (*tmp, *deltaDisp);
-	jacobian->globalAssemble();
-
-	chrono2.stop();
-	cout << "\n\n******************************************\n";
-	    cout << "*\t dyadic product time:  "<< chrono2.diff() << " sec\n";
-	    cout << "******************************************\n\n";
-
-	LifeChrono chrono3;
-	chrono3.start();
-
-	(*jacobian) *= 1.0 / normDeltaDispSquared;
-	M_oldJac->globalAssemble();
-	* (jacobian) += (*M_oldJac);
-
-	chrono3.stop();
-	cout << "\n\n******************************************\n";
-	    cout << "*\t finelizing time:  "<< chrono3.diff() << " sec\n";
-	    cout << "******************************************\n\n";
-//    	M_oldJac->globalAssemble();
-//    	jacobian.reset( new matrix_Type( *M_oldJac ) );
-//    	jacobian->globalAssemble();
-	}else updateNonLinearJacobianTerms (jacobian, disp, dataMaterial, mapsMarkerVolumes, mapsMarkerIndexes, displayer);
-    jacChrono.stop();
-    cout << "\n\n******************************************\n";
-    cout << "*\t Ci ho messo "<< jacChrono.diff() << " sec\n";
-    cout << "******************************************\n\n";
-
-//	jacobian -> spy("Jac");
-//	M_oldDisp -> spy("oldDisp");
-	M_oldDisp.reset( new vector_Type( disp ) );
-	M_oldJac.reset( new matrix_Type( *jacobian ) );
-}
+//template <typename MeshType>
+//void NeoHookeanActivatedMaterial<MeshType>::updateWithBroyden (  matrixPtr_Type&       jacobian,
+//        const vector_Type&    disp,
+//        const dataPtr_Type&   dataMaterial,
+//        const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
+//        const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+//        const displayerPtr_Type&  displayer )
+//{
+//
+//    displayer->leaderPrint ("   Non-Linear S-  updating non linear terms in the Jacobian Matrix with Broyden (Neo-Hookean)");
+//
+//	vectorPtr_Type deltaDisp;
+//	deltaDisp.reset(new vector_Type( disp ) );
+//	*deltaDisp -= *M_oldDisp;
+//
+//	Real normDeltaDisp = deltaDisp -> norm2();
+//	Real normDeltaDispSquared = normDeltaDisp * normDeltaDisp;
+//
+//    * (jacobian) *= 0.0;
+//    LifeChrono jacChrono;
+//    jacChrono.start();
+//    if( normDeltaDisp != 0)
+//	{
+//	vectorPtr_Type oldRes;
+//	vectorPtr_Type res;
+//
+//	computeRes(oldRes, (*M_oldDisp), displayer);
+//	computeRes(res, disp, displayer);
+//
+//	vectorPtr_Type tmp;
+//	tmp.reset (new vector_Type (*this->M_localMap) );
+//	LifeChrono chrono1;
+//	chrono1.start();
+//	(*tmp) *= 0;
+//	(*tmp) = (*M_oldJac)*(*deltaDisp);
+//	(*tmp) *= -1.0;
+//	(*tmp) += (*res);
+//	(*tmp) -= (*oldRes);
+//	chrono1.stop();
+//
+//	cout << "\n\n******************************************\n";
+//	    cout << "*\t preliminaries time:  "<< chrono1.diff() << " sec\n";
+//	    cout << "******************************************\n\n";
+//
+//
+//	LifeChrono chrono2;
+//	chrono2.start();
+//	(*jacobian)*=0.0;
+//
+//	jacobian -> addDyadicProduct (*tmp, *deltaDisp);
+//	jacobian->globalAssemble();
+//
+//	chrono2.stop();
+//	cout << "\n\n******************************************\n";
+//	    cout << "*\t dyadic product time:  "<< chrono2.diff() << " sec\n";
+//	    cout << "******************************************\n\n";
+//
+//	LifeChrono chrono3;
+//	chrono3.start();
+//
+//	(*jacobian) *= 1.0 / normDeltaDispSquared;
+//	M_oldJac->globalAssemble();
+//	* (jacobian) += (*M_oldJac);
+//
+//	chrono3.stop();
+//	cout << "\n\n******************************************\n";
+//	    cout << "*\t finelizing time:  "<< chrono3.diff() << " sec\n";
+//	    cout << "******************************************\n\n";
+//
+//	}else updateNonLinearJacobianTerms (jacobian, disp, dataMaterial, mapsMarkerVolumes, mapsMarkerIndexes, displayer);
+//    jacChrono.stop();
+//    cout << "\n\n******************************************\n";
+//    cout << "*\t Ci ho messo "<< jacChrono.diff() << " sec\n";
+//    cout << "******************************************\n\n";
+//
+////	jacobian -> spy("Jac");
+////	M_oldDisp -> spy("oldDisp");
+//	M_oldDisp.reset( new vector_Type( disp ) );
+//	M_oldJac.reset( new matrix_Type( *jacobian ) );
+//}
 
 
 template <typename MeshType>

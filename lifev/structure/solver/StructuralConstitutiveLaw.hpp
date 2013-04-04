@@ -265,6 +265,12 @@ public:
                          const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
                          const mapMarkerIndexesPtr_Type mapsMarkerIndexes) = 0;
 
+
+    ///EMPTY METHODS FOR ACTIVATED MATERIALS
+    inline  vectorPtr_Type const fiberVector() const { /*return NULL;*/  }
+
+    inline void setFiberVector( const vector_Type& /*fiberVector*/) {  }
+
     virtual void setGammaf(const vector_Type& /*gammaf*/){}
 
     virtual vectorPtr_Type const gammaf()  const { /*return NULL;*/ }
