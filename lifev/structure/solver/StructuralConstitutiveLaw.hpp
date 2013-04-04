@@ -265,6 +265,12 @@ public:
                          const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
                          const mapMarkerIndexesPtr_Type mapsMarkerIndexes) = 0;
 
+    virtual void setGammaf(const vector_Type& /*gammaf*/){}
+
+    virtual vectorPtr_Type const gammaf()  const { /*return NULL;*/ }
+
+    virtual void setupFiberVector( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
+
     //@}
 
 protected:
