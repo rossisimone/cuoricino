@@ -1,9 +1,10 @@
 <!-- Model Parameters -->
 	<ParameterList name="Ten Tusscher : Parameter list">
-	<Parameter name="endTime" type="double" value="2000.0"/>
-	<Parameter name="timeStep" type="double" value="5.77e-5"/>
-	<Parameter name="stimuliTime" type="double" value="10.0"/>
+	<Parameter name="endTime" type="double" value="50"/>
+	<Parameter name="timeStep" type="double" value="5e-5"/>
+	<Parameter name="stimuliTime" type="double" value="0.01"/>
 	<Parameter name="stimuliInterval" type="double" value="250.0"/>
+	<Parameter name="subIteration" type="int" value="100"/>
 	<Parameter name="gasConst" type="double" value="8314.472"/>
 	<Parameter name="temp" type="double" value="310.0"/>
 	<Parameter name="farad" type="double" value="96485.3415"/>

@@ -181,6 +181,9 @@ Int main ( Int argc, char** argv )
 
 
 
+    int subiter = parameterList.get( "subIteration", 100);
+
+
     for ( Real t = 0; t < TF; )
     {
 
@@ -226,9 +229,20 @@ Int main ( Int argc, char** argv )
          // solution in time.                          //
          //********************************************//
 
+
+
     	 for(int j(0); j <= 16; ++j)
          {
-  			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+    		if ( j != 13 )
+    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+    		else
+    		{
+    			for( int k(0) ; k < subiter; k++ )
+    			{
+    				unknowns.at (13) = unknowns.at (13)   + dt / subiter * rhs.at (13);
+    				model.computeRhs ( unknowns, Iapp, rhs );
+    			}
+    		}
          }
 
          //********************************************//

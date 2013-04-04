@@ -918,7 +918,7 @@
 		concRhs[1] = courSubSysCa[5] * ( M_VCyt / M_VSr ) * ( - courSubSysCa[1] + courSubSysCa[2] - courSubSysCa[3] );
 		concRhs[2] = - ( courINa[0] + backINab(v) + 3 * exINaCa(v) + 3 * pumpINaK(v) ) * M_Cm / ( M_VCyt * M_F );
 		concRhs[3] = - ( inwardIK1(v) + courIto[0] + courIKr[0] + courIKs[0] - 2 * pumpINaK(v) + pumpIpK(v) + Istim ) * M_Cm / ( M_VCyt * M_F );
-		
+
 		return concRhs;
 	}
 	
@@ -944,7 +944,7 @@
 		
 		Real g_inf (0);
 
-		if ( cCa <= 0.00035 )
+		if ( cCa < 0.00035 )
 			g_inf = 1.0 / ( 1.0 + pow(cCa / 0.00035, 6) );
 		else
 			g_inf = 1.0 / ( 1.0 + pow(cCa / 0.00035, 16) );
@@ -952,13 +952,15 @@
 		Real tau_g (2.0);
 		
 		int k_g (0);
-		if ( ( g_inf > g ) && ( V > -60 ) )
+		if ( ( g_inf > g ) && ( V > -37 ) )
 			k_g = 0;
 		else 
 			k_g = 1;
 		
-		Real cCai_bufc   = 1.0 / ( 1.0 + M_Buffc * M_KBuffc / pow(cCa + M_KBuffc, 2) );
-		Real cCaSR_bufsr = 1.0 / ( 1.0 + M_BuffSR * M_KBuffSR / pow(cCaSR + M_KBuffSR, 2) );
+		//Real cCai_bufc   = 1.0 / ( 1.0 + M_Buffc * M_KBuffc / pow(cCa + M_KBuffc, 2) );
+		//Real cCaSR_bufsr = 1.0 / ( 1.0 + M_BuffSR * M_KBuffSR / pow(cCaSR + M_KBuffSR, 2) );
+		Real cCai_bufc   = cCa * M_Buffc / ( cCa + M_KBuffc );
+		Real cCaSR_bufsr = cCaSR * M_BuffSR / ( cCaSR + M_KBuffSR );
 
 		Real d_inf   = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 7.5 ) );
 		Real alpha_d = 1.4 / ( 1.0 + exp( ( -35.0 - V ) / 13.0 ) ) + 0.25;
@@ -967,16 +969,16 @@
 		Real tau_d   = alpha_d * beta_d + gamma_d;
 		
 		Real f_inf = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 7.0 ) );
-		Real tau_f = 1125.0 * exp( -pow(27.0 + V, 2 ) / 240.0 ) + 80.0 + 165.0 / ( 1.0 + exp( ( 25.0 - V ) / 10.0 ) );
+		Real tau_f = 1125.0 * exp( -pow(27.0 + V, 2 ) / 300.0 ) + 80.0 + 165.0 / ( 1.0 + exp( ( 25.0 - V ) / 10.0 ) );
 		
 		Real alpha_fCa = 1.0 / ( 1.0 + pow(cCa / 0.000325, 8) );
-		Real beta_fCa  = 0.1 / ( 1.0 + exp( ( cCa - 0.0005 ) / 0.0001 ) ); 
+		Real beta_fCa  = 0.1 / ( 1.0 + exp( ( cCa - 0.0005 ) / 0.0001 ) );
 		Real gamma_fCa = 0.2 / ( 1.0 + exp( ( cCa - 0.00075 ) / 0.0008 ) );
-		Real fCa_inf   = ( alpha_fCa + beta_fCa + gamma_fCa + 0.23 ) / 1.46; 
+		Real fCa_inf   = ( alpha_fCa + beta_fCa + gamma_fCa + 0.23 ) / 1.46;
 		Real tau_fCa   ( 2 );
 
 		int k_f (0);
-		if ( ( f_inf > f ) && ( V > -60 ) )
+		if ( ( f_inf > f ) && ( V > -37 ) )
 			k_f = 0;
 		else 
 			k_f = 1;
@@ -1052,7 +1054,7 @@
 	
 		fastNa[2] = ( j_inf - j ) / tau_j;
 		fastNa[3] = ( h_inf - h ) / tau_h;
-		
+
 		return fastNa;
 	}
 
@@ -1102,7 +1104,7 @@
 
 		transIto[1] = ( r_inf -r ) / tau_r;
 		transIto[2] = ( s_inf -r ) / tau_s;
-		
+
 		return transIto;
 	}
 
@@ -1162,7 +1164,7 @@
 		
 		rapidIKr[1] = ( Xr1_inf - Xr1 ) / tau_xr1;
 		rapidIKr[2] = ( Xr2_inf - Xr2 ) / tau_xr2;
-		
+
 		return rapidIKr;
 	}
 
@@ -1195,7 +1197,7 @@
 		return M_kNaCa * ( 1.0 / ( pow(M_KmNai, 3) + pow(M_NaO, 3) ) ) * ( 1.0 / ( M_KmCa + M_CaO ) )
 			* (1.0 / ( 1.0 + M_kSat * exp( ( M_gamma - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) )
 			* ( exp( M_gamma * ( V * M_F ) / ( M_R * M_T ) ) * pow(cNa, 3) * M_CaO -
-						exp( ( M_gamma - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) * pow(M_NaO, 3) * cCa );
+						exp( ( M_gamma - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) * pow(M_NaO, 3) * cCa * 2.5 );
 	}
 
 	// Na+/K+ pump INaK

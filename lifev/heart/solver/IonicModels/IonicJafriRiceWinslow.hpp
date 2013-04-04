@@ -1641,16 +1641,23 @@
 		Real iCa    = y * ( o + oCa ) * iCaMax;
 		Real cCaSS0 (cCaSS);
 
+		Real jRel   ( 0 );
+		Real jXFer  ( 0 );
+		Real bSS    ( 0 );
+		Real dbSS   ( 0 );
+		Real newtF  ( 0 );
+		Real newtdF ( 0 );
+
 		for ( int i(0); i < nitermax; ++i )
 		{
-			Real jRel  = M_v1 * ( fracPO1 + fracPO2 ) * ( cCaJSR - cCaSS );
-			Real jXFer = ( cCaSS - cCa ) / M_tauXFer;
-			Real bSS   = 1 / ( 1 + M_CmdnTot * M_KmCmdn / pow(M_KmCmdn + cCaSS, 2) );
-			Real dbSS  = 2 * pow (1 + M_CmdnTot * M_KmCmdn / pow(M_KmCmdn + cCaSS, 2), -2) * M_CmdnTot * M_KmCmdn / pow(M_KmCmdn + cCaSS, 3);
+			jRel  = M_v1 * ( fracPO1 + fracPO2 ) * ( cCaJSR - cCaSS );
+			jXFer = ( cCaSS - cCa ) / M_tauXFer;
+			bSS   = 1 / ( 1 + M_CmdnTot * M_KmCmdn / pow(M_KmCmdn + cCaSS, 2) );
+			dbSS  = 2 * pow (1 + M_CmdnTot * M_KmCmdn / pow(M_KmCmdn + cCaSS, 2), -2) * M_CmdnTot * M_KmCmdn / pow(M_KmCmdn + cCaSS, 3);
 
-			Real newtF = cCaSS - cCaSS0 - dt * bSS *
+			newtF = cCaSS - cCaSS0 - dt * bSS *
 							( jRel * M_VJsr / M_VSs - jXFer * M_VMyo / M_VSs - iCa * M_ACap / ( 2 * M_VSs * M_F ) );
-			Real newtdF = 1 - dt * ( dbSS * ( jRel * M_VJsr / M_VSs - jXFer * M_VMyo / M_VSs - iCa * M_ACap / ( 2 * M_VSs * M_F ) )
+			newtdF = 1 - dt * ( dbSS * ( jRel * M_VJsr / M_VSs - jXFer * M_VMyo / M_VSs - iCa * M_ACap / ( 2 * M_VSs * M_F ) )
 							+ bSS * ( - M_v1 * ( fracPO1 + fracPO2 ) * M_VJsr / M_VSs - M_VMyo / ( M_VSs * M_tauXFer ) ) );
 
 			cCaSS = cCaSS - newtF / newtdF;
