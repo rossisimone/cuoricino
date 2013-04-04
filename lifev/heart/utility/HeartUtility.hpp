@@ -129,6 +129,46 @@ inline void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::stri
 
 }
 
+
+inline void setupFibers ( VectorEpetra& vec, VectorSmall<3>& fibers)
+{
+    int n1 = vec.epetraVector().MyLength();
+    int d1 = n1 / 3;
+    vec *= 0;
+    int i (0);
+    int j (0);
+    int k (0);
+
+    for ( int l (0); l < d1; l++)
+    {
+        i = vec.blockMap().GID (l);
+        j = vec.blockMap().GID (l + d1);
+        k = vec.blockMap().GID (l + 2 * d1);
+        vec [i] = fibers[0];
+        vec [j] = fibers[1];
+        vec [k] = fibers[2];
+    }
+
+}
+
+inline void setupFibers ( VectorEpetra& vec, std::vector<Real>& fibers)
+{
+	VectorSmall<3> fiberVectorSmall;
+	fiberVectorSmall[0]=fibers.at(0);
+	fiberVectorSmall[1]=fibers.at(1);
+	fiberVectorSmall[2]=fibers.at(2);
+	setupFibers(vec, fiberVectorSmall);
+}
+
+inline void setupFibers ( VectorEpetra& vec, Real fx, Real fy, Real fz)
+{
+	VectorSmall<3> fiberVectorSmall;
+	fiberVectorSmall[0] = fx;
+	fiberVectorSmall[1] = fy;
+	fiberVectorSmall[2] = fz;
+	setupFibers(vec, fiberVectorSmall);
+}
+
 inline void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, std::vector<UInt> flags)
 {
 
