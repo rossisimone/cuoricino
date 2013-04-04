@@ -15,7 +15,7 @@
 [Multiscale]
 modelName            = FSI3D_AtlasLeftVentricle_MonolithicFI
 modelType            = FSI3D
-couplingFlags        = '210 209'
+couplingFlags        = '208 213'
 flowRateCouplingType = 'weak weak'
 
 
@@ -71,7 +71,7 @@ useShapeDerivatives     = true
 conservativeFormulation = false  # tells if the conservative or non conservative formulation is used
 
     [./physics] # Defined here only if different from the one in the main file.
-    material_flag    = 1
+    material_flag    = 215
     #density         = 1.0             # density   [g/cm^3]
     #viscosity       = 0.035           # viscosity [g/cm/s]
 
@@ -85,7 +85,7 @@ conservativeFormulation = false  # tells if the conservative or non conservative
 
     [../space_discretization]
     mesh_dir        = ./Mesh/    
-    mesh_file       = leftventricle.mesh
+    mesh_file       = leftventricle5_refined1.mesh
     mesh_type       = .mesh
     verbose         = 0                # verbose during mesh-reading
 
@@ -115,7 +115,7 @@ conservativeFormulation = false  # tells if the conservative or non conservative
 
         [./TopCardium]
         type            = EssentialVertices
-        flag            = 208
+        flag            = 209
         mode            = Full
         component       = 3
         function        = 0
@@ -132,22 +132,22 @@ rescaleFactor    = 1.0   # this factor can be used to rescale the structure bloc
 
     [./physics]
 #   LINEAR MATERIAL INCLUDED MAINLY FOR QUICK TESTS
-#    lawType           = linear
-#    solidType         = linearVenantKirchhoff
-#    material_flag     = 15
-#    externalPressure  = 0
-#    density           = 1.37     
-#    young             = 7.0E6
-#    poisson           = 0.48     
-
-    solidType         = neoHookeanActivated
-    lawType           = nonlinear
-    material_flag     = 15
+    lawType           = linear
+    solidType         = linearVenantKirchhoff
+    material_flag     = 42
     externalPressure  = 0
-    density           = 1.37     # Watanabe et al 04
-    bulk              = 1.6E6    # Weiss et al 06
-    young             = 6.2726E4 # Weiss et al 06
+    density           = 1.37     
+    young             = 7.0E6
     poisson           = 0.48     
+
+#    solidType         = neoHookeanActivated
+#    lawType           = nonlinear
+#    material_flag     = 42
+#    externalPressure  = 0
+#    density           = 1.37     # Watanabe et al 04
+#    bulk              = 1.6E6    # Weiss et al 06
+#    young             = 6.2726E4 # Weiss et al 06
+#    poisson           = 0.48     
 
     [../time_discretization]
     method           = BDF            # Newmark, BDF
@@ -159,9 +159,9 @@ rescaleFactor    = 1.0   # this factor can be used to rescale the structure bloc
 
     [../space_discretization]
     mesh_dir         = ./Mesh/
-    mesh_file        = biventricle2.mesh      # mesh file
+    mesh_file        = biventricle5_refined1.mesh # mesh file
     mesh_type        = .mesh
-    fibers_file      = biventricle2fibers.dat # fiber directions file
+    fibers_file      = FineFiberDirection.xmf # fiber directions file
     order            = P1
     mesh_faces       = all                    # update all faces elements
     mesh_edges       = all                    # update all faces elements
@@ -171,17 +171,23 @@ rescaleFactor    = 1.0   # this factor can be used to rescale the structure bloc
     depname    = dep
 
     [../boundary_conditions]
-    list = 'Pericardium Apex'
+    list = 'Pericardium RightVentricle Apex'
 
         [./Pericardium]
         type       = Natural
-        flag       = 14
+        flag       = 46
         mode       = Normal
         functionFile = FunctionsDatabase/TestForce.dat
 
+	[../RightVentricle]
+        type       = Natural
+        flag       = 45
+        mode       = Normal
+        function   = '10000'
+
 	[../Apex]
 	type       = Essential
-	flag       = 12
+	flag       = 41
 	mode       = Full
         component  = 3
 	function   = 0
@@ -193,7 +199,7 @@ rescaleFactor    = 1.0   # this factor can be used to rescale the structure bloc
 
 [interface] # mesh dependent flags for the interface.
 fluid_flag      =  207      # default: 1
-structure_flag  =  13       # default: same as fluid_flag
+structure_flag  =  43       # default: same as fluid_flag
 tolerance       =  0.005    # how far points are to be considered the same on the interface
 
 
