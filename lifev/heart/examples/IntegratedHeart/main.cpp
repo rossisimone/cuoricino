@@ -61,14 +61,16 @@
 #include <lifev/multiscale/solver/MultiscaleSolver.hpp>
 
 #include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
-#include <lifev/heart/solver/IonicModels/IonicAlievPanfilov.hpp>
+#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
 
 using namespace LifeV;
 using namespace Multiscale;
 
 typedef RegionMesh<LinearTetra> mesh_Type;
 typedef boost::function < Real ( const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/ ) > function_Type;
-typedef HeartETAMonodomainSolver< mesh_Type, IonicAlievPanfilov > monodomainSolver_Type;
+typedef IonicMinimalModel								ionicModel_Type;
+typedef boost::shared_ptr<ionicModel_Type> 				ionicModelPtr_Type;
+typedef HeartETAMonodomainSolver< mesh_Type, IonicModel_Type > monodomainSolver_Type;
 typedef boost::shared_ptr< monodomainSolver_Type > monodomainSolverPtr_Type;
 
 
@@ -103,7 +105,6 @@ public:
         {
             std::cout << "Importing electrophysiology model parameter lists...";
         }
-        Teuchos::ParameterList APParameterList = * ( Teuchos::getParametersFromXmlFile ( "AlievPanfilovParameters.xml" ) );
         Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
         if ( M_comm->MyPID() == 0 )
         {
@@ -118,9 +119,9 @@ public:
         //********************************************//
         if ( M_comm->MyPID() == 0 )
         {
-            std::cout << "Building Constructor for Aliev-Panfilov Model with parameters ... ";
+            std::cout << "Building Constructor for the Minimal Model with parameters ... ";
         }
-        boost::shared_ptr<IonicAlievPanfilov>  IonicModel ( new IonicAlievPanfilov ( APParameterList ) );
+        ionicModelPtr_Type  IonicModel ( new ionicModel_Type () );
         if ( M_comm->MyPID() == 0 )
         {
             std::cout << " Done!" << endl;
