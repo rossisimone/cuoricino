@@ -41,7 +41,6 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#include <lifev/core/LifeV.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/heart/utility/HeartUtility.hpp>
 #include <lifev/eta/fem/ETFESpace.hpp>
@@ -85,10 +84,9 @@ public:
     typedef typename super::mapMarkerIndexes_Type    mapMarkerIndexes_Type;
     typedef typename mapMarkerIndexes_Type::const_iterator mapIteratorIndex_Type;
 
-    typedef typename super::FESpace_Type             FESpace_Type;
     typedef typename super::FESpacePtr_Type          FESpacePtr_Type;
     typedef typename super::ETFESpacePtr_Type        ETFESpacePtr_Type;
-    typedef typename super::ETFESpace_Type			 ETFESpace_Type;
+    typedef typename super::ETFESpace_Type				ETFESpace_Type;
 
     typedef MeshType										mesh_Type;
     typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 >                        scalarETFESpace_Type;
@@ -186,6 +184,12 @@ public:
                                         const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
                                         const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
                                         const displayerPtr_Type& displayer);
+    void updateWithBroyden (  matrixPtr_Type&       jacobian,
+            const vector_Type&    disp,
+            const dataPtr_Type&   dataMaterial,
+            const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
+            const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+            const displayerPtr_Type&  displayer );
 
     //! Interface method to compute the new Stiffness matrix in StructuralSolver::evalResidual and in
     //! StructuralSolver::updateSystem since the matrix is the expression of the matrix is the same.
@@ -225,7 +229,7 @@ public:
     /*!
       \param dk_loc: the elemental displacement
     */
-    void computeKinematicsVariables ( const VectorElemental& /*dk_loc*/ ) {}
+    void computeKinematicsVariables ( const VectorElemental& dk_loc ) {}
 
     //! ShowMe method of the class (saved on a file the stiffness vector and the jacobian)
     void showMe ( std::string const& fileNameVectStiff,
@@ -245,6 +249,9 @@ public:
                                                  const Epetra_SerialDenseMatrix& cofactorF,
                                                  const std::vector<Real>& invariants,
                                                  const UInt marker);
+
+
+    void computeRes ( vectorPtr_Type& res, const vector_Type& disp, const displayerPtr_Type& displayer );
 
 
     //@}
@@ -283,9 +290,9 @@ public:
 
     //! @name set Methods
     //@{
-    inline void setGammaf( const vector_Type& gammaf) const { M_Gammaf.reset( new vector_Type( gammaf ) ); }
+    inline void setGammaf( const vector_Type& gammaf) { M_Gammaf.reset( new vector_Type( gammaf ) ); }
 
-    inline void setFiberVector( const vector_Type& fiberVector) const { M_fiberVector.reset( new vector_Type( fiberVector ) ); }
+    inline void setFiberVector( const vector_Type& fiberVector) { M_fiberVector.reset( new vector_Type( fiberVector ) ); }
 
     //@}
 
@@ -300,6 +307,11 @@ public:
     inline void setupFiberVector( std::string& name, std::string& path )
     {
     	HeartUtility::importFibers( M_fiberVector, name, path  );
+    }
+
+    void setupFiberVector( Real& fx, Real& fy, Real& fz )
+    {
+    	HeartUtility::setupFibers( *M_fiberVector, fx, fy, fz  );
     }
     		//@}
 
@@ -320,6 +332,8 @@ protected:
     vectorPtr_Type						M_Gammaf;
     scalarETFESpacePtr_Type					M_activationSpace;
     vectorPtr_Type						 M_fiberVector;
+    vectorPtr_Type						 M_oldDisp;
+    matrixPtr_Type						 M_oldJac;
 
 };
 
@@ -330,7 +344,9 @@ NeoHookeanActivatedMaterial<MeshType>::NeoHookeanActivatedMaterial() :
     M_identity      ( ),
     M_Gammaf		( ),
     M_fiberVector	( ),
-    M_activationSpace( )
+    M_activationSpace( ),
+    M_oldDisp		( ),
+    M_oldJac		( )
 {
 }
 
@@ -351,22 +367,6 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
                      const UInt offset, const dataPtr_Type& dataMaterial,
                      const displayerPtr_Type& displayer  )
 {
-    this->M_displayer = displayer;
-    this->M_dataMaterial  = dataMaterial;
-
-    //    std::cout<<"I am setting up the Material"<<std::endl;
-
-//    M_stiff.
-    this->M_dispFESpace                 = dFESpace;
-    this->M_dispETFESpace               = dETFESpace;
-    this->M_localMap                    = monolithicMap;
-    this->M_offset                      = offset;
-    this->M_dataMaterial                = dataMaterial;
-    this->M_displayer                   = displayer;
-
-    M_stiff.reset                   ( new vector_Type (*this->M_localMap) );
-    M_fiberVector.reset				( new vector_Type (*this->M_localMap) );
-
 
 #ifdef HAVE_MPI
     boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
@@ -374,11 +374,33 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
     boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
 #endif
 
+    this->M_displayer = displayer;
+    this->M_dataMaterial  = dataMaterial;
+
+    //    std::cout<<"I am setting up the Material"<<std::endl;
+
+//    M_stiff.
+    this->M_dispFESpace                     = dFESpace;
+    this->M_dispETFESpace                     = dETFESpace;
+    this->M_localMap                    = monolithicMap;
+    this->M_offset                      = offset;
+    this->M_dataMaterial                = dataMaterial;
+    this->M_displayer                   = displayer;
+
+    M_stiff.reset                   ( new vector_Type (*this->M_localMap) );
+    M_fiberVector.reset				( new vector_Type (*this->M_localMap) );
+    M_oldDisp.reset				( new vector_Type (*this->M_localMap) );
+    M_oldJac.reset				( new matrix_Type (*this->M_localMap, M_oldDisp -> size() ) );
+    *M_oldJac *= 0;
+    M_oldJac -> insertValueDiagonal ( 1.0, *( M_oldJac -> mapPtr() ) );
     M_activationSpace.reset 		( new scalarETFESpace_Type(	dETFESpace -> mesh(),
     															&feTetraP1,
     															Comm ) );
+    M_Gammaf.reset 					( new vector_Type ( M_activationSpace -> map() ) );
 
-    M_Gammaf.reset                  ( new vector_Type ( M_activationSpace -> map() ) );
+
+
+
 
     M_identity (0, 0) = 1.0;
     M_identity (0, 1) = 0.0;
@@ -397,21 +419,13 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
 
     this->setupVectorsParameters();
 
-    if ( this->M_dataMaterial->fileFiberDirections().empty() == 0 )
-    {
-        displayer->leaderPrint (" \nReading fibers from " + this->M_dataMaterial->fileFiberDirections() + "\n");
-        string file(this->M_dataMaterial->fileFiberDirections());
-        string path("");
-        this->setupFiberVector( file, path);
-    }
-
 }
 
 template <typename MeshType>
 void
 NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
                                                const ETFESpacePtr_Type&                    dETFESpace,
-                                               const ETFESpacePtr_Type&                    activationSpace,
+                                               const ETFESpacePtr_Type& activationSpace,
                                                const boost::shared_ptr<const MapEpetra>&   monolithicMap,
                                                const UInt                                  offset,
                                                const dataPtr_Type&                         dataMaterial,
@@ -449,14 +463,6 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&           
     this->M_vectorsParameters.reset ( new vectorsParameters_Type ( 2 ) );
 
     this->setupVectorsParameters();
-
-    if ( this->M_dataMaterial->fileFiberDirections().empty() == 0 )
-       {
-           displayer->leaderPrint (" \nReading fibers from " + this->M_dataMaterial->fileFiberDirections() + "\n");
-           string file(this->M_dataMaterial->fileFiberDirections());
-           string path("");
-           this->setupFiberVector( file, path);
-       }
 }
 
 
@@ -545,17 +551,102 @@ void NeoHookeanActivatedMaterial<MeshType>::updateJacobianMatrix ( const vector_
 
     displayer->leaderPrint (" \n*********************************\n  ");
     updateNonLinearJacobianTerms (this->M_jacobian, disp, dataMaterial, mapsMarkerVolumes, mapsMarkerIndexes, displayer);
+//    updateWithBroyden (this->M_jacobian, disp, dataMaterial, mapsMarkerVolumes, mapsMarkerIndexes, displayer);
     displayer->leaderPrint (" \n*********************************\n  ");
     std::cout << std::endl;
 }
 
 
 template <typename MeshType>
+void NeoHookeanActivatedMaterial<MeshType>::updateWithBroyden (  matrixPtr_Type&       jacobian,
+        const vector_Type&    disp,
+        const dataPtr_Type&   dataMaterial,
+        const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
+        const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+        const displayerPtr_Type&  displayer )
+{
+
+    displayer->leaderPrint ("   Non-Linear S-  updating non linear terms in the Jacobian Matrix with Broyden (Neo-Hookean)");
+
+	vectorPtr_Type deltaDisp;
+	deltaDisp.reset(new vector_Type( disp ) );
+	*deltaDisp -= *M_oldDisp;
+
+	Real normDeltaDisp = deltaDisp -> norm2();
+	Real normDeltaDispSquared = normDeltaDisp * normDeltaDisp;
+
+    * (jacobian) *= 0.0;
+    LifeChrono jacChrono;
+    jacChrono.start();
+    if( normDeltaDisp != 0)
+	{
+	vectorPtr_Type oldRes;
+	vectorPtr_Type res;
+
+	computeRes(oldRes, (*M_oldDisp), displayer);
+	computeRes(res, disp, displayer);
+
+	vectorPtr_Type tmp;
+	tmp.reset (new vector_Type (*this->M_localMap) );
+	LifeChrono chrono1;
+	chrono1.start();
+	(*tmp) *= 0;
+	(*tmp) = (*M_oldJac)*(*deltaDisp);
+	(*tmp) *= -1.0;
+	(*tmp) += (*res);
+	(*tmp) -= (*oldRes);
+	chrono1.stop();
+
+	cout << "\n\n******************************************\n";
+	    cout << "*\t preliminaries time:  "<< chrono1.diff() << " sec\n";
+	    cout << "******************************************\n\n";
+
+
+	LifeChrono chrono2;
+	chrono2.start();
+	(*jacobian)*=0.0;
+
+	jacobian -> addDyadicProduct (*tmp, *deltaDisp);
+	jacobian->globalAssemble();
+
+	chrono2.stop();
+	cout << "\n\n******************************************\n";
+	    cout << "*\t dyadic product time:  "<< chrono2.diff() << " sec\n";
+	    cout << "******************************************\n\n";
+
+	LifeChrono chrono3;
+	chrono3.start();
+
+	(*jacobian) *= 1.0 / normDeltaDispSquared;
+	M_oldJac->globalAssemble();
+	* (jacobian) += (*M_oldJac);
+
+	chrono3.stop();
+	cout << "\n\n******************************************\n";
+	    cout << "*\t finelizing time:  "<< chrono3.diff() << " sec\n";
+	    cout << "******************************************\n\n";
+//    	M_oldJac->globalAssemble();
+//    	jacobian.reset( new matrix_Type( *M_oldJac ) );
+//    	jacobian->globalAssemble();
+	}else updateNonLinearJacobianTerms (jacobian, disp, dataMaterial, mapsMarkerVolumes, mapsMarkerIndexes, displayer);
+    jacChrono.stop();
+    cout << "\n\n******************************************\n";
+    cout << "*\t Ci ho messo "<< jacChrono.diff() << " sec\n";
+    cout << "******************************************\n\n";
+
+//	jacobian -> spy("Jac");
+//	M_oldDisp -> spy("oldDisp");
+	M_oldDisp.reset( new vector_Type( disp ) );
+	M_oldJac.reset( new matrix_Type( *jacobian ) );
+}
+
+
+template <typename MeshType>
 void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_Type&       jacobian,
                                                                            const vector_Type&    disp,
-                                                                           const dataPtr_Type&   /*dataMaterial*/,
-                                                                           const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
-                                                                           const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
+                                                                           const dataPtr_Type&   dataMaterial,
+                                                                           const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
+                                                                           const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
                                                                            const displayerPtr_Type&  displayer )
 {
 	{
@@ -563,7 +654,7 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 
     displayer->leaderPrint ("   Non-Linear S-  updating non linear terms in the Jacobian Matrix (Neo-Hookean)");
 
-//    * (jacobian) *= 0.0;
+    * (jacobian) *= 0.0;
 
     // mapIterator_Type it;
     // //mapIteratorIndex_Type itIndex;
@@ -605,11 +696,12 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 #define Gammaf ( value( this->M_activationSpace, *M_Gammaf ) )
 #define GammaPlusOne ( Gammaf + value(1.0) )
 #define gGammaf ( value(-1.0) *  Gammaf * (1.0 + ( Gammaf + 2.0 ) * pow ( ( Gammaf + 1.0 ), -2.) ) )
-#define fiber       ( value( this->M_dispETFESpace, *M_fiberVector) )
+#define fiber0       ( value( this->M_dispETFESpace, *M_fiberVector) )
+#define fiber       ( deformationGradientTensor * fiber0 )
 #define I4f     dot( fiber, fiber )
 //
 ////#define Stress	( mu1 * J23 * ( GammaPlusOne * ( F - value( 1.0 / 3.0 ) * I1 * FinvT ) + gGammaf * ( F * outerProduct(fiber, fiber) - value( 1.0 / 3.0 ) * I4f * FinvT ) ) )
-#define Stress	( parameter ( (* (this->M_vectorsParameters) ) [0] ) * J23 * ( GammaPlusOne * ( deformationGradientTensor + value(- 1.0 / 3.0 ) * firstInvariantC *  deformationGradientTensor_T ) + gGammaf * ( deformationGradientTensor * outerProduct(fiber, fiber) + value(- 1.0 / 3.0 ) * I4f * deformationGradientTensor_T ) ) )
+#define Stress	( parameter ( (* (this->M_vectorsParameters) ) [0] ) * J23 * ( GammaPlusOne * ( deformationGradientTensor + value(- 1.0 / 3.0 ) * firstInvariantC *  deformationGradientTensor_T ) + gGammaf * ( deformationGradientTensor * outerProduct(fiber, fiber0) + value(- 1.0 / 3.0 ) * I4f * deformationGradientTensor_T ) ) )
 ////
 ////    //
 //////#define dPpt1  ( value( - 2.0 /3.0 ) * dot( FinvT, grad( phi_j ) ) * dot( Stress, grad( phi_i ) ) )
@@ -619,9 +711,9 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 #define dPpt3  ( value( 1.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * firstInvariantC *  dot( deformationGradientTensor_T * transpose ( grad(phi_j) ) * deformationGradientTensor_T, grad(phi_i) ) )
 #define dPpt4  ( value( - 2.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * dot( deformationGradientTensor, grad( phi_j ) ) * dot( deformationGradientTensor_T, grad(phi_i) ) )
 //////
-#define dPpt5  ( 						 J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( grad(phi_j) * outerProduct( fiber, fiber ), grad(phi_i) ) )
+#define dPpt5  ( 						 J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( grad(phi_j) * outerProduct( fiber, fiber0 ), grad(phi_i) ) )
 #define dPpt6  ( 	value( 1.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * I4f *  dot( deformationGradientTensor_T * transpose ( grad(phi_j) ) * deformationGradientTensor_T, grad(phi_i) ) )
-#define dPpt7  ( value( - 2.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( deformationGradientTensor * outerProduct( fiber, fiber ), grad( phi_j ) ) * dot( deformationGradientTensor_T, grad(phi_i) ) )
+#define dPpt7  ( value( - 2.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( deformationGradientTensor * outerProduct( fiber, fiber0 ), grad( phi_j ) ) * dot( deformationGradientTensor_T, grad(phi_i) ) )
 
 
     //Assembling Volumetric Part
@@ -723,11 +815,46 @@ void NeoHookeanActivatedMaterial<MeshType>::apply ( const vector_Type& sol, vect
 
 
 template <typename MeshType>
+void NeoHookeanActivatedMaterial<MeshType>::computeRes ( vectorPtr_Type& res, const vector_Type&       disp,
+                                                               const displayerPtr_Type& displayer )
+{
+    using namespace ExpressionAssembly;
+
+    displayer->leaderPrint (" \n******************************************************************\n  ");
+    displayer->leaderPrint (" Non-Linear S-  Computing the Neo-Hookean nonlinear stiffness vector"     );
+    displayer->leaderPrint (" \n******************************************************************\n  ");
+
+    res.reset (new vector_Type (*this->M_localMap) );
+    * (res) *= 0.0;
+
+    //Computation of the volumetric part
+    //
+    integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                value (1.0 / 2.0) * parameter ( (* (this->M_vectorsParameters) ) [1] ) * ( pow ( detDeformationGradientTensor , 2.0) - detDeformationGradientTensor + log (detDeformationGradientTensor) ) * dot (  deformationGradientTensor_T, grad (phi_i) )
+              ) >> res;
+
+    //Computation of the isochoric part \mu J^-2/3 ( 1 + gammaf ) (F - Ic / 3 F^-T)
+    integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                dot ( Stress, grad (phi_i) )
+              ) >> res;
+
+
+    //    }
+
+    res -> globalAssemble();
+
+}
+
+template <typename MeshType>
 void NeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type&       disp,
                                                                Real                     /*factor*/,
-                                                               const dataPtr_Type&      /*dataMaterial*/,
-                                                               const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
-                                                               const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
+                                                               const dataPtr_Type&      dataMaterial,
+                                                               const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
+                                                               const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
                                                                const displayerPtr_Type& displayer )
 {
     using namespace ExpressionAssembly;
@@ -765,7 +892,6 @@ void NeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type
 
     //Computation of the volumetric part
     //
-
     integrate ( elements ( this->M_dispETFESpace->mesh() ),
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
@@ -782,6 +908,8 @@ void NeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type
 
     //    }
     this->M_stiff->globalAssemble();
+
+    M_stiff -> spy("residual");
 }
 
 template <typename MeshType>
@@ -826,6 +954,25 @@ void NeoHookeanActivatedMaterial<MeshType>::computeLocalFirstPiolaKirchhoffTenso
     firstPiola += secondTerm;
 }
 
+#undef deformationGradientTensor
+#undef detDeformationGradientTensor
+#undef deformationGradientTensor_T
+#undef RIGHTCAUCHYGREEN
+#undef firstInvariantC
+#undef J23
+#undef Gammaf
+#undef GammaPlusOne
+#undef gGammaf
+#undef fiber
+#undef I4f
+#undef Stress
+#undef dPpt1
+#undef dPpt2
+#undef dPpt3
+#undef dPpt4
+#undef dPpt5
+#undef dPpt6
+#undef dPpt7
 
 
 template <typename MeshType>
