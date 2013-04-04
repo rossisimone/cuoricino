@@ -10,10 +10,15 @@
     <Parameter name="longitudinalDiffusion" type="double" value="12"  />
     <Parameter name="transversalDiffusion" type="double" value="12"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
+<<<<<<< HEAD
     <Parameter name="mesh_name" type="string" value="biventricle3.mesh"  />
     <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
     <Parameter name="fiber_file" type="string" value="fibers.dat"  />
     <Parameter name="fiber_path" type="string" value="/usr/scratch/srossi/meshes/"  />
+=======
+    <Parameter name="mesh_name" type="string" value="lid16.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/usr/scratch/luism/lifev/lifev-build/lifev/heart/examples/basic_example"  />
+>>>>>>> Jafri Rice Winslow model updated.
     <Parameter name="fiber_X" type="double" value="1."  />
     <Parameter name="fiber_Y" type="double" value="0."  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />

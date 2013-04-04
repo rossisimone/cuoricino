@@ -702,6 +702,7 @@
 
 //		std::vector<Real> computeYParameters( const std::vector<Real>& v);
 //		std::vector<Real> channelLCaMatrix( const std::vector<Real>& v );
+		Real computeNewtonCaSS( const std::vector<Real>& v, const Real& dt, const int& nitermax );
 
 
 		//! Display information about the model
@@ -1619,6 +1620,44 @@
 //		lRyRMatrix[3][2] = 0;
 //		lRyRMatrix[3][3] = - M_kcn;
 //	}
+
+
+	Real IonicJafriRiceWinslow::computeNewtonCaSS( const std::vector<Real>& v, const Real& dt, const int& nitermax )
+	{
+		Real V 	      ( v[0] );
+		Real cCa      ( v[8] );
+		Real cCaSS    ( v[10] );
+		Real cCaJSR   ( v[11] );
+
+		Real fracPO1  ( v[13] );
+		Real fracPO2  ( v[14] );
+
+		Real o        ( v[21] );
+		Real oCa      ( v[27] );
+		Real y        ( v[28] );
+
+		Real iCaMax = M_PCa * 4 * (V * pow(M_F, 2) ) / ( M_R * M_T ) * ( 0.001 * exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 0.341 * M_CaO )
+							/ ( exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 1.0 );
+		Real iCa    = y * ( o + oCa ) * iCaMax;
+		Real cCaSS0 (cCaSS);
+
+		for ( int i(0); i < nitermax; ++i )
+		{
+			Real jRel  = M_v1 * ( fracPO1 + fracPO2 ) * ( cCaJSR - cCaSS );
+			Real jXFer = ( cCaSS - cCa ) / M_tauXFer;
+			Real bSS   = 1 / ( 1 + M_CmdnTot * M_KmCmdn / pow(M_KmCmdn + cCaSS, 2) );
+			Real dbSS  = 2 * pow (1 + M_CmdnTot * M_KmCmdn / pow(M_KmCmdn + cCaSS, 2), -2) * M_CmdnTot * M_KmCmdn / pow(M_KmCmdn + cCaSS, 3);
+
+			Real newtF = cCaSS - cCaSS0 - dt * bSS *
+							( jRel * M_VJsr / M_VSs - jXFer * M_VMyo / M_VSs - iCa * M_ACap / ( 2 * M_VSs * M_F ) );
+			Real newtdF = 1 - dt * ( dbSS * ( jRel * M_VJsr / M_VSs - jXFer * M_VMyo / M_VSs - iCa * M_ACap / ( 2 * M_VSs * M_F ) )
+							+ bSS * ( - M_v1 * ( fracPO1 + fracPO2 ) * M_VJsr / M_VSs - M_VMyo / ( M_VSs * M_tauXFer ) ) );
+
+			cCaSS = cCaSS - newtF / newtdF;
+		}
+
+		return cCaSS;
+	}
 
 	void IonicJafriRiceWinslow::showMe()
 	{

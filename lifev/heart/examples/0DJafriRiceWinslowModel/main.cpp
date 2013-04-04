@@ -177,6 +177,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     Real TF = parameterList.get ( "endTime", 5.0 );
     Real dt = parameterList.get ( "timeStep", 5.77e-5 );
+    Real st = parameterList.get ( "stimuliTime", 400.0 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -200,9 +201,10 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if ( t > 1 && t < 2 )
+        if ( t > st && t < st +1 )
         {
         	Iapp = 0.516289;
+        	st   += 400;
         }
         else
         {
@@ -246,20 +248,23 @@ Int main ( Int argc, char** argv )
 
     	 for(int j(0); j <= 30; ++j)
          {
-    		 if( t > 21 && t < 26.5 )
-    		 {
+//    		 if( ( t > 21 && t < 26.5 ) || ( t > 421 && t < 426.5 ) ||
+//    	        		( t > 821 && t < 826.5 ) || ( t > 1221 && t < 1226.5 ) || ( t > 1621 && t < 1626.5 ) ||
+//    	        		( t > 2001 && t < 2036.5 ) || ( t > 2401 && t < 2436.5 ) || ( t > 2801 && t < 2866.5 ) )
+//    		 {
 				 if(j!= 10)
 					 unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
 				 else
 				 {
-					 for( int k(0) ; k < 150; k++ )
-					 {
-						 unknowns.at (10) = unknowns.at (10)   + dt / 150 * rhs.at (10);
-						 model.computeRhs ( unknowns, Iapp, rhs );
-					 }
+//					 for( int k(0) ; k < 150; k++ )
+//					 {
+//						 unknowns.at (10) = unknowns.at (10)   + dt / 150 * rhs.at (10);
+//						 model.computeRhs ( unknowns, Iapp, rhs );
+//					 }
+					 unknowns.at (10) = model.computeNewtonCaSS(unknowns, dt, 10);
 				 }
-    		 }
-    		 else unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+//    		 }
+//    		 else unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
          }
 
 //         unknowns.at(1) = ( unknowns.at(1) / dt + model.fastINa(unknowns).at(1) )
