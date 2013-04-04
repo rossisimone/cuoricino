@@ -75,7 +75,7 @@
 #include <lifev/core/util/LifeChrono.hpp>
 #include <boost/shared_ptr.hpp>
 #include <lifev/core/fem/FESpace.hpp>
-
+#include <lifev/heart/utility/HeartUtility.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -1120,23 +1120,24 @@ setupFibers (VectorSmall<3> fibers)
 
     M_fiberPtr.reset ( new vector_Type ( Space3D -> map() ) );
 
-    int n1 = (*M_fiberPtr).epetraVector().MyLength();
-    int d1 = n1 / 3;
-    (*M_fiberPtr) *= 0;
-    int i (0);
-    int j (0);
-    int k (0);
-    for ( int l (0); l < d1; l++)
-    {
-
-        i = (*M_fiberPtr).blockMap().GID (l);
-        j = (*M_fiberPtr).blockMap().GID (l + d1);
-        k = (*M_fiberPtr).blockMap().GID (l + 2 * d1);
-        (*M_fiberPtr) [i] = fibers[0];
-        (*M_fiberPtr) [j] = fibers[1];
-        (*M_fiberPtr) [k] = fibers[2];
-
-    }
+    HeartUtility::setupFibers(*M_fiberPtr, fibers);
+//    int n1 = (*M_fiberPtr).epetraVector().MyLength();
+//    int d1 = n1 / 3;
+//    (*M_fiberPtr) *= 0;
+//    int i (0);
+//    int j (0);
+//    int k (0);
+//    for ( int l (0); l < d1; l++)
+//    {
+//
+//        i = (*M_fiberPtr).blockMap().GID (l);
+//        j = (*M_fiberPtr).blockMap().GID (l + d1);
+//        k = (*M_fiberPtr).blockMap().GID (l + 2 * d1);
+//        (*M_fiberPtr) [i] = fibers[0];
+//        (*M_fiberPtr) [j] = fibers[1];
+//        (*M_fiberPtr) [k] = fibers[2];
+//
+//    }
 }
 
 
