@@ -72,6 +72,7 @@
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
+#include <Epetra_LocalMap.h>
 
 using namespace std;
 using namespace LifeV;
@@ -263,8 +264,10 @@ void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
 	//Implemented with variable changes to avoid some matrix*vector multiplications
 	RosenbrockTransformedFunction < 2, 3 > ( model, y0, t0, TF, dt, g, A, C, gammai, a, m, mhat, S, D, I, output );
 
-    MapEpetra mappa(2, Comm);
-    VectorEpetra vett1( mappa );
+
+    Epetra_LocalMap localMap( 2, 0, *Comm );
+    MapEpetra mappa(localMap);
+	VectorEpetra vett1( mappa );
     const Int* j = vett1.blockMap().MyGlobalElements();
     vett1 (j[0]) = y0(0);
     vett1 (j[1]) = y0(1);
