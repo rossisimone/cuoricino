@@ -241,6 +241,8 @@ Int main ( Int argc, char** argv )
         std::cout << " Splitting solver done... ";
     }
 
+    splitting->setSolverParam("MonodomainSolverParamList.xml");
+
 
     //********************************************//
     // Setting up the initial condition form      //
@@ -252,7 +254,7 @@ Int main ( Int argc, char** argv )
     }
 
     //Compute the potential at t0
-    function_Type f = &Stimulus2;
+    function_Type f = &Stimulus3;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
 
     //setting up initial conditions
@@ -315,26 +317,26 @@ Int main ( Int argc, char** argv )
     {
         t = t + dt;
 
+        splitting->solveOneReactionStepROS3P();
+        //splitting->solveOneReactionStepFE();
+        (*splitting->rhsPtrUnique()) *= 0.0;
+        splitting->updateRhs();
+        splitting->solveOneDiffusionStepBE();
+
         if( k % iter == 0 )
-        	splitting -> solveOneSplittingStep(exporterSplitting, t);
-        else
-        	splitting -> solveOneSplittingStep ();
+        	splitting -> exportSolution (exporterSplitting, t);
 
         k++;
 
         if( t >= TCut1 && t<=TCut2)
         {
-        	//cout<<"Defining variables"<<endl;
         	function_Type g = &Cut;
         	vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
         	const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
         	feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
-        	//cout<<"Interpolating"<<endl;
         	(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
-        	//cout<<"Multiplying"<<endl;
         	*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
         	//*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
-        	//cout<<"End"<<endl;
         }
 
         if ( Comm->MyPID() == 0 )

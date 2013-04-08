@@ -42,9 +42,6 @@
 
 namespace LifeV
 {
-// ===================================================
-//! Constructors
-// ===================================================
 HeartIonicModel::HeartIonicModel() :
     M_numberOfEquations (0)
 {
@@ -71,7 +68,69 @@ HeartIonicModel& HeartIonicModel::operator = ( const HeartIonicModel& Ionic )
     return      *this;
 }
 
+MatrixEpetra<Real> HeartIonicModel::getJac (const vector_Type& v, Real h)
+{
+	matrix_Type J(v.map(), M_numberOfEquations, false);
+	vector<Real> f1(M_numberOfEquations,0.0);
+	vector<Real> f2(M_numberOfEquations,0.0);
+	vector< vector<Real> > df ( M_numberOfEquations, vector<Real> (M_numberOfEquations,0.0) );
+	vector<Real> y1(M_numberOfEquations,0.0);
+	vector<Real> y2(M_numberOfEquations,0.0);
+	const Int* k = v.blockMap().MyGlobalElements();
 
+	int* Indices = new int[M_numberOfEquations];
+	double* Values =  new double[M_numberOfEquations];
+	for(int i=0; i<M_numberOfEquations; i++)
+		Indices[i] = i;
+
+	for(int i=0; i<M_numberOfEquations; i++)
+	{
+		for(int j=0; j<M_numberOfEquations; j++)
+		{
+			y1[j] = v[ k[j] ] + ((double)(i==j))*h;
+			y2[j] = v[ k[j] ] - ((double)(i==j))*h;
+		}
+		this->computeRhs(y1, 0.0, f1);
+		this->computeRhs(y2, 0.0, f2);
+
+		for(int j=0; j<M_numberOfEquations; j++)
+			df[j][i] = (f1[j]-f2[j])/(2.0*h);
+	}
+
+
+	for(int i=0; i<M_numberOfEquations; i++)
+	{
+		for(int j=0; j<M_numberOfEquations; j++)
+			Values[j] = df[i][j];
+		J.matrixPtr()->InsertGlobalValues (i, M_numberOfEquations, Values, Indices);
+	}
+
+	J.globalAssemble();
+
+	delete[] Indices;
+	delete[] Values;
+
+	return J;
+}
+
+void HeartIonicModel::computeRhs ( const vector_Type& v, const Real& Iapp, vector_Type& rhs)
+{
+	std::vector<Real> vec(M_numberOfEquations, 0.0);
+	std::vector<Real> f(M_numberOfEquations, 0.0);
+	const Int* j = v.blockMap().MyGlobalElements();
+	const Int* i = rhs.blockMap().MyGlobalElements();
+
+	for(int k=0; k<M_numberOfEquations; k++)
+		vec[k] = v[j[k]];
+
+	this->computeRhs(vec, Iapp, f);
+
+	for(int k=0; k<M_numberOfEquations; k++)
+			rhs[i[k]] = f[k];
+
+	//delete j;
+	//delete i;
+}
 
 void HeartIonicModel::computeRhs (   const std::vector<vectorPtr_Type>& v,
                                      std::vector<vectorPtr_Type>& rhs )

@@ -54,6 +54,7 @@
 #include <Epetra_SerialComm.h>
 #endif
 
+#include <string>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
@@ -68,6 +69,8 @@
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/heart/solver/IonicModels/HeartIonicModel.hpp>
+#include <lifev/core/fem/RosenbrockTransformed.hpp>
+#include <lifev/core/fem/ROS3P.hpp>
 
 #include <lifev/core/util/LifeChrono.hpp>
 #include <boost/shared_ptr.hpp>
@@ -399,6 +402,11 @@ public:
 
     //! @name Set Methods
     //@{
+
+    inline void setSolverParam(const string& solvParam)
+    {
+    	M_solvParam = solvParam;
+    }
 
     //! set the surface to volume ratio (NOT USED IN THE CODE)
     /*!
@@ -759,6 +767,14 @@ public:
      */
     void solveOneReactionStepFE();
 
+    //! Solves one reaction step using the Rosenbrock ROS3P method
+    /*!
+     * \f[
+     * \left( \frac{I}{dt \gamma}-J(y_n)\right) U_i = f(y_n+\sum_{j=1}{i-1} a_{i j} U_j) + \sum_{j=1}{i-1}\frac{c_{i j}}{dt} U_j
+     * \f]
+     */
+    void solveOneReactionStepROS3P();
+
     //! Update the rhs
     /*!
      * \f[
@@ -922,6 +938,8 @@ private:
 
 
     vectorPtr_Type          M_fiberPtr;
+
+    string				M_solvParam;
 
 }; // class MonodomainSolver
 
@@ -1471,6 +1489,40 @@ solveOneReactionStepFE()
         * ( M_globalSolution.at (i) ) = * ( M_globalSolution.at (i) ) + M_timeStep * ( * ( M_globalRhs.at (i) ) );
     }
 
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneReactionStepROS3P()
+{
+	ROS3P ros(M_commPtr, M_solvParam);
+	MapEpetra mappa(M_ionicModelPtr -> Size(), M_commPtr);
+	VectorEpetra localVec( mappa );
+	const Int* it = localVec.blockMap().MyGlobalElements();
+    int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
+    IonicModel mod = *M_ionicModelPtr.get();
+    //boost::shared_ptr<IonicModel> modPtr(new IonicModel(*mod));
+
+    int j (0);
+
+    for ( int k = 0; k < nodes; k++ )
+    {
+
+        j = M_appliedCurrentPtr->blockMap().GID (k);
+
+        for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
+        {
+            localVec[it[i]] = ( * ( M_globalSolution.at (i) ) ) [j];
+        }
+
+        ros.solve<IonicModel>(mod, localVec, 0.0, M_timeStep, M_timeStep/50.0);
+
+        for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
+        {
+            ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[it[i]];
+        }
+
+    }
 }
 
 template<typename Mesh, typename IonicModel>

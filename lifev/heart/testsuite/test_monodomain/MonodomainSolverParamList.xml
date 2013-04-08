@@ -6,14 +6,14 @@
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
     <Parameter name="timeStep" type="double" value="0.05"  />
-    <Parameter name="endTime" type="double" value="800.0"  />
-    <Parameter name="longitudinalDiffusion" type="double" value="0.00006"  />
-    <Parameter name="transversalDiffusion" type="double" value="0.000012"  />
+    <Parameter name="endTime" type="double" value="0.04"  />
+    <Parameter name="longitudinalDiffusion" type="double" value="0.10"  />
+    <Parameter name="transversalDiffusion" type="double" value="0.010"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="biventricle5_refined1.mesh"  />
     <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
     <Parameter name="fiber_file" type="string" value="FineFiberDirection"  />
-    <Parameter name="fiber_path" type="string" value="/usr/scratch/srossi/meshes/"  />
+    <Parameter name="fiber_path" type="string" value="/Users/Giacomo/Librerie/meshes/Biventricle5_refined1"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>

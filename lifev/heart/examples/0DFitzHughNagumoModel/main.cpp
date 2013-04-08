@@ -28,7 +28,7 @@
     @file
     @brief 0D test with the Fitz-Hugh Nagumo model.
 
-    @date 01−2013
+    @date 01-03-2013
     @author Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
 
     @contributor
@@ -56,13 +56,17 @@
 #include <string>
 #include <algorithm>
 
+#include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MatrixSmall.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/array/MapEpetra.hpp>
 
 #include <lifev/core/util/LifeChrono.hpp>
 
 #include <lifev/heart/solver/IonicModels/IonicFitzHughNagumo.hpp>
+#include <lifev/core/fem/RosenbrockTransformed.hpp>
+#include <lifev/core/fem/ROS3P.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -75,11 +79,11 @@ using namespace LifeV;
 
 void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
 
-void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
-			const Real& I, std::ofstream& output);
+void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
+					const Real& I, std::ofstream& output, boost::shared_ptr<Epetra_Comm> Comm);
 
 template<UInt n, UInt s>
-void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0, Real t0, Real TF, Real dt_init,
+void RosenbrockTransformedFunction( IonicFitzHughNagumo model, const VectorSmall<n>& y0, Real t0, Real TF, Real dt_init,
 							Real g,	const MatrixSmall<s,s>& A, const MatrixSmall<s,s>& C, const VectorSmall<s>& gammai,
 							const VectorSmall<s>& a, const VectorSmall<s>& m, const VectorSmall<s>& mhat,
 							const Real& S, const Real& D, const Real& Iapp, std::ofstream& output );
@@ -92,12 +96,11 @@ Int main ( Int argc, char** argv )
 {
     //! Initializing Epetra communicator
     MPI_Init (&argc, &argv);
-    Epetra_MpiComm Comm (MPI_COMM_WORLD);
-    if ( Comm.MyPID() == 0 )
+    boost::shared_ptr<Epetra_Comm>  Comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+    if ( Comm->MyPID() == 0 )
     {
         cout << "% using MPI" << endl;
     }
-
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -160,7 +163,7 @@ Int main ( Int argc, char** argv )
     if ( FHNParameterList.get ("Rosen", 1.0) == 0.0 )
         EulerExplicit (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
     else
-        ROS3P (dt, TF, model, S, D, FHNParameterList.get ("Iapp", 2000.0), output);
+        ROS3PFunction (dt, TF, model, S, D, FHNParameterList.get ("Iapp", 2000.0), output, Comm);
 
     chrono.stop();
     std::cout << "\n...Time loop ends.\n";
@@ -230,8 +233,8 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
     }
 }
 
-void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
-			const Real& I, std::ofstream& output)
+void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
+			const Real& I, std::ofstream& output, boost::shared_ptr<Epetra_Comm> Comm)
 {
 	cout << "Computing using ROS3P." << endl;
 
@@ -258,12 +261,24 @@ void ROS3P (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, 
 
 	//Call of the general Rosenbrock, passing ROS3P parameters, right side and initial values.
 	//Implemented with variable changes to avoid some matrix*vector multiplications
-	RosenbrockTransformed < 2, 3 > ( model, y0, t0, TF, dt, g, A, C, gammai, a, m, mhat, S, D, I, output );
+	RosenbrockTransformedFunction < 2, 3 > ( model, y0, t0, TF, dt, g, A, C, gammai, a, m, mhat, S, D, I, output );
+
+    MapEpetra mappa(2, Comm);
+    VectorEpetra vett1( mappa );
+    const Int* j = vett1.blockMap().MyGlobalElements();
+    vett1 (j[0]) = y0(0);
+    vett1 (j[1]) = y0(1);
+
+    boost::shared_ptr<IonicFitzHughNagumo> modelPtr(new IonicFitzHughNagumo(model));
+
+    //RosenbrockTransformed<3,2> rosen(g, A, C, gammai, a, m, mhat, 3.0, Comm, "FitzHughNagumoParameters.xml");
+    ROS3P rosen(Comm, "FitzHughNagumoParameters.xml");
+	rosen.solve<IonicFitzHughNagumo>(modelPtr, vett1, t0, TF, dt);
 
 }
 
 template<UInt n, UInt s>
-void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0, Real t0, Real TF, Real dt_init,
+void RosenbrockTransformedFunction( IonicFitzHughNagumo model, const VectorSmall<n>& y0, Real t0, Real TF, Real dt_init,
 							Real g,	const MatrixSmall<s,s>& A, const MatrixSmall<s,s>& C, const VectorSmall<s>& gammai,
 							const VectorSmall<s>& a, const VectorSmall<s>& m, const VectorSmall<s>& mhat,
 							const Real& S, const Real& D, const Real& Iapp, std::ofstream& output )
@@ -287,7 +302,7 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 	Real abs_tol = 0.0000001;			//absolute error tolerance
 	Real rel_tol = 0.00001;				//relative error tolerance
 	Real p = 3.0; 						//order of the method, which is also phat+1
-	Real p_1 = 1/p;						//used in computations
+	Real p_1 = 1.0/p;						//used in computations
 	//Real D = 2.0;
 
 	//The Rosenbrock method requires the multiplication J*(sum_{j=1}^{i-1} alpha(i,j)*K_j)
@@ -315,33 +330,17 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 
 	//First step, to set err_n_1
 	cout<<"Begin of iteration k = 0"<<endl;
-	cout<<"Manip matrix..."<<endl;
 	B = I/(dt*g);
-	cout<<"Calling class member..."<<endl;
-	B = B - model.computeJ( t, y);
-	cout<<"Inverting B...";
+	B = B - model.getJac(y, h);
 	B = Invert(B);
-	cout<<"Done !"<<endl;
 	for (int i = 0; i<s; i++)
 	{
-		cout<<"In for...\nExtracting column..."<<endl;
-		line = A.extract(i);
-		cout<<"Multiplying by U..."<<endl;
-		ytmp = U*line;
-		cout<<"Summing..."<<endl;
-		ytmp = y + ytmp;
-		cout<<"All togheter..."<<endl;
 		ytmp = y + U*A.extract(i); 				//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
-		cout<<"One more time..."<<endl;
 		Utmp = (U*C.extract(i))/dt;				//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
-		cout<<"Computing rhs...";
-		model.computeRhs ( y, It, rhs);
-		cout<<"Done!\nUpdating Utmp..."<<endl;
+		model.computeRhs ( ytmp, It, rhs);
 		Utmp = B*( rhs + Utmp );
 		setCol<n,s>(U, Utmp, i);
-		cout<<"End for cycle"<<endl;
 	}
-	cout<<"Updating solution..."<<endl;
 	y = y + U*m;
 	Utmp = U*m-U*mhat;
 	err_n_1 = Utmp.norm();
@@ -362,14 +361,14 @@ void RosenbrockTransformed( IonicFitzHughNagumo model, const VectorSmall<n>& y0,
 		cout<<"dt("<<k<<") = "<<dt<<endl;
 
 		U *= 0.0;									//U variables initilized at 0
-		B = I/(dt*g) - model.computeNumJ( t, y, h );		//Building linear system matrix
+		B = I/(dt*g) - model.getJac(y, h );		//Building linear system matrix
 		B = Invert(B);								//Computing the inverse, which will be used s times
 
 		for (int i = 0; i<s; i++)					//Computing the s stages
 		{
 			ytmp = y + U*A.extract(i);				//Point where f will be evalued
 			Utmp = (U*C.extract(i))/dt;				//U_i = sum_{j=1}^{i-1} C(i,j)*U_j
-			model.computeRhs( y, It, rhs);			//rhs = f(ytmp)
+			model.computeRhs( ytmp, It, rhs);			//rhs = f(ytmp)
 			Utmp = B*( rhs + Utmp );				//solving the linear system, Utmp = U_i
 			setCol<n,s>(U, Utmp, i);				//Putting U_i in the ith column of U
 		}

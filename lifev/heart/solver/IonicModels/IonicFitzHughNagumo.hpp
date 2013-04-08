@@ -43,6 +43,8 @@
 
 #include <lifev/core/array/MatrixSmall.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/array/VectorEpetra.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -52,20 +54,19 @@ namespace LifeV
 {
 //! XbModel - This class implements a mean field model.
 
+//! @name Type definitions
+    //@{
+    typedef HeartIonicModel super;
+    typedef MatrixEpetra<Real> matrix_Type;
+    typedef VectorEpetra vector_Type;
+    typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
+    typedef RegionMesh<LinearTetra> mesh_Type;
+    //@}
 
 class IonicFitzHughNagumo : public virtual HeartIonicModel
 {
 
 public:
-    //! @name Type definitions
-    //@{
-    typedef HeartIonicModel super;
-    typedef boost::shared_ptr<VectorEpetra> vectorPtr_Type;
-    typedef RegionMesh<LinearTetra> mesh_Type;
-    //@}
-
-
-
     //! @name Constructors & Destructor
     //@{
 
@@ -161,19 +162,19 @@ public:
     }
 
     //Compute the rhs on a single node or for the 0D case
+    //this is to make visible the computeRhs defined in the base class, otherwise it is hidden by the ones defined here
+    using HeartIonicModel::computeRhs;
     void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
-
     void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
     void computeRhs ( const VectorSmall<2>& v, const Real& Iapp, VectorSmall<2>& rhs);
-
 
     // compute the rhs with state variable interpolation
     Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
 
     //compute the Jacobian
-    MatrixSmall<2,2> computeJ (const Real& t, const std::vector<Real>& v);
-    MatrixSmall<2,2> computeJ (const Real& t, const VectorSmall<2>& v);
-    MatrixSmall<2,2> computeNumJ (const Real& t, const VectorSmall<2>& v, const Real& h);
+    matrix_Type getJac(const vector_Type& v, Real h=1.0e-8);
+    vector< vector<Real> > getJac (const std::vector<Real>& v, Real h=1.0e-8);
+    MatrixSmall<2,2> getJac (const VectorSmall<2>& v, Real h=1.0e-8);
 
     //! Display information about the model
     void showMe();

@@ -84,30 +84,25 @@
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
-// ---------------------------------------------------------------
-// In order to use the ETA framework, a special version of the
-// FESpace structure must be used. It is called ETFESpace and
-// has basically the same role as the FESpace.
-// ---------------------------------------------------------------
 
 #include <lifev/eta/fem/ETFESpace.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
 
+#include <lifev/core/fem/RosenbrockTransformed.hpp>
 
-// ---------------------------------------------------------------
-// The most important file to include is the Integrate.hpp file
-// which contains all the definitions required to perform the
-// different integrations.
-// ---------------------------------------------------------------
-
-//#include <lifev/eta/expression/Integrate.hpp>
-//
-//#include <lifev/eta/expression/ExpressionDot.hpp>
 
 
 using namespace std;
 using namespace LifeV;
 
+typedef MatrixEpetra<double>                    matrix_Type;
+typedef boost::shared_ptr<matrix_Type>          matrixPtr_Type;
+typedef VectorEpetra                            vector_Type;
+typedef boost::shared_ptr<vector_Type >         vectorPtr_Type;
+typedef MapEpetra						 	    map_Type;
+
+void Playing(boost::shared_ptr<Epetra_Comm>  Comm);
+matrix_Type getIdentity(const map_Type& map, UInt n);
 
 Int main ( Int argc, char** argv )
 {
@@ -120,16 +115,33 @@ Int main ( Int argc, char** argv )
         cout << "% using MPI" << endl;
     }
 
+
+    cout<<"Creating RosenbrockTransformed..."<<endl;
+    RosenbrockTransformed<4> ros;
+
+    cout<<"Done!"<<endl;
+
+    Playing(Comm);
+
+    MPI_Barrier (MPI_COMM_WORLD);
+    MPI_Finalize();
+    return ( EXIT_SUCCESS );
+}
+
+void Playing(boost::shared_ptr<Epetra_Comm>  Comm)
+{
     cout<<"Creating map ..."<<endl;
     MapEpetra mappa(4, Comm);
+
+    cout<<"\n\n\n		Playing with vectors\n\n\n"<<endl;
 
     cout<<"Creating vector ..."<<endl;
     VectorEpetra vett1( mappa );			// (mappa, Unique) ???
     VectorEpetra vett2( mappa );
 
     cout<<"Creating matrix ..."<<endl;
-    MatrixEpetra<Real> matrice( mappa, vett1.size() );
-
+    //MatrixEpetra<Real> matrice( mappa, vett1.size() );
+    MatrixEpetra<Real> matrice( vett1.map(), vett1.size() );
 
     Int d = vett1.epetraVector().MyLength();
     const Int* j = vett1.blockMap().MyGlobalElements();
@@ -149,19 +161,153 @@ Int main ( Int argc, char** argv )
 
     }
 
+    cout<<"\n\n\n		Playing with matrix\n\n\n"<<endl;
 
-    cout<<"Done !"<<endl;
+    matrixPtr_Type M_jac;
+
+    int* GlobalID = new int[4];
+    GlobalID[0] = 0;
+    GlobalID[1] = 1;
+    GlobalID[2] = 2;
+    GlobalID[3] = 3;
+
+    int* ElementsPerRow = new int[4];
+    ElementsPerRow[0] = 4;
+    ElementsPerRow[1] = 4;
+    ElementsPerRow[2] = 4;
+    ElementsPerRow[3] = 4;
+
+    int* Indices   = new int[4];
+
+    double* Values0 = new double[4];
+    double* Values1 = new double[4];
+    double* Values2 = new double[4];
+    double* Values3 = new double[4];
+
+    Indices[0] = 0;
+    Indices[1] = 1;
+    Indices[2] = 2;
+    Indices[3] = 3;
+
+    Values0[0] = 1;
+    Values0[1] = 2;
+    Values0[2] = 3;
+    Values0[3] = 4;
+
+    Values1[0] = 5;
+    Values1[1] = 6;
+    Values1[2] = 7;
+    Values1[3] = 8;
+
+    Values2[0] = 9;
+    Values2[1] = 10;
+    Values2[2] = 11;
+    Values2[3] = 12;
+
+    Values3[0] = 13;
+    Values3[1] = 14;
+    Values3[2] = 15;
+    Values3[3] = 16;
+
+    M_jac.reset (new matrix_Type (vett1.map(), ElementsPerRow) );
+
+    M_jac->matrixPtr()->InsertGlobalValues (GlobalID[0], 4, Values0, Indices);
+    M_jac->matrixPtr()->InsertGlobalValues (GlobalID[1], 4, Values1, Indices);
+    M_jac->matrixPtr()->InsertGlobalValues (GlobalID[2], 4, Values2, Indices);
+    M_jac->matrixPtr()->InsertGlobalValues (GlobalID[3], 4, Values3, Indices);
+
+    M_jac->globalAssemble();
+
+    delete Indices;
+    delete Values0;
+    delete Values1;
+    delete Values2;
+    delete Values3;
+    delete ElementsPerRow;
+    delete GlobalID;
+
+    cout<<"Norm inf = "<<M_jac->normInf()<<endl;
+    cout<<"Norm 1   = "<<M_jac->norm1()<<endl;
+
+    vett2 = (*M_jac)*vett1;
+    cout<<"vett1 = "<<endl;
+    vett1.showMe();
+    cout<<"M_jac * vett1 = \n"<<vett2.epetraVector()<<endl;
 
 
-    MPI_Barrier (MPI_COMM_WORLD);
-    MPI_Finalize();
-    return ( EXIT_SUCCESS );
+    cout<<"Setting M_jac = I...";
+    //M_jac.reset(new matrix_Type(getIdentity(vett1.map(), d)));
+    *M_jac = getIdentity(vett1.map(), d);
+    cout<<"Done\n";
+    cout<<"Norm inf = "<<matrice.normInf()<<endl;
+    cout<<"Norm 1   = "<<matrice.norm1()<<endl;
+
+    vett2 = (*M_jac)*vett1;
+    cout<<"vett1 = "<<endl;
+    vett1.showMe();
+    cout<<"M_jac * vett1 = \n";
+    vett2.showMe();
+
+    cout<<"substracting M_jac-=3*M_jac...";
+    *M_jac -= (*M_jac)*3.0;
+    cout<<"Done\nMultiplying by vett1...";
+    vett2 = (*M_jac)*vett1;
+    cout<<"Done\nresult = "<<endl;
+    vett2.showMe();
+
+
+    cout<<"\n\n\n		Playing with linear solver\n\n\n"<<endl;
+
+    Teuchos::RCP< Teuchos::ParameterList > List = Teuchos::rcp ( new Teuchos::ParameterList );
+    List = Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" );
+
+    LinearSolver solver;
+    solver.setCommunicator(Comm);
+    solver.setParameters(*List);
+
+    vectorPtr_Type sol;
+    sol.reset( new vector_Type( vett1.map() ) );
+    *sol *= 0;
+
+    vectorPtr_Type rhs;
+    rhs.reset( new vector_Type( vett1.map() ) );
+    *rhs = vett2;
+
+    solver.setOperator(M_jac);
+    solver.setRightHandSide( rhs );
+    solver.solve(sol);
+
+    cout<<"Solution of M_jac^{-1}*(M_jac*vett1) = "<<endl<<sol->epetraVector()<<endl;
+
+    cout<<"vett1.size = "<<vett1.size()<<endl;
+
 }
 
+matrix_Type getIdentity(const map_Type& map, UInt n)
+{
 
+	matrix_Type I(map, n, false);
+	int* Indices = new int[n];
+	double* Values = new double[n];
 
+	for( int i=0; i<n; i++)
+		Indices[i] = i;
 
+	for(int i=0; i<n; i++)
+	{
+		for(int j=0; j<n; j++)
+			Values[j] = (double)(i==j);
 
+		I.matrixPtr()->InsertGlobalValues (i, n, Values, Indices);
+	}
+
+	I.globalAssemble();
+
+	delete Indices;
+	delete Values;
+
+	return I;
+}
 
 
 

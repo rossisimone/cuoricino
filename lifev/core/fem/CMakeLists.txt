@@ -40,6 +40,8 @@ SET(fem_HEADERS
   fem/TimeAdvanceData.hpp
   fem/TimeAdvanceNewmark.hpp
   fem/TimeData.hpp
+  fem/RosenbrockTransformed.hpp
+  fem/ROS3P.hpp
 CACHE INTERNAL "")
 
 SET(fem_SOURCES

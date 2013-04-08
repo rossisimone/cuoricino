@@ -113,12 +113,9 @@ IonicFitzHughNagumo& IonicFitzHughNagumo::operator= ( const IonicFitzHughNagumo&
 void IonicFitzHughNagumo::computeRhs (    const   std::vector<Real>&  v,
                                           std::vector<Real>& rhs )
 {
-
-    //Real dr = - ( M_epsilon + M_mu1 * v[1] / ( M_mu2 + v[0] ) ) * ( v[1] + M_k * v[0] * ( v[0] - M_a  - 1.0 ) );
     Real dr = M_Eta * v[0] - M_Gamma * v[1] ;
 
     rhs[0] = dr;
-
 }
 
 //Potential and gating variables
@@ -148,7 +145,18 @@ Real IonicFitzHughNagumo::computeLocalPotentialRhs ( const std::vector<Real>& v,
     return ( - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) + Iapp );
 }
 
-MatrixSmall<2,2> IonicFitzHughNagumo::computeJ (const Real& t, const std::vector<Real>& v)
+vector< vector<Real> > IonicFitzHughNagumo::getJac (const std::vector<Real>& v, Real h)
+{
+	vector< vector<Real> > J(2, vector<Real>(2,0.0));
+	J[0][0] = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
+	J[0][1] = -M_Eta1 * v[0];
+	J[1][0] = M_Eta;
+	J[1][1] = -M_Gamma;
+
+	return J;
+}
+
+MatrixSmall<2,2> IonicFitzHughNagumo::getJac (const VectorSmall<2>& v, Real h)
 {
 	MatrixSmall<2,2> J;
     J(0,0) = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
@@ -159,40 +167,32 @@ MatrixSmall<2,2> IonicFitzHughNagumo::computeJ (const Real& t, const std::vector
     return J;
 }
 
-MatrixSmall<2,2> IonicFitzHughNagumo::computeJ (const Real& t, const VectorSmall<2>& v)
+matrix_Type IonicFitzHughNagumo::getJac (const vector_Type& v, Real h)
 {
-	MatrixSmall<2,2> J;
-    J(0,0) = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
-    J(0,1) = -M_Eta1 * v[0];
-    J(1,0) = M_Eta;
-    J(1,1) = -M_Gamma;
+	matrix_Type J(v.map(), M_numberOfEquations, false);
+	const Int* k = v.blockMap().MyGlobalElements();
 
-    return J;
-}
-MatrixSmall<2,2> IonicFitzHughNagumo::computeNumJ (const Real& t, const VectorSmall<2>& v, const Real& h)
-{
-	Real Iapp = 0.0;
+	int* Indices = new int[M_numberOfEquations];
+	double* Values =  new double[M_numberOfEquations];
+	Indices[0] = 0;
+	Indices[1] = 1;
 
-	VectorSmall<2> y1(v);			y1(0) = y1(0) + h;
-	VectorSmall<2> y2(v);			y2(0) = y2(0) - h;
-	VectorSmall<2> f1,f2;
+	MatrixSmall<2,2> df;
+	VectorSmall<2> y;
+	y(0) = v[k[0]];
+	y(1) = v[k[1]];
 
-	this->computeRhs(y1, Iapp, f1);
-	this->computeRhs(y2, Iapp, f2);
+	df = getJac(y, h);
 
-	VectorSmall<2> df1 = (f1-f2)/(2.0*h);
+	Values[0] = df(0,0);	Values[1] = df(0,1);
+	J.matrixPtr()->InsertGlobalValues (0, M_numberOfEquations, Values, Indices);
+	Values[0] = df(1,0);	Values[1] = df(1,1);
+	J.matrixPtr()->InsertGlobalValues (1, M_numberOfEquations, Values, Indices);
 
-	y1 = v;			y1(1) = y1(1) + h;
-	y2 = v;			y2(1) = y2(1) - h;
+	J.globalAssemble();
 
-	this->computeRhs(y1, Iapp, f1);
-	this->computeRhs(y2, Iapp, f2);
-
-	VectorSmall<2> df2 = (f1-f2)/(2.0*h);
-
-	MatrixSmall<2,2> J;
-	J(0,0) = df1(0);	J(0,1) = df2(0);
-	J(1,0) = df1(1);	J(1,1) = df2(1);
+	delete[] Indices;
+	delete[] Values;
 
 	return J;
 }
