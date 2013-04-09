@@ -183,7 +183,7 @@ rescaleFactor    = 1.0   # this factor can be used to rescale the structure bloc
         type       = Natural
         flag       = 45
         mode       = Normal
-        function   = '10000'
+        functionFile = FunctionsDatabase/RightVentriclePressure.dat
 
 	[../Apex]
 	type       = Essential

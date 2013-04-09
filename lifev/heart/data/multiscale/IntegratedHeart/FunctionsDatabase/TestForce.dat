@@ -20,7 +20,7 @@
 function  = 'F * (y + 9) / 9'
 
 variables =  't            F'
-scale     =  '1            -50000'
+scale     =  '1            0'
 
 loop      = true
 

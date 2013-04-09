@@ -1,0 +1,30 @@
+###################################################################################################
+#
+#                       This file is part of the LifeV Library
+#                Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
+#                Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
+#
+#      Author(s): Toni Lassila <toni.lassila@epfl.ch>, Cristiano Malossi <cristiano.malossi@epfl.ch>
+#           Date: 2011-03-10
+#  License Terms: GNU LGPL
+#
+###################################################################################################
+### RIGHT VENTRICLE PRESSURE#######################################################################
+###################################################################################################
+# First column:  time [s]
+# Second column: blood pressure inside right ventricle
+#
+# One loop correspond to one heart pulse (pulse / minute: 75)
+###################################################################################################
+
+function  = 'P'
+
+variables =  't            P'
+scale     =  '1           -13333' # Corresponds to 10 mmHg constant pressure (after the ramp)
+
+loop      = false
+
+# Items must be sorted by the first column value!
+data        =  '0         0.0                
+		0.01      1.0
+                8.00      1.0'
