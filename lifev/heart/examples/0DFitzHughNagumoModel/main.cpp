@@ -262,7 +262,7 @@ void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
 
 	//Call of the general Rosenbrock, passing ROS3P parameters, right side and initial values.
 	//Implemented with variable changes to avoid some matrix*vector multiplications
-	RosenbrockTransformedFunction < 2, 3 > ( model, y0, t0, TF, dt, g, A, C, gammai, a, m, mhat, S, D, I, output );
+	//RosenbrockTransformedFunction < 2, 3 > ( model, y0, t0, TF, dt, g, A, C, gammai, a, m, mhat, S, D, I, output );
 
 
     Epetra_LocalMap localMap( 2, 0, *Comm );
@@ -272,11 +272,16 @@ void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
     vett1 (j[0]) = y0(0);
     vett1 (j[1]) = y0(1);
 
+    vector<Real> vett2(2,0.0);
+    vett2[0] = y0(0);
+    vett2[1] = y0(1);
+
     boost::shared_ptr<IonicFitzHughNagumo> modelPtr(new IonicFitzHughNagumo(model));
 
     //RosenbrockTransformed<3,2> rosen(g, A, C, gammai, a, m, mhat, 3.0, Comm, "FitzHughNagumoParameters.xml");
     ROS3P rosen(Comm, "FitzHughNagumoParameters.xml");
-	rosen.solve<IonicFitzHughNagumo>(modelPtr, vett1, t0, TF, dt);
+	//rosen.solve<IonicFitzHughNagumo>(modelPtr, vett1, t0, TF, dt);
+	rosen.solve<IonicFitzHughNagumo>(modelPtr, vett2, t0, TF, dt);
 
 }
 
@@ -429,6 +434,7 @@ void RosenbrockTransformedFunction( IonicFitzHughNagumo model, const VectorSmall
 	cout<<"Total rejections : "<<tot_rej<<endl;
 	cout<<"Double rejections : "<<dub_rej<<endl<<endl;
 
+	cout<<"Computed with FUNCTION\n";
 
 }
 

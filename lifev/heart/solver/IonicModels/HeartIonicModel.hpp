@@ -106,6 +106,8 @@ public:
 
     virtual matrix_Type getJac(const vector_Type& v, Real h=1.0e-8);
 
+    virtual vector< vector<Real> > getJac(const vector<Real>& v, Real h=1.0e-8);
+
     virtual void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs) = 0;
 
     virtual void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs) = 0;

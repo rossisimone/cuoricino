@@ -42,6 +42,9 @@
 
 namespace LifeV
 {
+// ===================================================
+//! Constructors
+// ===================================================
 HeartIonicModel::HeartIonicModel() :
     M_numberOfEquations (0)
 {
@@ -66,6 +69,31 @@ HeartIonicModel& HeartIonicModel::operator = ( const HeartIonicModel& Ionic )
 {
     M_numberOfEquations = Ionic.M_numberOfEquations;
     return      *this;
+}
+
+vector< vector<Real> > HeartIonicModel::getJac (const vector<Real>& v, Real h)
+{
+	vector< vector<Real> > J( M_numberOfEquations, vector<Real>(M_numberOfEquations,0.0) );
+	vector<Real> f1(M_numberOfEquations,0.0);
+	vector<Real> f2(M_numberOfEquations,0.0);
+	vector<Real> y1(M_numberOfEquations,0.0);
+	vector<Real> y2(M_numberOfEquations,0.0);
+
+	for(int i=0; i<M_numberOfEquations; i++)
+	{
+		for(int j=0; j<M_numberOfEquations; j++)
+		{
+			y1[j] = v[j] + ((double)(i==j))*h;
+			y2[j] = v[j] - ((double)(i==j))*h;
+		}
+		this->computeRhs(y1, 0.0, f1);
+		this->computeRhs(y2, 0.0, f2);
+
+		for(int j=0; j<M_numberOfEquations; j++)
+			J[j][i] = (f1[j]-f2[j])/(2.0*h);
+	}
+
+	return J;
 }
 
 MatrixEpetra<Real> HeartIonicModel::getJac (const vector_Type& v, Real h)
@@ -329,7 +357,6 @@ void HeartIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_Typ
         }
     }
 }
-
 }
 
 

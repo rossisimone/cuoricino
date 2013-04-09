@@ -59,7 +59,7 @@ template<UInt s>
 template<typename RightHandSide>
 void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vector_Type& y0, Real t0, Real TF, Real dt_init)
 {
-	ofstream output("test_ros3p.txt");
+	//ofstream output("test_ros3p_vectorEpetra.txt");
 
 	Real t(t0);						//time t_k
 	Real dt(dt_init);
@@ -80,10 +80,10 @@ void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vect
 	Int k = 1;							//iteration counter
 	bool rejected = false;					//used to know if a step is rejected two times consecutively
 
-	output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
+	//output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
 
 	//First step, to set err_n_1
-	cout<<"Begin of iteration k = 0\n";
+	//cout<<"Begin of iteration k = 0\n";
 
 	zero(U);
 	updateMatrix(B, Fun->getJac(y), I*(1.0/(dt*M_g)));
@@ -96,19 +96,21 @@ void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vect
 	err_n_1 = Utmp->norm2();
 	t = t + dt;
 
+	/*
 	cout<<"t(k) = "<<t-dt<<"\n";
 	cout<<"dt(k) = "<<dt<<"\n";
 	cout<<"err_n_1 = "<<err_n_1<<"\n";
 	cout<<"dt(k+1) = "<<dt<<"\n";
 	cout<<"Iteration 0 finished."<<"\n\n";
+	*/
 
-	output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
+	//output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
 
 	while (t < TF)
 	{
-		cout<<"Begin of iteration k = "<<k<<"\n";
-		cout<<"t("<<k<<") = "<<t<<"\n";
-		cout<<"dt("<<k<<") = "<<dt<<"\n";
+		//cout<<"Begin of iteration k = "<<k<<"\n";
+		//cout<<"t("<<k<<") = "<<t<<"\n";
+		//cout<<"dt("<<k<<") = "<<dt<<"\n";
 
 		zero(U);
 		updateMatrix(B, Fun->getJac(y), I*(1.0/(dt*M_g)));
@@ -126,10 +128,10 @@ void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vect
 			t = t + dt;									//upgrading the time
 			k++;
 
-			cout<<"dt("<<k<<") = "<<dt<<"\n";
-			cout<<"Iteration "<<k-1<<" finished."<<"\n\n";
+			//cout<<"dt("<<k<<") = "<<dt<<"\n";
+			//cout<<"Iteration "<<k-1<<" finished."<<"\n\n";
 
-			output << t << " " << y[0] << " " << y[1] << " " <<dt<< " " << rejected <<"\n";
+			//output << t << " " << y[0] << " " << y[1] << " " <<dt<< " " << rejected <<"\n";
 
 			rejected = false;
 		}
@@ -138,7 +140,107 @@ void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vect
 
 	y0 = y;
 
-	output.close();
+	//output.close();
+
+	//cout<<"Computed with VECTOR EPETRA\n";
+}
+
+template<UInt s>
+template<typename RightHandSide>
+void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real dt_init)
+{
+	//ofstream output("test_ros3p_vectorReal.txt");
+
+	Real t(t0);						//time t_k
+	Real dt(dt_init);
+	Real dt_old(dt_init);
+
+	UInt n= y0.size();
+	vector<Real> y(y0);					//y contains the solution y_k
+	vector<vector<Real> > U(s,vector<Real>(n,0.0));
+	vector<vector<Real> > I( getIdentity(n) );
+	vector<vector<Real> > Psys(I),Qsys(I),Usys(I),Lsys(I);
+	vector<vector<Real> > B(n,vector<Real>(n,0.0));			//Linear system matrix
+	vector<Real> ytmp(y0);				//temporary variable
+	vector<Real> Utmp(y0);
+	vector<Real> rhs(y0);					//rhs will be the right side
+	Real err_n;							//error at step n
+	Real err_n_1;						//error at step n-1
+	Real fac_max = 5.0;					//maximal value for this factor, dt(k+1) < dt(k)*fac_max
+	Int k = 1;							//iteration counter
+	bool rejected = false;					//used to know if a step is rejected two times consecutively
+
+	//output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
+
+	//First step, to set err_n_1
+	//cout<<"Begin of iteration k = 0\n";
+
+	zero(U, n);
+	B = I;
+	mult(B, 1.0/(dt*M_g), n);
+	minusequal(B, Fun->getJac(y), n);
+	LU(B, Psys, Qsys, Lsys, Usys, n);
+
+	computeStages<RightHandSide>(U, y, ytmp, rhs, Utmp, Fun, dt, Lsys, Usys, Psys, Qsys, n);
+
+	y = sum(y, combLin(U, M_m, n), n);
+	Utmp = combLin(U, M_m - M_mhat, n);
+
+	err_n_1 = norm2(Utmp, n);
+	t = t + dt;
+	/*
+	cout<<"t(k) = "<<t-dt<<"\n";
+	cout<<"dt(k) = "<<dt<<"\n";
+	cout<<"err_n_1 = "<<err_n_1<<"\n";
+	cout<<"dt(k+1) = "<<dt<<"\n";
+	cout<<"Iteration 0 finished."<<"\n\n";
+	*/
+
+	//output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
+
+	while (t < TF)
+	{
+		/*
+		cout<<"Begin of iteration k = "<<k<<"\n";
+		cout<<"t("<<k<<") = "<<t<<"\n";
+		cout<<"dt("<<k<<") = "<<dt<<"\n";
+		*/
+
+		zero(U, n);
+		B = I;
+		mult(B, 1.0/(dt*M_g), n);
+		minusequal(B, Fun->getJac(y), n);
+		LU(B, Psys, Qsys, Lsys, Usys, n);								//Computing the inverse, which will be used s times
+		computeStages<RightHandSide>(U, y, ytmp, rhs, Utmp, Fun, dt, Lsys, Usys, Psys, Qsys, n);
+
+		if( computeError(U, Utmp, err_n, err_n_1, fac_max, dt, dt_old, TF-t, norm2(y,n), rejected, n) )
+		{
+			rejected = true;
+			continue;
+		}
+		else
+		{
+			y = sum(y, combLin(U, M_m, n), n);							//upgrading the solution
+			t = t + dt;									//upgrading the time
+			k++;
+
+			/*
+			cout<<"dt("<<k<<") = "<<dt<<"\n";
+			cout<<"Iteration "<<k-1<<" finished."<<"\n\n";
+			*/
+
+			//output << t << " " << y[0] << " " << y[1] << " " <<dt<< " " << rejected <<"\n";
+
+			rejected = false;
+		}
+
+	}
+
+	y0 = y;
+
+	//output.close();
+
+	//cout<<"Computed with VECTOR<REAL>\n";
 
 }
 
@@ -285,6 +387,312 @@ void RosenbrockTransformed<s>::setMethod(Real g, const MatrixSmall<s,s>& A, cons
 	M_m = m;
 	M_mhat = mhat;
 	M_p = (double)(order);
+}
+
+template<UInt s>
+void RosenbrockTransformed<s>::LU(vector<vector<Real> >& A, vector<vector<Real> >& P, vector<vector<Real> >& Q,
+								  vector<vector<Real> >& L, vector<vector<Real> >& U, UInt n)
+{
+
+	vector< vector<Real> > I(getIdentity(n));
+	vector< vector<Real> > Minv(I), Pk(I), Qk(I), Mk(I), Mkinv(I);
+	P = I;
+	Q = I;
+
+	for(int k = 1; k<n; k++)
+	{
+		Pk = I;
+		Qk = I;
+		pivot(A, k, n, Pk, Qk);
+		A = mult(Pk,A,n);
+		A = mult(A,Qk,n);
+		Mk = I;
+		MGauss(A, k, n, Mk);
+		Mkinv = I;
+		mult(Mkinv, 2.0, n);
+		minusequal(Mkinv, Mk, n);
+		A = mult(Mk, A, n);
+		P = mult(Pk, P, n);
+		Q = mult(Q, Qk, n);
+		Minv = mult(Minv, Pk, n);
+		Minv = mult(Minv, Mkinv, n);
+	}
+
+	U = triu(A, n);
+	L = mult(P, Minv, n);
+
+}
+
+template<UInt s>
+vector< vector<Real> > RosenbrockTransformed<s>::getIdentity(UInt n)
+{
+	vector< vector<Real> > I(n, vector<Real>(n,0.0) );
+
+	for(int i=0; i<n; i++)
+		I[i][i] = 1.0;
+
+	return I;
+}
+
+template<UInt s>
+void RosenbrockTransformed<s>::pivot(const vector<vector<Real> >& A, UInt k, UInt n, vector<vector<Real> >& Pk, vector<vector<Real> >& Qk)
+{
+	int i = k-1;
+	int j = k-1;
+	Real max = abs(A[i][j]);
+
+	for(int l = k-1; l<n; l++)
+	{
+		for(int c = k-1; c<n; c++)
+		{
+			if( abs(A[l][c]) > max)
+			{
+				max = abs(A[l][c]);
+				i = l;
+				j = c;
+			}
+		}
+	}
+
+	Pk[i][i] = 0.;	Pk[k-1][k-1] = 0.;	Pk[k-1][i] = 1.;	Pk[i][k-1] = 1.;
+	Qk[j][j] = 0.;	Qk[k-1][k-1] = 0.;	Qk[k-1][j] = 1.;	Qk[j][k-1] = 1.;
+}
+
+template<UInt s>
+void RosenbrockTransformed<s>::MGauss(const vector<vector<Real> >& A, UInt k, UInt n, vector<vector<Real> >& Mk)
+{
+	for(int i = k; i<n; i++)
+		Mk[i][k-1] = -A[i][k-1]/A[k-1][k-1];
+}
+
+template<UInt s>
+void RosenbrockTransformed<s>::mult(vector<vector<Real> >& B, Real a, UInt n)
+{
+	for(int i=0; i<n; i++)
+		for(int j=0; j<n; j++)
+			B[i][j] *= a;
+}
+
+template<UInt s>
+void RosenbrockTransformed<s>::minusequal(vector<vector<Real> >& A, const vector<vector<Real> >& B, UInt n)
+{
+	for(int i=0; i<n; i++)
+		for(int j=0; j<n; j++)
+			A[i][j] -= B[i][j];
+}
+
+template<UInt s>
+vector< vector<Real> > RosenbrockTransformed<s>::mult(const vector<vector<Real> >& A, const vector<vector<Real> >& B, UInt n)
+{
+	vector<vector<Real> > C(n, vector<Real>(n,0.0));
+
+	for(int i=0; i<n; i++)
+	{
+		for(int j=0; j<n; j++)
+		{
+			for(int k=0; k<n; k++)
+				C[i][j] += A[i][k]*B[k][j];
+		}
+	}
+
+	return C;
+}
+
+template<UInt s>
+vector<Real> RosenbrockTransformed<s>::mult(const vector<vector<Real> >& A, const vector<Real>& b, UInt n)
+{
+	vector<Real> c(n,0.0);
+
+	for(int i=0; i<n; i++)
+	{
+		for(int k=0; k<n; k++)
+			c[i] += A[i][k]*b[k];
+	}
+
+	return c;
+}
+
+template<UInt s>
+vector<vector<Real> > RosenbrockTransformed<s>::triu(const vector<vector<Real> >& B, UInt n)
+{
+	vector< vector<Real> > U(n, vector<Real>(n,0.0));
+
+	for(int i=0; i<n; i++)
+		for(int j=i; j<n; j++)
+			U[i][j] = B[i][j];
+
+	return U;
+}
+
+template<UInt s>
+void RosenbrockTransformed<s>::zero(vector<vector<Real> >& U, UInt n)
+{
+	for(int i=0; i<s; i++)
+		for(int j=0; j<n; j++)
+			U[i][j] = 0.0;
+}
+
+template<UInt s>
+template<typename RightHandSide>
+void RosenbrockTransformed<s>::computeStages(vector< vector<Real> >& U, const vector<Real>& y, vector<Real>& ytmp,
+											 vector<Real>& rhs, vector<Real>& Utmp, boost::shared_ptr<RightHandSide> Fun,
+											 Real dt, vector< vector<Real> >& Lsys, vector< vector<Real> >& Usys,
+											 vector< vector<Real> >& Psys, vector< vector<Real> >& Qsys, UInt n)
+{
+	for (int i = 0; i<s; i++)
+	{
+		ytmp = sum(y, combLin(U, M_A, i, n), n);				//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
+		Utmp = combLin(U, M_C, i, n);				//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
+		multequal(Utmp, 1.0/dt, n);
+		Fun->computeRhs( ytmp, 0.0, rhs);
+		rhs = sum(rhs, Utmp, n);
+		rhs = mult(Psys, rhs, n);
+		rhs = solvel(Lsys,rhs, n);
+		rhs = solveu(Usys,rhs, n);
+		rhs = mult(Qsys, rhs, n);
+		U[i] = rhs;
+	}
+}
+
+template<UInt s>
+vector<Real> RosenbrockTransformed<s>::combLin(const vector<vector<Real> >& U, const MatrixSmall<s,s>& M, const Int line, UInt n)
+{
+	vector<Real> sum(n,0.0);
+
+	for(int i=0; i<n; i++)
+	{
+		for(int j=0; j<s; j++)
+			sum[i] += M(line,j)*U[j][i];
+	}
+
+	return sum;
+}
+
+template<UInt s>
+vector<Real> RosenbrockTransformed<s>::combLin(const vector< vector<Real> >& U, const VectorSmall<s>& v, UInt n)
+{
+	vector<Real> sum(n,0.0);
+
+	for(int i=0; i<n; i++)
+	{
+		for(int j=0; j<s; j++)
+			sum[i] += v(j)*U[j][i];
+	}
+
+	return sum;
+}
+
+template<UInt s>
+vector<Real> RosenbrockTransformed<s>::sum(const vector<Real>& a, const vector<Real>& b, UInt n)
+{
+	vector<Real> sum(n,0.0);
+
+	for(int i=0; i<n; i++)
+		sum[i] = a[i] + b[i];
+
+	return sum;
+}
+
+template<UInt s>
+void RosenbrockTransformed<s>::multequal(vector<Real>& v, Real a, UInt n)
+{
+	for(int i=0; i<n; i++)
+		v[i] *= a;
+}
+
+template<UInt s>
+vector<Real> RosenbrockTransformed<s>::solveu(const vector<vector<Real> >& U, const vector<Real>& b, UInt n)
+{
+	vector<Real> x(n,0.0);
+	Real tmp;
+
+	x[n-1] = b[n-1]/U[n-1][n-1];
+
+	for(int i=2; i<=n; i++)
+	{
+		tmp = 0.;
+		for(int k = n-i+1; k<=n-1; k++)
+			tmp += U[n-i][k]*x[k];
+		x[n-i] = (b[n-i]-tmp)/U[n-i][n-i];
+	}
+
+	return x;
+}
+
+template<UInt s>
+vector<Real> RosenbrockTransformed<s>::solvel(const vector<vector<Real> >& L, const vector<Real>& b, UInt n)
+{
+	vector<Real> x(n,0.0);
+	Real tmp;
+
+	x[0] = b[0]/L[0][0];
+
+	for(int i=1; i<n; i++)
+	{
+		tmp = 0.;
+		for(int k = 0; k<=i-1; k++)
+			tmp += L[i][k]*x[k];
+		x[i] = (b[i]-tmp)/L[i][i];
+	}
+
+	return x;
+}
+
+template<UInt s>
+Real RosenbrockTransformed<s>::norm2(const vector<Real>& v, UInt n)
+{
+	Real norm = 0.0;
+
+	for(int i=0; i<n; i++)
+		norm += v[i]*v[i];
+
+	return std::sqrt(norm);
+}
+
+template<UInt s>
+bool RosenbrockTransformed<s>::computeError(const vector<vector<Real> >& U, vector<Real>& Utmp, Real& err_n, Real& err_n_1,
+				  	  	  	  	  	  	  	  Real fac_max, Real& dt, Real& dt_old, Real Trem, Real ynorm, bool& rejected, UInt n)
+{
+	Real Tol = M_absTol + M_relTol * ynorm;			//Tol = atol + rtol*|y_k|
+	Real fac;
+	Utmp =  combLin(U, M_m - M_mhat, n );				//difference with the embedded method
+	err_n = norm2(Utmp, n);						//norm of the error
+	if (err_n == 0.0)							//here we set fac, where dt(k+1) = fac*dt(k)
+		fac = fac_max;							//if the actual error is zero we set fac to its maximal value
+	else if (err_n_1 == 0.0)					//if the previous error was zero and the actual is not then fac~1
+		fac = M_S;
+	else										//formula to compute fac, takes in account Tol, errors and time steps
+		fac = M_S * pow( (Tol*err_n_1)/(err_n*err_n) , M_p_1 ) * ( dt / dt_old ) ;
+
+	if (err_n > Tol)							//the step is rejected
+	{
+		if (rejected)						//if it is the second time that it is rejected we
+			dt /= M_D;							//divide the time step by
+		else									//else dt = dt*fac, if the previous step has not grown too much then
+			dt *= fac;							//fac<1, if fac>1 it will be rejected one more time and dt will be
+													//divided by 10.
+		return true;							//this timestep has been rejected
+	}
+	else
+	{
+		err_n_1 = err_n;
+		dt_old = dt;
+		dt = min<Real>( Trem, min<Real>( fac, fac_max )*dt );	// dt(k+1) = min( TF-t, fac*dt(k), fac_max*dt(k) )
+		return false;
+	}
+}
+
+template<UInt s>
+void RosenbrockTransformed<s>::disp(vector<vector<Real> >& M, string name, UInt n)
+{
+	cout<<name<<" = \n";
+	for(int i=0; i<n; i++)
+	{
+		for(int j=0; j<n; j++)
+			cout<<"   "<<M[i][j];
+		cout<<"\n";
+	}
+	cout<<"\n\n";
 }
 
 

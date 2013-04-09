@@ -29,10 +29,10 @@
     @brief 0D test with the Negroni Lascano model of 1996.
 
     @date 01−2013
-    @author Simone Rossi <simone.rossi@epfl.ch>
+    @author Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
 
     @contributor
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
+    @mantainer Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
  */
 
 // Tell the compiler to ignore specific kind of warnings:
@@ -115,13 +115,48 @@ Int main ( Int argc, char** argv )
         cout << "% using MPI" << endl;
     }
 
+    const int n=4;
+    RosenbrockTransformed<n> ros;
+    typedef vector<vector<Real> > matrix;
+    typedef vector<Real> vector;
 
-    cout<<"Creating RosenbrockTransformed..."<<endl;
-    RosenbrockTransformed<4> ros;
+    matrix A(n,vector(n,0.0));
+    matrix I(ros.getIdentity(n));
+    matrix P(I),Q(I),L(I),U(I), B1(I), B2(I);
+    A[0][0] = 1.;	A[0][1] = 2.;	A[0][2] = 3.;	A[0][3] = 4.;
+    A[1][0] = 9.;	A[1][1] = 8.;	A[1][2] = 7.;	A[1][3] = 6.;
+    A[2][0] = 20.;	A[2][1] = 12.;	A[2][2] = 13.;	A[2][3] = 45.;
+    A[3][0] = 89.;	A[3][1] = 23.;	A[3][2] = 23.;	A[3][3] = 23.;
 
-    cout<<"Done!"<<endl;
+    matrix AA(A);
 
-    Playing(Comm);
+    ros.LU(A, P, Q, L, U, n);
+    B1 = ros.mult(P,AA,n);
+    B1 = ros.mult(B1,Q,n);
+    B2 = ros.mult(L,U,n);
+
+    ros.disp(P,"P", n);
+    ros.disp(Q,"Q", n);
+    ros.disp(L,"L", n);
+    ros.disp(U,"U", n);
+    ros.disp(B1,"B1", n);
+    ros.disp(B2,"B2", n);
+
+    vector v(n,0.0);
+    v[0] = 1.;	v[1] = 1.;	v[2] = 1.;	v[3] = 1.;
+    vector w(ros.mult(AA,v,n));
+    cout<<"\n\nv = \n"; for(int i=0; i<n; i++) cout<<"    "<<v[i]<<endl;
+    cout<<"\n\nw = \n"; for(int i=0; i<n; i++) cout<<"    "<<w[i]<<endl;
+    v = ros.mult(P,w,n);
+    cout<<"\n\nv =Pw = \n"; for(int i=0; i<n; i++) cout<<"    "<<v[i]<<endl;
+    v = ros.solvel(L,v,n);
+    cout<<"\n\nv = L-1v = \n"; for(int i=0; i<n; i++) cout<<"    "<<v[i]<<endl;
+    v = ros.solveu(U,v,n);
+    cout<<"\n\nv = U-1v\n"; for(int i=0; i<n; i++) cout<<"    "<<v[i]<<endl;
+    v = ros.mult(Q,v,n);
+    cout<<"\n\nv = Qv\n"; for(int i=0; i<n; i++) cout<<"    "<<v[i]<<endl;
+
+    //Playing(Comm);
 
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();

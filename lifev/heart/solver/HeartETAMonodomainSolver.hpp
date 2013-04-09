@@ -62,6 +62,9 @@
 #endif
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
+#include <Epetra_LocalMap.h>
+
+#include <lifev/core/array/MatrixElemental.hpp>
 #include <lifev/core/array/MatrixSmall.hpp>
 
 #include <lifev/core/algorithm/SolverAztecOO.hpp>
@@ -1496,13 +1499,20 @@ void HeartETAMonodomainSolver<Mesh, IonicModel>::
 solveOneReactionStepROS3P()
 {
 	ROS3P ros(M_commPtr, M_solvParam);
-	MapEpetra mappa(M_ionicModelPtr -> Size(), M_commPtr);
+	/*
+	//MapEpetra mappa(M_ionicModelPtr -> Size(), M_commPtr);
+	Epetra_LocalMap localMap( 2, 0, *M_commPtr );
+	MapEpetra mappa(localMap);
 	VectorEpetra localVec( mappa );
 	const Int* it = localVec.blockMap().MyGlobalElements();
-    int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
-    IonicModel mod = *M_ionicModelPtr.get();
+    */
+
+	vector<Real> localVec(M_ionicModelPtr->Size(), 0.0);
+
+    //IonicModel mod = *M_ionicModelPtr.get();
     //boost::shared_ptr<IonicModel> modPtr(new IonicModel(*mod));
 
+	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
     int j (0);
 
     for ( int k = 0; k < nodes; k++ )
@@ -1512,14 +1522,17 @@ solveOneReactionStepROS3P()
 
         for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
         {
-            localVec[it[i]] = ( * ( M_globalSolution.at (i) ) ) [j];
+            //localVec[it[i]] = ( * ( M_globalSolution.at (i) ) ) [j];
+            localVec[i] = ( * ( M_globalSolution.at (i) ) ) [j];
         }
 
-        ros.solve<IonicModel>(mod, localVec, 0.0, M_timeStep, M_timeStep/50.0);
+        //ros.solve<IonicModel>(mod, localVec, 0.0, M_timeStep, M_timeStep/50.0);
+        ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, M_timeStep/50.0);
 
         for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
         {
-            ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[it[i]];
+            //( * ( M_globalSolution.at (i) ) ) [j] =  localVec[it[i]];
+            ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[i];
         }
 
     }

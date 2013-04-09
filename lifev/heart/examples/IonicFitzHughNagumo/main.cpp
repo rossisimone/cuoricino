@@ -160,7 +160,9 @@ Int main ( Int argc, char** argv )
     // Starts the chronometer.                    //
     //********************************************//
     LifeChrono chronoinitialsettings;
-    chronoinitialsettings.start();
+
+    if ( Comm->MyPID() == 0 )
+    	chronoinitialsettings.start();
 
     typedef RegionMesh<LinearTetra> mesh_Type;
     typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
@@ -352,8 +354,11 @@ Int main ( Int argc, char** argv )
     //********************************************//
     splitting -> exportFiberDirection();
 
-    chronoinitialsettings.stop();
-    std::cout << "\n\n\nElapsed time : " << chronoinitialsettings.diff() << std::endl;
+    if ( Comm->MyPID() == 0 )
+    {
+    	chronoinitialsettings.stop();
+    	std::cout << "\n\n\nElapsed time : " << chronoinitialsettings.diff() << std::endl;
+    }
 
     if ( Comm->MyPID() == 0 )
     {

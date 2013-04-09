@@ -89,7 +89,11 @@ public:
 	template<typename RightHandSide>
 	void solve(boost::shared_ptr<RightHandSide> Fun, vector_Type& y0, Real t0, Real TF, Real dt_init);
 
-protected:
+	template<typename RightHandSide>
+	void solve(boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real dt_init);
+
+
+public:
 
 	matrix_Type getIdentity(const map_Type& map, Int n);
 	vector_Type combLin(const vector<vector_Type>& U, const MatrixSmall<s,s>& M, const Int line);
@@ -106,6 +110,34 @@ protected:
 	void setSolver(boost::shared_ptr<Epetra_Comm>& Comm, const string& solvParam);
 	void setMethod(Real g, const MatrixSmall<s,s>& A, const MatrixSmall<s,s>& C, const VectorSmall<s>& gammai,
 				   const VectorSmall<s>& a, const VectorSmall<s>& m, const VectorSmall<s>& mhat, UInt order);
+
+	//LU stuff
+	void LU(vector<vector<Real> >& A, vector<vector<Real> >& P, vector<vector<Real> >& Q,
+			vector<vector<Real> >& L, vector<vector<Real> >& U, UInt n);
+	vector<vector<Real> > getIdentity(UInt n);
+	void pivot(const vector<vector<Real> >& A, UInt k, UInt n, vector<vector<Real> >& Pk, vector<vector<Real> >& Qk);
+	void MGauss(const vector<vector<Real> >& A, UInt k, UInt n, vector<vector<Real> >& Mk);
+	void mult(vector<vector<Real> >& B, Real a, UInt n);
+	vector< vector<Real> > mult(const vector<vector<Real> >& A, const vector<vector<Real> >& B, UInt n);
+	vector<Real> mult(const vector<vector<Real> >& A, const vector<Real>& b, UInt n);
+	void minusequal(vector<vector<Real> >& A, const vector<vector<Real> >& B, UInt n);
+	vector<vector<Real> > triu(const vector<vector<Real> >& B, UInt n);
+	void zero(vector<vector<Real> >& U, UInt n);
+	vector<Real> combLin(const vector<vector<Real> >& U, const MatrixSmall<s,s>& M, const Int line, UInt n);
+	vector<Real> combLin(const vector<vector<Real> >& U, const VectorSmall<s>& v, UInt n);
+	vector<Real> sum(const vector<Real>& a, const vector<Real>& b, UInt n);
+	void multequal(vector<Real>& v, Real a, UInt n);
+	vector<Real> solvel(const vector<vector<Real> >& L, const vector<Real>& b, UInt n);
+	vector<Real> solveu(const vector<vector<Real> >& U, const vector<Real>& b, UInt n);
+	Real norm2(const vector<Real>& v, UInt n);
+	template<typename RightHandSide>
+	void computeStages(vector< vector<Real> >& U, const vector<Real>& y, vector<Real>& ytmp,
+			 vector<Real>& rhs, vector<Real>& Utmp, boost::shared_ptr<RightHandSide> Fun,
+			 Real dt, vector< vector<Real> >& Lsys, vector< vector<Real> >& Usys,
+			 vector< vector<Real> >& Psys, vector< vector<Real> >& Qsys, UInt n);
+	bool computeError(const vector<vector<Real> >& U, vector<Real>& Utmp, Real& err_n, Real& err_n_1,
+					  Real fac_max, Real& dt, Real& dt_old, Real Trem, Real ynorm, bool& rejected, UInt n);
+	void disp(vector<vector<Real> >& M, string name, UInt n);
 
 
 	solver_Type 	 M_solver;

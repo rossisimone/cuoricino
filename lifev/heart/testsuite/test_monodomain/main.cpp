@@ -274,7 +274,37 @@ Int main ( Int argc, char** argv )
 
     Real saveStep = monodomainList.get ("saveStep", 1.0);
 
-    splitting   -> solveSplitting ( exporterSplitting, saveStep );
+//    splitting   -> solveSplitting ( exporterSplitting, saveStep );
+
+
+    splitting->setSolverParam("MonodomainSolverParamList.xml");
+    Real dt = monodomainList.get ("timeStep", 0.1);
+    Real TF = monodomainList.get ("endTime", 150.0);
+    Int iter = monodomainList.get ("saveStep", 1.0) / dt;
+    Int k(0);
+
+    for ( Real t = 0.0; t < TF; )
+    {
+        t = t + dt;
+
+        splitting->solveOneReactionStepROS3P();
+        //splitting->solveOneReactionStepFE();
+        (*splitting->rhsPtrUnique()) *= 0.0;
+        splitting->updateRhs();
+        splitting->solveOneDiffusionStepBE();
+
+        if( k % iter == 0 )
+        	splitting -> exportSolution (exporterSplitting, t);
+
+        k++;
+
+        if ( Comm->MyPID() == 0 )
+        	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+
+    }
+
+
+
     exporterSplitting.closeFile();
 
 
