@@ -1077,7 +1077,7 @@ StructuralOperator<Mesh>::iterate ( const bcHandler_Type& bch )
 //    Real abstol  = dataFile ( "solid/Newton/abstol", 1.e-7 );
 //    Real reltol  = dataFile ( "solid/Newton/reltol", 1.e-7 );
     Real abstol = 1e-7;
-    Real reltol = 1e-7;
+    Real reltol = 1e-14;
     UInt maxiter = 200;
     Real etamax  = 1e-7;
     Int NonLinearLineSearch = 0;

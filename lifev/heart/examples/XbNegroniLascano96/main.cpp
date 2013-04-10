@@ -359,12 +359,15 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-
+    int iter( ( 1.0 / splitting -> timeStep() ) );
+    int k(0);
 
     for ( Real t (0.0); t < T; )
     {
+    	k++;
         t += dt;
-        splitting -> solveOneSplittingStep (exporterSplitting, t);
+
+        if( k%iter == 0) splitting -> solveOneSplittingStep (exporterSplitting, t);
 
 
         xbModel -> computeRhs ( states, *Ca, *vel, rhs);
@@ -377,7 +380,7 @@ Int main ( Int argc, char** argv )
         * ( states.at (0) ) = * ( states.at (0) ) + dt * ( * ( rhs.at (0) ) );
         * ( states.at (1) ) = * ( states.at (1) ) + dt * ( * ( rhs.at (1) ) );
         * ( states.at (2) ) = * ( states.at (2) ) + dt * ( * ( rhs.at (2) ) );
-        exporterXb.postProcess ( t );
+        if( k%iter == 0) exporterXb.postProcess ( t );
 
     }
 

@@ -830,7 +830,7 @@ void NeoHookeanActivatedMaterial<MeshType>::computeRes ( vectorPtr_Type& res, co
     integrate ( elements ( this->M_dispETFESpace->mesh() ),
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
-                value (1.0 / 2.0) * parameter ( (* (this->M_vectorsParameters) ) [1] ) * ( pow ( detDeformationGradientTensor , 2.0) - detDeformationGradientTensor + log (detDeformationGradientTensor) ) * dot (  deformationGradientTensor_T, grad (phi_i) )
+                value (1.0 / 4.0) * parameter ( (* (this->M_vectorsParameters) ) [1] ) * ( pow ( detDeformationGradientTensor + value(-1.0), 2.0) + log (detDeformationGradientTensor) ) * dot (  deformationGradientTensor_T, grad (phi_i) )
               ) >> res;
 
     //Computation of the isochoric part \mu J^-2/3 ( 1 + gammaf ) (F - Ic / 3 F^-T)

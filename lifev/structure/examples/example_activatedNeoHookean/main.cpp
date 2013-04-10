@@ -88,6 +88,9 @@
 
 //Includes for the Expression Template
 #include <lifev/eta/fem/ETFESpace.hpp>
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include "Teuchos_XMLParameterListHelpers.hpp"
 
 #include <iostream>
 
@@ -154,6 +157,7 @@ private:
 private:
     struct Private;
     boost::shared_ptr<Private> parameters;
+
 };
 
 
@@ -164,7 +168,7 @@ struct Structure::Private
         rho (1), poisson (1), young (1), bulk (1), alpha (1), gamma (1)
     {}
     typedef boost::function<Real ( Real const&, Real const&, Real const&, Real const&, ID const& ) > fct_type;
-    double rho, poisson, young, bulk, alpha, gamma;
+    double rho, poisson, young, bulk, alpha, gamma, gammaf;
 
     std::string data_file_name;
 
@@ -177,17 +181,41 @@ struct Structure::Private
 
     static Real d0 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
     {
-
+   	   Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
+   	   Real M_gammaf = list.get ( "gammaf", 0.0);
         switch (i)
         {
             case 0:
-                return  -0.2 * x;
+                return  M_gammaf * x;
                 break;
             case 1:
-                return 0;
+                return ( std::sqrt( 1.0 / ( 1.0 + M_gammaf ) ) - 1.0 ) * y;
                 break;
             case 2:
-                return 0;
+                return ( std::sqrt( 1.0 / ( 1.0 + M_gammaf ) ) - 1.0 ) * z;
+                break;
+            default:
+                ERROR_MSG ("This entry is not allowed: ud_functions.hpp");
+                return 0.;
+                break;
+        }
+
+    }
+
+    static Real boundaryLoad (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
+    {
+   	   Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
+   	   Real traction = list.get ( "traction", 0.0);
+        switch (i)
+        {
+            case 0:
+                return  traction;
+                break;
+            case 1:
+                return 0.0;
+                break;
+            case 2:
+                return 0.0;
                 break;
             default:
                 ERROR_MSG ("This entry is not allowed: ud_functions.hpp");
@@ -199,7 +227,9 @@ struct Structure::Private
 
     static Real gf (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
     {
-        return  ( - 0.2 );
+    	Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
+    	Real M_gammaf = list.get ( "gammaf", 0.0 );
+        return  ( M_gammaf );
     }
 
 };
@@ -214,6 +244,7 @@ Structure::Structure ( int                                   argc,
     GetPot command_line (argc, argv);
     string data_file_name = command_line.follow ("data", 2, "-f", "--file");
     GetPot dataFile ( data_file_name );
+
     parameters->data_file_name = data_file_name;
 
     parameters->rho     = dataFile ( "solid/physics/density", 1. );
@@ -222,6 +253,7 @@ Structure::Structure ( int                                   argc,
     parameters->bulk    = dataFile ( "solid/physics/bulk",    1. );
     parameters->alpha   = dataFile ( "solid/physics/alpha",   1. );
     parameters->gamma   = dataFile ( "solid/physics/gamma",   1. );
+  //  M_gammaf  = dataFile ( "solid/physics/gammaf",  0. );
 
     std::cout << "density = " << parameters->rho     << std::endl
               << "young   = " << parameters->young   << std::endl
@@ -319,6 +351,8 @@ Structure::run()
     compyz[1] = 2;
 
     BCFunctionBase zero (Private::bcZero);
+    BCFunctionBase load (Private::boundaryLoad);
+
 
     //! =================================================================================
     //! BC for SymmCube.mesh
@@ -326,9 +360,17 @@ Structure::run()
     BCh->addBC ("EdgesIn",      100,  Essential, Component, zero,    compx);
     BCh->addBC ("SymmetryX",    200,  Essential, Component, zero,    compz);
     BCh->addBC ("SymmetryY",    300,  Essential, Component, zero,    compy);
+
+	Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
+	Real tract = list.get ( "traction", 0.0 );
+	Real Rgammaf = list.get("gammaf",0.0);
+	if(tract != 0 ) BCh->addBC ("EdgesIn",      600,  Natural,   Component, load, compx);
     BCh->addBC ("edgetwo",      10,  EssentialEdges, Component, zero,    compxz);
     BCh->addBC ("edgetwo",      20,  EssentialEdges, Component, zero,    compxy);
     BCh->addBC ("edgetwo",      30,  EssentialEdges, Component, zero,    compyz);
+//    BCh->addBC ("edgetwo",      10,  EssentialVertices, Component, zero,    compxz);
+//    BCh->addBC ("edgetwo",      20,  EssentialVertices, Component, zero,    compxy);
+//    BCh->addBC ("edgetwo",      30,  EssentialVertices, Component, zero,    compyz);
     //! =================================================================================
 
 
@@ -354,8 +396,16 @@ Structure::run()
     VectorEpetra gammaf( gammaFESpace -> map() );
     typedef boost::function<Real ( Real const&, Real const&, Real const&, Real const&, ID const& ) > fct_type;
     fct_type fg = &(Private::gf);
+
     gammaFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fg ), gammaf , 0);
-    solid.material() -> setGammaf(gammaf);
+    //solidFESpacePtr_Type initd( new solidFESpace_Type (meshPart, dOrder, 3, parameters->comm) );
+
+    fct_type exsol = &(Private::d0);
+    vectorPtr_Type initd( new vector_Type( dFESpace -> map() ) );
+    dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( exsol ), *initd , 0);
+
+
+    if( dataStructure->solidType() == "neoHookeanActivated" ) solid.material() -> setGammaf(gammaf);
     //! 3. Setting data from getPot
     solid.setDataFromGetPot (dataFile);
 
@@ -363,7 +413,7 @@ Structure::run()
     Real fx=1.0;
     Real fy = 0.0;
     Real fz = 0.0;
-    solid.material() -> setupFiberVector(fx, fy, fz);
+    if( dataStructure->solidType() == "neoHookeanActivated" ) solid.material() -> setupFiberVector(fx, fy, fz);
 
 
 
@@ -476,12 +526,16 @@ Structure::run()
     vectorPtr_Type solidDisp ( new vector_Type (solid.displacement(), exporter->mapType() ) );
 //    vectorPtr_Type solidVel  ( new vector_Type (solid.displacement(), exporter->mapType() ) );
 //    vectorPtr_Type solidAcc  ( new vector_Type (solid.displacement(), exporter->mapType() ) );
-    vectorPtr_Type solidgamma  ( new vector_Type ( *( solid.material() -> gammaf() ), exporter->mapType() ) );
+
 
     exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "displacement", dFESpace, solidDisp, UInt (0) );
+    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "initd", dFESpace, initd, UInt (0) );
 //    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "velocity",     dFESpace, solidVel,  UInt (0) );
 //    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "acceleration", dFESpace, solidAcc,  UInt (0) );
-    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "gamma_function", gammaFESpace, solidgamma,  UInt (0) );
+    if( dataStructure->solidType() == "neoHookeanActivated" ) {
+    	 vectorPtr_Type solidgamma  ( new vector_Type ( *( solid.material() -> gammaf() ), exporter->mapType() ) );
+    	exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "gamma_function", gammaFESpace, solidgamma,  UInt (0) );
+    }
 
 
     exporter->postProcess ( 0 );
@@ -516,7 +570,6 @@ Structure::run()
     //}
 }
 
-
 int
 main ( int argc, char** argv )
 {
@@ -532,6 +585,7 @@ main ( int argc, char** argv )
     boost::shared_ptr<Epetra_SerialComm> Comm ( new Epetra_SerialComm() );
     cout << "% using serial Version" << endl;
 #endif
+
 
     Structure structure ( argc, argv, Comm );
     structure.run();

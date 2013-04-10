@@ -5,7 +5,9 @@
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
-	
+	<Parameter name="gammaf" type="double" value="-0.1"/>
+	<Parameter name="traction" type="double" value="0."/>
+		
 	<!-- Operator specific parameters (AztecOO) -->
 	<ParameterList name="Solver: Operator List">
 
@@ -17,7 +19,7 @@
 	    	<Parameter name="output" type="string" value="all"/>
     		<Parameter name="tol" type="double" value="1.e-5"/>
 	    	<Parameter name="max_iter" type="int" value="200"/>
-    		<Parameter name="kspace" type="int" value="100"/>
+    		<Parameter name="kspace" type="int" value="200"/>
     		<!-- az_aztec_defs.h -->
     		<!-- #define AZ_classic 0 /* Does double classic */ -->
 	    	<Parameter name="orthog" type="int" value="0"/>
