@@ -267,15 +267,25 @@ public:
 
 
     ///EMPTY METHODS FOR ACTIVATED MATERIALS
-    virtual  vectorPtr_Type const fiberVector() const { /*return NULL;*/  }
+    inline virtual  vectorPtr_Type const fiberVector() const
+    { /*return (new vector_Type( M_dispFESpace -> map() ) ); */
+    	vectorPtr_Type k;
+    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
+    	return k;
+    }
 
-    virtual void setFiberVector( const vector_Type& /*fiberVector*/) {  }
+    inline virtual void setFiberVector( const vector_Type& /*fiberVector*/) {  }
 
-    virtual void setGammaf(const vector_Type& /*gammaf*/){}
+    inline virtual void setGammaf(const vector_Type& /*gammaf*/){}
 
-    virtual vectorPtr_Type const gammaf()  const { /*return NULL;*/ }
+    inline virtual vectorPtr_Type const gammaf()  const
+    {
+    	vectorPtr_Type k;
+    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
+    	return k;
+    }
 
-    virtual void setupFiberVector( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
+    inline virtual void setupFiberVector( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
 
     //@}
 
