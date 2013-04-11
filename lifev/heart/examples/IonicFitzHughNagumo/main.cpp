@@ -311,6 +311,7 @@ Int main ( Int argc, char** argv )
     Real TCut1 = monodomainList.get ("TCut", 35.0) - dt/2.0;
     Real TCut2 = monodomainList.get ("TCut", 35.0) + dt/2.0;
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
+    Int meth = monodomainList.get ("meth", 1.0);
     Int k(0);
 
     //splitting   -> solveSplitting ( exporterSplitting );
@@ -319,8 +320,13 @@ Int main ( Int argc, char** argv )
     {
         t = t + dt;
 
-        splitting->solveOneReactionStepROS3P();
-        //splitting->solveOneReactionStepFE();
+        if(meth==1)
+        	splitting->solveOneReactionStepROS3PEpetra();
+        else if(meth==2)
+        	splitting->solveOneReactionStepROS3PReal();
+        else
+        	splitting->solveOneReactionStepFE();
+
         (*splitting->rhsPtrUnique()) *= 0.0;
         splitting->updateRhs();
         splitting->solveOneDiffusionStepBE();

@@ -260,7 +260,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
 
-    splitting -> setupExporter ( exporterSplitting, "Splitting" );
+    splitting -> setupExporter ( exporterSplitting, monodomainList.get ("OutputFile", "Splitting") );
 
     splitting -> exportSolution ( exporterSplitting, 0);
 
@@ -287,7 +287,7 @@ Int main ( Int argc, char** argv )
     {
         t = t + dt;
 
-        splitting->solveOneReactionStepROS3P();
+        splitting->solveOneReactionStepROS3PReal();
         //splitting->solveOneReactionStepFE();
         (*splitting->rhsPtrUnique()) *= 0.0;
         splitting->updateRhs();

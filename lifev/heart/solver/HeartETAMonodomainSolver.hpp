@@ -776,7 +776,8 @@ public:
      * \left( \frac{I}{dt \gamma}-J(y_n)\right) U_i = f(y_n+\sum_{j=1}{i-1} a_{i j} U_j) + \sum_{j=1}{i-1}\frac{c_{i j}}{dt} U_j
      * \f]
      */
-    void solveOneReactionStepROS3P();
+    void solveOneReactionStepROS3PReal();
+    void solveOneReactionStepROS3PEpetra();
 
     //! Update the rhs
     /*!
@@ -1443,6 +1444,7 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
 setupExporter (exporter_Type& exporter)
 {
+	exporter.exportPID (M_localMeshPtr, M_commPtr );
     exporter.setMeshProcId ( M_localMeshPtr, M_commPtr -> MyPID() );
     exporter.setPrefix ("Solution");
     std::string variableName;
@@ -1496,45 +1498,52 @@ solveOneReactionStepFE()
 
 template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
-solveOneReactionStepROS3P()
+solveOneReactionStepROS3PReal()
 {
 	ROS3P ros(M_commPtr, M_solvParam);
-	/*
-	//MapEpetra mappa(M_ionicModelPtr -> Size(), M_commPtr);
-	Epetra_LocalMap localMap( 2, 0, *M_commPtr );
-	MapEpetra mappa(localMap);
-	VectorEpetra localVec( mappa );
-	const Int* it = localVec.blockMap().MyGlobalElements();
-    */
-
 	vector<Real> localVec(M_ionicModelPtr->Size(), 0.0);
-
-    //IonicModel mod = *M_ionicModelPtr.get();
-    //boost::shared_ptr<IonicModel> modPtr(new IonicModel(*mod));
 
 	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
     int j (0);
 
     for ( int k = 0; k < nodes; k++ )
     {
-
         j = M_appliedCurrentPtr->blockMap().GID (k);
 
         for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
-        {
-            //localVec[it[i]] = ( * ( M_globalSolution.at (i) ) ) [j];
             localVec[i] = ( * ( M_globalSolution.at (i) ) ) [j];
-        }
 
-        //ros.solve<IonicModel>(mod, localVec, 0.0, M_timeStep, M_timeStep/50.0);
         ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, M_timeStep/50.0);
 
         for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
-        {
-            //( * ( M_globalSolution.at (i) ) ) [j] =  localVec[it[i]];
             ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[i];
-        }
+    }
+}
 
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneReactionStepROS3PEpetra()
+{
+	ROS3P ros(M_commPtr, M_solvParam);
+	Epetra_LocalMap localMap( M_ionicModelPtr -> Size(), 0, *M_commPtr );
+	MapEpetra mappa(localMap);
+	VectorEpetra localVec( mappa );
+	const Int* it = localVec.blockMap().MyGlobalElements();
+
+	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
+    int j (0);
+
+    for ( int k = 0; k < nodes; k++ )
+    {
+        j = M_appliedCurrentPtr->blockMap().GID (k);
+
+        for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
+            localVec[it[i]] = ( * ( M_globalSolution.at (i) ) ) [j];
+
+        ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, M_timeStep/50.0);
+
+        for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
+            ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[it[i]];
     }
 }
 

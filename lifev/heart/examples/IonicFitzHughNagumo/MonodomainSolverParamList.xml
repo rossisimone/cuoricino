@@ -11,8 +11,9 @@
     <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
     <Parameter name="TCut" type="double" value="40.0"  />
     <Parameter name="saveStep" type="double" value="1.0"  />
+    <Parameter name="meth" type="double" value="2.0"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="lid64.mesh"  />
+    <Parameter name="mesh_name" type="string" value="lid16.mesh"  />
     <Parameter name="mesh_path" type="string" value="../../../../../meshes/"  />
     <Parameter name="fiber_X" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
@@ -22,7 +23,7 @@
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
-	<Parameter name="OutputFile" type="string" value="Splitting"/>
+	<Parameter name="OutputFile" type="string" value="Splitting2"/>
 	
 	<!-- Operator specific parameters (AztecOO) -->
 	<ParameterList name="Solver: Operator List">
