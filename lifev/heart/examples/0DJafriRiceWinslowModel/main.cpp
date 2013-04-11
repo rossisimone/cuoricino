@@ -194,6 +194,8 @@ Int main ( Int argc, char** argv )
     cout << "Time loop starts...\n";
 
 
+    int iter(0);
+    int savedt( parameterList.get( "savedt", 1.0) / dt );
 
     for ( Real t = 0; t < TF; )
     {
@@ -224,23 +226,26 @@ Int main ( Int argc, char** argv )
         // Writes solution on file.                   //
         //********************************************//
 
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
-       		 << unknowns.at (2) << ", " << unknowns.at (3) << ", "
-       		 << unknowns.at (4) << ", " << unknowns.at (5) << ", "
-       		 << unknowns.at (6) << ", " << unknowns.at (7) << ", "
-       		 << unknowns.at (8) << ", " << unknowns.at (9) << ", "
-       		 << unknowns.at (10) << ", " << unknowns.at (11) << ", "
-       		 << unknowns.at (12) << ", " << unknowns.at (13) << ", "
-       		 << unknowns.at (14) << ", " << unknowns.at (15) << ", "
-       		 << unknowns.at (16) << ", " << unknowns.at (17) << ", "
-       		 << unknowns.at (18) << ", " << unknowns.at (19) << ", "
-             << unknowns.at (20) << ", " << unknowns.at (21) << ", "
-             << unknowns.at (22) << ", " << unknowns.at (23) << ", "
-             << unknowns.at (24) << ", " << unknowns.at (25) << ", "
-             << unknowns.at (26) << ", " << unknowns.at (27) << ", "
-             << unknowns.at (28) << ", " << unknowns.at (29) << ", "
-             << unknowns.at (30) << "\n";
-
+        iter++;
+        if( iter % savedt == 0)
+        {
+        	output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
+        		<< unknowns.at (2) << ", " << unknowns.at (3) << ", "
+        		<< unknowns.at (4) << ", " << unknowns.at (5) << ", "
+        		<< unknowns.at (6) << ", " << unknowns.at (7) << ", "
+        		<< unknowns.at (8) << ", " << unknowns.at (9) << ", "
+        		<< unknowns.at (10) << ", " << unknowns.at (11) << ", "
+        		<< unknowns.at (12) << ", " << unknowns.at (13) << ", "
+        		<< unknowns.at (14) << ", " << unknowns.at (15) << ", "
+        		<< unknowns.at (16) << ", " << unknowns.at (17) << ", "
+        		<< unknowns.at (18) << ", " << unknowns.at (19) << ", "
+        		<< unknowns.at (20) << ", " << unknowns.at (21) << ", "
+             	<< unknowns.at (22) << ", " << unknowns.at (23) << ", "
+             	<< unknowns.at (24) << ", " << unknowns.at (25) << ", "
+             	<< unknowns.at (26) << ", " << unknowns.at (27) << ", "
+             	<< unknowns.at (28) << ", " << unknowns.at (29) << ", "
+             	<< unknowns.at (30) << "\n";
+        }
 
 
          //********************************************//

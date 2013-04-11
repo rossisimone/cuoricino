@@ -148,7 +148,6 @@ Int main ( Int argc, char** argv )
     std::vector<Real> rhs (model.Size(), 0);
     cout << " Done! "  << endl;
 
-
     //********************************************//
     // The model needs as external informations   //
     // the contraction velocity and the Calcium   //
@@ -161,8 +160,9 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
+
     Real TF     = parameterList.get( "endTime", 5.0 );
-    Real dt     = parameterList.get( "timeStep", 5.77e-4 );
+    Real dt     = parameterList.get( "timeStep", 1e-3 );
     Real timeSt = parameterList.get( "stimuliTime", 10.0 );
     Real stInt  = parameterList.get( "stimuliInterval", 1000.0 );
 
@@ -179,10 +179,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
     cout << "Time loop starts...\n";
 
-
-
-    int subiter = parameterList.get( "subIteration", 100);
-
+    int iter(0);
+    int savedt( parameterList.get( "savedt", 1.0) / dt );
 
     for ( Real t = 0; t < TF; )
     {
@@ -208,41 +206,37 @@ Int main ( Int argc, char** argv )
         // Compute the rhs using the model equations  //
         //********************************************//
         model.computeRhs ( unknowns, Iapp, rhs );
+        std::vector<Real> gateInf ( model.gateInf( unknowns ) );
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
-
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
-       		 << unknowns.at (2) << ", " << unknowns.at (3) << ", "
-       		 << unknowns.at (4) << ", " << unknowns.at (5) << ", "
-       		 << unknowns.at (6) << ", " << unknowns.at (7) << ", "
-       		 << unknowns.at (8) << ", " << unknowns.at (9) << ", "
-       		 << unknowns.at (10) << ", " << unknowns.at (11) << ", "
-       		 << unknowns.at (12) << ", " << unknowns.at (13) << ", "
-       		 << unknowns.at (14) << ", " << unknowns.at (15) << ", "
-       		 << unknowns.at (16) << "\n";
-
+        iter++;
+        if( iter % savedt == 0)
+        {
+        	output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
+        			<< unknowns.at (2) << ", " << unknowns.at (3) << ", "
+        			<< unknowns.at (4) << ", " << unknowns.at (5) << ", "
+        			<< unknowns.at (6) << ", " << unknowns.at (7) << ", "
+        			<< unknowns.at (8) << ", " << unknowns.at (9) << ", "
+        			<< unknowns.at (10) << ", " << unknowns.at (11) << ", "
+        			<< unknowns.at (12) << ", " << unknowns.at (13) << ", "
+        			<< unknowns.at (14) << ", " << unknowns.at (15) << ", "
+        			<< unknowns.at (16) << "\n";
+        }
 
          //********************************************//
          // Use forward Euler method to advance the    //
          // solution in time.                          //
          //********************************************//
 
-
-
-    	 for(int j(0); j <= 16; ++j)
+         for(int j(0); j <= 16; ++j)
          {
-    		if ( j != 13 )
-    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+			if ( j < 13 && j != 0 )
+        	 	 unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
     		else
-    		{
-    			for( int k(0) ; k < subiter; k++ )
-    			{
-    				unknowns.at (13) = unknowns.at (13)   + dt / subiter * rhs.at (13);
-    				model.computeRhs ( unknowns, Iapp, rhs );
-    			}
-    		}
+    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+
          }
 
          //********************************************//

@@ -4,6 +4,7 @@
 	<Parameter name="timeStep" type="double" value="5.77e-4"/>
 	<Parameter name="stimuliTime" type="double" value="10.0"/>
 	<Parameter name="stimuliInterval" type="double" value="400.0"/>
+	<Parameter name="savedt" type="double" value="0.01"/>
 	<Parameter name="areaCap" type="double" value="546.69"/>
 	<Parameter name="volMyo" type="double" value="0.92"/>
 	<Parameter name="volJSR" type="double" value="0.0042688"/>

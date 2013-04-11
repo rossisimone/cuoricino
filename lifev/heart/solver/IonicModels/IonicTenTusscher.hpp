@@ -546,6 +546,10 @@
 
 		Real backINab( const std::vector<Real>& v );
 
+		std::vector<Real> gateInf( const std::vector<Real>& v );
+
+		Real oneStepCaSR( const std::vector<Real>& v );
+
 		//! Display information about the model
 		void showMe();
 
@@ -855,9 +859,9 @@
 		std::vector<Real> courIKs      ( slowIKs(v) );
 		std::vector<Real> courIKr      ( rapDelIKr(v) );
 	
-		Real iIon = courINa[0] + inwardIK1(v) + courIto[0] + courIKr[0] 
-					+ courIKs[0] + courSubSysCa[0] + exINaCa(v) + pumpINaK(v) 
-					+ pumpIpCa(v) + backICab(v) + backINab(v);
+		Real iIon = courINa[0] + inwardIK1(v) + courIto[0] + courIKr[0]
+					+ courIKs[0] + courSubSysCa[0] + ( exINaCa(v) + pumpINaK(v)
+					+ pumpIpCa(v) + backICab(v) + backINab(v) );
 		
 		return  - ( iIon + Istim ) ;
 	}
@@ -893,12 +897,12 @@
 		
 		std::vector<Real> concRhs(4);
 
-		concRhs[0] = courSubSysCa[4] *( courSubSysCa[1] - courSubSysCa[2] + courSubSysCa[3] -
+		concRhs[0] = courSubSysCa[4] * ( courSubSysCa[1] - courSubSysCa[2] + courSubSysCa[3] -
 						M_Cm * ( courSubSysCa[0] + backICab(v) + pumpIpCa(v) - 2 * exINaCa(v) ) / ( 2 * M_VCyt * M_F ) );
 		concRhs[1] = courSubSysCa[5] * ( M_VCyt / M_VSr ) * ( - courSubSysCa[1] + courSubSysCa[2] - courSubSysCa[3] );
 		concRhs[2] = - ( courINa[0] + backINab(v) + 3 * exINaCa(v) + 3 * pumpINaK(v) ) * M_Cm / ( M_VCyt * M_F );
 		concRhs[3] = - ( inwardIK1(v) + courIto[0] + courIKr[0] + courIKs[0] - 2 * pumpINaK(v) + pumpIpK(v) ) * M_Cm / ( M_VCyt * M_F );
-		
+
 		return concRhs;
 	}
 	
@@ -913,9 +917,9 @@
 		
 		std::vector<Real> concRhs(4);
 
-		concRhs[0] = courSubSysCa[4] *( courSubSysCa[1] - courSubSysCa[2] + courSubSysCa[3] -
+		concRhs[0] = courSubSysCa[4] * ( ( M_VSr / M_VCyt ) * ( courSubSysCa[1] - courSubSysCa[2] + courSubSysCa[3] ) -
 						M_Cm * ( courSubSysCa[0] + backICab(v) + pumpIpCa(v) - 2 * exINaCa(v) ) / ( 2 * M_VCyt * M_F ) );
-		concRhs[1] = courSubSysCa[5] * ( M_VCyt / M_VSr ) * ( - courSubSysCa[1] + courSubSysCa[2] - courSubSysCa[3] );
+		concRhs[1] = courSubSysCa[5] * ( - courSubSysCa[1] + courSubSysCa[2] - courSubSysCa[3] );
 		concRhs[2] = - ( courINa[0] + backINab(v) + 3 * exINaCa(v) + 3 * pumpINaK(v) ) * M_Cm / ( M_VCyt * M_F );
 		concRhs[3] = - ( inwardIK1(v) + courIto[0] + courIKr[0] + courIKs[0] - 2 * pumpINaK(v) + pumpIpK(v) + Istim ) * M_Cm / ( M_VCyt * M_F );
 
@@ -939,62 +943,64 @@
 		// Internal Parameters
 
 		Real jLeak = M_VLeak * ( cCaSR - cCa );
-		Real jUp   = M_VMaxUp * ( pow(cCa, 2) / ( pow(M_Kup, 2) + pow(cCa, 2) ) );
-		Real jRel  = ( M_aRel * pow(cCaSR, 2) / ( pow(M_bRel, 2) + pow(cCaSR, 2) ) + M_cRel ) * d * g ;
-		
+		Real jUp   = M_VMaxUp * ( 1.0 / ( ( M_Kup / cCa ) * ( M_Kup / cCa ) + 1.0 ) );
+		Real jRel  = ( M_aRel * cCaSR * cCaSR / ( M_bRel * M_bRel + cCaSR * cCaSR ) + M_cRel ) * d * g ;
+
 		Real g_inf (0);
 
-		if ( cCa < 0.00035 )
-			g_inf = 1.0 / ( 1.0 + pow(cCa / 0.00035, 6) );
+		if ( cCa <= 0.00035 )
+			g_inf = 1.0 / ( 1.0 + std::pow(cCa / 0.00035, 6) );
 		else
-			g_inf = 1.0 / ( 1.0 + pow(cCa / 0.00035, 16) );
+			g_inf = 1.0 / ( 1.0 + std::pow(cCa / 0.00035, 16) );
 		
 		Real tau_g (2.0);
 		
 		int k_g (0);
-		if ( ( g_inf > g ) && ( V > -37 ) )
+		if ( ( g_inf > g ) && ( V > -60 ) )
 			k_g = 0;
-		else 
+		else
 			k_g = 1;
 		
-		//Real cCai_bufc   = 1.0 / ( 1.0 + M_Buffc * M_KBuffc / pow(cCa + M_KBuffc, 2) );
-		//Real cCaSR_bufsr = 1.0 / ( 1.0 + M_BuffSR * M_KBuffSR / pow(cCaSR + M_KBuffSR, 2) );
-		Real cCai_bufc   = cCa * M_Buffc / ( cCa + M_KBuffc );
-		Real cCaSR_bufsr = cCaSR * M_BuffSR / ( cCaSR + M_KBuffSR );
+		Real cCai_bufc   = 1.0 / ( 1.0 + M_Buffc * M_KBuffc / ( ( cCa + M_KBuffc ) * ( cCa + M_KBuffc ) ) );
+		Real cCaSR_bufsr = 1.0 / ( 1.0 + M_BuffSR * M_KBuffSR / ( ( cCaSR + M_KBuffSR ) * ( cCaSR + M_KBuffSR ) ) );
 
-		Real d_inf   = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 7.5 ) );
-		Real alpha_d = 1.4 / ( 1.0 + exp( ( -35.0 - V ) / 13.0 ) ) + 0.25;
-		Real beta_d  = 1.4 / ( 1.0 + exp( ( 5.0 + V ) / 5.0 ) );
-		Real gamma_d = 1.0 / ( 1.0 + exp( ( 50.0 - V ) / 20.0 ) );	
+//		Real d_inf   = 1.0 / ( 1.0 + std::exp( ( -5.0 - V ) / 7.5 ) );
+		Real alpha_d = 1.4 / ( 1.0 + std::exp( ( -35.0 - V ) / 13.0 ) ) + 0.25;
+		Real beta_d  = 1.4 / ( 1.0 + std::exp( ( 5.0 + V ) / 5.0 ) );
+		Real gamma_d = 1.0 / ( 1.0 + std::exp( ( 50.0 - V ) / 20.0 ) );
 		Real tau_d   = alpha_d * beta_d + gamma_d;
 		
-		Real f_inf = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 7.0 ) );
-		Real tau_f = 1125.0 * exp( -pow(27.0 + V, 2 ) / 300.0 ) + 80.0 + 165.0 / ( 1.0 + exp( ( 25.0 - V ) / 10.0 ) );
+//		Real f_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 + V ) / 7.0 ) );
+		Real tau_f = 1125.0 * std::exp( -( 27.0 + V ) * ( 27.0 + V ) / 240.0 ) + 80.0 + 165.0 / ( 1.0 + std::exp( ( 25.0 - V ) / 10.0 ) );
 		
-		Real alpha_fCa = 1.0 / ( 1.0 + pow(cCa / 0.000325, 8) );
-		Real beta_fCa  = 0.1 / ( 1.0 + exp( ( cCa - 0.0005 ) / 0.0001 ) );
-		Real gamma_fCa = 0.2 / ( 1.0 + exp( ( cCa - 0.00075 ) / 0.0008 ) );
+		Real alpha_fCa = 1.0 / ( 1.0 + std::pow(cCa / 0.000325, 8) );
+		Real beta_fCa  = 0.1 / ( 1.0 + std::exp( ( cCa - 0.0005 ) / 0.0001 ) );
+		Real gamma_fCa = 0.2 / ( 1.0 + std::exp( ( cCa - 0.00075 ) / 0.0008 ) );
 		Real fCa_inf   = ( alpha_fCa + beta_fCa + gamma_fCa + 0.23 ) / 1.46;
 		Real tau_fCa   ( 2 );
 
-		int k_f (0);
-		if ( ( f_inf > f ) && ( V > -37 ) )
-			k_f = 0;
-		else 
-			k_f = 1;
+		int k_fCa (0);
+		if ( ( fCa_inf > fCa ) && ( V > -60 ) )
+			k_fCa = 0;
+		else
+			k_fCa = 1;
 		
 		// RHS of the Ca2+ subsystem
 
-		subSysCaRHS[0] = M_GCaL * d * f * fCa * 4.0 * ( ( V * pow(M_F,2) ) / ( M_R * M_T ) ) * (cCa * exp( 2 * V * M_F / ( M_R * M_T ) ) - 0.341 * M_CaO ) / ( exp( 2 * V * M_F / ( M_R * M_T ) ) - 1.0 );
+		subSysCaRHS[0] = M_GCaL * d * f * fCa * 4.0 * ( ( V * M_F * M_F ) / ( M_R * M_T ) ) * ( cCa * std::exp( 2 * V * M_F / ( M_R * M_T ) ) - 0.341 * M_CaO ) / ( std::exp( 2 * V * M_F / ( M_R * M_T ) ) - 1.0 );
 		subSysCaRHS[1] = jLeak;
 		subSysCaRHS[2] = jUp;
 		subSysCaRHS[3] = jRel;
 		subSysCaRHS[4] = cCai_bufc;
 		subSysCaRHS[5] = cCaSR_bufsr;
-		subSysCaRHS[6] = ( d_inf - d ) / tau_d;
-		subSysCaRHS[7] = ( f_inf - f ) / tau_f;
-		subSysCaRHS[8] = k_f * ( fCa_inf - fCa ) / tau_fCa;
-		subSysCaRHS[9] = k_g * ( g_inf - g ) / tau_g;
+		subSysCaRHS[6] = - 1.0 / tau_d;
+		subSysCaRHS[7] = - 1.0 / tau_f;
+		subSysCaRHS[8] = - k_fCa / tau_fCa;
+		subSysCaRHS[9] = - k_g  / tau_g;
+//		subSysCaRHS[6] = ( d_inf - d ) / tau_d;
+//		subSysCaRHS[7] = ( f_inf - f ) / tau_f;
+//		subSysCaRHS[8] = k_fCa * ( fCa_inf - fCa ) / tau_fCa;
+//		subSysCaRHS[9] = k_g * ( g_inf - g ) / tau_g;
 
 		return subSysCaRHS;
 	}
@@ -1006,27 +1012,28 @@
 	{
 		std::vector<Real> fastNa(4);
 
-		Real V   ( v[0] );
-		Real m   ( v[1] );
-		Real j   ( v[2] );
-		Real h   ( v[3] );
-		Real cNa ( v[15] );
+		Real V    ( v[0] );
+		Real m    ( v[1] );
+		Real j    ( v[2] );
+		Real h    ( v[3] );
+		Real cNa  ( v[15] );
 
-		Real potNa = ( M_R * M_T / M_F ) * log( M_NaO / cNa );
+		Real potNa = ( M_R * M_T / M_F ) * std::log( M_NaO / cNa );
 
-		fastNa[0] = M_GNa * pow(m, 3) * h * j * ( V - potNa );
+		fastNa[0] = M_GNa * std::pow(m, 3) * h * j * ( V - potNa );
 		
 		// Fast Na+ current m gate
-		Real m_inf   = 1.0 / pow( 1.0 + exp( ( -58.6 - V ) / 9.03), 2);
-		Real alpha_m = 1.0 / ( 1.0 + exp( ( -60.0 - V ) / 5.0 ) );
-		Real beta_m  = 0.1 / ( 1.0 + exp( ( V + 35.0 ) / 5.0 ) ) +  0.1 / ( 1.0 + exp( ( V - 50.0 ) / 200.0 ) );
+//		Real m_inf   = 1.0 / ( ( 1.0 + std::exp( ( -58.6 - V ) / 9.03 ) ) * ( 1.0 + std::exp( ( -58.6 - V ) / 9.03 ) ) );
+		Real alpha_m = 1.0 / ( 1.0 + std::exp( ( -60.0 - V ) / 5.0 ) );
+		Real beta_m  = 0.1 / ( 1.0 + std::exp( ( V + 35.0 ) / 5.0 ) ) +  0.1 / ( 1.0 + std::exp( ( V - 50.0 ) / 200.0 ) );
 		Real tau_m   = alpha_m * beta_m;
 		
-		fastNa[1] = ( m_inf - m ) / tau_m;
+		fastNa[1] = - 1.0 / tau_m;
+//		fastNa[1] = ( m_inf - m ) / tau_m;
 
 		// Fast Na+ current h and j gate
-		Real h_inf   = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
-		Real j_inf   = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
+//		Real h_inf   = 1.0 / ( ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) * ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) );
+//		Real j_inf   = 1.0 / ( ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) * ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) );
 		
 
 		Real alpha_h (0);
@@ -1038,22 +1045,24 @@
 		{
 			alpha_h = 0.0;
 			alpha_j = 0.0;
-			beta_h  = 0.77 / ( 0.13 * ( 1.0 + exp( -( V + 10.66 ) / 11.1 ) ) );
-			beta_j  = 0.6 * exp( 0.057 * V) / ( 1.0 + exp( -0.1 * ( V + 32.0 ) ) );
+			beta_h  = 0.77 / ( 0.13 * ( 1.0 + std::exp( -( V + 10.66 ) / 11.1 ) ) );
+			beta_j  = 0.6 * std::exp( 0.057 * V ) / ( 1.0 + std::exp( -0.1 * ( V + 32.0 ) ) );
 		}
 		else
 		{
-			alpha_h = 0.057 * exp( -( 80 + V ) / 6.8 );
-			alpha_j = ( -25428 * exp( 0.2444 * V) - 6.948e-6 * exp( -0.04391 * V ) ) * ( V + 37.78 ) / ( 1.0 + exp ( 0.311 * ( V + 79.23 ) ) );
-			beta_h  = 2.7 * exp( 0.079 * V ) + 3.1e5 * exp( 0.3485 * V ) ;
-			beta_j  = 0.02424 * exp( -0.01052 * V ) / ( 1.0 + exp( -0.1378 * ( V + 40.14 ) ) );
+			alpha_h = 0.057 * std::exp( -( 80 + V ) / 6.8 );
+			alpha_j = ( -25428 * std::exp( 0.2444 * V) - 6.948e-6 * std::exp( -0.04391 * V ) ) * ( V + 37.78 ) / ( 1.0 + std::exp ( 0.311 * ( V + 79.23 ) ) );
+			beta_h  = 2.7 * std::exp( 0.079 * V ) + 3.1e5 * std::exp( 0.3485 * V ) ;
+			beta_j  = 0.02424 * std::exp( -0.01052 * V ) / ( 1.0 + std::exp( -0.1378 * ( V + 40.14 ) ) );
 		}
 		
 		Real tau_h 	= 1.0 / ( alpha_h + beta_h );
 		Real tau_j  = 1.0 / ( alpha_j + beta_j );
-	
-		fastNa[2] = ( j_inf - j ) / tau_j;
-		fastNa[3] = ( h_inf - h ) / tau_h;
+
+		fastNa[2] = - 1.0 / tau_j;
+		fastNa[3] = - 1.0 / tau_h;
+//		fastNa[2] = ( j_inf - j ) / tau_j;
+//		fastNa[3] = ( h_inf - h ) / tau_h;
 
 		return fastNa;
 	}
@@ -1068,7 +1077,7 @@
 		Real s   ( v[11] );
 		Real cKi ( v[16] );
 		
-		Real potK     = ( M_R * M_T / M_F ) * log( M_KO / cKi );
+		Real potK     = ( M_R * M_T / M_F ) * std::log( M_KO / cKi );
 		
 		if ( ( M_typeCell == "epicardial" ) || ( M_typeCell == "M cell" ) )
 			transIto[0] = M_GToEpiM * r * s * ( V - potK );
@@ -1078,32 +1087,34 @@
 			transIto[0] = M_GToEpiM * r * s * ( V - potK );
 
 
-		Real r_inf = 1.0 / ( 1.0 + exp( ( 20.0 - V ) / 6.0 ) );
-		Real tau_r = 9.5 * exp( - pow( V + 40, 2) / 1800.0 ) + 0.8;
+//		Real r_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 - V ) / 6.0 ) );
+		Real tau_r = 9.5 * std::exp( - ( V + 40 ) * ( V + 40 ) / 1800.0 ) + 0.8;
 		
 
-		Real s_inf (0);
+//		Real s_inf (0);
 		Real tau_s (0);
 
 		if ( ( M_typeCell == "epicardial" ) || ( M_typeCell == "M cell" ) )
 		{
-			s_inf = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 5.0 ) );
-			tau_s = 85.0 * exp( - pow( V + 45.0, 2) / 320.0 ) + 5.0 / ( 1.0 + exp( ( -20.0 + V ) / 5.0 ) ) + 3.0;
+//			s_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 + V ) / 5.0 ) );
+			tau_s = 85.0 * std::exp( - ( V + 45.0 ) * ( V + 45.0 ) / 320.0 ) + 5.0 / ( 1.0 + std::exp( ( -20.0 + V ) / 5.0 ) ) + 3.0;
 		}
 		else if ( M_typeCell == "endocardial" )
 		{
-			s_inf = 1.0 / ( 1.0 + exp( ( 28.0 + V ) / 5.0 ) );
-			tau_s = 1000.0 * exp( - pow( V + 67.0, 2) / 1000.0 ) + 8.0;
+//			s_inf = 1.0 / ( 1.0 + std::exp( ( 28.0 + V ) / 5.0 ) );
+			tau_s = 1000.0 * std::exp( - ( V + 67.0 ) * ( V + 67.0 ) / 1000.0 ) + 8.0;
 		}
 		else
 		{
-			s_inf = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 5.0 ) );
-			tau_s = 85.0 * exp( - pow( V + 45.0, 2) / 320.0 ) + 5.0 / ( 1.0 + exp( ( -20.0 + V ) / 5.0 ) ) + 3.0;
+//			s_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 + V ) / 5.0 ) );
+			tau_s = 85.0 * std::exp( - ( V + 45.0 ) * ( V + 45.0 ) / 320.0 ) + 5.0 / ( 1.0 + std::exp( ( -20.0 + V ) / 5.0 ) ) + 3.0;
 		}
 
 
-		transIto[1] = ( r_inf -r ) / tau_r;
-		transIto[2] = ( s_inf -r ) / tau_s;
+		transIto[1] = - 1.0 / tau_r;
+		transIto[2] = - 1.0 / tau_s;
+//		transIto[1] = ( r_inf -r ) / tau_r;
+//		transIto[2] = ( s_inf -s ) / tau_s;
 
 		return transIto;
 	}
@@ -1111,29 +1122,30 @@
 	// Slow Delayed Rectifier Current IKs
 	std::vector<Real> IonicTenTusscher::slowIKs( const std::vector<Real>& v )
 	{
-		Real V   ( v[0] );
-		Real Xs  ( v[6] );
-		Real cNa ( v[15] );
-		Real cKi ( v[16] );
+		Real V    ( v[0] );
+		Real Xs   ( v[6] );
+		Real cNa  ( v[15] );
+		Real cKi  ( v[16] );
 		
 		std::vector<Real> slowIKs(2);
 		
-		Real potKs    = ( M_R * M_T / M_F ) * log( ( M_KO + M_pKNa * M_NaO ) / ( cKi + M_pKNa * cNa ) );
-		Real alpha_xs = 1100.0 / sqrt( 1.0 + exp( ( -10.0 - V ) / 6.0 ) );
-		Real beta_xs  = 1.0 / ( 1.0 + exp( ( V - 60.0 ) / 20.0 ) );
+		Real potKs    = ( M_R * M_T / M_F ) * std::log( ( M_KO + M_pKNa * M_NaO ) / ( cKi + M_pKNa * cNa ) );
+		Real alpha_xs = 1100.0 / sqrt( 1.0 + std::exp( ( -10.0 - V ) / 6.0 ) );
+		Real beta_xs  = 1.0 / ( 1.0 + std::exp( ( V - 60.0 ) / 20.0 ) );
 		
 
 		if ( ( M_typeCell == "epicardial" ) || ( M_typeCell == "endocardial" ) )
-			slowIKs[0] = M_GKs * pow(Xs, 2) * ( V - potKs );
+			slowIKs[0] = M_GKs * Xs * Xs * ( V - potKs );
 		else if ( M_typeCell == "M cell" )
-			slowIKs[0] = M_GKsM * pow(Xs, 2) * ( V - potKs );
+			slowIKs[0] = M_GKsM * Xs * Xs * ( V - potKs );
 		else
-			slowIKs[0] = M_GKs * pow(Xs, 2) * ( V - potKs );
+			slowIKs[0] = M_GKs * Xs * Xs * ( V - potKs );
 
-		Real Xs_inf = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 14.0 ) );
+//		Real Xs_inf = 1.0 / ( 1.0 + std::exp( ( -5.0 - V ) / 14.0 ) );
 		Real tau_xs = alpha_xs * beta_xs;
 		
-		slowIKs[1] = ( Xs_inf - Xs ) / tau_xs;
+		slowIKs[1] = - 1.0 / tau_xs;
+//		slowIKs[1] = ( Xs_inf - Xs ) / tau_xs;
 		
 		return  slowIKs;
 	}
@@ -1148,22 +1160,24 @@
 
 		std::vector<Real> rapidIKr(3);
 		
-		Real potK    = ( M_R * M_T / M_F ) * log( M_KO / cKi );
+		Real potK    = ( M_R * M_T / M_F ) * std::log( M_KO / cKi );
 		
-		Real alpha_xr1 = 450.0 / ( 1.0 + exp( ( -45.0 - V ) / 10.0 ) );
-		Real beta_xr1  = 6.0 / ( 1.0 + exp( ( 30.0 + V ) / 11.5 ) );
-		Real alpha_xr2 = 3.0 / ( 1.0 + exp( ( -60.0 - V ) / 20.0 ) );
-		Real beta_xr2  = 1.12 / ( 1.0 + exp( ( -60.0 + V ) / 20.0 ) );
+		Real alpha_xr1 = 450.0 / ( 1.0 + std::exp( ( -45.0 - V ) / 10.0 ) );
+		Real beta_xr1  = 6.0 / ( 1.0 + std::exp( ( 30.0 + V ) / 11.5 ) );
+		Real alpha_xr2 = 3.0 / ( 1.0 + std::exp( ( -60.0 - V ) / 20.0 ) );
+		Real beta_xr2  = 1.12 / ( 1.0 + std::exp( ( -60.0 + V ) / 20.0 ) );
 		
 		rapidIKr[0] = M_GKr * sqrt( M_KO / 5.4 ) * Xr1 * Xr2 * ( V - potK );
 		
-		Real Xr1_inf = 1.0 / ( 1.0 + exp( ( -26.0 - V ) / 7.0 ) );
+//		Real Xr1_inf = 1.0 / ( 1.0 + std::exp( ( -26.0 - V ) / 7.0 ) );
 		Real tau_xr1 = alpha_xr1 * beta_xr1;
-		Real Xr2_inf = 1.0 / ( 1.0 + exp( ( 88.0 + V ) / 24.0 ) );
+//		Real Xr2_inf = 1.0 / ( 1.0 + std::exp( ( 88.0 + V ) / 24.0 ) );
 		Real tau_xr2 = alpha_xr2 * beta_xr2;
 		
-		rapidIKr[1] = ( Xr1_inf - Xr1 ) / tau_xr1;
-		rapidIKr[2] = ( Xr2_inf - Xr2 ) / tau_xr2;
+		rapidIKr[1] = - 1.0 / tau_xr1;
+		rapidIKr[2] = - 1.0 / tau_xr2;
+//		rapidIKr[1] = ( Xr1_inf - Xr1 ) / tau_xr1;
+//		rapidIKr[2] = ( Xr2_inf - Xr2 ) / tau_xr2;
 
 		return rapidIKr;
 	}
@@ -1174,11 +1188,11 @@
 		Real V   ( v[0] );
 		Real cKi ( v[16] );
 		
-		Real potK    = ( M_R * M_T / M_F ) * log( M_KO / cKi );
+		Real potK    = ( M_R * M_T / M_F ) * std::log( M_KO / cKi );
 		
-		Real alpha_K1 = 0.1 / ( 1.0 + exp( 0.06 * ( V - potK - 200.0 ) ) );
-		Real beta_K1  = ( 3.0 * exp( 0.0002 * ( V - potK + 100.0 ) ) + exp( 0.1 * ( V - potK - 10.0 ) ) )
-						/ ( 1.0 + exp( -0.5 * ( V - potK ) ) );
+		Real alpha_K1 = 0.1 / ( 1.0 + std::exp( 0.06 * ( V - potK - 200.0 ) ) );
+		Real beta_K1  = ( 3.0 * std::exp( 0.0002 * ( V - potK + 100.0 ) ) + std::exp( 0.1 * ( V - potK - 10.0 ) ) )
+						/ ( 1.0 + std::exp( -0.5 * ( V - potK ) ) );
 		Real XK1_inf   = alpha_K1 / ( alpha_K1 + beta_K1 );
 		
 		return  M_GK1 * XK1_inf * sqrt( M_KO / 5.4 ) * ( V - potK );
@@ -1189,15 +1203,15 @@
 	Real IonicTenTusscher::exINaCa( const std::vector<Real>& v )
 	{
 
-		Real V   ( v[0] );
-		Real cNa ( v[15] );
-		Real cCa ( v[13] );
+		Real V    ( v[0] );
+		Real cNa  ( v[15] );
+		Real cCa  ( v[13] );
 
 
-		return M_kNaCa * ( 1.0 / ( pow(M_KmNai, 3) + pow(M_NaO, 3) ) ) * ( 1.0 / ( M_KmCa + M_CaO ) )
-			* (1.0 / ( 1.0 + M_kSat * exp( ( M_gamma - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) )
-			* ( exp( M_gamma * ( V * M_F ) / ( M_R * M_T ) ) * pow(cNa, 3) * M_CaO -
-						exp( ( M_gamma - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) * pow(M_NaO, 3) * cCa * 2.5 );
+		return M_kNaCa * ( 1.0 / ( std::pow(M_KmNai, 3) + std::pow(M_NaO, 3) ) ) * ( 1.0 / ( M_KmCa + M_CaO ) )
+			* (1.0 / ( 1.0 + M_kSat * std::exp( ( M_gamma - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) )
+			* ( std::exp( M_gamma * ( V * M_F ) / ( M_R * M_T ) ) * std::pow(cNa, 3) * M_CaO -
+						std::exp( ( M_gamma - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) * std::pow(M_NaO, 3) * cCa * M_alpha );
 	}
 
 	// Na+/K+ pump INaK
@@ -1206,7 +1220,7 @@
 		Real V   ( v[0] );
 		Real cNa ( v[15] );
 
-		Real fNaK  = 1.0 / ( 1.0 + 0.1245 * exp( -0.1 * ( V * M_F ) / ( M_R * M_T ) ) + 0.0353 * exp( -( V * M_F ) / ( M_R * M_T ) ) );
+		Real fNaK  = 1.0 / ( 1.0 + 0.1245 * std::exp( -0.1 * ( V * M_F ) / ( M_R * M_T ) ) + 0.0353 * std::exp( -( V * M_F ) / ( M_R * M_T ) ) );
 
 		return M_PNaK * fNaK * ( cNa / ( M_KmNa + cNa ) ) * ( M_KO / ( M_KO + M_KmK ) );
 	}
@@ -1223,18 +1237,18 @@
 		Real V   ( v[0] );
 		Real cKi ( v[16] );
 		
-		Real potK    = ( M_R * M_T / M_F ) * log( M_KO / cKi );
+		Real potK    = ( M_R * M_T / M_F ) * std::log( M_KO / cKi );
 		
-		return M_GKp * ( V - potK ) / ( 1 + exp( ( 25.0 - V ) / 5.98 ) );
+		return M_GKp * ( V - potK ) / ( 1 + std::exp( ( 25.0 - V ) / 5.98 ) );
 	}
 
 	// Ca2+ background current ICab
 	Real IonicTenTusscher::backICab( const std::vector<Real>& v )
 	{
-		Real V   ( v[0] );
-		Real cCa ( v[13] );
+		Real V    ( v[0] );
+		Real cCa  ( v[13] );
 
-		Real potCaN = ( ( M_R * M_T ) / ( 2 * M_F ) ) * log( M_CaO / cCa );
+		Real potCaN = ( ( M_R * M_T ) / ( 2 * M_F ) ) * std::log( M_CaO / cCa );
 
 		return M_GCab * ( V - potCaN );
 	}
@@ -1242,12 +1256,49 @@
 	// Na+ background current INab
 	Real IonicTenTusscher::backINab( const std::vector<Real>& v )
 	{
-		Real V   ( v[0] );
-		Real cNa ( v[15] );
+		Real V    ( v[0] );
+		Real cNa  ( v[15] );
 
-		Real potNaN = M_R * M_T / M_F * log( M_NaO / cNa );
+		Real potNaN = M_R * M_T / M_F * std::log( M_NaO / cNa );
 
 		return M_GNab * ( V - potNaN );
+	}
+
+	std::vector<Real> IonicTenTusscher::gateInf( const std::vector<Real>& v )
+	{
+		Real V   ( v[0] );
+		Real cCa ( v[13] );
+		std::vector<Real> gate_inf (12);
+
+		gate_inf[0] = 1.0 / pow( 1.0 + exp( ( -58.6 - V ) / 9.03), 2);
+		gate_inf[1] = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
+		gate_inf[2] = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
+		gate_inf[3] =  1.0 / ( 1.0 + exp( ( -26.0 - V ) / 7.0 ) );
+		gate_inf[4] = 1.0 / ( 1.0 + exp( ( 88.0 + V ) / 24.0 ) );
+		gate_inf[5] = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 14.0 ) );
+		gate_inf[6] = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 7.5 ) );
+		gate_inf[7] = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 7.0 ) );
+
+		Real alpha_fCa = 1.0 / ( 1.0 + pow(cCa / 0.000325, 8) );
+		Real beta_fCa  = 0.1 / ( 1.0 + exp( ( cCa - 0.0005 ) / 0.0001 ) );
+		Real gamma_fCa = 0.2 / ( 1.0 + exp( ( cCa - 0.00075 ) / 0.0008 ) );
+		gate_inf[8]    = ( alpha_fCa + beta_fCa + gamma_fCa + 0.23 ) / 1.46;
+
+		gate_inf[9] = 1.0 / ( 1.0 + exp( ( 20.0 - V ) / 6.0 ) );
+
+		if ( ( M_typeCell == "epicardial" ) || ( M_typeCell == "M cell" ) )
+			gate_inf[10] = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 5.0 ) );
+		else if ( M_typeCell == "endocardial" )
+			gate_inf[10] = 1.0 / ( 1.0 + exp( ( 28.0 + V ) / 5.0 ) );
+		else
+			gate_inf[10] = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 5.0 ) );
+
+		if ( cCa <= 0.00035 )
+			gate_inf[11]  = 1.0 / ( 1.0 + pow(cCa / 0.00035, 6) );
+		else
+			gate_inf[11] = 1.0 / ( 1.0 + pow(cCa / 0.00035, 16) );
+
+		return gate_inf;
 	}
 
 	void IonicTenTusscher::showMe()

@@ -15,7 +15,7 @@ ADD_SUBDIRECTORIES(
 #  AlievPanfilov
   basic_example
   ETA_MonodomainSolver
-  IntegratedHeart
+#  IntegratedHeart
   oneway_EM
   XbNegroniLascano96
   IonicAlievPanfilov
