@@ -123,7 +123,7 @@ LinearSolver::solve ( vectorPtr_Type solutionPtr )
         return -1;
     }
 
-    // Setup the Solver Operator?? Really here??
+    // Setup the Solver Operator
     setupSolverOperator();
 
     // Reset status informations
@@ -199,6 +199,9 @@ LinearSolver::solve ( vectorPtr_Type solutionPtr )
         exit ( -1 );
     }
 
+    // Reset the solver to free the internal pointers
+    M_solverOperator->resetSolver();
+
     // If the number of iterations reaches the threshold of maxIterForReuse
     // we reset the preconditioners to force to solver to recompute it next
     // time
@@ -206,13 +209,6 @@ LinearSolver::solve ( vectorPtr_Type solutionPtr )
     {
         resetPreconditioner();
     }
-
-    // <!-- TO BE RECODED IF POSSIBLE
-    // AztecOO and Belos contain pointers
-    // to some operators.
-    // ML is crashing for this reason.
-    M_solverOperator.reset();
-    // -->
 
     return numIters;
 }
@@ -457,12 +453,16 @@ LinearSolver::setPreconditioner ( preconditionerPtr_Type preconditionerPtr )
 void
 LinearSolver::setPreconditioner ( operatorPtr_Type preconditionerPtr )
 {
-    // Does the solverOperator exists?
-
     // If a LifeV::Preconditioner exists it must be deleted
     M_preconditioner.reset();
 
     M_preconditionerOperator = preconditionerPtr;
+}
+
+void
+LinearSolver::setBaseMatrixForPreconditioner ( matrixPtr_Type baseMatrixPtr )
+{
+    M_baseMatrixForPreconditioner = baseMatrixPtr;
 }
 
 void
@@ -607,5 +607,9 @@ LinearSolver::hasConverged() const
 {
     return M_converged;
 }
+
+// ===================================================
+// Private Methods
+// ===================================================
 
 } // namespace LifeV
