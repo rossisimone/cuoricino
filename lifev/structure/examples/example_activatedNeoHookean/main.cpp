@@ -88,9 +88,6 @@
 
 //Includes for the Expression Template
 #include <lifev/eta/fem/ETFESpace.hpp>
-#include <Teuchos_RCP.hpp>
-#include <Teuchos_ParameterList.hpp>
-#include "Teuchos_XMLParameterListHelpers.hpp"
 
 #include <iostream>
 

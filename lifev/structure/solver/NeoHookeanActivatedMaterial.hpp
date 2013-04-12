@@ -43,7 +43,6 @@
 
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/heart/utility/HeartUtility.hpp>
-#include <lifev/eta/fem/ETFESpace.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
 
 
@@ -699,7 +698,7 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 #define I4f     dot( fiber, fiber )
 //
 ////#define Stress	( mu1 * J23 * ( GammaPlusOne * ( F - value( 1.0 / 3.0 ) * I1 * FinvT ) + gGammaf * ( F * outerProduct(fiber, fiber) - value( 1.0 / 3.0 ) * I4f * FinvT ) ) )
-#define Stress	( parameter ( (* (this->M_vectorsParameters) ) [0] ) * J23 * ( GammaPlusOne * ( deformationGradientTensor + value(- 1.0 / 3.0 ) * firstInvariantC *  deformationGradientTensor_T ) + gGammaf * ( deformationGradientTensor * outerProduct(fiber, fiber0) + value(- 1.0 / 3.0 ) * I4f * deformationGradientTensor_T ) ) )
+#define Stress	( parameter ( (* (this->M_vectorsParameters) ) [0] ) * J23 * ( GammaPlusOne * ( deformationGradientTensor + value(- 1.0 / 3.0 ) * firstInvariantC *  deformationGradientTensor_T ) + gGammaf * ( deformationGradientTensor * outerProduct(fiber0, fiber0) + value(- 1.0 / 3.0 ) * I4f * deformationGradientTensor_T ) ) )
 ////
 ////    //
 //////#define dPpt1  ( value( - 2.0 /3.0 ) * dot( FinvT, grad( phi_j ) ) * dot( Stress, grad( phi_i ) ) )
@@ -709,9 +708,9 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 #define dPpt3  ( value( 1.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * firstInvariantC *  dot( deformationGradientTensor_T * transpose ( grad(phi_j) ) * deformationGradientTensor_T, grad(phi_i) ) )
 #define dPpt4  ( value( - 2.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * GammaPlusOne * dot( deformationGradientTensor, grad( phi_j ) ) * dot( deformationGradientTensor_T, grad(phi_i) ) )
 //////
-#define dPpt5  ( 						 J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( grad(phi_j) * outerProduct( fiber, fiber0 ), grad(phi_i) ) )
+#define dPpt5  ( 						 J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( grad(phi_j) * outerProduct( fiber0, fiber0 ), grad(phi_i) ) )
 #define dPpt6  ( 	value( 1.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * I4f *  dot( deformationGradientTensor_T * transpose ( grad(phi_j) ) * deformationGradientTensor_T, grad(phi_i) ) )
-#define dPpt7  ( value( - 2.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( deformationGradientTensor * outerProduct( fiber, fiber0 ), grad( phi_j ) ) * dot( deformationGradientTensor_T, grad(phi_i) ) )
+#define dPpt7  ( value( - 2.0 / 3.0 ) * J23 * parameter ( (* (this->M_vectorsParameters) ) [0] ) * gGammaf * dot( deformationGradientTensor * outerProduct( fiber0, fiber0 ), grad( phi_j ) ) * dot( deformationGradientTensor_T, grad(phi_i) ) )
 
 
     //Assembling Volumetric Part
