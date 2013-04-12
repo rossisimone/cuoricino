@@ -16,8 +16,7 @@
 modelName            = FSI3D_AtlasLeftVentricle_MonolithicFI
 modelType            = FSI3D
 couplingFlags        = '208 213'
-flowRateCouplingType = 'weak weak'
-
+flowRateCouplingType = 'Strong Strong'
 
 [exporter]
 start            = 0             # start index for filenames
@@ -67,7 +66,7 @@ solidMeshPartitioned = none
 
 
 [fluid]
-useShapeDerivatives     = true
+useShapeDerivatives     = false
 conservativeFormulation = false  # tells if the conservative or non conservative formulation is used
 
     [./physics] # Defined here only if different from the one in the main file.
@@ -92,7 +91,7 @@ conservativeFormulation = false  # tells if the conservative or non conservative
     vel_order       = P1               # P1, P1Bubble, P2
     mesh_order      = P1               # P1, P2
     press_order     = P1               # P1, P2
-    stiff_strain    = true             # true: sigma with grad( u )^T, false: sigma without it
+    stiff_strain    = false             # true: sigma with grad( u )^T, false: sigma without it
     div_beta_u_v    = false            # 1=on, 0=off
     diagonalize     = 0                # weight, 0=off
     stabilization   = 'ip'             # "none": none, "ip": Interior Penalty, "sd":Stream-line diffusion
@@ -127,27 +126,27 @@ conservativeFormulation = false  # tells if the conservative or non conservative
 
 
 [solid]
-useExactJacobian = false # always false for linear structure model. Otherwise it allows to chose beween an exact-inexact Newton scheme
+useExactJacobian = true # always false for linear structure model. Otherwise it allows to chose beween an exact-inexact Newton scheme
 rescaleFactor    = 1.0   # this factor can be used to rescale the structure block
 
     [./physics]
 #   LINEAR MATERIAL INCLUDED MAINLY FOR QUICK TESTS
-    lawType           = linear
-    solidType         = linearVenantKirchhoff
-    material_flag     = 42
-    externalPressure  = 0
-    density           = 1.37     
-    young             = 7.0E6
-    poisson           = 0.48     
-
-#    solidType         = neoHookeanActivated
-#    lawType           = nonlinear
+#    lawType           = linear
+#    solidType         = linearVenantKirchhoff
 #    material_flag     = 42
 #    externalPressure  = 0
-#    density           = 1.37     # Watanabe et al 04
-#    bulk              = 1.6E6    # Weiss et al 06
-#    young             = 6.2726E4 # Weiss et al 06
+#    density           = 1.37     
+#    young             = 7.0E6
 #    poisson           = 0.48     
+
+    solidType         = neoHookean 
+    lawType           = nonlinear
+    material_flag     = 42
+    externalPressure  = 0
+    density           = 1.37     # Watanabe et al 04
+    bulk              = 1.6E6    # Weiss et al 06
+    young             = 6.2726E4 # Weiss et al 06
+    poisson           = 0.48     
 
     [../time_discretization]
     method           = BDF            # Newmark, BDF
@@ -170,14 +169,23 @@ rescaleFactor    = 1.0   # this factor can be used to rescale the structure bloc
     verbose    = 0
     depname    = dep
 
-    [../boundary_conditions]
+ [../boundary_conditions]
     list = 'Pericardium RightVentricle Apex'
 
         [./Pericardium]
-        type       = Natural
+        type       = Robin
         flag       = 46
-        mode       = Normal
-        functionFile = FunctionsDatabase/TestForce.dat
+        mode       = Full
+        component  = 3
+        functionSD = RobinWall
+
+            [./RobinAlpha]
+            function = ' 5.00 * 1000' # D
+
+            [../RobinBeta]
+            function = ' 5.00 * 1000' # D
+
+            [../]
 
 	[../RightVentricle]
         type       = Natural
@@ -186,11 +194,20 @@ rescaleFactor    = 1.0   # this factor can be used to rescale the structure bloc
         functionFile = FunctionsDatabase/RightVentriclePressure.dat
 
 	[../Apex]
-	type       = Essential
-	flag       = 41
-	mode       = Full
+        type       = Robin
+        flag       = 41
+        mode       = Full
         component  = 3
-	function   = 0
+        functionSD = RobinWall
+
+            [./RobinAlpha]
+            function = ' 5.00 * 100000' # D
+
+            [../RobinBeta]
+            function = ' 5.00 * 1000' # D
+
+            [../]
+
         [../]
 
     [../]
@@ -223,7 +240,7 @@ tolerance       =  0.005    # how far points are to be considered the same on th
     reuse           = true
     max_iter_reuse  = 500
     kspace          = 500
-    tol             = 1.e-9
+    tol             = 1.e-6
 
     [../prec]
     #prectype                = AztecOO
@@ -320,7 +337,7 @@ tolerance       =  0.005    # how far points are to be considered the same on th
     reuse           = true
     max_iter_reuse  = 500
     kspace          = 500
-    tol             = 1.e-9
+    tol             = 1.e-6
 
     [../prec]
     reuse                   = false

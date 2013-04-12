@@ -27,7 +27,7 @@ ProblemFile = ./MultiscaleDatabase/Models/Multiscale/FSI3D-FSI1D-Windkessel0D_In
 
     [../time_discretization]
     initialtime                = 0.0         # [s]
-    endtime                    = 0.080       # [s] 6-HB end
+    endtime                    = 0.800       # [s] 6-HB end
     timestep                   = 0.001       # [s]
 
     [../]
