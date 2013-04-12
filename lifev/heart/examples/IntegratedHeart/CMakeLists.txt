@@ -17,8 +17,14 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(IH_mesh
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(IH_data
   CREATE_SYMLINK
-  SOURCE_FILES Run_IntegratedHeart.dat biventricle2fibers.dat AlievPanfilovParameters.xml MonodomainSolverParamList.xml
+  SOURCE_FILES Run_IntegratedHeart.dat MonodomainSolverParamList.xml
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../data/multiscale/IntegratedHeart
+)
+
+TRIBITS_COPY_FILES_TO_BINARY_DIR(IH_data
+  CREATE_SYMLINK
+  SOURCE_FILES data
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR} #/../../data/multiscale/IntegratedHeart
 )
 
 #TRIBITS_COPY_FILES_TO_BINARY_DIR(IH_fibers

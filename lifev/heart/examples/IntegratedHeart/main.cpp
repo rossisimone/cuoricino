@@ -62,6 +62,7 @@
 
 #include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
 #include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
+#include <lifev/heart/utility/HeartUtility.hpp>
 
 using namespace LifeV;
 using namespace Multiscale;
@@ -72,6 +73,21 @@ typedef IonicMinimalModel								ionicModel_Type;
 typedef boost::shared_ptr<ionicModel_Type> 				ionicModelPtr_Type;
 typedef HeartETAMonodomainSolver< mesh_Type, ionicModel_Type > monodomainSolver_Type;
 typedef boost::shared_ptr< monodomainSolver_Type > monodomainSolverPtr_Type;
+typedef boost::function < Real (const Real& /*t*/,
+                                const Real &   x,
+                                const Real &   y,
+                                const Real& /*z*/,
+                                const ID&   /*i*/ ) >   function_Type;
+
+
+using namespace LifeV;
+
+Real smoothing (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& z, const ID& /*i*/)
+{
+    return ( 0.5 + 0.5 * ( std::tanh ( - ( z - 50 ) / 5.0 ) ) );
+
+}
+
 
 
 class HeartApplication : public MultiscaleSolver
@@ -103,7 +119,7 @@ public:
 
         if ( M_comm->MyPID() == 0 )
         {
-            std::cout << "Importing electrophysiology model parameter lists...";
+            std::cout << "\nImporting electrophysiology model parameter lists...";
         }
         Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
         if ( M_comm->MyPID() == 0 )
@@ -119,7 +135,7 @@ public:
         //********************************************//
         if ( M_comm->MyPID() == 0 )
         {
-            std::cout << "Building Constructor for the Minimal Model with parameters ... ";
+            std::cout << "\nBuilding the ionic model ... ";
         }
         ionicModelPtr_Type  IonicModel ( new ionicModel_Type () );
         if ( M_comm->MyPID() == 0 )
@@ -131,11 +147,24 @@ public:
         // In the parameter list we need to specify   //
         // the mesh name and the mesh path.           //
         //********************************************//
+        if ( M_comm->MyPID() == 0 )
+        {
+            std::cout << "\nImporting the mesh for the elctrophysiology ... ";
+        }
+        std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
+        std::string meshPath = monodomainList.get ("mesh_path", "./");
+        if ( M_comm->MyPID() == 0 )
+        {
+            std::cout << " Done!" << endl;
+        }
 
         //********************************************//
         // We need the GetPot datafile for to setup   //
         // the preconditioner.                        //
         //********************************************//
+//        GetPot command_line (argc, argv);
+//        const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+        GetPot dataFile;
 
         //********************************************//
         // We create three solvers to solve with:     //
@@ -143,109 +172,195 @@ public:
         // 2) Ionic Current Interpolation             //
         // 3) State Variable Interpolation            //
         //********************************************//
+        if ( M_comm->MyPID() == 0 )
+        {
+            std::cout << "Building Monodomain Solvers... ";
+        }
+
+        monodomainSolverPtr_Type electro ( new monodomainSolver_Type ( meshName, meshPath, dataFile, IonicModel ) );
+        if ( M_comm->MyPID() == 0 )
+        {
+            std::cout << " Done... ";
+        }
 
         //********************************************//
         // Setting up the initial condition form      //
         // a given function.                          //
         //********************************************//
+        if (M_comm->MyPID() == 0 )
+        {
+            cout << "\nSetting initial condition for the electrophysiology...:  " ;
+        }
+
+        HeartUtility::setValueOnBoundary( *(electro -> potentialPtr() ), electro -> fullMeshPtr(), 1.0, 43 );
+        HeartUtility::setValueOnBoundary( *(electro -> potentialPtr() ), electro -> fullMeshPtr(), 1.0, 45 );
+
+        function_Type f = &smoothing;
+        vectorPtr_Type smoother( new vector_Type( electro -> potentialPtr() -> map() ) );
+        electro -> feSpacePtr() -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *smoother , 0);
+        (*smoother) *= *(electro -> potentialPtr() );
+        electro -> setPotentialPtr(smoother);
+
+        //setting up initial conditions
+        * ( electro -> globalSolution().at (1) ) = 1.0;
+        * ( electro -> globalSolution().at (2) ) = 1.0;
+        * ( electro -> globalSolution().at (3) ) = 0.021553043080281;
+
+        if ( M_comm->MyPID() == 0 )
+        {
+            cout << "Done! \n" ;
+        }
+
+        //********************************************//
+        // Importing Fiber direction                  //
+        //********************************************//
+        if ( M_comm->MyPID() == 0 )
+        {
+            cout << "\nImporting fibers:  " ;
+        }
+
+        boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+        ( new FESpace< mesh_Type, MapEpetra > ( electro -> localMeshPtr(), "P1", 3, electro -> commPtr() ) );
+
+        boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
+    	std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
+        HeartUtility::importFibers( fiber, nm, electro -> localMeshPtr() );
+        electro -> setFiberPtr(fiber);
+        //delete Space3D;
+        if ( M_comm->MyPID() == 0 )
+        {
+            cout << "Done! \n" ;
+        }
 
         //********************************************//
         // Setting up the time data                   //
         //********************************************//
+        electro -> setParameters ( monodomainList );
 
         //********************************************//
         // Create the global matrix: mass + stiffness //
         //********************************************//
+        if ( M_comm->MyPID() == 0 )
+        {
+            cout << "\nSetup operators:  " ;
+        }
+
+        electro -> setupLumpedMassMatrix();
+        electro -> setupStiffnessMatrix();
+        electro -> setupGlobalMatrix();
+        if ( M_comm->MyPID() == 0 )
+        {
+            cout << "Done! \n" ;
+        }
+
 
         //********************************************//
         // Setting up the SVI solver                  //
         //********************************************//
+        //********************************************//
+        // Creating exporters to save the solution    //
+        //********************************************//
+        ExporterHDF5< RegionMesh <LinearTetra> > exporterElectro;
 
+        electro -> setupExporter ( exporterElectro, "Splitting" );
+
+        electro -> exportSolution ( exporterElectro, 0);
         //********************************************//
         // Creating exporters to save the solution    //
         //********************************************//
 
-
-        for ( ; M_globalData->dataTime()->canAdvance(); M_globalData->dataTime()->updateTime() )
+        if ( M_comm->MyPID() == 0 )
         {
-            // Global chrono start
-            globalChrono.start();
-
-            if ( M_comm->MyPID() == 0 )
-            {
-                std::cout << std::endl;
-                std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
-                std::cout << "                   INTEGRATED HEART SIMULATOR                " << std::endl;
-                std::cout << "             time = " << M_globalData->dataTime()->time() << " s;"
-                        << " time step number = " << M_globalData->dataTime()->timeStepNumber() << std::endl;
-                std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl << std::endl;
-            }
-
-            //********************************************//
-            // Solving the electrophysiology system      //
-            //********************************************//
-
-            //********************************************//
-            // Computing activation and passing it to FSI //
-            //********************************************//
-
-            //********************************************//
-            // Updating the FSI                           //
-            //********************************************//
-
-            buildUpdateChrono.start();
-            if ( M_globalData->dataTime()->isFirstTimeStep() )
-            {
-                M_model->buildModel();
-            }
-            else
-            {
-                M_model->updateModel();
-            }
-            buildUpdateChrono.stop();
-
-            //********************************************//
-            // Solving the activated FSI in the ventricle //
-            //********************************************//
-
-            solveChrono.start();
-            M_model->solveModel();
-            solveChrono.stop();
-
-            updateSolutionChrono.start();
-            M_model->updateSolution();
-            updateSolutionChrono.stop();
-
-            //********************************************//
-            // Exporting the FSI solution                 //
-            //********************************************//
-
-            saveChrono.start();
-            if ( M_globalData->dataTime()->timeStepNumber() % multiscaleSaveEachNTimeSteps == 0 || M_globalData->dataTime()->isLastTimeStep() )
-            {
-                M_model->saveSolution();
-            }
-            saveChrono.stop();
-
-            // Global chrono stop
-            globalChrono.stop();
-
-            // Compute time step time
-            timeStepTime = globalChrono.globalDiff ( *M_comm );
-
-            // Updating total simulation time
-            totalSimulationTime += timeStepTime;
-
-            if ( M_comm->MyPID() == 0 )
-            {
-                std::cout << " MS-  Total iteration time:                    " << timeStepTime << " s" << std::endl;
-                std::cout << " MS-  Total simulation time:                   " << totalSimulationTime << " s" << std::endl;
-            }
-
-            // Save CPU time
-            saveCPUTime ( timeStepTime, buildUpdateChrono.globalDiff ( *M_comm ), solveChrono.globalDiff ( *M_comm ),
-                    updateSolutionChrono.globalDiff ( *M_comm ), saveChrono.globalDiff ( *M_comm ) );
+            cout << "\nstart solving:  " ;
         }
+
+        Real saveStep = monodomainList.get ("saveStep", 1.0);
+
+        electro   -> solveSplitting ( exporterElectro, saveStep );
+        exporterElectro.closeFile();
+
+
+
+//        for ( ; M_globalData->dataTime()->canAdvance(); M_globalData->dataTime()->updateTime() )
+//        {
+//            // Global chrono start
+//            globalChrono.start();
+//
+//            if ( M_comm->MyPID() == 0 )
+//            {
+//                std::cout << std::endl;
+//                std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl;
+//                std::cout << "                   INTEGRATED HEART SIMULATOR                " << std::endl;
+//                std::cout << "             time = " << M_globalData->dataTime()->time() << " s;"
+//                        << " time step number = " << M_globalData->dataTime()->timeStepNumber() << std::endl;
+//                std::cout << "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$" << std::endl << std::endl;
+//            }
+//
+//            //********************************************//
+//            // Solving the electrophysiology system      //
+//            //********************************************//
+//
+//            //********************************************//
+//            // Computing activation and passing it to FSI //
+//            //********************************************//
+//
+//            //********************************************//
+//            // Updating the FSI                           //
+//            //********************************************//
+//
+//            buildUpdateChrono.start();
+//            if ( M_globalData->dataTime()->isFirstTimeStep() )
+//            {
+//                M_model->buildModel();
+//            }
+//            else
+//            {
+//                M_model->updateModel();
+//            }
+//            buildUpdateChrono.stop();
+//
+//            //********************************************//
+//            // Solving the activated FSI in the ventricle //
+//            //********************************************//
+//
+//            solveChrono.start();
+//            M_model->solveModel();
+//            solveChrono.stop();
+//
+//            updateSolutionChrono.start();
+//            M_model->updateSolution();
+//            updateSolutionChrono.stop();
+//
+//            //********************************************//
+//            // Exporting the FSI solution                 //
+//            //********************************************//
+//
+//            saveChrono.start();
+//            if ( M_globalData->dataTime()->timeStepNumber() % multiscaleSaveEachNTimeSteps == 0 || M_globalData->dataTime()->isLastTimeStep() )
+//            {
+//                M_model->saveSolution();
+//            }
+//            saveChrono.stop();
+//
+//            // Global chrono stop
+//            globalChrono.stop();
+//
+//            // Compute time step time
+//            timeStepTime = globalChrono.globalDiff ( *M_comm );
+//
+//            // Updating total simulation time
+//            totalSimulationTime += timeStepTime;
+//
+//            if ( M_comm->MyPID() == 0 )
+//            {
+//                std::cout << " MS-  Total iteration time:                    " << timeStepTime << " s" << std::endl;
+//                std::cout << " MS-  Total simulation time:                   " << totalSimulationTime << " s" << std::endl;
+//            }
+//
+//            // Save CPU time
+//            saveCPUTime ( timeStepTime, buildUpdateChrono.globalDiff ( *M_comm ), solveChrono.globalDiff ( *M_comm ),
+//                    updateSolutionChrono.globalDiff ( *M_comm ), saveChrono.globalDiff ( *M_comm ) );
+//        }
 
         return multiscaleExitFlag;
     }
