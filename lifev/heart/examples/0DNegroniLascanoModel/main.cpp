@@ -58,6 +58,7 @@
 #include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/heart/solver/XbModels/XbNegroniLascano96.hpp>
+#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -98,6 +99,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
     XbNegroniLascano96  xb ( NLParameterList );
+    IonicMinimalModel  ionicModel;
     std::cout << " Done!" << endl;
 
 
@@ -116,8 +118,12 @@ Int main ( Int argc, char** argv )
     // the vector states                          //
     //********************************************//
     std::cout << "Initializing solution vector...";
-    std::vector<Real> states (xb.Size(), 0);
-    std::vector<Real>& rStates = states;
+    std::vector<Real> XbStates (xb.Size(), 0);
+    std::vector<Real> states (ionicModel.Size(), 0);
+    states.at (0) = 0.0;
+    states.at (1) = 1.0;
+    states.at (2) = 1.0;
+    states.at (3) = 0.021553043080281;
     std::cout << " Done!" << endl;
 
 
@@ -129,8 +135,8 @@ Int main ( Int argc, char** argv )
     // the differential equation.                 //
     //********************************************//
     std::cout << "Initializing rhs..." ;
-    std::vector<Real> rhs (xb.Size(), 0);
-    std::vector<Real>& rRhs = rhs;
+    std::vector<Real> XbRhs (xb.Size(), 0);
+    std::vector<Real> rhs (ionicModel.Size(), 0);
     std::cout << " Done! "  << endl;
 
 
@@ -143,14 +149,14 @@ Int main ( Int argc, char** argv )
     //********************************************//
     Real vel (0.0);
     Real Ca (0.0);
-
+    Real Iapp (0.0);
 
     //********************************************//
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (60);
-    Real dt (0.01);
+    Real TF (500);
+    Real dt (0.02);
 
 
     //********************************************//
@@ -159,6 +165,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
     string filename = "output.txt";
     std::ofstream output ("output.txt");
+    string XbFilename = "XbOutput.txt";
+    std::ofstream XbOutput ("XbOutput.txt");
 
 
     //********************************************//
@@ -168,30 +176,45 @@ Int main ( Int argc, char** argv )
     for ( Real t = 0; t < TF; )
     {
 
+    	if( t > 10 && t < 11 ) Iapp = 4.0;
+        else Iapp = 0;
         //********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
+//        Ca = 5e-4 * states.at(3);
         Ca = std::exp (- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
+
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        xb.computeRhs ( states, Ca, vel, rhs);
+        xb.computeRhs ( XbStates, Ca, vel, XbRhs);
+        ionicModel.computeRhs ( states, Iapp, rhs);
 
         //********************************************//
         // Use forward Euler method to advance the    //
         // solution in time.                          //
         //********************************************//
-        rStates.at (0) = rStates.at (0)  + dt * rRhs.at (0);
-        rStates.at (1) = rStates.at (1)  + dt * rRhs.at (1);
-        rStates.at (2) = rStates.at (2)  + dt * rRhs.at (2);
+        for ( int j (0); j < ionicModel.Size(); j++)
+        {
+            states.at (j) = states.at (j)  + dt * rhs.at (j);
+        }
+        XbStates.at (0) = XbStates.at (0)  + dt * XbRhs.at (0);
+        XbStates.at (1) = XbStates.at (1)  + dt * XbRhs.at (1);
+        XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
-        output << rStates.at (0) << ", " << rStates.at (1) << ", " << rStates.at (2) << "\n";
+        for ( int j (0); j < ionicModel.Size() - 1; j++)
+        {
+            output << states.at (j) << ", ";
+        }
+        output << states.at ( ionicModel.Size() - 1 ) << "\n";
+
+        XbOutput << Ca << ", " << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
 
         //********************************************//
         // Update the time.                           //
@@ -203,6 +226,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Close exported file.                       //
     //********************************************//
+    XbOutput.close();
     output.close();
 
     //! Finalizing Epetra communicator
