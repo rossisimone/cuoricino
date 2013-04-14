@@ -67,6 +67,8 @@
 using namespace LifeV;
 using namespace Multiscale;
 
+typedef VectorEpetra 			vector_Type;
+typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
 typedef RegionMesh<LinearTetra> mesh_Type;
 typedef boost::function < Real ( const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/ ) > function_Type;
 typedef IonicMinimalModel								ionicModel_Type;
@@ -262,7 +264,7 @@ public:
         //********************************************//
         ExporterHDF5< RegionMesh <LinearTetra> > exporterElectro;
 
-        electro -> setupExporter ( exporterElectro, "Splitting" );
+        electro -> setupExporter ( exporterElectro, "Electrophysiology" );
 
         electro -> exportSolution ( exporterElectro, 0);
         //********************************************//
@@ -276,13 +278,34 @@ public:
 
         Real saveStep = monodomainList.get ("saveStep", 1.0);
 
-        electro   -> solveSplitting ( exporterElectro, saveStep );
-        exporterElectro.closeFile();
+        //********************************************//
+        // //setup activation;                        //
+        //********************************************//
 
+        Real maxCalciumLikeVariable = 0.838443;
+        Real minCalciumLikeVariable = 0.021553;
 
+        ExporterHDF5< RegionMesh <LinearTetra> > exporterActivation;
 
+        vectorPtr_Type gammaf( new  vector_Type( *( electro -> globalSolution().at(3) ) ) );
+
+        exporterActivation.setMeshProcId ( electro -> localMeshPtr(), M_comm -> MyPID() );
+        //exporterActivation.exportPID (electro -> localMeshPtr(), M_comm );
+        exporterActivation.setPrefix ("gammaf");
+        exporterActivation.addVariable ( ExporterData<mesh_Type>::ScalarField,  "gamma_f", electro -> feSpacePtr(), gammaf, UInt (0) );
+        exporterActivation.postProcess(0.0);
+
+        Real beta = -0.3;
+        Real electroDT = electro -> timeStep();
 //        for ( ; M_globalData->dataTime()->canAdvance(); M_globalData->dataTime()->updateTime() )
 //        {
+        Real time = 0.;
+        for ( ; time < electro -> endTime();  )
+        {
+        	electro   -> solveOneSplittingStep( exporterElectro, M_globalData -> dataTime() -> time() );
+        	( *gammaf ) = *( electro -> globalSolution().at(3) );
+        	HeartUtility::rescaleVector(*gammaf,minCalciumLikeVariable,maxCalciumLikeVariable,beta);
+        	time += electroDT;
 //            // Global chrono start
 //            globalChrono.start();
 //
@@ -350,18 +373,22 @@ public:
 //
 //            // Updating total simulation time
 //            totalSimulationTime += timeStepTime;
-//
-//            if ( M_comm->MyPID() == 0 )
-//            {
+            totalSimulationTime = time;
+
+        	//
+            if ( M_comm->MyPID() == 0 )
+            {
 //                std::cout << " MS-  Total iteration time:                    " << timeStepTime << " s" << std::endl;
-//                std::cout << " MS-  Total simulation time:                   " << totalSimulationTime << " s" << std::endl;
-//            }
+                std::cout << " MS-  Total simulation time:                   " << totalSimulationTime << " s" << std::endl;
+            }
 //
 //            // Save CPU time
 //            saveCPUTime ( timeStepTime, buildUpdateChrono.globalDiff ( *M_comm ), solveChrono.globalDiff ( *M_comm ),
 //                    updateSolutionChrono.globalDiff ( *M_comm ), saveChrono.globalDiff ( *M_comm ) );
-//        }
+        }
 
+        exporterElectro.closeFile();
+        exporterActivation.closeFile();
         return multiscaleExitFlag;
     }
 
