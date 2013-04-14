@@ -48,7 +48,7 @@ RosenbrockTransformed<s>::RosenbrockTransformed(Real g, const MatrixSmall<s,s>& 
 
 template<UInt s>
 template<typename RightHandSide>
-void RosenbrockTransformed<s>::solve(RightHandSide& Fun, vector_Type& y0, Real t0, Real TF, Real dt_init)
+void RosenbrockTransformed<s>::solve(RightHandSide& Fun, vector_Type& y0, Real t0, Real TF, Real& dt_init)
 {
 	boost::shared_ptr<RightHandSide> FunPtr(new RightHandSide(Fun));
 
@@ -57,7 +57,16 @@ void RosenbrockTransformed<s>::solve(RightHandSide& Fun, vector_Type& y0, Real t
 
 template<UInt s>
 template<typename RightHandSide>
-void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vector_Type& y0, Real t0, Real TF, Real dt_init)
+void RosenbrockTransformed<s>::solve(RightHandSide& Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
+{
+	boost::shared_ptr<RightHandSide> FunPtr(new RightHandSide(Fun));
+
+	solve(FunPtr, y0, t0, TF, dt_init);
+}
+
+template<UInt s>
+template<typename RightHandSide>
+void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vector_Type& y0, Real t0, Real TF, Real& dt_init)
 {
 	//ofstream output("test_ros3p_vectorEpetra.txt");
 
@@ -139,6 +148,7 @@ void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vect
 	}
 
 	y0 = y;
+	dt_init = dt;
 
 	//output.close();
 
@@ -147,7 +157,7 @@ void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vect
 
 template<UInt s>
 template<typename RightHandSide>
-void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real dt_init)
+void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
 {
 	//ofstream output("test_ros3p_vectorReal.txt");
 
@@ -237,6 +247,7 @@ void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vect
 	}
 
 	y0 = y;
+	dt_init = dt;
 
 	//output.close();
 

@@ -137,10 +137,10 @@ Real Stimulus3 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, 
 
 Real Cut (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( y<= 0.45 )
+    if ( y<= 4.5 )
     	return 1.0;
-    else if( y<= 0.55)
-    	return ( 0.55 - y )/(0.1);
+    else if( y<= 5.5)
+    	return ( 0.55 - y/10.0 )/(0.1);
     else
     	return 0.0;
 }
@@ -256,7 +256,7 @@ Int main ( Int argc, char** argv )
     }
 
     //Compute the potential at t0
-    function_Type f = &Stimulus3;
+    function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
 
     //setting up initial conditions
@@ -306,13 +306,25 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
+    monodomainSolver_Type::vectorPtr_Type dtVec ( new VectorEpetra ( splitting->feSpacePtr() -> map(), LifeV::Unique ) );
+    ExporterHDF5<mesh_Type> Exp;
+    Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
+    Exp.setPrefix (monodomainList.get ("OutputTimeSteps", "TimeSteps"));
+    Exp.addVariable ( ExporterData<mesh_Type>::ScalarField,  "dt", splitting->feSpacePtr(), dtVec, UInt (0) );
+
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Real TCut1 = monodomainList.get ("TCut", 35.0) - dt/2.0;
     Real TCut2 = monodomainList.get ("TCut", 35.0) + dt/2.0;
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
     Int meth = monodomainList.get ("meth", 1.0);
-    Int k(0);
+    Real dt_min = dt/50.0;;
+    Int k(0),j(0);
+    Int nodes;
+
+    Real timeReac = 0.0;
+    Real timeDiff = 0.0;
+    LifeChrono chrono;
 
     //splitting   -> solveSplitting ( exporterSplitting );
 
@@ -320,19 +332,38 @@ Int main ( Int argc, char** argv )
     {
         t = t + dt;
 
-        if(meth==1)
-        	splitting->solveOneReactionStepROS3PEpetra();
-        else if(meth==2)
-        	splitting->solveOneReactionStepROS3PReal();
+        chrono.start();
+        if(meth==2)
+        	splitting->solveOneReactionStepROS3PReal(dtVec, dt_min);
         else
         	splitting->solveOneReactionStepFE();
+        chrono.stop();
+        timeReac += chrono.diff();
 
         (*splitting->rhsPtrUnique()) *= 0.0;
         splitting->updateRhs();
+
+        chrono.start();
         splitting->solveOneDiffusionStepBE();
+        chrono.stop();
+        timeDiff += chrono.diff();
 
         if( k % iter == 0 )
+        {
         	splitting -> exportSolution (exporterSplitting, t);
+        	Exp.postProcess (t);
+        }
+
+        nodes = dtVec->epetraVector().MyLength();
+        j = dtVec->blockMap().GID (0);
+        dt_min = (*dtVec)[j];
+        for(int i=1; i<nodes; i++)
+        {
+        	j = dtVec->blockMap().GID (i);
+        	if(dt_min>(*dtVec)[j])
+        		dt_min = (*dtVec)[j];
+        }
+
 
         k++;
 
@@ -353,6 +384,7 @@ Int main ( Int argc, char** argv )
     }
 
     exporterSplitting.closeFile();
+    Exp.closeFile();
 
 
     //********************************************//
@@ -363,7 +395,9 @@ Int main ( Int argc, char** argv )
     if ( Comm->MyPID() == 0 )
     {
     	chronoinitialsettings.stop();
-    	std::cout << "\n\n\nElapsed time : " << chronoinitialsettings.diff() << std::endl;
+    	std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
+    	std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
+    	std::cout<<"Reaction time : "<<timeReac<<std::endl;
     }
 
     if ( Comm->MyPID() == 0 )

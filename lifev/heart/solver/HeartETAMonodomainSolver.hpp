@@ -770,12 +770,13 @@ public:
      */
     void solveOneReactionStepFE();
 
-    //! Solves one reaction step using the Rosenbrock ROS3P method
+    //! Solves one reaction step using the Rosenbrock  method
     /*!
      * \f[
      * \left( \frac{I}{dt \gamma}-J(y_n)\right) U_i = f(y_n+\sum_{j=1}{i-1} a_{i j} U_j) + \sum_{j=1}{i-1}\frac{c_{i j}}{dt} U_j
      * \f]
      */
+    void solveOneReactionStepROS3PReal(vectorPtr_Type dtVec, Real dt_min);
     void solveOneReactionStepROS3PReal();
     void solveOneReactionStepROS3PEpetra();
 
@@ -1444,9 +1445,9 @@ template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
 setupExporter (exporter_Type& exporter)
 {
-	exporter.exportPID (M_localMeshPtr, M_commPtr );
     exporter.setMeshProcId ( M_localMeshPtr, M_commPtr -> MyPID() );
     exporter.setPrefix ("Solution");
+    exporter.exportPID (M_localMeshPtr, M_commPtr);
     std::string variableName;
     for ( int i = 0; i < M_ionicModelPtr -> Size() ; i++ )
     {
@@ -1463,6 +1464,7 @@ setupPotentialExporter (exporter_Type& exporter, std::string fileName)
 {
     exporter.setMeshProcId ( M_localMeshPtr, M_commPtr -> MyPID() );
     exporter.setPrefix (fileName);
+    exporter.exportPID (M_localMeshPtr, M_commPtr);
     exporter.addVariable ( ExporterData<mesh_Type>::ScalarField,  "Potential", M_feSpacePtr, M_potentialPtr, UInt (0) );
 }
 
@@ -1472,6 +1474,7 @@ setupExporter (exporter_Type& exporter, std::string fileName)
 {
     exporter.setMeshProcId ( M_localMeshPtr, M_commPtr -> MyPID() );
     exporter.setPrefix (fileName);
+    exporter.exportPID (M_localMeshPtr, M_commPtr);
     std::string variableName;
     for ( int i = 0; i < M_ionicModelPtr -> Size() ; i++ )
     {
@@ -1498,13 +1501,14 @@ solveOneReactionStepFE()
 
 template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
-solveOneReactionStepROS3PReal()
+solveOneReactionStepROS3PReal(vectorPtr_Type dtVec, Real dt_min)
 {
 	ROS3P ros(M_commPtr, M_solvParam);
 	vector<Real> localVec(M_ionicModelPtr->Size(), 0.0);
+	Real dt;
 
 	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
-    int j (0);
+    int j(0);
 
     for ( int k = 0; k < nodes; k++ )
     {
@@ -1513,7 +1517,36 @@ solveOneReactionStepROS3PReal()
         for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
             localVec[i] = ( * ( M_globalSolution.at (i) ) ) [j];
 
-        ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, M_timeStep/50.0);
+        dt = dt_min;
+        ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, dt);
+        (*dtVec)[j] = dt;
+
+        for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
+            ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[i];
+    }
+}
+
+template<typename Mesh, typename IonicModel>
+void HeartETAMonodomainSolver<Mesh, IonicModel>::
+solveOneReactionStepROS3PReal()
+{
+	ROS3P ros(M_commPtr, M_solvParam);
+	vector<Real> localVec(M_ionicModelPtr->Size(), 0.0);
+	Real dt;
+
+	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
+    int j(0);
+
+
+    for ( int k = 0; k < nodes; k++ )
+    {
+        j = M_appliedCurrentPtr->blockMap().GID (k);
+
+        for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
+            localVec[i] = ( * ( M_globalSolution.at (i) ) ) [j];
+
+        dt = M_timeStep/50.0;
+        ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, dt);
 
         for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
             ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[i];
@@ -1529,6 +1562,7 @@ solveOneReactionStepROS3PEpetra()
 	MapEpetra mappa(localMap);
 	VectorEpetra localVec( mappa );
 	const Int* it = localVec.blockMap().MyGlobalElements();
+	Real dt;
 
 	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
     int j (0);
@@ -1540,7 +1574,8 @@ solveOneReactionStepROS3PEpetra()
         for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
             localVec[it[i]] = ( * ( M_globalSolution.at (i) ) ) [j];
 
-        ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, M_timeStep/50.0);
+        dt = M_timeStep/50.0;
+        ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, dt);
 
         for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
             ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[it[i]];

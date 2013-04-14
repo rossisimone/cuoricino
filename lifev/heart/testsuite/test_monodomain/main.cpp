@@ -121,6 +121,13 @@ Int main ( Int argc, char** argv )
     typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
     typedef VectorEpetra				vector_Type;
     typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
+
+
+    LifeChrono chronoinitialsettings;
+
+    if ( Comm->MyPID() == 0 )
+      	chronoinitialsettings.start();
+
     //********************************************//
     // Import parameters from an xml list. Use    //
     // Teuchos to create a list from a given file //
@@ -277,24 +284,72 @@ Int main ( Int argc, char** argv )
 //    splitting   -> solveSplitting ( exporterSplitting, saveStep );
 
 
+    monodomainSolver_Type::vectorPtr_Type dtVec ( new VectorEpetra ( splitting->feSpacePtr() -> map(), LifeV::Unique ) );
+    ExporterHDF5<mesh_Type> Exp;
+    Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
+    Exp.setPrefix (monodomainList.get ("OutputTimeSteps", "TimeSteps"));
+    Exp.addVariable ( ExporterData<mesh_Type>::ScalarField,  "dt", splitting->feSpacePtr(), dtVec, UInt (0) );
+
     splitting->setSolverParam("MonodomainSolverParamList.xml");
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
-    Int k(0);
+    Int meth = monodomainList.get ("meth", 1.0);
+    Real dt_min = dt/50.0;
+    Int k(0),j(0);
+    Int nodes;
+
+    Real timeReac = 0.0;
+    Real timeDiff = 0.0;
+    LifeChrono chrono;
 
     for ( Real t = 0.0; t < TF; )
     {
         t = t + dt;
 
-        splitting->solveOneReactionStepROS3PReal();
-        //splitting->solveOneReactionStepFE();
+        if ( Comm->MyPID() == 0 )
+        	chrono.start();
+
+        if(meth==2)
+            splitting->solveOneReactionStepROS3PReal(dtVec, dt_min);
+        else
+           	splitting->solveOneReactionStepFE();
+
+        if ( Comm->MyPID() == 0 )
+        {
+        	chrono.stop();
+        	timeReac += chrono.diff();
+        }
+
         (*splitting->rhsPtrUnique()) *= 0.0;
         splitting->updateRhs();
+
+        if ( Comm->MyPID() == 0 )
+        	chrono.start();
+
         splitting->solveOneDiffusionStepBE();
 
+        if ( Comm->MyPID() == 0 )
+        {
+        	chrono.stop();
+        	timeDiff += chrono.diff();
+        }
+
         if( k % iter == 0 )
-        	splitting -> exportSolution (exporterSplitting, t);
+        {
+           	splitting -> exportSolution (exporterSplitting, t);
+           	Exp.postProcess (t);
+        }
+
+        nodes = dtVec->epetraVector().MyLength();
+        j = dtVec->blockMap().GID (0);
+        dt_min = (*dtVec)[j];
+        for(int i=1; i<nodes; i++)
+        {
+        	j = dtVec->blockMap().GID (i);
+        	if(dt_min>(*dtVec)[j])
+        		dt_min = (*dtVec)[j];
+        }
 
         k++;
 
@@ -303,9 +358,8 @@ Int main ( Int argc, char** argv )
 
     }
 
-
-
     exporterSplitting.closeFile();
+    Exp.closeFile();
 
 
     //********************************************//
@@ -316,6 +370,10 @@ Int main ( Int argc, char** argv )
 
     if ( Comm->MyPID() == 0 )
     {
+    	chronoinitialsettings.stop();
+    	std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
+    	std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
+    	std::cout<<"Reaction time : "<<timeReac<<std::endl;
         cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
     MPI_Barrier (MPI_COMM_WORLD);

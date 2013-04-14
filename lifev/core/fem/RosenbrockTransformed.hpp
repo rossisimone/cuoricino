@@ -84,13 +84,16 @@ public:
 	virtual ~RosenbrockTransformed(){};
 
 	template<typename RightHandSide>
-	void solve(RightHandSide& Fun, vector_Type& y0, Real t0, Real TF, Real dt_init);
+	void solve(RightHandSide& Fun, vector_Type& y0, Real t0, Real TF, Real& dt_init);
 
 	template<typename RightHandSide>
-	void solve(boost::shared_ptr<RightHandSide> Fun, vector_Type& y0, Real t0, Real TF, Real dt_init);
+	void solve(boost::shared_ptr<RightHandSide> Fun, vector_Type& y0, Real t0, Real TF, Real& dt_init);
 
 	template<typename RightHandSide>
-	void solve(boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real dt_init);
+	void solve(RightHandSide& Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init);
+
+	template<typename RightHandSide>
+	void solve(boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init);
 
 
 public:
