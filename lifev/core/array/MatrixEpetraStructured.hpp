@@ -160,6 +160,18 @@ public:
 
     //@}
 
+
+    //! @name  Linear Algebra Methods
+    //@{
+
+    //! Returns a pointer to a new matrix which contains the transpose of the current matrix
+    boost::shared_ptr<MatrixEpetraStructured<DataType> > transpose()
+    {
+        return boost::static_pointer_cast<MatrixEpetraStructured<DataType> > ( this->MatrixEpetra<DataType>::transpose() );
+    }
+
+    //@}
+
 private:
 
     std::vector<UInt> M_blockNumRows;

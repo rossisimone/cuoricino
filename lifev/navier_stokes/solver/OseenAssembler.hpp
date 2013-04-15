@@ -270,7 +270,7 @@ public:
 private:
 
     typedef CurrentFE                            currentFE_Type;
-    typedef CurrentBoundaryFE                    currentBdFE_Type;
+    typedef CurrentFEManifold                    currentBdFE_Type;
     typedef boost::scoped_ptr<currentFE_Type>    currentFEPtr_Type;
     typedef boost::scoped_ptr<currentBdFE_Type>  currentBdFEPtr_Type;
 
@@ -629,7 +629,7 @@ addStiffStrainBoundary (matrixType& matrix, const Real& boundaryFlag, const Real
 
     //std::cout<<"Numero di nodi sulla faccia: "<< M_laplaceBeltramiCBdFE->nbNode()<<std::endl;
 
-    if ( M_stiffBoundaryCBdFE->nbNode() == 3 /*P1*/)
+    if ( M_stiffBoundaryCBdFE->nbFEDof() == 3 /*P1*/)
     {
 
         typedef RegionMesh<LinearTetra>::elementShape_Type elementShape_Type;
@@ -647,7 +647,7 @@ addStiffStrainBoundary (matrixType& matrix, const Real& boundaryFlag, const Real
             ibFE = M_uFESpace->mesh()->boundaryFace ( ibF ).firstAdjacentElementPosition(); // local id of the face in its adjacent element
 
             // Updating the laplace Beltrami current BdFE and FE
-            M_stiffBoundaryCBdFE->updateMeasNormalQuadPt ( M_uFESpace->mesh()->boundaryFace ( ibF ) );
+            M_stiffBoundaryCBdFE->update ( M_uFESpace->mesh()->boundaryFacet ( ibF ), UPDATE_NORMALS | UPDATE_W_ROOT_DET_METRIC  );
             //M_stiffBoundaryCFE->updateFirstDeriv( M_uFESpace->mesh()->element( ibE ) );
             M_stiffBoundaryCFE->update ( M_uFESpace->mesh()->element ( ibE ), UPDATE_ONLY_CELL_NODES );
 
@@ -710,7 +710,7 @@ addStiffStrainBoundary (matrixType& matrix, const Real& boundaryFlag, const Real
             ibFE = M_uFESpace->mesh()->boundaryFace ( ibF ).firstAdjacentElementPosition(); // local id of the face in its adjacent element
 
             // Updating the laplace Beltrami current BdFE and FE
-            M_stiffBoundaryCBdFE->updateMeasNormalQuadPt ( M_uFESpace->mesh()->boundaryFace ( ibF ) );
+            M_stiffBoundaryCBdFE->update ( M_uFESpace->mesh()->boundaryFacet ( ibF ), UPDATE_NORMALS | UPDATE_W_ROOT_DET_METRIC  );
             //M_stiffBoundaryCFE->updateFirstDeriv( M_uFESpace->mesh()->element( ibE ) );
             M_stiffBoundaryCFE->update ( M_uFESpace->mesh()->element ( ibE ), UPDATE_ONLY_CELL_NODES );
 
@@ -1411,7 +1411,7 @@ addFluxTerms ( vectorType&     vector,
         const BCBase&    boundaryCond (bcHandler[ hCounter ]);
 
         // Number of local DOF in this facet
-        UInt nDofF = M_uFESpace->feBd().nbNode();
+        UInt nDofF = M_uFESpace->feBd().nbFEDof();
 
         // Number of total scalar Dof
         UInt totalDof = M_uFESpace->dof().numTotalDof();
@@ -1433,7 +1433,7 @@ addFluxTerms ( vectorType&     vector,
                 // Number of the current boundary facet
                 ibF = pId->id();
                 // Updating facet stuff
-                M_uFESpace->feBd().updateMeasNormalQuadPt ( M_uFESpace->mesh()->boundaryFacet ( ibF ) );
+                M_uFESpace->feBd().update ( M_uFESpace->mesh()->boundaryFacet ( ibF ), UPDATE_W_ROOT_DET_METRIC | UPDATE_NORMALS | UPDATE_QUAD_NODES );
 
                 for ( ID idofF = 0; idofF < nDofF; ++idofF )
                 {
@@ -1446,7 +1446,7 @@ addFluxTerms ( vectorType&     vector,
                         {
                             sum += M_uFESpace->feBd().phi ( int ( idofF ), iq ) *
                                    M_uFESpace->feBd().normal (ic , iq) *
-                                   M_uFESpace->feBd().weightMeas (iq);
+                                   M_uFESpace->feBd().wRootDetMetric (iq);
                         }
 
                         vector.sumIntoGlobalValues (idDof, sum);

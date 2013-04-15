@@ -75,14 +75,14 @@ INCLUDE(TribitsListHelpers)
 SET( LifeV_PACKAGES_AND_DIRS_AND_CLASSIFICATIONS
   Core                  lifev/core                        PS
   ETA                   lifev/eta                         EX
+  BCInterface           lifev/bc_interface                PS
+  OneDFSI               lifev/one_d_fsi                   PS
+  ZeroDimensional       lifev/zero_dimensional            PS  
   LevelSet              lifev/level_set                   PS
   Darcy                 lifev/darcy                       PS
   NavierStokes          lifev/navier_stokes               PS
   Structure             lifev/structure                   PS
   FSI                   lifev/fsi                         PS
-  BCInterface           lifev/bc_interface                PS
-  OneDFSI               lifev/one_d_fsi                   PS
-  ZeroDimensional       lifev/zero_dimensional            EX
   Multiscale            lifev/multiscale                  EX
   Heart                 lifev/heart                       EX
   Dummy                 lifev/dummy                       EX
