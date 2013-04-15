@@ -1150,23 +1150,23 @@
 
 	std::vector<Real> IonicJafriRiceWinslow::computeLocalGatingRhs ( const std::vector<Real>& v )
 	{
-//		Real m ( v[1] );
-//		Real h ( v[2] );
-//		Real j ( v[3] );
-//		Real x ( v[4] );
+		Real m ( v[1] );
+		Real h ( v[2] );
+		Real j ( v[3] );
+		Real x ( v[4] );
 
 		std::vector<Real> gatingRhs (4);
 		std::vector<Real> param1    ( fastINa(v) );
 		std::vector<Real> param2    ( timeDIK(v) );
 
-//		gatingRhs[0] = param1[1] * ( 1 - m ) - param1[2] * m;
-//		gatingRhs[1] = param1[3] * ( 1 - h ) - param1[4] * h;
-//		gatingRhs[2] = param1[5] * ( 1 - j ) - param1[6] * j;
-//		gatingRhs[3] = param2[1] * ( 1 - x ) - param2[2] * x;
-		gatingRhs[0] = param1[1];
-		gatingRhs[1] = param1[2];
-		gatingRhs[2] = param1[3];
-		gatingRhs[3] = param2[1];
+		gatingRhs[0] = param1[1] * ( 1 - m ) - param1[2] * m;
+		gatingRhs[1] = param1[3] * ( 1 - h ) - param1[4] * h;
+		gatingRhs[2] = param1[5] * ( 1 - j ) - param1[6] * j;
+		gatingRhs[3] = param2[1] * ( 1 - x ) - param2[2] * x;
+//		gatingRhs[0] = param1[1];
+//		gatingRhs[1] = param1[2];
+//		gatingRhs[2] = param1[3];
+//		gatingRhs[3] = param2[1];
 
 		return gatingRhs;
 	}
@@ -1184,8 +1184,10 @@
 		concRhs[0] = - ( courINa[0] + backINab(v) + courInsCa[0] + 3 * exINaCa(v) + 3 * pumpINaK(v) ) * M_ACap / ( M_VMyo * M_F );
 		concRhs[1] = - ( courDIK[0] + timeIIK1(v) + plaIKp(v) + courInsCa[1] - 2 * pumpINaK(v) + courSubSysCa[1] ) * M_ACap / ( M_VMyo * M_F );
 		concRhs[2] =   ( courDIK[0] + timeIIK1(v) + plaIKp(v) + courInsCa[1] - 2 * pumpINaK(v) + courSubSysCa[1] ) * M_ACap / ( M_VMyo * M_F );
-		concRhs[3] = - ( M_kNLtrpn + M_kPLtrpn * pow(v[8], M_n) );
-		concRhs[4] = - ( M_kNHtrpn + M_kPHtrpn * pow(v[8], M_n) );
+		concRhs[3] = M_kPLtrpn * v[8] * ( M_LtrpnTot - v[29] ) - M_kNLtrpn * v[29];
+		concRhs[4] = M_kPHtrpn * v[8] * ( M_HtrpnTot - v[30] ) - M_kNHtrpn * v[30];
+//		concRhs[3] = - ( M_kNLtrpn + M_kPLtrpn * pow(v[8], M_n) );
+//		concRhs[4] = - ( M_kNHtrpn + M_kPHtrpn * pow(v[8], M_n) );
 
 		return concRhs;
 	}
@@ -1209,17 +1211,17 @@
 		Real fracPO1  ( v[13] );
 		Real fracPO2  ( v[14] );
 
-//		Real c0       ( v[16] );
-//		Real c1 	  ( v[17] );
-//		Real c2       ( v[18] );
-//		Real c3       ( v[19] );
-//		Real c4       ( v[20] );
+		Real c0       ( v[16] );
+		Real c1 	  ( v[17] );
+		Real c2       ( v[18] );
+		Real c3       ( v[19] );
+		Real c4       ( v[20] );
 		Real o        ( v[21] );
-//		Real cCa0     ( v[22] );
-//		Real cCa1     ( v[23] );
-//		Real cCa2     ( v[24] );
-//		Real cCa3     ( v[25] );
-//		Real cCa4     ( v[26] );
+		Real cCa0     ( v[22] );
+		Real cCa1     ( v[23] );
+		Real cCa2     ( v[24] );
+		Real cCa3     ( v[25] );
+		Real cCa4     ( v[26] );
 		Real oCa      ( v[27] );
 		Real y        ( v[28] );
 		Real cLTrpnCa ( v[29] );
@@ -1247,7 +1249,7 @@
 		Real betaprime  = beta / M_b;
 		Real gamma      = 0.1875 * cCaSS;
 
-//		Real yinf   = 1 / ( 1 + exp( ( V + 55 ) / 7.5 ) ) + 0.1 / ( 1 + exp( -V + 21 ) / 6 );
+		Real yinf   = 1 / ( 1 + exp( ( V + 55 ) / 7.5 ) ) + 0.1 / ( 1 + exp( -V + 21 ) / 6 );
 		Real tauY   = 20 + 600 / ( 1 + exp( V + 30 ) / 9.5 );
 		Real iCaMax = M_PCa * 4 * ( V * M_F * M_F ) / ( M_R * M_T ) * ( 0.001 * exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 0.341 * M_CaO )
 						/ ( exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 1.0 );
@@ -1269,34 +1271,33 @@
 		subSysCaRHS[4] 	= bSS * ( jRel * M_VJsr / M_VSs - jXFer * M_VMyo / M_VSs - iCa * M_ACap / ( 2 * M_VSs * M_F ) );
 		subSysCaRHS[5]	= bJSR * ( jTr - jRel );
 
-//		subSysCaRHS[6] 	= beta * c1 + M_omega * cCa0 - ( 4 * alpha + gamma ) * c0;
-//		subSysCaRHS[7] 	= 4 * alpha * c0 + 2 * beta * c2 + cCa1 * M_omega / M_b - ( beta + 3 * alpha + gamma * M_a ) * c1;
-//		subSysCaRHS[8] 	= 3 * alpha * c1  + 3 * beta * c3 + cCa2 * M_omega * ( M_b * M_b ) - ( 2 * beta + 2 * alpha + gamma * ( M_a * M_a ) ) * c2;
-//		subSysCaRHS[9] 	= 2 * alpha * c2 + 4 * beta * c4 + cCa3 * M_omega / pow(M_b, 3) - ( 3 * beta + alpha + gamma * pow(M_a, 3) ) * c3;
-//		subSysCaRHS[10] = alpha *c3 + M_g * o + cCa4 * M_omega / pow(M_b, 4) - ( 4 * beta + M_f + gamma * pow(M_a, 4) ) * c4;
-//		subSysCaRHS[11] = M_f * c4 - M_g * o;
-//		subSysCaRHS[12] = betaprime * cCa1 + gamma * c0 - ( 4 * alphaprime + M_omega ) * cCa0;
-//		subSysCaRHS[13] = 4 * alphaprime * cCa0 + 2 * betaprime * cCa2 + gamma * M_a * c1 - ( betaprime + 3 * alphaprime + M_omega / M_b ) * cCa1;
-//		subSysCaRHS[14] = 3 * alphaprime * cCa1 +  3 * betaprime * cCa3 + gamma * ( M_a * M_a ) * c2 - ( 2* betaprime + 2 * alphaprime + M_omega / ( M_b * M_b ) ) * cCa2;
-//		subSysCaRHS[15] = 2 * alphaprime * cCa2 + 4 * betaprime * cCa4 + gamma * pow(M_a, 3) * c3  - ( 3 * betaprime + alphaprime + M_omega / pow(M_b, 3) ) * cCa3;
-//		subSysCaRHS[16] = alphaprime * cCa3 + M_gprime * oCa + gamma * pow(M_a, 4) * c4 - ( 4 * betaprime + M_fprime + M_omega / pow(M_b, 4) ) * cCa4;
-//		subSysCaRHS[17] = M_fprime * cCa4 - M_gprime * oCa;
-//		subSysCaRHS[18] = ( y_inf - y ) / tauY ;
+		subSysCaRHS[6] 	= beta * c1 + M_omega * cCa0 - ( 4 * alpha + gamma ) * c0;
+		subSysCaRHS[7] 	= 4 * alpha * c0 + 2 * beta * c2 + cCa1 * M_omega / M_b - ( beta + 3 * alpha + gamma * M_a ) * c1;
+		subSysCaRHS[8] 	= 3 * alpha * c1  + 3 * beta * c3 + cCa2 * M_omega * ( M_b * M_b ) - ( 2 * beta + 2 * alpha + gamma * ( M_a * M_a ) ) * c2;
+		subSysCaRHS[9] 	= 2 * alpha * c2 + 4 * beta * c4 + cCa3 * M_omega / pow(M_b, 3) - ( 3 * beta + alpha + gamma * pow(M_a, 3) ) * c3;
+		subSysCaRHS[10] = alpha *c3 + M_g * o + cCa4 * M_omega / pow(M_b, 4) - ( 4 * beta + M_f + gamma * pow(M_a, 4) ) * c4;
+		subSysCaRHS[11] = M_f * c4 - M_g * o;
+		subSysCaRHS[12] = betaprime * cCa1 + gamma * c0 - ( 4 * alphaprime + M_omega ) * cCa0;
+		subSysCaRHS[13] = 4 * alphaprime * cCa0 + 2 * betaprime * cCa2 + gamma * M_a * c1 - ( betaprime + 3 * alphaprime + M_omega / M_b ) * cCa1;
+		subSysCaRHS[14] = 3 * alphaprime * cCa1 +  3 * betaprime * cCa3 + gamma * ( M_a * M_a ) * c2 - ( 2* betaprime + 2 * alphaprime + M_omega / ( M_b * M_b ) ) * cCa2;
+		subSysCaRHS[15] = 2 * alphaprime * cCa2 + 4 * betaprime * cCa4 + gamma * pow(M_a, 3) * c3  - ( 3 * betaprime + alphaprime + M_omega / pow(M_b, 3) ) * cCa3;
+		subSysCaRHS[16] = alphaprime * cCa3 + M_gprime * oCa + gamma * pow(M_a, 4) * c4 - ( 4 * betaprime + M_fprime + M_omega / pow(M_b, 4) ) * cCa4;
+		subSysCaRHS[17] = M_fprime * cCa4 - M_gprime * oCa;
+		subSysCaRHS[18] = ( yinf - y ) / tauY ;
 
-		subSysCaRHS[6] 	= - ( 4 * alpha + gamma );
-		subSysCaRHS[7] 	= - ( beta + 3 * alpha + gamma * M_a );
-		subSysCaRHS[8] 	= - ( 2 * beta + 2 * alpha + gamma * ( M_a * M_a ) );
-		subSysCaRHS[9] 	= - ( 3 * beta + alpha + gamma * pow(M_a, 3) );
-		subSysCaRHS[10] = - ( 4 * beta + M_f + gamma * pow(M_a, 4) );
-		subSysCaRHS[11] = - M_g ;
-		subSysCaRHS[12] = - ( 4 * alphaprime + M_omega );
-		subSysCaRHS[13] = - ( betaprime + 3 * alphaprime + M_omega / M_b );
-		subSysCaRHS[14] = - ( 2* betaprime + 2 * alphaprime + M_omega / ( M_b * M_b ) );
-		subSysCaRHS[15] = - ( 3 * betaprime + alphaprime + M_omega / pow(M_b, 3) );
-		subSysCaRHS[16] = - ( 4 * betaprime + M_fprime + M_omega / pow(M_b, 4) );
-		subSysCaRHS[17] = - M_gprime;
-
-		subSysCaRHS[18] = - 1.0 / tauY ;
+//		subSysCaRHS[6] 	= - ( 4 * alpha + gamma );
+//		subSysCaRHS[7] 	= - ( beta + 3 * alpha + gamma * M_a );
+//		subSysCaRHS[8] 	= - ( 2 * beta + 2 * alpha + gamma * ( M_a * M_a ) );
+//		subSysCaRHS[9] 	= - ( 3 * beta + alpha + gamma * pow(M_a, 3) );
+//		subSysCaRHS[10] = - ( 4 * beta + M_f + gamma * pow(M_a, 4) );
+//		subSysCaRHS[11] = - M_g ;
+//		subSysCaRHS[12] = - ( 4 * alphaprime + M_omega );
+//		subSysCaRHS[13] = - ( betaprime + 3 * alphaprime + M_omega / M_b );
+//		subSysCaRHS[14] = - ( 2* betaprime + 2 * alphaprime + M_omega / ( M_b * M_b ) );
+//		subSysCaRHS[15] = - ( 3 * betaprime + alphaprime + M_omega / pow(M_b, 3) );
+//		subSysCaRHS[16] = - ( 4 * betaprime + M_fprime + M_omega / pow(M_b, 4) );
+//		subSysCaRHS[17] = - M_gprime;
+//		subSysCaRHS[18] = - 1.0 / tauY ;
 
 
 		return subSysCaRHS;
@@ -1308,8 +1309,8 @@
 	// Fast Na+ Current INa
 	std::vector<Real> IonicJafriRiceWinslow::fastINa( const std::vector<Real>& v )
 	{
-//		std::vector<Real> fastNa(7);
-		std::vector<Real> fastNa(4);
+		std::vector<Real> fastNa(7);
+//		std::vector<Real> fastNa(4);
 
 		Real V   ( v[0] );
 		Real m   ( v[1] );
@@ -1344,16 +1345,16 @@
 			beta_j  = 0.1212 * exp( -0.01052 * V ) / ( 1.0 + exp( -0.1378 * ( V + 40.14 ) ) );
 		}
 
-//		fastNa[1] = alpha_m;
-//		fastNa[2] = beta_m;
-//		fastNa[3] = alpha_h;
-//		fastNa[4] = beta_h;
-//		fastNa[5] = alpha_j;
-//		fastNa[6] = beta_j;
+		fastNa[1] = alpha_m;
+		fastNa[2] = beta_m;
+		fastNa[3] = alpha_h;
+		fastNa[4] = beta_h;
+		fastNa[5] = alpha_j;
+		fastNa[6] = beta_j;
 
-		fastNa[1] = - ( alpha_m + beta_m );
-		fastNa[2] = - ( alpha_h + beta_h );
-		fastNa[3] = - ( alpha_j + beta_j );
+//		fastNa[1] = - ( alpha_m + beta_m );
+//		fastNa[2] = - ( alpha_h + beta_h );
+//		fastNa[3] = - ( alpha_j + beta_j );
 
 
 		return fastNa;
@@ -1362,8 +1363,8 @@
 	// Time dependent K+ currrent IK
 	std::vector<Real> IonicJafriRiceWinslow::timeDIK( const std::vector<Real>& v )
 	{
-//		std::vector<Real> timeDK(3);
-		std::vector<Real> timeDK(2);
+		std::vector<Real> timeDK(3);
+//		std::vector<Real> timeDK(2);
 
 		Real V   ( v[0] );
 		Real x   ( v[4] );
@@ -1377,11 +1378,11 @@
 		Real xi       = 1.0 / ( 1.0 + exp( ( V - 56.26 ) / 32.1 ) );
 
 		timeDK[0] = maxCondK * xi * x * x * ( V - potK );
-//		timeDK[1] = 7.19e-5 * ( V + 30.0 ) / ( 1.0 - exp( -0.148 * ( V + 30.0 ) ) );
-//		timeDK[2] = 1.31e-4 * ( V + 30.0 ) / ( -1.0 + exp( 0.0687 * ( V + 30.0 ) ) );
-		Real alpha_x   = 7.19e-5 * ( V + 30.0 ) / ( 1.0 - exp( -0.148 * ( V + 30.0 ) ) );
-		Real beta_x    = 1.31e-4 * ( V + 30.0 ) / ( -1.0 + exp( 0.0687 * ( V + 30.0 ) ) );
-		timeDK[1] = - ( alpha_x + beta_x );
+		timeDK[1] = 7.19e-5 * ( V + 30.0 ) / ( 1.0 - exp( -0.148 * ( V + 30.0 ) ) );
+		timeDK[2] = 1.31e-4 * ( V + 30.0 ) / ( -1.0 + exp( 0.0687 * ( V + 30.0 ) ) );
+//		Real alpha_x   = 7.19e-5 * ( V + 30.0 ) / ( 1.0 - exp( -0.148 * ( V + 30.0 ) ) );
+//		Real beta_x    = 1.31e-4 * ( V + 30.0 ) / ( -1.0 + exp( 0.0687 * ( V + 30.0 ) ) );
+//		timeDK[1] = - ( alpha_x + beta_x );
 
 		return timeDK;
 	}
@@ -1506,21 +1507,21 @@
 		std::vector<Real> channelRyrRHS(4);
 
 		Real cCaSS   ( v[10] );
-//		Real fracPC1 ( v[12] );
-//		Real fracPO1 ( v[13] );
-//		Real fracPO2 ( v[14] );
-//		Real fracPC2 ( v[15] );
+		Real fracPC1 ( v[12] );
+		Real fracPO1 ( v[13] );
+		Real fracPO2 ( v[14] );
+		Real fracPC2 ( v[15] );
 
 
-//		channelRyrRHS[0] = -M_kap * pow(cCaSS, M_n) * fracPC1 + M_kan * fracPO1;
-//		channelRyrRHS[1] = M_kap * pow(cCaSS, M_n) * fracPC1 - M_kan * fracPO1 -
-//                M_kbp * pow(cCaSS, M_m) * fracPO1 + M_kbn * fracPO2 - M_kcp * fracPO1 + M_kcn * fracPC2;
-//		channelRyrRHS[2] = M_kbp * pow(cCaSS, M_m) * fracPO1 - M_kbn * fracPO2;
-//		channelRyrRHS[3] = M_kcp * fracPO1 - M_kcn * fracPC2;
-		channelRyrRHS[0]  = - ( M_kap * pow(cCaSS, M_n) );
-		channelRyrRHS[1]  = - ( M_kbp * pow(cCaSS, M_m) + M_kcp + M_kan );
-		channelRyrRHS[2]  = - M_kbn;
-		channelRyrRHS[3]  = - M_kcn;
+		channelRyrRHS[0] = -M_kap * pow(cCaSS, M_n) * fracPC1 + M_kan * fracPO1;
+		channelRyrRHS[1] = M_kap * pow(cCaSS, M_n) * fracPC1 - M_kan * fracPO1 -
+                			M_kbp * pow(cCaSS, M_m) * fracPO1 + M_kbn * fracPO2 - M_kcp * fracPO1 + M_kcn * fracPC2;
+		channelRyrRHS[2] = M_kbp * pow(cCaSS, M_m) * fracPO1 - M_kbn * fracPO2;
+		channelRyrRHS[3] = M_kcp * fracPO1 - M_kcn * fracPC2;
+//		channelRyrRHS[0]  = - ( M_kap * pow(cCaSS, M_n) );
+//		channelRyrRHS[1]  = - ( M_kbp * pow(cCaSS, M_m) + M_kcp + M_kan );
+//		channelRyrRHS[2]  = - M_kbn;
+//		channelRyrRHS[3]  = - M_kcn;
 
 		return channelRyrRHS;
 	}
@@ -2107,25 +2108,25 @@
 		Real gamma      = 0.1875 * cCaSS;
 
 
-		otherVarInf[0]  = - ( M_kan * fracPO1 ) / ( M_kap * pow(cCaSS, M_n) );
-		otherVarInf[1]  = - ( M_kap * pow(cCaSS, M_n) * fracPC1 + M_kbn * fracPO2 + M_kcn * fracPC2 ) / ( M_kbp * pow(cCaSS, M_m) + M_kcp + M_kan );
-		otherVarInf[2]  = - ( M_kbp * pow(cCaSS, M_m) * fracPO1 ) / ( M_kbn );
-		otherVarInf[3]  = - ( M_kbp * pow(cCaSS, M_m) * fracPO1 ) / ( M_kcn );
-		otherVarInf[4]  = - ( beta * c1 + M_omega * cCa0 ) / ( 4 * alpha + gamma );
-		otherVarInf[5]  = - ( 4 * alpha * c0 + 2 * beta * c2 + cCa1 * M_omega / M_b ) / ( beta + 3 * alpha + gamma * M_a );
-		otherVarInf[6]  = - ( 3 * alpha * c1  + 3 * beta * c3 + cCa2 * M_omega * ( M_b * M_b ) ) / ( 2 * beta + 2 * alpha + gamma * ( M_a * M_a ) );
-		otherVarInf[7]  = - ( 2 * alpha * c2 + 4 * beta * c4 + cCa3 * M_omega / pow(M_b, 3) ) / ( 3 * beta + alpha + gamma * pow(M_a, 3) );
- 		otherVarInf[8]  = - ( alpha *c3 + M_g * o + cCa4 * M_omega / pow(M_b, 4) ) / ( 4 * beta + M_f + gamma * pow(M_a, 4) );
-		otherVarInf[9]  = - ( M_f * c4 ) / M_g;
-		otherVarInf[10] = - ( betaprime * cCa1 + gamma * c0 ) / ( 4 * alphaprime + M_omega );
-		otherVarInf[11] = - ( 4 * alphaprime * cCa0 + 2 * betaprime * cCa2 + gamma * M_a * c1 ) / ( betaprime + 3 * alphaprime + M_omega / M_b );
-		otherVarInf[12] = - ( 3 * alphaprime * cCa1 +  3 * betaprime * cCa3 + gamma * ( M_a * M_a ) * c2 ) / ( 2* betaprime + 2 * alphaprime + M_omega / ( M_b * M_b ) );
-		otherVarInf[13] = - ( 2 * alphaprime * cCa2 + 4 * betaprime * cCa4 + gamma * pow(M_a, 3) * c3 ) / ( 3 * betaprime + alphaprime + M_omega / pow(M_b, 3) );
-		otherVarInf[14] = - ( alphaprime * cCa3 + M_gprime * oCa + gamma * pow(M_a, 4) * c4 ) / ( 4 * betaprime + M_fprime + M_omega / pow(M_b, 4) );
-		otherVarInf[15] = - ( M_fprime * cCa4 ) / M_gprime;
-		otherVarInf[16] = 1 / ( 1 + exp( ( V + 55 ) / 7.5 ) ) + 0.1 / ( 1 + exp( -V + 21 ) / 6 );
-		otherVarInf[17] = - ( M_kPLtrpn * cCa * M_LtrpnTot ) / ( M_kNLtrpn + M_kPLtrpn * cCa );
-		otherVarInf[18] = - ( M_kPHtrpn * cCa * M_HtrpnTot ) / ( M_kNHtrpn + M_kPHtrpn * cCa );
+		otherVarInf[0]  = ( M_kan * fracPO1 ) / ( M_kap * pow(cCaSS, M_n) );
+		otherVarInf[1]  = ( M_kap * pow(cCaSS, M_n) * fracPC1 + M_kbn * fracPO2 + M_kcn * fracPC2 ) / ( M_kbp * pow(cCaSS, M_m) + M_kcp + M_kan );
+		otherVarInf[2]  = ( M_kbp * pow(cCaSS, M_m) * fracPO1 ) / ( M_kbn );
+		otherVarInf[3]  = ( M_kbp * pow(cCaSS, M_m) * fracPO1 ) / ( M_kcn );
+		otherVarInf[4]  = ( beta * c1 + M_omega * cCa0 ) / ( 4 * alpha + gamma );
+		otherVarInf[5]  = ( 4 * alpha * c0 + 2 * beta * c2 + cCa1 * M_omega / M_b ) / ( beta + 3 * alpha + gamma * M_a );
+		otherVarInf[6]  = ( 3 * alpha * c1  + 3 * beta * c3 + cCa2 * M_omega * ( M_b * M_b ) ) / ( 2 * beta + 2 * alpha + gamma * ( M_a * M_a ) );
+		otherVarInf[7]  = ( 2 * alpha * c2 + 4 * beta * c4 + cCa3 * M_omega / pow(M_b, 3) ) / ( 3 * beta + alpha + gamma * pow(M_a, 3) );
+ 		otherVarInf[8]  = ( alpha *c3 + M_g * o + cCa4 * M_omega / pow(M_b, 4) ) / ( 4 * beta + M_f + gamma * pow(M_a, 4) );
+		otherVarInf[9]  = ( M_f * c4 ) / M_g;
+		otherVarInf[10] = ( betaprime * cCa1 + gamma * c0 ) / ( 4 * alphaprime + M_omega );
+		otherVarInf[11] = ( 4 * alphaprime * cCa0 + 2 * betaprime * cCa2 + gamma * M_a * c1 ) / ( betaprime + 3 * alphaprime + M_omega / M_b );
+		otherVarInf[12] = ( 3 * alphaprime * cCa1 +  3 * betaprime * cCa3 + gamma * ( M_a * M_a ) * c2 ) / ( 2* betaprime + 2 * alphaprime + M_omega / ( M_b * M_b ) );
+		otherVarInf[13] = ( 2 * alphaprime * cCa2 + 4 * betaprime * cCa4 + gamma * pow(M_a, 3) * c3 ) / ( 3 * betaprime + alphaprime + M_omega / pow(M_b, 3) );
+		otherVarInf[14] = ( alphaprime * cCa3 + M_gprime * oCa + gamma * pow(M_a, 4) * c4 ) / ( 4 * betaprime + M_fprime + M_omega / pow(M_b, 4) );
+		otherVarInf[15] = ( M_fprime * cCa4 ) / M_gprime;
+		otherVarInf[16] = 1.0 / ( 1 + exp( ( V + 55 ) / 7.5 ) ) + 0.1 / ( 1 + exp( -V + 21 ) / 6 );
+		otherVarInf[17] = ( M_kPLtrpn * cCa * M_LtrpnTot ) / ( M_kNLtrpn + M_kPLtrpn * cCa );
+		otherVarInf[18] = ( M_kPHtrpn * cCa * M_HtrpnTot ) / ( M_kNHtrpn + M_kPHtrpn * cCa );
 
 		return otherVarInf;
 

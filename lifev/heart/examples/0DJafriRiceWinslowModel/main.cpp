@@ -257,19 +257,15 @@ Int main ( Int argc, char** argv )
 
     	for(int j(0); j <= 30; ++j)
         {
-//			 if( j < 5 )
-//				 unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-//				 unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
-//			 else if ( j > 11 )
-//				 unknowns.at (j) = otherVarInf.at(j-11) + ( unknowns.at (j) - otherVarInf.at(j-11) ) * exp( dt * rhs.at(j) );
-			// else
-			 //{
-//				 for( int k(0) ; k < 150; k++ )
-//				 {
-//					 unknowns.at (10) = unknowns.at (10)   + dt / 150 * rhs.at (10);
-//					 model.computeRhs ( unknowns, Iapp, rhs );
-//				 }
-			 //}
+    		if ( ( j <= 4 ) || ( j >= 12 ) )
+    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+
+//    		if( j == 0 || j >= 12 )
+//    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+//    		else if ( ( j <= 4 ) && ( j != 0 ) )
+//    			unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
+//			else if ( j >= 12 )
+//				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
          }
 
     	unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
@@ -280,20 +276,8 @@ Int main ( Int argc, char** argv )
     	unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
     	unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
 
-//         unknowns.at(1) = ( unknowns.at(1) / dt + model.fastINa(unknowns).at(1) )
-//        		 / ( 1 / dt + model.fastINa(unknowns).at(1) + model.fastINa(unknowns).at(2) );
-//      	 unknowns.at(2) = ( unknowns.at(2) / dt + model.fastINa(unknowns).at(3) )
-//      			 / ( 1 / dt + model.fastINa(unknowns).at(3) + model.fastINa(unknowns).at(5) );
-//    	 unknowns.at(3) = ( unknowns.at(3) / dt + model.fastINa(unknowns).at(4) )
-//    			 / ( 1 / dt + model.fastINa(unknowns).at(4) + model.fastINa(unknowns).at(6) );
-//    	 unknowns.at(4) = ( unknowns.at(4) / dt + model.timeDIK(unknowns).at(1) )
-//    			 / ( 1 / dt + model.timeDIK(unknowns).at(1) + model.timeDIK(unknowns).at(2) );
 
-//    	 unknowns.at (28) = ( unknowns.at(28) / dt + model.computeYParameters(unknowns).at(0) /  model.computeYParameters(unknowns).at(1) )
-//    			 / ( 1 / dt + 1 /  model.computeYParameters(unknowns).at(1) );
-
-
-         //********************************************//
+    	//********************************************//
          // Update the time.                           //
          //********************************************//
          t = t + dt;
