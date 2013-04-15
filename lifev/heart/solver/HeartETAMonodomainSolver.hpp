@@ -1354,7 +1354,11 @@ setupLinearSolver ( GetPot dataFile )
     precRawPtr->setDataFromGetPot ( dataFile, "prec" );
     precPtr.reset ( precRawPtr );
     Teuchos::RCP< Teuchos::ParameterList > solverParamList = Teuchos::rcp ( new Teuchos::ParameterList );
-    solverParamList = Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" );
+
+    std::string xmlpath = dataFile("electrophysiology/monodomain_xml_path","./");
+    std::string xmlfile = dataFile("electrophysiology/monodomain_xml_file","MonodomainSolverParamList.xml");
+
+    solverParamList = Teuchos::getParametersFromXmlFile ( xmlpath + xmlfile );
 
     M_linearSolverPtr -> setCommunicator ( M_commPtr );
     M_linearSolverPtr -> setParameters ( *solverParamList );

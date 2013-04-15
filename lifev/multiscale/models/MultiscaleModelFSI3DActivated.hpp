@@ -52,16 +52,17 @@ namespace Multiscale
  *  @author Simone Rossi
 
  */
-class MultiscaleModelFSI3DActivated: public virtual MultiscaleModelFSI3Ds
+class MultiscaleModelFSI3DActivated: public virtual MultiscaleModelFSI3D
 {
 public:
 
     //! @name Public Types
     //@{
 
-    typedef MultiscaleModelFSI3Ds                             super;
+    typedef MultiscaleModelFSI3D                             super;
 
     typedef IonicMinimalModel									ionicModel_Type;
+    typedef boost::shared_ptr< ionicModel_Type >         ionicModelPtr_Type;
     typedef HeartETAMonodomainSolver< mesh_Type, ionicModel_Type >        monodomainSolver_Type;
 //    typedef Heart
     typedef boost::shared_ptr< monodomainSolver_Type >         monodomainSolverPtr_Type;
