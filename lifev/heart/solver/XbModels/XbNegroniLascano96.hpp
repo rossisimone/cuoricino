@@ -96,70 +96,70 @@ public:
     //@{
 
     //parameters getters and setters
-    inline const Real& Alpha1() const
+    inline const Real& Y1() const
     {
-        return M_alpha1;
+        return M_Y1;
     }
-    inline const Real& Alpha2() const
+    inline const Real& Y2() const
     {
-        return M_alpha2;
+        return M_Y2;
     }
-    inline const Real& Alpha3()     const
+    inline const Real& Y3()     const
     {
-        return M_alpha3;
+        return M_Y3;
     }
-    inline const Real& Alpha4()     const
+    inline const Real& Y4()     const
     {
-        return M_alpha4;
+        return M_Y4;
     }
-    inline const Real& Alpha5()     const
+    inline const Real& Y5()     const
     {
-        return M_alpha5;
+        return M_Yd;
     }
-    inline const Real& Beta1()      const
+    inline const Real& Z1()      const
     {
-        return M_beta1;
+        return M_Z1;
     }
-    inline const Real& Beta2()      const
+    inline const Real& Z2()      const
     {
-        return M_beta2;
+        return M_Z2;
     }
-    inline const Real& Beta3()      const
+    inline const Real& Z3()      const
     {
-        return M_beta3;
+        return M_Z3;
     }
 
-    inline void setAlpha1   ( const Real& alpha1 )
+    inline void setY1   ( const Real& y1 )
     {
-        this->M_alpha1 = alpha1;
+        this->M_Y1 = y1;
     }
-    inline void setAlpha2   ( const Real& alpha2 )
+    inline void setY2   ( const Real& y2 )
     {
-        this->M_alpha2 = alpha2;
+        this->M_Y2 = y2;
     }
-    inline void setAlpha3   ( const Real& alpha3 )
+    inline void setY3   ( const Real& y3 )
     {
-        this->M_alpha3 = alpha3;
+        this->M_Y3 = y3;
     }
-    inline void setAlpha4   ( const Real& alpha4 )
+    inline void setY4   ( const Real& y4 )
     {
-        this->M_alpha4 = alpha4;
+        this->M_Y4 = y4;
     }
-    inline void setAlpha5   ( const Real& alpha5 )
+    inline void setY5   ( const Real& y5 )
     {
-        this->M_alpha5 = alpha5;
+        this->M_Yd = y5;
     }
-    inline void setBeta1    ( const Real& beta1  )
+    inline void setZ1    ( const Real& z1  )
     {
-        this->M_beta1  =  beta1;
+        this->M_Z1  =  z1;
     }
-    inline void setBeta2    ( const Real& beta2  )
+    inline void setZ2    ( const Real& z2  )
     {
-        this->M_beta2  =  beta2;
+        this->M_Z2  =  z2;
     }
-    inline void setBeta3    ( const Real& beta3  )
+    inline void setZ3    ( const Real& z3  )
     {
-        this->M_beta3  =  beta3;
+        this->M_Z3  =  z3;
     }
 
 
@@ -185,14 +185,15 @@ private:
     //! Model Parameters
 
     //! Chemical kinetics parameters
-    Real M_alpha1;
-    Real M_alpha2;
-    Real M_alpha3;
-    Real M_alpha4;
-    Real M_alpha5;
-    Real M_beta1;
-    Real M_beta2;
-    Real M_beta3;
+    Real M_Y1;
+    Real M_Y2;
+    Real M_Y3;
+    Real M_Y4;
+    Real M_Yd;
+    Real M_Z1;
+    Real M_Z2;
+    Real M_Z3;
+    Real M_Tt;
 
 
 
@@ -208,40 +209,43 @@ private:
 // ===================================================
 XbNegroniLascano96::XbNegroniLascano96()    :
     super    ( 3   ),
-    M_alpha1 ( 0.0 ),
-    M_alpha2 ( 0.0 ),
-    M_alpha3 ( 0.0 ),
-    M_alpha4 ( 0.0 ),
-    M_alpha5 ( 0.0 ),
-    M_beta1  ( 0.0 ),
-    M_beta2  ( 0.0 ),
-    M_beta3  ( 0.0 )
+    M_Y1 ( 39.0 ),
+    M_Y2 ( 1.3 ),
+    M_Y3 ( 30.0 ),
+    M_Y4 ( 40.0 ),
+    M_Yd ( 9.0 ),
+    M_Z1  ( 30.0 ),
+    M_Z2  ( 1.3 ),
+    M_Z3  ( 1560.0 ),
+    M_Tt ( 70.0)
 {
 }
 
 XbNegroniLascano96::XbNegroniLascano96 ( Teuchos::ParameterList& parameterList   )   :
     super    ( 3   )
 {
-    M_alpha1 =  parameterList.get ("alpha1", 0.0);
-    M_alpha2 =  parameterList.get ("alpha2", 0.0);
-    M_alpha3 =  parameterList.get ("alpha3", 0.0);
-    M_alpha4 =  parameterList.get ("alpha4", 0.0);
-    M_alpha5 =  parameterList.get ("alpha5", 0.0);
-    M_beta1  =  parameterList.get ("beta1",  0.0);
-    M_beta2  =  parameterList.get ("beta1",  0.0);
-    M_beta3  =  parameterList.get ("beta1",  0.0);
+    M_Y1 =  parameterList.get ("y1", 39.0);
+    M_Y2 =  parameterList.get ("y2", 1.3);
+    M_Y3 =  parameterList.get ("y3", 30.0);
+    M_Y4 =  parameterList.get ("y4", 40.0);
+    M_Yd =  parameterList.get ("yd", 9.0);
+    M_Z1  =  parameterList.get ("z1",  30.0);
+    M_Z2  =  parameterList.get ("z2",  1.3);
+    M_Z3  =  parameterList.get ("z3",  1560.0);
+    M_Z3  =  parameterList.get ("z3",  70.0);
+
 }
 
 XbNegroniLascano96::XbNegroniLascano96 ( const XbNegroniLascano96& Xb )
 {
-    M_alpha1 =  Xb.M_alpha1;
-    M_alpha2 =  Xb.M_alpha2;
-    M_alpha3 =  Xb.M_alpha3;
-    M_alpha4 =  Xb.M_alpha4;
-    M_alpha5 =  Xb.M_alpha5;
-    M_beta1  =  Xb.M_beta1;
-    M_beta2  =  Xb.M_beta2;
-    M_beta3  =  Xb.M_beta3;
+    M_Y1 =  Xb.M_Y1;
+    M_Y2 =  Xb.M_Y2;
+    M_Y3 =  Xb.M_Y3;
+    M_Y4 =  Xb.M_Y4;
+    M_Yd =  Xb.M_Yd;
+    M_Z1  =  Xb.M_Z1;
+    M_Z2  =  Xb.M_Z2;
+    M_Z3  =  Xb.M_Z3;
 
     M_numberOfEquations = Xb.M_numberOfEquations;
 }
@@ -251,14 +255,14 @@ XbNegroniLascano96::XbNegroniLascano96 ( const XbNegroniLascano96& Xb )
 // ===================================================
 XbNegroniLascano96& XbNegroniLascano96::operator= ( const XbNegroniLascano96& Xb )
 {
-    M_alpha1 =  Xb.M_alpha1;
-    M_alpha2 =  Xb.M_alpha2;
-    M_alpha3 =  Xb.M_alpha3;
-    M_alpha4 =  Xb.M_alpha4;
-    M_alpha5 =  Xb.M_alpha5;
-    M_beta1  =  Xb.M_beta1;
-    M_beta2  =  Xb.M_beta2;
-    M_beta3  =  Xb.M_beta3;
+    M_Y1 =  Xb.M_Y1;
+    M_Y2 =  Xb.M_Y2;
+    M_Y3 =  Xb.M_Y3;
+    M_Y4 =  Xb.M_Y4;
+    M_Yd =  Xb.M_Yd;
+    M_Z1  =  Xb.M_Z1;
+    M_Z2  =  Xb.M_Z2;
+    M_Z3  =  Xb.M_Z3;
 
     M_numberOfEquations = Xb.M_numberOfEquations;
 
@@ -278,18 +282,25 @@ void XbNegroniLascano96::computeRhs (    const   std::vector<Real>&  v,
                                          std::vector<Real>& rhs )
 {
 
-    Real Q1 = M_alpha1 * Ca * ( 1.0 - v[0] - v[1] - v[2] ) - M_beta1 * v[0];
+    Real Qb = M_Y1 * Ca * ( M_Tt - v[0] - v[1] - v[2] ) - M_Z1 * v[0];
 
     Real TCaEff (1.0);
-    Real Q2 = M_alpha2 * v[0] * TCaEff - M_beta2 * v[1];
-    Real Q3 = M_alpha3 * v[1] - M_beta3 * Ca * v[2];
+    Real Qa = M_Y2 * v[0] * TCaEff - M_Z2 * v[1];
+    Real Qr = M_Y3 * v[1] - M_Z3 * Ca * v[2];
     Real param (1.0);
-    Real Q4 = M_alpha4 * v[1] + M_alpha5 * ( param * vel ) * ( param * vel ) * v[2];
-    Real Q5 = M_alpha5 * ( param * vel ) * ( param * vel ) * v[1];
+    Real Qd1 = M_Y4 * v[1] + M_Yd * ( param * vel ) * ( param * vel ) * v[2];
+    Real Qd2 = M_Yd * ( param * vel ) * ( param * vel ) * v[1];
 
-    rhs[0] = Q1 - Q2;
-    rhs[1] = Q2 - Q3 - Q5;
-    rhs[2] = Q3 - Q4;
+    cout << "\n\nQb: " << Qb;
+    cout << "\n\nQa: " << Qa;
+    cout << "\n\nQr: " << Qr;
+    cout << "\n\nQd1: " << Qd1;
+    cout << "\n\nQd2: " << Qd2;
+    cout << "\n\n";
+
+    rhs[0] = Qb - Qa;
+    rhs[1] = Qa - Qr - Qd2;
+    rhs[2] = Qr - Qd1;
 
 
 }
@@ -334,14 +345,14 @@ void XbNegroniLascano96::showMe()
     std::cout << "number of unkowns: "  << this->Size() << std::endl;
 
     std::cout << "\n\t\tList of model parameters:\n\n";
-    std::cout << "alpha1: " << this->Alpha1() << std::endl;
-    std::cout << "alpha2: " << this->Alpha2() << std::endl;
-    std::cout << "alpha3: " << this->Alpha3() << std::endl;
-    std::cout << "alpha4: " << this->Alpha4() << std::endl;
-    std::cout << "alpha5: " << this->Alpha5() << std::endl;
-    std::cout << "beta1: "  << this->Beta1()  << std::endl;
-    std::cout << "beta2: "  << this->Beta2()  << std::endl;
-    std::cout << "beta3: "  << this->Beta3()  << std::endl;
+    std::cout << "y1: " << this->Y1() << std::endl;
+    std::cout << "y2: " << this->Y2() << std::endl;
+    std::cout << "y3: " << this->Y3() << std::endl;
+    std::cout << "y4: " << this->Y4() << std::endl;
+    std::cout << "yd: " << this->Y5() << std::endl;
+    std::cout << "z1: "  << this->Z1()  << std::endl;
+    std::cout << "z2: "  << this->Z2()  << std::endl;
+    std::cout << "z3: "  << this->Z3()  << std::endl;
     std::cout << "\n\t\t End of XbNegroniLascano96 Informations\n\n\n";
 
 }

@@ -155,8 +155,8 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (500);
-    Real dt (0.02);
+    Real TF =NLParameterList.get("endTime", 100.0);
+    Real dt =NLParameterList.get("timeStep", 0.001);
 
 
     //********************************************//
@@ -182,8 +182,8 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-//        Ca = 5e-4 * states.at(3);
-        Ca = std::exp (- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
+//        Ca =1.875 * states.at(3);
+        Ca = 1.5 * std::exp (- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
 
         std::cout << "\r " << t << " ms.       " << std::flush;
 
