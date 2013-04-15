@@ -283,15 +283,6 @@ Int main ( Int argc, char** argv )
 //				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
          }
 
-
-
-
-
-
-
-
-
-
     	//********************************************//
          // Update the time.                           //
          //********************************************//
