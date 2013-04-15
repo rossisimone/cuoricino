@@ -897,9 +897,9 @@
 		
 		std::vector<Real> concRhs(4);
 
-		concRhs[0] = courSubSysCa[4] * ( courSubSysCa[1] - courSubSysCa[2] + courSubSysCa[3] -
+		concRhs[0] = courSubSysCa[4] * ( ( M_VSr / M_VCyt ) * ( courSubSysCa[1] - courSubSysCa[2] + courSubSysCa[3] ) -
 						M_Cm * ( courSubSysCa[0] + backICab(v) + pumpIpCa(v) - 2 * exINaCa(v) ) / ( 2 * M_VCyt * M_F ) );
-		concRhs[1] = courSubSysCa[5] * ( M_VCyt / M_VSr ) * ( - courSubSysCa[1] + courSubSysCa[2] - courSubSysCa[3] );
+		concRhs[1] = courSubSysCa[5] * ( - courSubSysCa[1] + courSubSysCa[2] - courSubSysCa[3] );
 		concRhs[2] = - ( courINa[0] + backINab(v) + 3 * exINaCa(v) + 3 * pumpINaK(v) ) * M_Cm / ( M_VCyt * M_F );
 		concRhs[3] = - ( inwardIK1(v) + courIto[0] + courIKr[0] + courIKs[0] - 2 * pumpINaK(v) + pumpIpK(v) ) * M_Cm / ( M_VCyt * M_F );
 
