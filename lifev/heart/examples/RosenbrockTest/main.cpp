@@ -57,6 +57,8 @@
 #include <string>
 
 #include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/array/VectorLU.hpp>
+#include <lifev/core/array/MatrixLU.hpp>
 
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
@@ -115,7 +117,7 @@ Int main ( Int argc, char** argv )
         cout << "% using MPI" << endl;
     }
 
-    const int n=4;
+/*    const int n=4;
     RosenbrockTransformed<n> ros;
     typedef vector<vector<Real> > matrix;
     typedef vector<Real> vector;
@@ -155,8 +157,60 @@ Int main ( Int argc, char** argv )
     cout<<"\n\nv = U-1v\n"; for(int i=0; i<n; i++) cout<<"    "<<v[i]<<endl;
     v = ros.mult(Q,v,n);
     cout<<"\n\nv = Qv\n"; for(int i=0; i<n; i++) cout<<"    "<<v[i]<<endl;
-
+*/
     //Playing(Comm);
+
+    int n=4;
+    MatrixLU A(n);
+    cout<<"I = \n";
+    A.disp();
+    A[0][0] = 1.;	A[0][1] = 2.;	A[0][2] = 3.;	A[0][3] = 4.;
+    A[1][0] = 9.;	A[1][1] = 8.;	A[1][2] = 7.;	A[1][3] = 6.;
+    A[2][0] = 20.;	A[2][1] = 12.;	A[2][2] = 13.;	A[2][3] = 45.;
+    A[3][0] = 89.;	A[3][1] = 23.;	A[3][2] = 23.;	A[3][3] = 23.;
+    cout<<"A = \n";
+    A.disp();
+
+    MatrixLU B(n,n,1.0);
+    MatrixLU C(n);
+    C = A+B;
+    cout<<"A+B = \n";
+    C.disp();
+    C-=B;
+    cout<<"A+B-B = \n";
+    C.disp();
+
+    B*=0.5;
+    cout<<"B*0.5 = \n";
+    B.disp();
+    B = B*2.0;
+    cout<<"B = \n";
+    B.disp();
+
+    MatrixLU P(n),Q(n),L(n),U(n);
+    A.LU(P,Q,L,U);
+    VectorLU v(n,1.0);
+    VectorLU w(A*v);
+
+    cout<<"v = "; v.disp();
+    cout<<"\nw = A*v = "; w.disp();
+
+    v = P*w;
+    v = L.solveL(v);
+    v = U.solveU(v);
+    v = Q*v;
+
+    cout<<"\nv = A^(-1)*w = "; v.disp();
+
+    A = A/2.0;
+
+    cout<<"\nA/2 = /n";
+    A.disp();
+    A/= 0.5;
+    cout<<"A = \n";
+    A.disp();
+
+
 
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();

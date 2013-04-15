@@ -26,6 +26,8 @@ SET(array_HEADERS
   array/RNMOperator.hpp
   array/MatrixContainer.hpp
   array/GhostHandler.hpp
+  array/MatrixLU.hpp
+  array/VectorLU.hpp
 CACHE INTERNAL "")
 
 SET(array_SOURCES

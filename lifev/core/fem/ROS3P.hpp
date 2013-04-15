@@ -40,33 +40,17 @@
 
 #include <lifev/core/fem/RosenbrockTransformed.hpp>
 
-#include <lifev/core/array/MatrixSmall.hpp>
-#include <lifev/core/array/VectorSmall.hpp>
-
 
 namespace LifeV
 {
-	typedef LinearSolver                      solver_Type;
-    typedef MatrixEpetra<Real>                matrix_Type;
-    typedef boost::shared_ptr<matrix_Type>    matrixPtr_Type;
-    typedef VectorEpetra                      vector_Type;
-    typedef boost::shared_ptr<VectorEpetra>   vectorPtr_Type;
-    typedef MapEpetra						  map_Type;
 
 class ROS3P : public RosenbrockTransformed<3>
 {
 public:
-	ROS3P(boost::shared_ptr<Epetra_Comm>& Comm, const string& solvParam);
-/*
-	template<typename RightHandSide>
-	void solve(RightHandSide Fun, vector_Type& y0, Real t0, Real TF, Real dt_init);
-
-	template<typename RightHandSide>
-	void solve(boost::shared_ptr<RightHandSide>& Fun, vector_Type& y0, Real t0, Real TF, Real dt_init);
-*/
+	ROS3P();
 };
 
-ROS3P::ROS3P(boost::shared_ptr<Epetra_Comm>& Comm, const string& solvParam)
+ROS3P::ROS3P()
 : RosenbrockTransformed<3>()
 {
 	MatrixSmall<3,3> A;
@@ -86,27 +70,7 @@ ROS3P::ROS3P(boost::shared_ptr<Epetra_Comm>& Comm, const string& solvParam)
 
 	this->setMethod(g, A, C, gammai, a, m, mhat, 3);
 	this->initMembers();
-	this->setSolver(Comm, solvParam);
 }
-/*
-template<typename RightHandSide>
-void ROS3P::solve(RightHandSide Fun, vector_Type& y0, Real t0, Real TF, Real dt_init)
-{
-	cout<<"solve1...\n";
-	RosenbrockTransformed<3>::solve(Fun, y0, t0, TF, dt_init);
-}
-
-template<typename RightHandSide>
-void ROS3P::solve(boost::shared_ptr<RightHandSide>& Fun, vector_Type& y0, Real t0, Real TF, Real dt_init)
-{
-	cout<<"solve2...\n";
-	RosenbrockTransformed<3>::solve(Fun, y0, t0, TF, dt_init);
-}
-
-*/
-
-
-
 
 
 } //namesapce LifeV

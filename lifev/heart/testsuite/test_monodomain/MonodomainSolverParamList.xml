@@ -5,7 +5,7 @@
     <Parameter name="k" type="double" value="8.0"  />
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
-    <Parameter name="timeStep" type="double" value="0.05"  />
+    <Parameter name="timeStep" type="double" value="0.02"  />
     <Parameter name="endTime" type="double" value="0.02"  />
     <Parameter name="saveStep" type="double" value="1.0"  />
     <Parameter name="meth" type="double" value="2.0"  />c

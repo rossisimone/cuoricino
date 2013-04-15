@@ -60,6 +60,7 @@
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MatrixSmall.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
+#include <lifev/core/array/VectorLU.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 
 #include <lifev/core/util/LifeChrono.hpp>
@@ -81,7 +82,7 @@ using namespace LifeV;
 void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
 
 void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
-					const Real& I, std::ofstream& output, boost::shared_ptr<Epetra_Comm> Comm, UInt meth);
+					const Real& I, std::ofstream& output, UInt meth);
 
 template<UInt n, UInt s>
 void RosenbrockTransformedFunction( IonicFitzHughNagumo model, const VectorSmall<n>& y0, Real t0, Real TF, Real dt_init,
@@ -164,7 +165,7 @@ Int main ( Int argc, char** argv )
     if ( FHNParameterList.get ("meth", 1.0) == 0.0 )
         EulerExplicit (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
     else
-        ROS3PFunction (dt, TF, model, S, D, FHNParameterList.get ("Iapp", 2000.0), output, Comm, FHNParameterList.get ("meth", 1.0));
+        ROS3PFunction (dt, TF, model, S, D, FHNParameterList.get ("Iapp", 2000.0), output, FHNParameterList.get ("meth", 1.0));
 
     chrono.stop();
     std::cout << "\n...Time loop ends.\n";
@@ -235,7 +236,7 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
 }
 
 void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
-			const Real& I, std::ofstream& output, boost::shared_ptr<Epetra_Comm> Comm, UInt meth)
+			const Real& I, std::ofstream& output, UInt meth)
 {
 
 	//Problem initial values
@@ -244,7 +245,7 @@ void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
 	y0(0) = 98.999200000000002;
 	y0(1) = 0.023763800000000;
 
-	if(meth == 3)
+	if(meth == 2)
 	{
 		// Initialization of ROS3P parameters
 		MatrixSmall<3,3> A;
@@ -267,25 +268,15 @@ void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
 		RosenbrockTransformedFunction < 2, 3 > ( model, y0, t0, TF, dt, g, A, C, gammai, a, m, mhat, S, D, I, output );
 	}
 
-	if(meth<=2)
+	if (meth==1)
 	{
-		Epetra_LocalMap localMap( 2, 0, *Comm );
-		MapEpetra mappa(localMap);
-		VectorEpetra vett1( mappa );
-		const Int* j = vett1.blockMap().MyGlobalElements();
-		vett1 (j[0]) = y0(0);
-		vett1 (j[1]) = y0(1);
-		vector<Real> vett2(2,0.0);
-		vett2[0] = y0(0);
-		vett2[1] = y0(1);
+		VectorLU vett(2);
+		vett[0] = y0(0);
+		vett[1] = y0(1);
 		boost::shared_ptr<IonicFitzHughNagumo> modelPtr(new IonicFitzHughNagumo(model));
 
-		ROS3P rosen(Comm, "FitzHughNagumoParameters.xml");
-
-		if(meth==1)
-			rosen.solve<IonicFitzHughNagumo>(modelPtr, vett1, t0, TF, dt);
-		else
-			rosen.solve<IonicFitzHughNagumo>(modelPtr, vett2, t0, TF, dt);
+		ROS3P rosen;
+		rosen.solve<IonicFitzHughNagumo>(modelPtr, vett, t0, TF, dt);
 	}
 
 

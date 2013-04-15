@@ -290,7 +290,6 @@ Int main ( Int argc, char** argv )
     Exp.setPrefix (monodomainList.get ("OutputTimeSteps", "TimeSteps"));
     Exp.addVariable ( ExporterData<mesh_Type>::ScalarField,  "dt", splitting->feSpacePtr(), dtVec, UInt (0) );
 
-    splitting->setSolverParam("MonodomainSolverParamList.xml");
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
@@ -310,8 +309,8 @@ Int main ( Int argc, char** argv )
         if ( Comm->MyPID() == 0 )
         	chrono.start();
 
-        if(meth==2)
-            splitting->solveOneReactionStepROS3PReal(dtVec, dt_min);
+        if(meth==1)
+            splitting->solveOneReactionStepROS3P(dtVec, dt_min);
         else
            	splitting->solveOneReactionStepFE();
 

@@ -243,9 +243,6 @@ Int main ( Int argc, char** argv )
         std::cout << " Splitting solver done... ";
     }
 
-    splitting->setSolverParam("MonodomainSolverParamList.xml");
-
-
     //********************************************//
     // Setting up the initial condition form      //
     // a given function.                          //
@@ -333,8 +330,9 @@ Int main ( Int argc, char** argv )
         t = t + dt;
 
         chrono.start();
-        if(meth==2)
-        	splitting->solveOneReactionStepROS3PReal(dtVec, dt_min);
+        if(meth==1)
+        	splitting->solveOneReactionStepROS3P(dtVec, dt_min);
+        	//splitting->solveOneReactionStepROS3P();
         else
         	splitting->solveOneReactionStepFE();
         chrono.stop();

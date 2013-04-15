@@ -71,6 +71,9 @@
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
+#include <lifev/core/array/VectorLU.hpp>
+#include <lifev/core/fem/SobolevNorms.hpp>
+#include <lifev/core/fem/GeometricMap.hpp>
 #include <lifev/heart/solver/IonicModels/HeartIonicModel.hpp>
 #include <lifev/core/fem/RosenbrockTransformed.hpp>
 #include <lifev/core/fem/ROS3P.hpp>
@@ -405,11 +408,6 @@ public:
 
     //! @name Set Methods
     //@{
-
-    inline void setSolverParam(const string& solvParam)
-    {
-    	M_solvParam = solvParam;
-    }
 
     //! set the surface to volume ratio (NOT USED IN THE CODE)
     /*!
@@ -776,9 +774,8 @@ public:
      * \left( \frac{I}{dt \gamma}-J(y_n)\right) U_i = f(y_n+\sum_{j=1}{i-1} a_{i j} U_j) + \sum_{j=1}{i-1}\frac{c_{i j}}{dt} U_j
      * \f]
      */
-    void solveOneReactionStepROS3PReal(vectorPtr_Type dtVec, Real dt_min);
-    void solveOneReactionStepROS3PReal();
-    void solveOneReactionStepROS3PEpetra();
+    void solveOneReactionStepROS3P(vectorPtr_Type dtVec, Real dt_min);
+    void solveOneReactionStepROS3P();
 
     //! Update the rhs
     /*!
@@ -943,8 +940,6 @@ private:
 
 
     vectorPtr_Type          M_fiberPtr;
-
-    string				M_solvParam;
 
 }; // class MonodomainSolver
 
@@ -1501,10 +1496,10 @@ solveOneReactionStepFE()
 
 template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
-solveOneReactionStepROS3PReal(vectorPtr_Type dtVec, Real dt_min)
+solveOneReactionStepROS3P(vectorPtr_Type dtVec, Real dt_min)
 {
-	ROS3P ros(M_commPtr, M_solvParam);
-	vector<Real> localVec(M_ionicModelPtr->Size(), 0.0);
+	ROS3P ros;
+	VectorLU localVec(M_ionicModelPtr->Size());
 	Real dt;
 
 	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
@@ -1528,10 +1523,10 @@ solveOneReactionStepROS3PReal(vectorPtr_Type dtVec, Real dt_min)
 
 template<typename Mesh, typename IonicModel>
 void HeartETAMonodomainSolver<Mesh, IonicModel>::
-solveOneReactionStepROS3PReal()
+solveOneReactionStepROS3P()
 {
-	ROS3P ros(M_commPtr, M_solvParam);
-	vector<Real> localVec(M_ionicModelPtr->Size(), 0.0);
+	ROS3P ros;
+	VectorLU localVec(M_ionicModelPtr->Size());
 	Real dt;
 
 	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
@@ -1550,35 +1545,6 @@ solveOneReactionStepROS3PReal()
 
         for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
             ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[i];
-    }
-}
-
-template<typename Mesh, typename IonicModel>
-void HeartETAMonodomainSolver<Mesh, IonicModel>::
-solveOneReactionStepROS3PEpetra()
-{
-	ROS3P ros(M_commPtr, M_solvParam);
-	Epetra_LocalMap localMap( M_ionicModelPtr -> Size(), 0, *M_commPtr );
-	MapEpetra mappa(localMap);
-	VectorEpetra localVec( mappa );
-	const Int* it = localVec.blockMap().MyGlobalElements();
-	Real dt;
-
-	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
-    int j (0);
-
-    for ( int k = 0; k < nodes; k++ )
-    {
-        j = M_appliedCurrentPtr->blockMap().GID (k);
-
-        for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
-            localVec[it[i]] = ( * ( M_globalSolution.at (i) ) ) [j];
-
-        dt = M_timeStep/50.0;
-        ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, dt);
-
-        for ( int i = 0; i < M_ionicModelPtr -> Size(); i++ )
-            ( * ( M_globalSolution.at (i) ) ) [j] =  localVec[it[i]];
     }
 }
 
