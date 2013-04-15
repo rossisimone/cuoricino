@@ -255,26 +255,11 @@ Int main ( Int argc, char** argv )
          // solution in time.                          //
          //********************************************//
 
-    	for(int j(0); j <= 30; ++j)
+        for(int j(0); j <= 30; ++j)
         {
-    		if ( j <= 4 )
+    		if ( ( j <= 4 ) || ( j >= 12 ) )
     			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-    		else if ( j == 5 )
-    			unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
-    		else if ( j == 6 )
-    			unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
-    		else if ( j == 7 )
-    			unknowns.at (7)  = model.computeNewtonKo    (unknowns, dt, 10);
-    		else if ( j == 8 )
-    			unknowns.at (8)  = model.computeNewtonCai   (unknowns, dt, 10);
-    		else if ( j == 9 )
-    			unknowns.at (9)  = model.computeNewtonCaNSR (unknowns, dt, 10);
-    		else if ( j == 10 )
-    			unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
-    		else if ( j == 11 )
-    			unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
-    		else
-    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+
 //    		if( j == 0 || j >= 12 )
 //    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
 //    		else if ( ( j <= 4 ) && ( j != 0 ) )
@@ -283,7 +268,15 @@ Int main ( Int argc, char** argv )
 //				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
          }
 
-    	//********************************************//
+        unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
+        unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
+        unknowns.at (7)  = model.computeNewtonKo    (unknowns, dt, 10);
+        unknowns.at (8)  = model.computeNewtonCai   (unknowns, dt, 10);
+        unknowns.at (9)  = model.computeNewtonCaNSR (unknowns, dt, 10);
+        unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
+        unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
+
+    	 //********************************************//
          // Update the time.                           //
          //********************************************//
          t = t + dt;
