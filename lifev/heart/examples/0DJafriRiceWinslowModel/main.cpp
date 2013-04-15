@@ -221,6 +221,8 @@ Int main ( Int argc, char** argv )
         // Compute the rhs using the model equations  //
         //********************************************//
         model.computeRhs ( unknowns, Iapp, rhs );
+//        std::vector<Real> gateInf     ( model.gateInf( unknowns ) );
+//        std::vector<Real> otherVarInf ( model.otherVarInf( unknowns ) );
 
         //********************************************//
         // Writes solution on file.                   //
@@ -253,12 +255,13 @@ Int main ( Int argc, char** argv )
          // solution in time.                          //
          //********************************************//
 
-        unknowns.at (10) = model.computeNewtonCaSS(unknowns, dt, 10);
-
     	for(int j(0); j <= 30; ++j)
         {
-			 if(j!= 10)
-				 unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+//			 if( j < 5 )
+//				 unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+//				 unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
+//			 else if ( j > 11 )
+//				 unknowns.at (j) = otherVarInf.at(j-11) + ( unknowns.at (j) - otherVarInf.at(j-11) ) * exp( dt * rhs.at(j) );
 			// else
 			 //{
 //				 for( int k(0) ; k < 150; k++ )
@@ -268,6 +271,14 @@ Int main ( Int argc, char** argv )
 //				 }
 			 //}
          }
+
+    	unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
+    	unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
+    	unknowns.at (7)  = model.computeNewtonKo    (unknowns, dt, 10);
+    	unknowns.at (8)  = model.computeNewtonCai   (unknowns, dt, 10);
+    	unknowns.at (9)  = model.computeNewtonCaNSR (unknowns, dt, 10);
+    	unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
+    	unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
 
 //         unknowns.at(1) = ( unknowns.at(1) / dt + model.fastINa(unknowns).at(1) )
 //        		 / ( 1 / dt + model.fastINa(unknowns).at(1) + model.fastINa(unknowns).at(2) );
