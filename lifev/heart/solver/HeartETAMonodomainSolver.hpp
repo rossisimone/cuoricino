@@ -75,7 +75,7 @@
 #include <lifev/core/util/LifeChrono.hpp>
 #include <boost/shared_ptr.hpp>
 #include <lifev/core/fem/FESpace.hpp>
-#include <lifev/heart/utility/HeartUtility.hpp>
+#include <lifev/core/util/HeartUtility.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -86,6 +86,8 @@
 
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/core/algorithm/Preconditioner.hpp>
+
+#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
 
 
 namespace LifeV
@@ -133,6 +135,8 @@ public:
 
     typedef ExporterHDF5< mesh_Type >          exporter_Type;
     typedef boost::shared_ptr<exporter_Type>                       exporterPtr_Type;
+//    typedef Exporter< mesh_Type >              exporter_Type;//                IOFile_Type;
+//    typedef boost::shared_ptr< exporter_Type >   exporterPtr_Type;//                IOFilePtr_Type;
 
     typedef LifeV::Preconditioner               basePrec_Type;
     typedef boost::shared_ptr<basePrec_Type>    basePrecPtr_Type;

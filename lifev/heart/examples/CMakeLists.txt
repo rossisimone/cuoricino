@@ -10,13 +10,13 @@ ADD_SUBDIRECTORIES(
   0DMinimalModel
   0DNegroniLascanoModel
   0DFitzHughNagumoModel
+  CreateFiberEllipsoid
   FiberInterpolation
 #  ActiveStrainODE
 #  AlievPanfilov
   basic_example
   ETA_MonodomainSolver
-#  IntegratedHeart
-  oneway_EM
+#  oneway_EM
   XbNegroniLascano96
   IonicAlievPanfilov
   IonicFitzHughNagumo

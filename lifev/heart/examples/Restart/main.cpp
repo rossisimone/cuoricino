@@ -72,7 +72,7 @@
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
 #include <lifev/heart/solver/HeartIonicSolver.hpp>
-#include <lifev/heart/utility/HeartUtility.hpp>
+#include <lifev/core/util/HeartUtility.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5

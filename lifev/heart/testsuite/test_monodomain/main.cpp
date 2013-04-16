@@ -80,7 +80,6 @@
 
 #include <lifev/heart/solver/IonicModels/IonicAlievPanfilov.hpp>
 #include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
-#include <lifev/heart/utility/HeartUtility.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>

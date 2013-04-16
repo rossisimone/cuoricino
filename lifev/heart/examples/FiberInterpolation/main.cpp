@@ -63,7 +63,7 @@
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/mesh/MeshData.hpp>
 #include <lifev/core/mesh/MeshUtility.hpp>
-#include <lifev/heart/utility/HeartUtility.hpp>
+#include <lifev/core/util/HeartUtility.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
