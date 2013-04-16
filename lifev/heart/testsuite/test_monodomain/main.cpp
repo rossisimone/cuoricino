@@ -306,33 +306,21 @@ Int main ( Int argc, char** argv )
     {
         t = t + dt;
 
-        if ( Comm->MyPID() == 0 )
-        	chrono.start();
-
+        chrono.start();
         if(meth==1)
             splitting->solveOneReactionStepROS3P(dtVec, dt_min);
         else
            	splitting->solveOneReactionStepFE();
-
-        if ( Comm->MyPID() == 0 )
-        {
-        	chrono.stop();
-        	timeReac += chrono.diff();
-        }
+        chrono.stop();
+        timeReac += chrono.diff();
 
         (*splitting->rhsPtrUnique()) *= 0.0;
         splitting->updateRhs();
 
-        if ( Comm->MyPID() == 0 )
-        	chrono.start();
-
+        chrono.start();
         splitting->solveOneDiffusionStepBE();
-
-        if ( Comm->MyPID() == 0 )
-        {
-        	chrono.stop();
-        	timeDiff += chrono.diff();
-        }
+        chrono.stop();
+        timeDiff += chrono.diff();
 
         if( k % iter == 0 )
         {

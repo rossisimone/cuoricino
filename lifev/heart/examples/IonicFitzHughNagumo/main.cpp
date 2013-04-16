@@ -303,11 +303,6 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-    monodomainSolver_Type::vectorPtr_Type dtVec ( new VectorEpetra ( splitting->feSpacePtr() -> map(), LifeV::Unique ) );
-    ExporterHDF5<mesh_Type> Exp;
-    Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
-    Exp.setPrefix (monodomainList.get ("OutputTimeSteps", "TimeSteps"));
-    Exp.addVariable ( ExporterData<mesh_Type>::ScalarField,  "dt", splitting->feSpacePtr(), dtVec, UInt (0) );
 
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
@@ -323,66 +318,118 @@ Int main ( Int argc, char** argv )
     Real timeDiff = 0.0;
     LifeChrono chrono;
 
-    //splitting   -> solveSplitting ( exporterSplitting );
-
-    for ( Real t = 0.0; t < TF; )
+    if (meth <= 1.0)
     {
-        t = t + dt;
 
-        chrono.start();
-        if(meth==1)
-        	splitting->solveOneReactionStepROS3P(dtVec, dt_min);
-        	//splitting->solveOneReactionStepROS3P();
-        else
-        	splitting->solveOneReactionStepFE();
-        chrono.stop();
-        timeReac += chrono.diff();
+        monodomainSolver_Type::vectorPtr_Type dtVec ( new VectorEpetra ( splitting->feSpacePtr() -> map(), LifeV::Unique ) );
+        ExporterHDF5<mesh_Type> Exp;
+        Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
+        Exp.setPrefix (monodomainList.get ("OutputTimeSteps", "TimeSteps"));
+        Exp.addVariable ( ExporterData<mesh_Type>::ScalarField,  "dt", splitting->feSpacePtr(), dtVec, UInt (0) );
 
-        (*splitting->rhsPtrUnique()) *= 0.0;
-        splitting->updateRhs();
+		//splitting   -> solveSplitting ( exporterSplitting );
 
-        chrono.start();
-        splitting->solveOneDiffusionStepBE();
-        chrono.stop();
-        timeDiff += chrono.diff();
+		for ( Real t = 0.0; t < TF; )
+		{
+			t = t + dt;
 
-        if( k % iter == 0 )
-        {
-        	splitting -> exportSolution (exporterSplitting, t);
-        	Exp.postProcess (t);
-        }
+			chrono.start();
+			if(meth==1)
+				splitting->solveOneReactionStepROS3P(dtVec, dt_min);
+				//splitting->solveOneReactionStepROS3P();
+			else
+				splitting->solveOneReactionStepFE();
+			chrono.stop();
+			timeReac += chrono.diff();
 
-        nodes = dtVec->epetraVector().MyLength();
-        j = dtVec->blockMap().GID (0);
-        dt_min = (*dtVec)[j];
-        for(int i=1; i<nodes; i++)
-        {
-        	j = dtVec->blockMap().GID (i);
-        	if(dt_min>(*dtVec)[j])
-        		dt_min = (*dtVec)[j];
-        }
+			(*splitting->rhsPtrUnique()) *= 0.0;
+			splitting->updateRhs();
+
+			chrono.start();
+			splitting->solveOneDiffusionStepBE();
+			chrono.stop();
+			timeDiff += chrono.diff();
+
+			if( k % iter == 0 )
+			{
+				splitting -> exportSolution (exporterSplitting, t);
+				Exp.postProcess (t);
+			}
+
+			nodes = dtVec->epetraVector().MyLength();
+			j = dtVec->blockMap().GID (0);
+			dt_min = (*dtVec)[j];
+			for(int i=1; i<nodes; i++)
+			{
+				j = dtVec->blockMap().GID (i);
+				if(dt_min>(*dtVec)[j])
+					dt_min = (*dtVec)[j];
+			}
 
 
-        k++;
+			k++;
 
-        if( t >= TCut1 && t<=TCut2)
-        {
-        	function_Type g = &Cut;
-        	vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
-        	const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
-        	feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
-        	(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
-        	*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
-        	//*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
-        }
+			if( t >= TCut1 && t<=TCut2)
+			{
+				function_Type g = &Cut;
+				vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
+				const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
+				feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
+				(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
+				*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
+				//*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
+			}
 
-        if ( Comm->MyPID() == 0 )
-        	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+			if ( Comm->MyPID() == 0 )
+				std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
 
+		}
+
+		Exp.closeFile();
+
+    }
+    else
+    {
+    	for ( Real t = 0.0; t < TF; )
+    	{
+			t = t + dt;
+
+			chrono.start();
+			splitting -> solveOneStepGatingVariablesFE();
+			chrono.stop();
+			timeReac += chrono.diff();
+
+			chrono.start();
+			if(meth==2)
+				splitting -> solveOneICIStep ();
+			else
+				splitting -> solveOneSVIStep ();
+			chrono.stop();
+			timeDiff += chrono.diff();
+
+			if( k % iter == 0 )
+				splitting -> exportSolution (exporterSplitting, t);
+
+			k++;
+
+			if( t >= TCut1 && t<=TCut2)
+			{
+				function_Type g = &Cut;
+				vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
+				const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
+				feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
+				(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
+				*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
+				//*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
+			}
+
+			if ( Comm->MyPID() == 0 )
+				std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+    	}
     }
 
     exporterSplitting.closeFile();
-    Exp.closeFile();
+
 
 
     //********************************************//
@@ -393,13 +440,10 @@ Int main ( Int argc, char** argv )
     if ( Comm->MyPID() == 0 )
     {
     	chronoinitialsettings.stop();
-    	std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
-    	std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
-    	std::cout<<"Reaction time : "<<timeReac<<std::endl;
-    }
+    	std::cout << "\n\n\nTotal elapsed time : " << chronoinitialsettings.diff() << std::endl;
+    	std::cout<<"Diffusion/ICI/SVI time : "<<timeDiff<<std::endl;
+    	std::cout<<"Reaction/GatingVar time : "<<timeReac<<std::endl;
 
-    if ( Comm->MyPID() == 0 )
-    {
         cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
     MPI_Barrier (MPI_COMM_WORLD);
