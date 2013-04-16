@@ -82,6 +82,8 @@
 #include <lifev/multiscale/models/MultiscaleModel.hpp>
 #include <lifev/multiscale/framework/MultiscaleInterface.hpp>
 
+
+
 namespace LifeV
 {
 namespace Multiscale
@@ -208,35 +210,35 @@ public:
     /*!
      * @param fileName Name of data file.
      */
-    void setupData ( const std::string& fileName );
+    virtual void setupData ( const std::string& fileName );
 
     //! Setup the model.
-    void setupModel();
+    virtual void setupModel();
 
     //! Build the initial model.
-    void buildModel();
+    virtual void buildModel();
 
     //! Update the model.
-    void updateModel();
+    virtual void updateModel();
 
     //! Solve the model.
-    void solveModel();
+    virtual void solveModel();
 
     //! Update the solution.
-    void updateSolution();
+    virtual void updateSolution();
 
     //! Save the solution
-    void saveSolution();
+    virtual void saveSolution();
 
     //! Display some information about the model.
-    void showMe();
+    virtual void showMe();
 
     //! Return a specific scalar quantity to be used for a comparison with a reference value.
     /*!
      * This method is meant to be used for night checks.
      * @return reference quantity.
      */
-    Real checkSolution() const;
+    virtual Real checkSolution() const;
 
     //@}
 

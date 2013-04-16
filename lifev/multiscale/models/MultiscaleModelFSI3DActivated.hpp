@@ -39,7 +39,7 @@
 
 #include <lifev/multiscale/models/MultiscaleModelFSI3D.hpp>
 #include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
-#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
+
 
 
 namespace LifeV
@@ -58,20 +58,20 @@ public:
 
     //! @name Public Types
     //@{
-
+	typedef MultiscaleModel									base;
     typedef MultiscaleModelFSI3D                             super;
 
-    typedef IonicMinimalModel									ionicModel_Type;
-    typedef boost::shared_ptr< ionicModel_Type >         ionicModelPtr_Type;
-    typedef HeartETAMonodomainSolver< mesh_Type, ionicModel_Type >        monodomainSolver_Type;
+    typedef IonicMinimalModel							  minimalModel_Type;
+    typedef boost::shared_ptr< minimalModel_Type >        minimalModelPtr_Type;
+    typedef HeartETAMonodomainSolver< mesh_Type, minimalModel_Type >        monoSolver_Type;
 //    typedef Heart
-    typedef boost::shared_ptr< monodomainSolver_Type >         monodomainSolverPtr_Type;
+    typedef boost::shared_ptr< monoSolver_Type >         monoSolverPtr_Type;
 
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
                                     const Real& /*z*/,
-                                    const ID&   /*i*/ ) >   function_Type;
+                                    const LifeV::ID&   /*i*/ ) >   function_Type;
 
     typedef VectorEpetra				vector_Type;
     typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
@@ -219,8 +219,11 @@ private:
 
     //@}
 
+
+    vectorPtr_Type							M_fiber;
+    vectorPtr_Type							M_gammaf;
     // Operator
-    monodomainSolverPtr_Type                M_monodomain;
+    monoSolverPtr_Type                M_monodomain;
 
     // Exporters
     IOFilePtr_Type                          M_exporterElectro;

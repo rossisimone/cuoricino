@@ -60,6 +60,9 @@
 
 #if defined(LIFEV_HAS_FSI)
 #include <lifev/multiscale/models/MultiscaleModelFSI3D.hpp>
+#if defined(LIFEV_HAS_HEART)
+#include <lifev/multiscale/models/MultiscaleModelFSI3DActivated.hpp>
+#endif
 #endif
 
 namespace LifeV

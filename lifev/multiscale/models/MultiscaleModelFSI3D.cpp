@@ -116,7 +116,6 @@ MultiscaleModelFSI3D::MultiscaleModelFSI3D() :
     FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "nonLinearVenantKirchhoff", &FSIOperator::createVenantKirchhoffNonLinear );
     FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "exponential",              &FSIOperator::createExponentialMaterialNonLinear );
     FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "neoHookean",               &FSIOperator::createNeoHookeanMaterialNonLinear );
-    FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "neoHookeanActivated",      &FSIOperator::createNeoHookeanMaterialActivated );
 }
 
 // ===================================================

@@ -94,6 +94,7 @@ enum models_Type
     Fluid3D,                /*!< Fluid (Oseen) 3D model */
     FSI1D,                  /*!< 1D model */
     FSI3D,                  /*!< FSI 3D model */
+    FSI3DActivated,         /*!< FSI 3D Activated model */
     Multiscale,             /*!< Multiscale model */
     Windkessel0D,           /*!< Windkessel0D model */
     ZeroDimensional         /*!< 0D model */
@@ -205,6 +206,9 @@ multiscaleMapsDefinition()
 #endif
 #if defined(LIFEV_HAS_FSI)
     multiscaleModelsMap["FSI3D"]           = FSI3D;
+#if defined(LIFEV_HAS_HEART)
+    multiscaleModelsMap["FSI3DActivated"]  = FSI3DActivated;
+#endif
 #endif
     multiscaleModelsMap["Multiscale"]      = Multiscale;
 #if defined(LIFEV_HAS_ZERODIMENSIONAL)

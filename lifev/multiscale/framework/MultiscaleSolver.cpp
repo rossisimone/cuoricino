@@ -71,6 +71,9 @@ MultiscaleSolver::MultiscaleSolver() :
 #endif
 #if defined(LIFEV_HAS_FSI)
     multiscaleModelFactory_Type::instance().registerProduct ( FSI3D,           &createMultiscaleModelFSI3D );
+#if defined(LIFEV_HAS_HEART)
+    multiscaleModelFactory_Type::instance().registerProduct ( FSI3DActivated,  &createMultiscaleModelFSI3DActivated );
+#endif
 #endif
 #if defined(LIFEV_HAS_ONEDFSI)
     multiscaleModelFactory_Type::instance().registerProduct ( FSI1D,           &createMultiscaleModelFSI1D );

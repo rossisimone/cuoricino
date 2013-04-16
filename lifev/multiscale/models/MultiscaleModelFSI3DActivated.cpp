@@ -36,9 +36,8 @@
  */
 
 #include <lifev/multiscale/models/MultiscaleModelFSI3DActivated.hpp>
-#include <Teuchos_RCP.hpp>
-#include <Teuchos_ParameterList.hpp>
-#include "Teuchos_XMLParameterListHelpers.hpp"
+
+
 
 
 namespace LifeV
@@ -53,7 +52,9 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     super				           (),
     M_monodomain                   (),
     M_importerElectro              (),
-    M_exporterElectro              ()
+    M_exporterElectro              (),
+    M_fiber						   (),
+    M_gammaf						()
 {
 }
 
@@ -65,20 +66,38 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 {
 	super::setupData(fileName);
 
-	//    std::string xmlpath = dataFile("electrophysiology/monodomain_xml_path","./");
-	//    std::string xmlfile = dataFile("electrophysiology/monodomain_xml_file","MonodomainSolverParamList.xml");
+	GetPot dataFile(fileName);
 
-		std::string xmlpath = "./"
-		std::string xmlfile = 		"MonodomainSolverParamList.xml";
-	    Teuchos::RCP< Teuchos::ParameterList > monodomainList = Teuchos::rcp ( new Teuchos::ParameterList );
-	    monodomainList = Teuchos::getParametersFromXmlFile ( xmlpath + xmlfile );
+    	std::string xmlpath = dataFile("electrophysiology/monodomain_xml_path","./");
+    	std::string xmlfile = dataFile("electrophysiology/monodomain_xml_file","MonodomainSolverParamList.xml");
+    	Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+//	    monodomainList = Teuchos::getParametersFromXmlFile ( xmlpath + xmlfile );
+	  //  monodomainList = Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" );
 
-	    ionicModelPtr_Type  ionicModel ( new ionicModel_Type() );
+    	minimalModelPtr_Type  ionicModel ( new minimalModel_Type() );
 
 	    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
 	    std::string meshPath = monodomainList.get ("mesh_path", "./");
 
-	    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+	    M_monodomain.reset ( new monoSolver_Type ( meshName, meshPath, dataFile, ionicModel ) );
+        M_monodomain -> setParameters ( monodomainList );
+
+
+        M_exporterElectro -> setDataFromGetPot ( dataFile );
+        std::string prefix = multiscaleProblemPrefix  + number2string ( M_ID ) +  "electrophysiology" + "_" + number2string ( multiscaleProblemStep );
+        M_exporterElectro->setPostDir ( multiscaleProblemFolder );
+  //      M_monodomain -> setupExporter ( *M_exporterElectro, prefix);
+
+        boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+        ( new FESpace< mesh_Type, MapEpetra > ( M_monodomain -> localMeshPtr(), "P1", 3, M_monodomain -> commPtr() ) );
+        M_fiber.reset ( new vector_Type ( Space3D -> map() ) );
+    	std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
+        HeartUtility::importFibers( M_fiber, nm, M_monodomain -> localMeshPtr() );
+        M_monodomain -> copyFiber(M_fiber);
+
+
+        Space3D.reset();
+        M_gammaf.reset( new vector_Type( M_monodomain -> potentialPtr() -> map() ) );
 }
 
 void
@@ -88,8 +107,23 @@ MultiscaleModelFSI3DActivated::setupModel()
 	super::setupModel();
 
 
+    HeartUtility::setValueOnBoundary( *(M_monodomain -> potentialPtr() ), M_monodomain -> fullMeshPtr(), 1.0, 43 );
+    HeartUtility::setValueOnBoundary( *(M_monodomain -> potentialPtr() ), M_monodomain -> fullMeshPtr(), 1.0, 45 );
+
+//    function_Type f = &smoothing;
+//    vectorPtr_Type smoother( new vector_Type( electro -> potentialPtr() -> map() ) );
+//    electro -> feSpacePtr() -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *smoother , 0);
+//    (*smoother) *= *(electro -> potentialPtr() );
+//    electro -> setPotentialPtr(smoother);
+
+    //setting up initial conditions
+    * ( M_monodomain -> globalSolution().at (1) ) = 1.0;
+    * ( M_monodomain -> globalSolution().at (2) ) = 1.0;
+    * ( M_monodomain -> globalSolution().at (3) ) = 0.021553043080281;
 
 
+    super::solver() -> solid().material() -> setFiberVector( *M_fiber );
+    super::solver() -> solid().material() -> setGammaf( *M_gammaf );
 
 
 
@@ -98,165 +132,73 @@ MultiscaleModelFSI3DActivated::setupModel()
 void
 MultiscaleModelFSI3DActivated::buildModel()
 {
+	super::buildModel();
 
-#ifdef HAVE_LIFEV_DEBUG
-    debugStream ( 8140 ) << "MultiscaleModelFSI3DActivated::buildModel() \n";
-#endif
-
-    // Display data
-    //    if ( M_comm->MyPID() == 0 )
-    //        M_data->showMe();
-
-    M_FSIoperator->buildSystem();
-    M_FSIoperator->updateSystem();
-
-    // Update BCInterface solver variables
-    updateBC();
+    M_monodomain -> setupLumpedMassMatrix();
+    M_monodomain -> setupStiffnessMatrix();
+    M_monodomain -> setupGlobalMatrix();
 }
 
 void
 MultiscaleModelFSI3DActivated::updateModel()
 {
-
-#ifdef HAVE_LIFEV_DEBUG
-    debugStream ( 8140 ) << "MultiscaleModelFSI3DActivated::updateModel() \n";
-#endif
-
-    // Update System
-    M_FSIoperator->updateSystem();
-
-    // Update BCInterface solver variables
-    updateBC();
-
-    // TODO This is a workaround of Paolo Crosetto to make it possible to perform subiterations
-    // in the multiscale when using 3D FSI models. In the future this should be replaced with
-    // a more proper implementation.
-    M_FSIoperator->precPtrView()->setRecompute ( 1, true );
-    M_nonLinearRichardsonIteration = 0;
+	super::updateModel();
 }
 
 void
 MultiscaleModelFSI3DActivated::solveModel()
 {
+	M_monodomain -> setInitialTime( base::globalData() -> dataTime() -> time() );
+	M_monodomain -> setEndTime( ( M_monodomain -> initialTime() ) + base::globalData() -> dataTime() -> timeStep() );
+	M_monodomain ->solveSplitting();
 
-#ifdef HAVE_LIFEV_DEBUG
-    debugStream ( 8140 ) << "MultiscaleModelFSI3DActivated::solveModel() \n";
-#endif
 
-    displayModelStatus ( "Solve" );
+    M_gammaf.reset( new  vector_Type( *( M_monodomain -> globalSolution().at(3) ) ) );
 
-    // TODO This is a workaround of Paolo Crosetto to make it possible to perform subiterations
-    // in the multiscale when using 3D FSI models. In the future this should be replaced with
-    // a more proper implementation.
-    if ( M_nonLinearRichardsonIteration != 0 )
-    {
-        M_FSIoperator->resetRHS();
-        M_FSIoperator->updateRHS();
-        M_FSIoperator->applyBoundaryConditions();
-    }
+    //rescaling parameters for gammaf with minimal model
+	Real maxCalciumLikeVariable = 0.838443;
+    Real minCalciumLikeVariable = 0.021553;
+    Real beta = -0.3;
 
-    // Non-linear Richardson solver
-    UInt maxSubIterationNumber = M_data->maxSubIterationNumber();
-    M_FSIoperator->extrapolation ( *M_stateVariable );
+    HeartUtility::rescaleVector( *M_gammaf, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
+    super::solver() -> solid().material() -> setGammaf( *M_gammaf );
 
-    NonLinearRichardson ( *M_stateVariable, *M_FSIoperator,
-                          M_data->absoluteTolerance(), M_data->relativeTolerance(),
-                          maxSubIterationNumber, M_data->errorTolerance(),
-                          M_data->NonLinearLineSearch(),
-                          M_nonLinearRichardsonIteration,
-                          1
-                        );
 
-    // TODO This is a workaround of Paolo Crosetto to make it possible to perform subiterations
-    // in the multiscale when using 3D FSI models. In the future this should be replaced with
-    // a more proper implementation.
-    M_FSIoperator->precPtrView()->setRecompute ( 1, false );
-    M_nonLinearRichardsonIteration = 1;
+    super::solveModel();
 
-#ifdef FSI_WITH_BOUNDARYAREA
-    for ( UInt j ( 0 ); j < M_boundaryFlagsAreaPerturbed.size(); ++j )
-    {
-        M_boundaryFlagsAreaPerturbed[j] = false;
-    }
-#endif
 }
 
 void
 MultiscaleModelFSI3DActivated::updateSolution()
 {
-
-#ifdef HAVE_LIFEV_DEBUG
-    debugStream ( 8140 ) << "MultiscaleModelFSI3DActivated::updateSolution() \n";
-#endif
-
-    M_FSIoperator->updateSolution ( *M_stateVariable );
+	super::updateSolution();
 }
 
 void
 MultiscaleModelFSI3DActivated::saveSolution()
 {
-
-#ifdef HAVE_LIFEV_DEBUG
-    debugStream ( 8140 ) << "MultiscaleModelFSI3DActivated::saveSolution() \n";
-#endif
-
-    exportFluidSolution();
-    if ( M_FSIoperator->isFluid() )
-    {
-        M_exporterFluid->postProcess ( M_data->dataFluid()->dataTime()->time() );
-    }
-
-    exportSolidSolution();
-    if ( M_FSIoperator->isSolid() )
-    {
-        M_exporterSolid->postProcess ( M_data->dataSolid()->dataTime()->time() );
-    }
-
-#ifdef HAVE_HDF5
-    if ( M_data->dataFluid()->dataTime()->isLastTimeStep() )
-    {
-        if ( M_FSIoperator->isFluid() )
-        {
-            M_exporterFluid->closeFile();
-        }
-        if ( M_FSIoperator->isSolid() )
-        {
-            M_exporterSolid->closeFile();
-        }
-    }
-#endif
-
+	super::saveSolution();
+//	M_monodomain -> exportSolution( *M_exporterElectro, base::globalData() -> dataTime() -> time() );
 }
 
 void
 MultiscaleModelFSI3DActivated::showMe()
 {
-    if ( M_comm->MyPID() == 0 )
+	super::showMe();
+	if ( M_comm->MyPID() == 0 )
     {
-        multiscaleModel_Type::showMe();
-
-        std::cout << "FSI method          = " << M_data->method() << std::endl << std::endl;
-
-        std::cout << "Velocity FE order   = " << M_FSIoperator->dataFluid()->uOrder() << std::endl
-                  << "Pressure FE order   = " << M_FSIoperator->dataFluid()->pOrder() << std::endl
-                  << "Structure FE order  = " << M_FSIoperator->dataSolid()->order() << std::endl << std::endl;
-
-        std::cout << "Velocity DOF        = " << 3 * M_FSIoperator->uFESpace().dof().numTotalDof() << std::endl
-                  << "Pressure DOF        = " << M_FSIoperator->pFESpace().dof().numTotalDof() << std::endl
-                  << "Harmonic ext. DOF   = " << M_FSIoperator->mmFESpace().dof().numTotalDof() << std::endl
-                  << "Structure DOF       = " << M_FSIoperator->dFESpace().dof().numTotalDof() << std::endl << std::endl;
-
-        std::cout << "Fluid mesh maxH     = " << MeshUtility::MeshStatistics::computeSize ( * ( M_FSIoperator->uFESpace().mesh() ) ).maxH << std::endl
-                  << "Fluid mesh meanH    = " << MeshUtility::MeshStatistics::computeSize ( * ( M_FSIoperator->uFESpace().mesh() ) ).meanH << std::endl
-                  << "Solid mesh maxH     = " << MeshUtility::MeshStatistics::computeSize ( * ( M_FSIoperator->dFESpace().mesh() ) ).maxH << std::endl
-                  << "Solid mesh meanH    = " << MeshUtility::MeshStatistics::computeSize ( * ( M_FSIoperator->dFESpace().mesh() ) ).meanH << std::endl << std::endl;
+        std::cout << "Ionic model: Minimal Model" << std::endl << std::endl;
+        std::cout << "Electrophysiology model: Monodomain" << std::endl << std::endl;
+        std::cout << "Electrophysiology DOF = " << ( M_monodomain -> ionicModelPtr() -> Size() ) * M_monodomain -> feSpacePtr()  -> dof().numTotalDof() << std::endl << std::endl;
     }
+
+
 }
 
 Real
 MultiscaleModelFSI3DActivated::checkSolution() const
 {
-    return M_stateVariable->norm2();
+    super::checkSolution();
 }
 
 

@@ -98,6 +98,29 @@ ENDIF()
 
 
 
+
+IF (LifeV_ENABLE_HEART )
+IF ( LifeV_ENABLE_FSI )
+
+SET(modelsFSI3DActivated_HEADERS
+  models/MultiscaleModelFSI3DActivated.hpp
+CACHE INTERNAL "")
+  
+SET(modelsFSI3DActivated_SOURCES
+  models/MultiscaleModelFSI3DActivated.cpp
+CACHE INTERNAL "")
+  
+ELSE()
+
+SET(modelsFSI3DActivated_HEADERS "")
+SET(modelsFSI3DActivated_SOURCES "")
+  
+ENDIF()
+ENDIF()
+
+
+
+
 SET(models_HEADERS ${models_HEADERS} ${models0D_HEADERS})
 SET(models_SOURCES ${models_SOURCES} ${models0D_SOURCES})
 
@@ -107,8 +130,11 @@ SET(models_SOURCES ${models_SOURCES} ${models1D_SOURCES})
 SET(models_HEADERS ${models_HEADERS} ${modelsFluid3D_HEADERS})
 SET(models_SOURCES ${models_SOURCES} ${modelsFluid3D_SOURCES})
 
-SET(models_HEADERS ${models_HEADERS} ${modelsFSI3D_HEADERS} CACHE INTERNAL "")
-SET(models_SOURCES ${models_SOURCES} ${modelsFSI3D_SOURCES} CACHE INTERNAL "")
+SET(models_HEADERS ${models_HEADERS} ${modelsFSI3D_HEADERS})
+SET(models_SOURCES ${models_SOURCES} ${modelsFSI3D_SOURCES})
+
+SET(models_HEADERS ${models_HEADERS} ${modelsFSI3DActivated_HEADERS} CACHE INTERNAL "")
+SET(models_SOURCES ${models_SOURCES} ${modelsFSI3DActivated_SOURCES} CACHE INTERNAL "")
 
 
 
