@@ -70,9 +70,8 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 
     	std::string xmlpath = dataFile("electrophysiology/monodomain_xml_path","./");
     	std::string xmlfile = dataFile("electrophysiology/monodomain_xml_file","MonodomainSolverParamList.xml");
-    	Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
-//	    monodomainList = Teuchos::getParametersFromXmlFile ( xmlpath + xmlfile );
-	  //  monodomainList = Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" );
+    	Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( xmlpath + xmlfile ) );
+
 
     	minimalModelPtr_Type  ionicModel ( new minimalModel_Type() );
 
@@ -86,8 +85,9 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
         M_exporterElectro -> setDataFromGetPot ( dataFile );
         std::string prefix = multiscaleProblemPrefix  + number2string ( M_ID ) +  "electrophysiology" + "_" + number2string ( multiscaleProblemStep );
         M_exporterElectro->setPostDir ( multiscaleProblemFolder );
-  //      M_monodomain -> setupExporter ( *M_exporterElectro, prefix);
-
+//       M_exporterElectro -> setPrefix( prefix );
+        M_monodomain -> setupExporter ( *M_exporterElectro, prefix);
+//        M_monodomain -> setupExporter( *M_exporterElectro );
         boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
         ( new FESpace< mesh_Type, MapEpetra > ( M_monodomain -> localMeshPtr(), "P1", 3, M_monodomain -> commPtr() ) );
         M_fiber.reset ( new vector_Type ( Space3D -> map() ) );
@@ -178,7 +178,7 @@ void
 MultiscaleModelFSI3DActivated::saveSolution()
 {
 	super::saveSolution();
-//	M_monodomain -> exportSolution( *M_exporterElectro, base::globalData() -> dataTime() -> time() );
+	M_monodomain -> exportSolution( *M_exporterElectro, base::globalData() -> dataTime() -> time() );
 }
 
 void

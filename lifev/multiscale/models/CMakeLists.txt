@@ -99,8 +99,8 @@ ENDIF()
 
 
 
-IF (LifeV_ENABLE_HEART )
-IF ( LifeV_ENABLE_FSI )
+IF (LifeV_ENABLE_Heart)
+IF (LifeV_ENABLE_FSI)
 
 SET(modelsFSI3DActivated_HEADERS
   models/MultiscaleModelFSI3DActivated.hpp
@@ -116,6 +116,12 @@ SET(modelsFSI3DActivated_HEADERS "")
 SET(modelsFSI3DActivated_SOURCES "")
   
 ENDIF()
+
+ELSE()
+
+SET(modelsFSI3DActivated_HEADERS "")
+SET(modelsFSI3DActivated_SOURCES "")
+
 ENDIF()
 
 

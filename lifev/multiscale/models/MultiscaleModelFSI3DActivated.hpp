@@ -39,6 +39,7 @@
 
 #include <lifev/multiscale/models/MultiscaleModelFSI3D.hpp>
 #include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
+#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
 
 
 
@@ -175,48 +176,6 @@ private:
 
     //! @name Private Methods
     //@{
-
-    //! Setup the global data of the model.
-    /*!
-     * In particular, it replaces the default local values with the ones in the global container.
-     * If a value is already specified in the data file, do not perform the replacement.
-     *
-     * @param fileName File name of the specific model.
-     */
-//    void setupGlobalData ( const std::string& fileName );
-//
-//    //! Initialize the FSI solution.
-//    void initializeSolution();
-//
-//    void setupCommunicator();
-//
-//    void setupBC ( const std::string& fileName );
-//    void updateBC();
-//
-//    void setupExporter ( IOFilePtr_Type& exporter, const GetPot& dataFile, const std::string& label = "" );
-//    void setupImporter ( IOFilePtr_Type& exporter, const GetPot& dataFile, const std::string& label = "" );
-//
-//    void setExporterFluid ( const IOFilePtr_Type& exporter );
-//    void setExporterSolid ( const IOFilePtr_Type& exporter );
-//
-//    void exportFluidSolution();
-//    void exportSolidSolution();
-//
-//    //! Setup the linear model
-//    void setupLinearModel();
-//
-//    //! Update the linear system matrix and vectors
-//    void updateLinearModel();
-//
-//    //! Solve the linear problem
-//    void solveLinearModel ( bool& solveLinearSystem );
-//
-//    //! Impose the coupling perturbation on the correct BC inside the BCHandler
-//    void imposePerturbation();
-//
-//    //! Reset all the coupling perturbations imposed on the BCHandler
-//    void resetPerturbation();
-
     //@}
 
 
@@ -234,8 +193,6 @@ private:
 
 };
 
-
-
 //! Factory create function
 inline multiscaleModel_Type* createMultiscaleModelFSI3DActivated()
 {
@@ -245,4 +202,4 @@ inline multiscaleModel_Type* createMultiscaleModelFSI3DActivated()
 } // Namespace multiscale
 } // Namespace LifeV
 
-#endif /* MultiscaleModelFSI3D_H */
+#endif /* MultiscaleModelFSI3DActivated_H */
