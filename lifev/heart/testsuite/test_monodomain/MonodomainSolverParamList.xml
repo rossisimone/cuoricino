@@ -10,8 +10,8 @@
     <Parameter name="longitudinalDiffusion" type="double" value="0.00006"  />
     <Parameter name="transversalDiffusion" type="double" value="0.000012"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="biventricle5_refined1_rescaled.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/u/cmcs/lassila/meshes/heartINRIA/IH_meshes/"  />
+    <Parameter name="mesh_name" type="string" value="biventricle5_refined1.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
     <Parameter name="fiber_file" type="string" value="FineFiberDirection"  />
     <Parameter name="fiber_path" type="string" value="/usr/scratch/srossi/meshes/"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>

@@ -61,15 +61,12 @@
 #endif
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
-#include <lifev/core/array/MatrixElemental.hpp>
 #include <lifev/core/array/MatrixSmall.hpp>
 
 #include <lifev/core/algorithm/SolverAztecOO.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
-#include <lifev/core/fem/SobolevNorms.hpp>
-#include <lifev/core/fem/GeometricMap.hpp>
 #include <lifev/heart/solver/IonicModels/HeartIonicModel.hpp>
 
 #include <lifev/core/util/LifeChrono.hpp>
@@ -87,7 +84,7 @@
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/core/algorithm/Preconditioner.hpp>
 
-#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
+
 
 
 namespace LifeV
@@ -133,10 +130,10 @@ public:
 
     typedef boost::shared_ptr<LinearSolver>                        linearSolverPtr_Type;
 
-    typedef ExporterHDF5< mesh_Type >          exporter_Type;
-    typedef boost::shared_ptr<exporter_Type>                       exporterPtr_Type;
-//    typedef Exporter< mesh_Type >              exporter_Type;//                IOFile_Type;
-//    typedef boost::shared_ptr< exporter_Type >   exporterPtr_Type;//                IOFilePtr_Type;
+//    typedef ExporterHDF5< mesh_Type >          exporter_Type;
+//    typedef boost::shared_ptr<exporter_Type>                       exporterPtr_Type;
+    typedef Exporter< mesh_Type >              exporter_Type;//                IOFile_Type;
+    typedef boost::shared_ptr< exporter_Type >   exporterPtr_Type;//                IOFilePtr_Type;
 
     typedef LifeV::Preconditioner               basePrec_Type;
     typedef boost::shared_ptr<basePrec_Type>    basePrecPtr_Type;

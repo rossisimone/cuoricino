@@ -23,8 +23,8 @@ INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
 ADD_SUBDIRECTORY(solver)
-SET(HEADERS ${HEADERS} ${solver_HEADERS})
-SET(SOURCES ${SOURCES} ${solver_SOURCES})
+SET(HEADERS ${HEADERS} ${solver_HEADERS} ${solver_IonicModels_HEADERS} ${solver_XbModels_HEADERS})
+SET(SOURCES ${SOURCES} ${solver_SOURCES} ${solver_IonicModels_SOURCES} ${solver_XbModels_SOURCES})
 
 TRIBITS_EXCLUDE_AUTOTOOLS_FILES()
 # This is the list of files excluded from the tarball

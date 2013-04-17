@@ -70,7 +70,6 @@
 
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
-#include <lifev/heart/solver/HeartIonicSolver.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
@@ -78,7 +77,6 @@
 #endif
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
-#include <lifev/heart/solver/IonicModels/IonicAlievPanfilov.hpp>
 #include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/LifeV.hpp>
 

@@ -1,17 +1,27 @@
-SET( IonicModels_HEADERS
-  IonicModels/IonicAlievPanfilov.hpp
-  IonicModels/IonicFitzHughNagumo.hpp
-  IonicModels/IonicMitchellSchaeffer.hpp
-  IonicModels/IonicJafriRiceWinslow.hpp
-  IonicModels/IonicTenTusscher.hpp
-  IonicModels/IonicMinimalModel.hpp
-  IonicModels/HeartIonicModel.hpp
+SET( solver_IonicModels_HEADERS
+  solver/IonicModels/IonicAlievPanfilov.hpp
+  solver/IonicModels/IonicFitzHughNagumo.hpp
+  solver/IonicModels/IonicMitchellSchaeffer.hpp
+  solver/IonicModels/IonicJafriRiceWinslow.hpp
+  solver/IonicModels/IonicTenTusscher.hpp
+  solver/IonicModels/IonicMinimalModel.hpp
+  solver/IonicModels/HeartIonicModel.hpp
+CACHE INTERNAL "")
+
+SET( solver_IonicModels_SOURCES
+  solver/IonicModels/IonicAlievPanfilov.cpp
+  solver/IonicModels/IonicFitzHughNagumo.cpp
+  solver/IonicModels/IonicMitchellSchaeffer.cpp
+  solver/IonicModels/IonicJafriRiceWinslow.cpp
+  solver/IonicModels/IonicTenTusscher.cpp
+  solver/IonicModels/IonicMinimalModel.cpp
+  solver/IonicModels/HeartIonicModel.cpp
 CACHE INTERNAL "")
 
 
 SET(LOCAL_HEADERS)
-FOREACH(INC ${IonicModels_HEADERS})
-  STRING(REPLACE "IonicModels/" "" LOCAL_INC ${INC})
+FOREACH(INC ${solver_IonicModels_HEADERS})
+  STRING(REPLACE "solver/IonicModels/" "" LOCAL_INC ${INC})
   SET(LOCAL_HEADERS ${LOCAL_HEADERS} ${LOCAL_INC})
 ENDFOREACH()
 

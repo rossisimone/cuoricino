@@ -41,11 +41,6 @@
 
 #include <lifev/heart/solver/IonicModels/HeartIonicModel.hpp>
 
-
-#include <Teuchos_RCP.hpp>
-#include <Teuchos_ParameterList.hpp>
-#include "Teuchos_XMLParameterListHelpers.hpp"
-
 namespace LifeV
 {
 //! XbModel - This class implements a mean field model.
@@ -181,109 +176,6 @@ private:
     //@}
 
 }; // class IonicMitchellSchaeffer
-
-// ===================================================
-//! Constructors
-// ===================================================
-IonicMitchellSchaeffer::IonicMitchellSchaeffer()    :
-    super       ( 2 ),
-    M_vGate     ( 0.13 ),
-    M_tauClose  ( 150.0 ),
-    M_tauOpen	( 120.0 ),
-    M_tauIn		( 0.3 ),
-    M_tauOut	( 6.0 )
-{}
-
-IonicMitchellSchaeffer::IonicMitchellSchaeffer ( Teuchos::ParameterList& parameterList ) :
-    super       ( 2 )
-{
-    M_vGate       =  parameterList.get ("vGate", 0.13);
-    M_tauClose    =  parameterList.get ("tauClose", 150.0);
-    M_tauOpen     =  parameterList.get ("tauOpen", 120.0);
-    M_tauIn       =  parameterList.get ("tauIn", 0.3);
-    M_tauOut   	  =  parameterList.get ("tauOut", 6.0);
-}
-
-IonicMitchellSchaeffer::IonicMitchellSchaeffer ( const IonicMitchellSchaeffer& model )
-{
-	M_vGate     =  model.M_vGate;
-    M_tauClose  =  model.M_tauClose;
-    M_tauOpen   =  model.M_tauOpen;
-    M_tauIn     =  model.M_tauIn;
-    M_tauOut   	=  model.M_tauOut;
-
-    M_numberOfEquations = model.M_numberOfEquations;
-}
-
-// ===================================================
-//! Operator
-// ===================================================
-IonicMitchellSchaeffer& IonicMitchellSchaeffer::operator= ( const IonicMitchellSchaeffer& model )
-{
-    M_vGate     =  model.M_vGate;
-    M_tauClose  =  model.M_tauClose;
-    M_tauOpen   =  model.M_tauOpen;
-    M_tauIn     =  model.M_tauIn;
-    M_tauOut    =  model.M_tauOut;
-
-    M_numberOfEquations = model.M_numberOfEquations;
-
-    return *this;
-}
-
-
-// ===================================================
-//! Methods
-// ===================================================
-//Only gating variables
-void IonicMitchellSchaeffer::computeRhs ( const std::vector<Real>&  v,
-                                         std::vector<Real>& rhs )
-{
-
-    rhs[0] = computeLocalGatingRhs( v );
-
-}
-
-//Potential and gating variables
-void IonicMitchellSchaeffer::computeRhs (const   std::vector<Real>&  v,
-                                         const   Real&           Iapp,
-                                         std::vector<Real>& rhs )
-{
-	rhs[0] = computeLocalPotentialRhs( v, Iapp );
-    rhs[1] = computeLocalGatingRhs( v );
-}
-
-
-
-Real IonicMitchellSchaeffer::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp )
-{
-    return ( - ( v[1] / M_tauIn ) * v[0] * v[0] * ( v[0] - 1 ) - v[0] / M_tauOut  + Iapp );
-}
-
-Real IonicMitchellSchaeffer::computeLocalGatingRhs ( const std::vector<Real>& v )
-{
-    if(v[0] <= M_vGate)
-	   	return  (  ( 1 - v[1] ) / M_tauOpen );
-    else
-	   	return ( - v[1] / M_tauClose );
-}
-
-void IonicMitchellSchaeffer::showMe()
-{
-    std::cout << "\n\n\t\tIonicMitchellSchaeffer Informations\n\n";
-    std::cout << "number of unkowns: "  << this->Size() << std::endl;
-
-    std::cout << "\n\t\tList of model parameters:\n\n";
-    std::cout << "vGate: " << this->vGate() << std::endl;
-    std::cout << "tauClose: " << this->tauClose() << std::endl;
-    std::cout << "tauOpen: " << this->tauOpen() << std::endl;
-    std::cout << "tauIn: " << this->tauIn() << std::endl;
-    std::cout << "tauOut: " << this->tauOut() << std::endl;
-
-    std::cout << "\n\t\t End of IonicMitchellSchaeffer Informations\n\n\n";
-
-}
-
 
 }
 

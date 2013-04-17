@@ -1,12 +1,12 @@
-SET( XbModels_HEADERS
-  XbModels/HeartXbModel.hpp
-  XbModels/XbNegroniLascano96.hpp
+SET( solver_XbModels_HEADERS
+  solver/XbModels/HeartXbModel.hpp
+  solver/XbModels/XbNegroniLascano96.hpp
 CACHE INTERNAL "")
 
 
 SET(LOCAL_HEADERS)
-FOREACH(INC ${XbModels_HEADERS})
-  STRING(REPLACE "XbModels/" "" LOCAL_INC ${INC})
+FOREACH(INC ${solver_XbModels_HEADERS})
+  STRING(REPLACE "solver/XbModels/" "" LOCAL_INC ${INC})
   SET(LOCAL_HEADERS ${LOCAL_HEADERS} ${LOCAL_INC})
 ENDFOREACH()
 
