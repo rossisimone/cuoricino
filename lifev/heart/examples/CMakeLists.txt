@@ -10,7 +10,7 @@ ADD_SUBDIRECTORIES(
   0DMinimalModel
   0DNegroniLascanoModel
   0DFitzHughNagumoModel
-  CreateFiberEllipsoid
+#  CreateFiberEllipsoid
   FiberInterpolation
 #  ActiveStrainODE
 #  AlievPanfilov
