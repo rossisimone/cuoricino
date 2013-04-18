@@ -1,0 +1,15 @@
+<!-- Model Parameters -->
+<ParameterList name="Negroni Lascano 96: Parameter list">
+	<Parameter name="y1" type="double" value="39.00" />
+	<Parameter name="y2" type="double" value="1.3" />
+	<Parameter name="y3" type="double" value="30.0" />
+	<Parameter name="y4" type="double" value="40.0" />
+	<Parameter name="yd" type="double" value="9.0" />
+	<Parameter name="z1" type="double" value="30.0" />
+	<Parameter name="z2" type="double" value="1.3"/>
+	<Parameter name="z3" type="double" value="1560.0" />
+	<Parameter name="tt" type="double" value="70.0" />
+	<Parameter name="la" type="double" value="1.17" />
+	<Parameter name="r"  type="double" value="20.0"  />
+</ParameterList>
+	
