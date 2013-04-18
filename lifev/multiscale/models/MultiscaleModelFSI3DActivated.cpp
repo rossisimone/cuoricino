@@ -78,22 +78,32 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 	    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
 	    std::string meshPath = monodomainList.get ("mesh_path", "./");
 
+	    const std::string exporterType = dataFile ( "exporter/type", "ensight" );
+#ifdef HAVE_HDF5
+	    if ( exporterType.compare ( "hdf5" ) == 0 )
+	    {
+	        M_exporterElectro.reset ( new hdf5IOFile_Type() );
+	    }
+	    else
+#endif
+	        M_exporterElectro.reset ( new ensightIOFile_Type() );
+
 	    M_monodomain.reset ( new monoSolver_Type ( meshName, meshPath, dataFile, ionicModel ) );
-        M_monodomain -> setParameters ( monodomainList );
+	    M_monodomain -> setParameters ( monodomainList );
 
-
-        M_exporterElectro -> setDataFromGetPot ( dataFile );
+	    M_exporterElectro -> setDataFromGetPot ( dataFile );
         std::string prefix = multiscaleProblemPrefix  + number2string ( M_ID ) +  "electrophysiology" + "_" + number2string ( multiscaleProblemStep );
         M_exporterElectro->setPostDir ( multiscaleProblemFolder );
-//       M_exporterElectro -> setPrefix( prefix );
+
         M_monodomain -> setupExporter ( *M_exporterElectro, prefix);
-//        M_monodomain -> setupExporter( *M_exporterElectro );
+
         boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
         ( new FESpace< mesh_Type, MapEpetra > ( M_monodomain -> localMeshPtr(), "P1", 3, M_monodomain -> commPtr() ) );
         M_fiber.reset ( new vector_Type ( Space3D -> map() ) );
     	std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
         HeartUtility::importFibers( M_fiber, nm, M_monodomain -> localMeshPtr() );
-        M_monodomain -> copyFiber(M_fiber);
+        //M_monodomain -> copyFiber(M_fiber);
+        M_monodomain-> setFiberPtr(M_fiber);
 
 
         Space3D.reset();
