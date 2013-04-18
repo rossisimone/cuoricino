@@ -20,11 +20,11 @@
 	<Parameter name="maxCondK1" type="double" value="5.405"/>
 	<Parameter name="maxCondToEpiM" type="double" value="0.294"/>
 	<Parameter name="maxCondToEndo" type="double" value="0.073"/>
-	<Parameter name="maxCondKr" type="double" value="0.153"/>
-	<Parameter name="maxCondKs" type="double" value="0.295"/>
+	<Parameter name="maxCondKr" type="double" value="0.096"/>
+	<Parameter name="maxCondKs" type="double" value="0.392"/>
 	<Parameter name="maxCondKsM" type="double" value="0.098"/>
 	<Parameter name="relPermKNa" type="double" value="0.03"/>
-	<Parameter name="maxCondCaL" type="double" value="9.5e-5"/>
+	<Parameter name="maxCondCaL" type="double" value="5.5e-5"/>
 	<Parameter name="maxCourNaCa" type="double" value="1000.0"/>
 	<Parameter name="gamma" type="double" value="0.35"/>
 	<Parameter name="constmCa" type="double" value="1.38"/>
@@ -39,7 +39,7 @@
 	<Parameter name="constpCa" type="double" value="0.0005"/>
 	<Parameter name="maxCondNab" type="double" value="0.00029"/>
 	<Parameter name="maxCondCab" type="double" value="0.000592"/>
-	<Parameter name="maxCourUp" type="double" value="0.006375"/>
+	<Parameter name="maxCourUp" type="double" value="0.007375"/>
 	<Parameter name="constUp" type="double" value="0.00025"/>
 	<Parameter name="aRel" type="double" value="0.016464"/>
 	<Parameter name="bRel" type="double" value="0.25"/>
