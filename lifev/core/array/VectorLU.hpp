@@ -70,7 +70,7 @@ public:
 	virtual ~VectorLU(){};
 
 	Real norm2() const;
-	UInt size() const;
+	UInt size() const;		//togli
 
 	Vector& getVector();
 	void disp();
@@ -90,7 +90,7 @@ public:
 
 
 private:
-	UInt M_n;
+	UInt M_n; //togli
 	Vector M_v;
 };
 

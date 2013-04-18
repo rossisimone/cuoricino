@@ -157,7 +157,8 @@ void MatrixLU::setValues(Real r)
 
 void MatrixLU::setZero()
 {
-	setValues(0.0);
+	//setValues(0.0);
+	*this *= 0.0;
 }
 
 void MatrixLU::setCol(UInt j, const VectorLU& v)

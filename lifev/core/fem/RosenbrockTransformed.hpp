@@ -116,7 +116,6 @@ public:
 };
 
 
-//KEEP LIKE THAT
 //keep the following line and don't put RosenbrockTransformed.cpp in the CMakeLists.txt
 //This is to avoid linking errors due to templates
 #include <lifev/core/fem/RosenbrockTransformed.cpp>
