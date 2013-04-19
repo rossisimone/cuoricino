@@ -68,12 +68,12 @@ public:
 //    typedef Heart
     typedef boost::shared_ptr< monoSolver_Type >         monoSolverPtr_Type;
 
-    typedef boost::function < Real (const Real& /*t*/,
+    typedef boost::function < Real (const Real& t,
                                     const Real &   x,
                                     const Real &   y,
-                                    const Real& /*z*/,
-                                    const LifeV::ID&   /*i*/ ) >   function_Type;
-
+                                    const Real& z,
+                                    const LifeV::ID&   i ) >   function_Type;
+    typedef boost::shared_ptr < function_Type >                     functionPtr_Type;
     typedef VectorEpetra				vector_Type;
     typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
 
@@ -109,6 +109,8 @@ public:
      * @param fileName Name of data file.
      */
     void setupData ( const std::string& fileName );
+
+    LifeV::Real activationFunction(const Real& t, const Real& x, const Real& y, const Real& z, const LifeV::ID& i);
 
     //! Setup the model.
     void setupModel();
@@ -181,8 +183,12 @@ private:
 
     vectorPtr_Type							M_fiber;
     vectorPtr_Type							M_gammaf;
+    std::vector<Real>                       M_activationCenter;
+    Real                                    M_activationRadius;
+    UInt                                    M_activationMarker;
+
     // Operator
-    monoSolverPtr_Type                M_monodomain;
+    monoSolverPtr_Type                      M_monodomain;
 
     // Exporters
     IOFilePtr_Type                          M_exporterElectro;
