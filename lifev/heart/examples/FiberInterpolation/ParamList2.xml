@@ -1,13 +1,8 @@
 <ParameterList>
 	<!-- LinearSolver parameters -->
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="biventricle3_refined1.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
-    <Parameter name="fiber_file" type="string" value="fibers.dat"  />
-    <Parameter name="fiber_path" type="string" value="/usr/scratch/srossi/meshes/"  />
-    <Parameter name="fiber_X" type="double" value="0.707106781187"  />
-    <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
-    <Parameter name="fiber_Z" type="double" value="0.0"  />
+    <Parameter name="mesh_name" type="string" value="rousseau_smoothed_coarsened_remeshed_reclassified.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/humanBiventricular/"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>
