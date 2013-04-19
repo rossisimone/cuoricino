@@ -58,7 +58,7 @@
 #include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/heart/solver/XbModels/XbNegroniLascano96.hpp>
-#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
+#include <lifev/heart/solver/IonicModels/IonicTenTusscher.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -87,7 +87,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     std::cout << "Importing parameters list...";
-    Teuchos::ParameterList NLParameterList = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
+    Teuchos::ParameterList NLParameterList    = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
+    Teuchos::ParameterList IonicParameterList = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
     std::cout << " Done!" << endl;
 
 
@@ -99,7 +100,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
     XbNegroniLascano96  xb ( NLParameterList );
-    IonicMinimalModel  ionicModel;
+    IonicTenTusscher  ionicModel ( IonicParameterList );
     std::cout << " Done!" << endl;
 
 
@@ -120,10 +121,23 @@ Int main ( Int argc, char** argv )
     std::cout << "Initializing solution vector...";
     std::vector<Real> XbStates (xb.Size(), 0);
     std::vector<Real> states (ionicModel.Size(), 0);
-    states.at (0) = 0.0;
-    states.at (1) = 1.0;
-    states.at (2) = 1.0;
-    states.at (3) = 0.021553043080281;
+    states.at (0)  = - 86.2;
+    states.at (1)  = 0.0;
+    states.at (2)  = 0.75;
+    states.at (3)  = 0.75;
+    states.at (4)  = 0.0;
+    states.at (5)  = 1.0;
+    states.at (6)  = 0.0;
+    states.at (7)  = 0.0;
+    states.at (8)  = 1.0;
+    states.at (9)  = 1.0;
+    states.at (10) = 0.0;
+    states.at (11) = 1.0;
+    states.at (12) = 1.0;
+    states.at (13) = 2e-4;
+    states.at (14) = 0.2;
+    states.at (15) = 11.6;
+    states.at (16) = 138.3;
     std::cout << " Done!" << endl;
 
 
@@ -141,7 +155,6 @@ Int main ( Int argc, char** argv )
 
 
 
-
     //********************************************//
     // The model needs as external informations   //
     // the contraction velocity and the Calcium   //
@@ -155,8 +168,10 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF =NLParameterList.get("endTime", 100.0);
-    Real dt =NLParameterList.get("timeStep", 0.001);
+    Real TF     = NLParameterList.get("endTime", 100.0);
+    Real dt     = NLParameterList.get("timeStep", 0.001);
+    Real timeSt = IonicParameterList.get( "stimuliTime", 10.0 );
+    Real stInt  = IonicParameterList.get( "stimuliInterval", 1000.0 );
 
 
     //********************************************//
@@ -176,22 +191,29 @@ Int main ( Int argc, char** argv )
     for ( Real t = 0; t < TF; )
     {
 
-    	if( t > 10 && t < 11 ) Iapp = 4.0;
-        else Iapp = 0;
+    	if ( t >= timeSt && t <= timeSt + 1.0 )
+    	{
+    	   	Iapp = -52.0;
+    	   	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
+    	   		timeSt = timeSt + stInt;
+    	}
+    	else
+    	   	Iapp = 0;
+
         //********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-//        Ca =1.875 * states.at(3);
-        Ca = 1.5 * std::exp (- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
+
+    	Ca = states.at(13);
 
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        xb.computeRhs ( XbStates, Ca, vel, XbRhs);
-        ionicModel.computeRhs ( states, Iapp, rhs);
+        xb.computeRhs ( XbStates, Ca, vel, XbRhs );
+        ionicModel.computeRhs ( states, Iapp, rhs );
 
         //********************************************//
         // Use forward Euler method to advance the    //
