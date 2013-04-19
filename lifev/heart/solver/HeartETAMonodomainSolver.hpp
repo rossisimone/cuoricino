@@ -741,15 +741,15 @@ public:
     {
         MeshUtility::fillWithFullMesh ( M_localMeshPtr, M_fullMeshPtr, meshName, meshPath );
     }
-    //! given an boost function initialize the potential
-    void inline setPotentialFromFunction ( function_Type f )
+    //! given a boost function initialize the potential
+    void inline setPotentialFromFunction ( function_Type& f, Real time = 0.0 )
     {
-        M_feSpacePtr -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *M_potentialPtr , 0);
+        M_feSpacePtr -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *M_potentialPtr , time);
     }
-    //! given an boost function initialize the applied current
-    void inline setAppliedCurrentFromFunction ( function_Type f )
+    //! given a boost function initialize the applied current
+    void inline setAppliedCurrentFromFunction ( function_Type& f, Real time = 0.0 )
     {
-        M_feSpacePtr -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *M_appliedCurrentPtr , 0);
+        M_feSpacePtr -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *M_appliedCurrentPtr , time );
     }
     //! Solves one reaction step using the forward Euler scheme
     /*!
