@@ -73,6 +73,7 @@ SET(fem_SOURCES
   fem/ReferenceFEScalar.cpp
   fem/TimeAdvanceData.cpp
   fem/TimeData.cpp
+  fem/ROS3P.cpp
 CACHE INTERNAL "")
 
 

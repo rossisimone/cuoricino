@@ -41,6 +41,8 @@ SET(array_SOURCES
   array/VectorEpetra.cpp
   array/MapEpetra.cpp
   array/VectorEpetraStructured.cpp
+  array/MatrixLU.cpp
+  array/VectorLU.cpp
 CACHE INTERNAL "")
 
 
