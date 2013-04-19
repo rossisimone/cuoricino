@@ -85,7 +85,7 @@ inline void importFibers( boost::shared_ptr<VectorEpetra> fiber, std::string& na
 //format 1: fibers saved as fx in each row for all the mesh
 //							fy in each row for all the mesh
 //							fz in each row for all the mesh
-inline void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath, UInt format = 0 )
+inline void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath, int format = 0 )
 {
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
