@@ -179,7 +179,7 @@ bool RosenbrockTransformed<s>::computeError(const vector<vector_Type>& U, vector
 	else if (err_n_1 == 0.0)					//if the previous error was zero and the actual is not then fac~1
 		fac = M_S;
 	else										//formula to compute fac, takes in account Tol, errors and time steps
-		fac = M_S * pow( (Tol*err_n_1)/(err_n*err_n) , M_p_1 ) * ( dt / dt_old ) ;
+		fac = M_S * std::pow( (Tol*err_n_1)/(err_n*err_n) , M_p_1 ) * ( dt / dt_old ) ;
 
 	if (err_n > Tol)							//the step is rejected
 	{
