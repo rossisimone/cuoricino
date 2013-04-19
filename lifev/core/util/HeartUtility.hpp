@@ -205,7 +205,7 @@ inline void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMes
 inline void rescaleVector( VectorEpetra& vec, Real min, Real max, Real scaleFactor = 1.0 )
 {
 	vec -= min;
-	cout << "\n\nmax - min:" << max - min << "\n\n";
+	//cout << "\n\nmax - min:" << max - min << "\n\n";
 	//assert((max-min)==0 && "\nRescaling is going to divide by zero!\n");
 	vec *= ( scaleFactor / ( max - min ) );
 }
