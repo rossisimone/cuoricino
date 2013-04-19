@@ -133,9 +133,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 LifeV::Real
 MultiscaleModelFSI3DActivated::activationFunction(const Real& t, const Real& x, const Real& y, const Real& z, const LifeV::ID& i)
 {
-    Real val = std::exp( -( std::pow(x-M_activationCenter[0],2) + std::pow(y-M_activationCenter[1],2) + std::pow(z-M_activationCenter[2],2) ) / std::pow(M_activationRadius,2) );
-    std::cout << val << std::endl;
-    return val;
+    return std::exp( -( std::pow(x-M_activationCenter[0],2) + std::pow(y-M_activationCenter[1],2) + std::pow(z-M_activationCenter[2],2) ) / std::pow(M_activationRadius,2) );
 }
 
 void
@@ -186,21 +184,26 @@ MultiscaleModelFSI3DActivated::updateModel()
 void
 MultiscaleModelFSI3DActivated::solveModel()
 {
-	M_monodomain -> setInitialTime( base::globalData() -> dataTime() -> time() );
-	M_monodomain -> setEndTime( ( M_monodomain -> initialTime() ) + base::globalData() -> dataTime() -> timeStep() );
-	M_monodomain ->solveSplitting();
+    if ( M_nonLinearRichardsonIteration == 0 )
+    {
+        // TODO: Better handling of different time steps (HeartETAMonodomainSolver uses ms for time)
+        Real timeStep = base::globalData() -> dataTime() -> timeStep();
+        Real tn       = base::globalData() -> dataTime() -> time() - timeStep;
 
+        M_monodomain -> setInitialTime( 1000.0 * tn );
+        M_monodomain -> setEndTime( 1000.0 * (tn + timeStep) );
+        M_monodomain ->solveSplitting();
 
-    M_gammaf.reset( new  vector_Type( *( M_monodomain -> globalSolution().at(3) ) ) );
+        M_gammaf.reset( new  vector_Type( *( M_monodomain -> globalSolution().at(3) ) ) );
 
-    //rescaling parameters for gammaf with minimal model
-	Real maxCalciumLikeVariable = 0.838443;
-    Real minCalciumLikeVariable = 0.021553;
-    Real beta = -0.3;
+        //rescaling parameters for gammaf with minimal model
+        Real maxCalciumLikeVariable = 0.838443;
+        Real minCalciumLikeVariable = 0.021553;
+        Real beta = -0.3;
 
-    HeartUtility::rescaleVector( *M_gammaf, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
-    super::solver() -> solid().material() -> setGammaf( *M_gammaf );
-
+        HeartUtility::rescaleVector( *M_gammaf, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
+        super::solver() -> solid().material() -> setGammaf( *M_gammaf );
+    }
 
     super::solveModel();
 

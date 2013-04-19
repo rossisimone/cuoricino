@@ -444,6 +444,10 @@ public:
 
     //@}
 
+protected:
+
+    UInt                                    M_nonLinearRichardsonIteration;
+
 private:
 
     //! @name Unimplemented Methods
@@ -572,8 +576,6 @@ private:
 #endif
 
     vectorPtr_Type                          M_stateVariable;
-
-    UInt                                    M_nonLinearRichardsonIteration;
 
     // Boundary Conditions
     bcInterfacePtr_Type                     M_fluidBC;
