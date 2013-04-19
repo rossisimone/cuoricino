@@ -81,7 +81,11 @@ inline void importFibers( boost::shared_ptr<VectorEpetra> fiber, std::string& na
 
 }
 
-inline void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath )
+//format 0: fibers saved as  (fx, fy, fz) in each row
+//format 1: fibers saved as fx in each row for all the mesh
+//							fy in each row for all the mesh
+//							fz in each row for all the mesh
+inline void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath, UInt format = 0 )
 {
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
@@ -105,27 +109,55 @@ inline void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::stri
 	int i (0);
 	int j (0);
 	int k (0);
-
+	int offset = (*fiberVector).size() / 3;
 	//std::cout << "\nAssigning fibers to the vector epetra...";
 
     for (UInt l = 0; l < d; ++l)
 	{
-	i = (*fiberVector).blockMap().GID (l);
-	j = (*fiberVector).blockMap().GID (l + d);
-	k = (*fiberVector).blockMap().GID (l + 2 * d);
-	(*fiberVector) [i] = fiber_global_vector[3 * i];
-	(*fiberVector) [j] = fiber_global_vector[3 * i + 1];
-	(*fiberVector) [k] = fiber_global_vector[3 * i + 2];
+		i = (*fiberVector).blockMap().GID (l);
+		j = (*fiberVector).blockMap().GID (l + d);
+		k = (*fiberVector).blockMap().GID (l + 2 * d);
+		if( format == 0 )
+		{
+			(*fiberVector) [i] = fiber_global_vector[3 * i];
+			(*fiberVector) [j] = fiber_global_vector[3 * i + 1];
+			(*fiberVector) [k] = fiber_global_vector[3 * i + 2];
+		}
+		else
+		{
 
-	//normalizing
-    Real norm = std::sqrt( (*fiberVector) [i] * (*fiberVector) [i] + (*fiberVector) [j] * (*fiberVector) [j] + (*fiberVector) [k] * (*fiberVector) [k] );
+			(*fiberVector) [i] = fiber_global_vector[ i ];
+			(*fiberVector) [j] = fiber_global_vector[ i + offset ];
+			(*fiberVector) [k] = fiber_global_vector[ i + 2 * offset ];
+		}
 
-    (*fiberVector) [i] = (*fiberVector) [i] / norm;
-    (*fiberVector) [j] = (*fiberVector) [j] / norm;
-    (*fiberVector) [k] = (*fiberVector) [k] / norm;
+		//normalizing
+		Real norm = std::sqrt( (*fiberVector) [i] * (*fiberVector) [i] + (*fiberVector) [j] * (*fiberVector) [j] + (*fiberVector) [k] * (*fiberVector) [k] );
+		if( norm != 0 )
+		{
+			(*fiberVector) [i] = (*fiberVector) [i] / norm;
+			(*fiberVector) [j] = (*fiberVector) [j] / norm;
+			(*fiberVector) [k] = (*fiberVector) [k] / norm;
+		}
+		else
+		{
+			std::cout << "\n\nThe fiber vector in the node: " << i << " has component:";
+			std::cout << "\nx: " << fiber_global_vector [i];
+			std::cout << "\ny: " << fiber_global_vector [i + offset];
+			std::cout << "\nz: " << fiber_global_vector [i + 2 * offset];
+			std::cout << "\nI will put it to: (f_x, f_y, f_z) = (1, 0, 0)\n\n";
+
+			(*fiberVector) [i] = 1.;
+			(*fiberVector) [j] = 0.;
+			(*fiberVector) [k] = 0.;
+		}
+
+
+
 	}
-	std::cout << std::endl;
+
 	fiber_global_vector.clear();
+
 
 }
 
