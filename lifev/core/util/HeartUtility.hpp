@@ -102,8 +102,13 @@ inline void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::stri
 	for ( UInt i = 0; i < NumGlobalElements; ++i)
 	{
 		fibers >> fiber_global_vector[i];
-	}
+		if( fiber_global_vector[i] == 0 )
+		{
+			cout << "\nzero component!!!! \t";
+			cout << "in: " << filepath  + filename << "\n";
 
+		}
+	}
 	int n = (*fiberVector).epetraVector().MyLength();
 	int d = n / 3;
 	int i (0);

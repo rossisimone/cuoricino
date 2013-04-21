@@ -185,7 +185,7 @@ Int main ( Int argc, char** argv )
     std::string fibersDirectory = list1.get ("fiber_path", "./" );
     std::string fibersFile = list1.get ("fiber_file", "fibers.dat" );
 
-    HeartUtility::importFibers(fiber1,fibersFile, fibersDirectory, list1.get( "fiber_file_format", 0 ) );
+    HeartUtility::importFibers(fiber1,fibersFile, fibersDirectory, 1 );
 
     //********************************************//
     // Create the new fiber direction in the finer//
@@ -267,7 +267,7 @@ Int main ( Int argc, char** argv )
 
     ExporterHDF5< mesh_Type > exporter2;
     exporter2.setMeshProcId ( mesh2, comm -> MyPID() );
-    exporter2.setPrefix ("InterpolatedFiberDirection");
+    exporter2.setPrefix ("InterpolatedFineFiberDirection");
     exporter2.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", fine, fiber2, UInt (0) );
     exporter2.postProcess (0);
     exporter2.closeFile();
