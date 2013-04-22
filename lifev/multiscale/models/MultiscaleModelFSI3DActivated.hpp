@@ -40,6 +40,8 @@
 #include <lifev/multiscale/models/MultiscaleModelFSI3D.hpp>
 #include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
 #include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
+#include <lifev/core/interpolation/RBFInterpolation.hpp>
+#include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
 
 
 
@@ -85,6 +87,9 @@ public:
 #ifdef HAVE_HDF5
     typedef ExporterHDF5< mesh_Type >                          hdf5IOFile_Type;
 #endif
+
+    typedef RBFInterpolation<mesh_Type>           interpolation_Type;
+    typedef boost::shared_ptr<interpolation_Type> interpolationPtr_Type;
 
    //@}
 
@@ -178,10 +183,15 @@ private:
 
     //! @name Private Methods
     //@{
+
+    void setupInterpolant();
+
     //@}
 
 
     vectorPtr_Type							M_fiber;
+    vectorPtr_Type							M_displacementMonodomain;;
+
     vectorPtr_Type							M_gammaf;
     std::vector<Real>                       M_activationCenter;
     Real                                    M_activationRadius;
@@ -195,6 +205,11 @@ private:
 
     // Importers
     IOFilePtr_Type                          M_importerElectro;
+
+    interpolationPtr_Type					M_coarseToFineInterpolant;
+    interpolationPtr_Type					M_fineToCoarseInterpolant;
+
+    std::string								M_dataFileName;
 
 
 };

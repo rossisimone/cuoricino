@@ -37,6 +37,10 @@
 
 #include <lifev/multiscale/models/MultiscaleModelFSI3DActivated.hpp>
 
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include "Teuchos_XMLParameterListHelpers.hpp"
+
 
 
 
@@ -55,8 +59,11 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_exporterElectro              (),
     M_fiber						   (),
     M_gammaf					   (),
-    M_activationCenter             (3)
+    M_activationCenter             (3),
+    M_dataFileName				   ()
 {
+	M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledVectorial" ) );
+	M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledScalar" ) );
 }
 
 // ===================================================
@@ -67,12 +74,12 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 {
 
     // FSI setup
-
-    super::setupData(fileName);
+	M_dataFileName = fileName;
+    super::setupData(M_dataFileName);
 
     // Meshes and monodomain data
 
-    GetPot dataFile(fileName);
+    GetPot dataFile(M_dataFileName);
 
     std::string xmlpath = dataFile("electrophysiology/monodomain_xml_path","./");
     std::string xmlfile = dataFile("electrophysiology/monodomain_xml_file","MonodomainSolverParamList.xml");
@@ -124,6 +131,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_monodomain-> setFiberPtr(M_fiber);
 
     // Activation function
+    M_displacementMonodomain.reset( new vector_Type( M_monodomain -> potentialPtr() -> map() ) );
 
     Space3D.reset();
     M_gammaf.reset( new vector_Type( M_monodomain -> potentialPtr() -> map() ) );
@@ -141,6 +149,11 @@ MultiscaleModelFSI3DActivated::setupModel()
 {
 
 	super::setupModel();
+	boost::shared_ptr<mesh_Type> solidLocalMeshPtr( new super::mesh_Type( super::solver() -> solidLocalMesh() ) );
+
+	HeartUtility::importFibers( super::solver() -> solid().material() -> fiberVector(),
+    							super::solver() -> solid().material() -> materialData() -> fileFiberDirections(),
+    							solidLocalMeshPtr );
 
     HeartUtility::setValueOnBoundary( *(M_monodomain -> potentialPtr() ), M_monodomain -> fullMeshPtr(), 1.0, M_activationMarker );
     //HeartUtility::setValueOnBoundary( *(M_monodomain -> potentialPtr() ), M_monodomain -> fullMeshPtr(), 1.0, 45 );
@@ -150,16 +163,17 @@ MultiscaleModelFSI3DActivated::setupModel()
     M_monodomain -> feSpacePtr() -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *smoother , 0);
     (*smoother) *= *(M_monodomain -> potentialPtr() );
     //M_monodomain -> setPotentialPtr(smoother);
-    M_monodomain -> copyPotential(smoother);
+    M_monodomain -> setPotential(*smoother);
 
     //setting up initial conditions
     * ( M_monodomain -> globalSolution().at (1) ) = 1.0;
     * ( M_monodomain -> globalSolution().at (2) ) = 1.0;
     * ( M_monodomain -> globalSolution().at (3) ) = 0.021553043080281;
 
-
-    super::solver() -> solid().material() -> setFiberVector( *M_fiber );
     super::solver() -> solid().material() -> setGammaf( *M_gammaf );
+
+
+    setupInterpolant();
 
 
 
@@ -173,6 +187,7 @@ MultiscaleModelFSI3DActivated::buildModel()
     M_monodomain -> setupLumpedMassMatrix();
     M_monodomain -> setupStiffnessMatrix();
     M_monodomain -> setupGlobalMatrix();
+
 }
 
 void
@@ -184,8 +199,20 @@ MultiscaleModelFSI3DActivated::updateModel()
 void
 MultiscaleModelFSI3DActivated::solveModel()
 {
+
     if ( M_nonLinearRichardsonIteration == 0 )
     {
+        if( !(M_displacementMonodomain ) )
+        {
+
+        	M_coarseToFineInterpolant -> buildOperators();
+            M_coarseToFineInterpolant -> interpolate();
+            M_coarseToFineInterpolant -> solution ( M_displacementMonodomain );
+            M_monodomain -> setDisplacementPtr( M_displacementMonodomain );
+			M_monodomain -> setupStiffnessMatrix();
+			M_monodomain -> setupGlobalMatrix();
+        }
+
         // TODO: Better handling of different time steps (HeartETAMonodomainSolver uses ms for time)
         Real timeStep = base::globalData() -> dataTime() -> timeStep();
         Real tn       = base::globalData() -> dataTime() -> time() - timeStep;
@@ -202,10 +229,16 @@ MultiscaleModelFSI3DActivated::solveModel()
         Real beta = -0.3;
 
         HeartUtility::rescaleVector( *M_gammaf, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
+
+        M_fineToCoarseInterpolant -> buildOperators();
+        M_fineToCoarseInterpolant -> interpolate();
+        M_fineToCoarseInterpolant -> solution ( M_gammaf );
         super::solver() -> solid().material() -> setGammaf( *M_gammaf );
     }
 
     super::solveModel();
+
+
 
 }
 
@@ -243,6 +276,31 @@ MultiscaleModelFSI3DActivated::checkSolution() const
 }
 
 
+void MultiscaleModelFSI3DActivated::setupInterpolant()
+{
+	//	Interpolant
+	boost::shared_ptr<mesh_Type> solidLocalMeshPtr( new super::mesh_Type( super::solver() -> solidLocalMesh() ) );
+	boost::shared_ptr<mesh_Type> solidFullMeshPtr( new super::mesh_Type( super::solver() -> solidMesh() ) );
+
+	    GetPot dataFile( M_dataFileName );
+	    std::string xmlpath = dataFile("electrophysiology/monodomain_xml_path","./");
+	    std::string xmlfile = dataFile("electrophysiology/monodomain_xml_file","MonodomainSolverParamList.xml");
+
+	    Teuchos::RCP< Teuchos::ParameterList > monodomainList = Teuchos::rcp ( new Teuchos::ParameterList );
+	    monodomainList = Teuchos::getParametersFromXmlFile (  xmlpath + xmlfile );
+	    M_fineToCoarseInterpolant -> setup( M_monodomain -> fullMeshPtr(), M_monodomain -> localMeshPtr(),
+	   									solidFullMeshPtr, solidLocalMeshPtr,  std::vector<int>(1,-1) );
+	    M_fineToCoarseInterpolant -> setRadius( (double) MeshUtility::MeshStatistics::computeSize ( * (M_monodomain -> fullMeshPtr() ) ).maxH );
+	    M_fineToCoarseInterpolant -> setupRBFData ( M_gammaf, super::solver() -> solid().material() -> fiberVector(), dataFile, monodomainList);
+
+	    M_coarseToFineInterpolant -> setup( solidFullMeshPtr, solidLocalMeshPtr,
+	    									M_monodomain -> fullMeshPtr(), M_monodomain -> localMeshPtr(),
+	    									std::vector<int>(1,-1) );
+	    M_coarseToFineInterpolant -> setRadius( (double) MeshUtility::MeshStatistics::computeSize ( * (solidFullMeshPtr) ).maxH );
+
+	    super::vectorPtr_Type dispPtr( super::solver() -> solid().displacementPtr()  );
+	    M_coarseToFineInterpolant -> setupRBFData ( dispPtr , M_monodomain -> displacementPtr(), dataFile, monodomainList);
+}
 
 } // Namespace multiscale
 } // Namespace LifeV
