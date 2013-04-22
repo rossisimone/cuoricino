@@ -98,7 +98,8 @@ Int main ( Int argc, char** argv )
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
-    std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
+
+	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
     XbNegroniLascano96  xb ( NLParameterList );
     IonicTenTusscher  ionicModel ( IonicParameterList );
     std::cout << " Done!" << endl;
@@ -108,7 +109,8 @@ Int main ( Int argc, char** argv )
     // Show the parameters of the model as well as//
     // other informations  about the object.      //
     //********************************************//
-    xb.showMe();
+
+	xb.showMe();
 
 
     //********************************************//
@@ -118,7 +120,8 @@ Int main ( Int argc, char** argv )
     // the model. rStates is the reference to the //
     // the vector states                          //
     //********************************************//
-    std::cout << "Initializing solution vector...";
+
+	std::cout << "Initializing solution vector...";
     std::vector<Real> XbStates (xb.Size(), 0);
     std::vector<Real> states (ionicModel.Size(), 0);
     states.at (0)  = - 86.2;
@@ -148,11 +151,11 @@ Int main ( Int argc, char** argv )
     // variables, that is, the right hand side of //
     // the differential equation.                 //
     //********************************************//
-    std::cout << "Initializing rhs..." ;
+
+	std::cout << "Initializing rhs..." ;
     std::vector<Real> XbRhs (xb.Size(), 0);
     std::vector<Real> rhs (ionicModel.Size(), 0);
     std::cout << " Done! "  << endl;
-
 
 
     //********************************************//
@@ -160,14 +163,17 @@ Int main ( Int argc, char** argv )
     // the contraction velocity and the Calcium   //
     // concentration.                             //
     //********************************************//
-    Real vel (0.0);
-    Real Ca (0.0);
-    Real Iapp (0.0);
+
+    Real vel  ( 0.0 );
+    Real Ca   ( 0.0 );
+    Real Iapp ( 0.0 );
+    Real X    ( 1.045 );
 
     //********************************************//
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
+
     Real TF     = NLParameterList.get("endTime", 100.0);
     Real dt     = NLParameterList.get("timeStep", 0.001);
     Real timeSt = IonicParameterList.get( "stimuliTime", 10.0 );
@@ -178,7 +184,8 @@ Int main ( Int argc, char** argv )
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
-    string filename = "output.txt";
+
+	string filename = "output.txt";
     std::ofstream output ("output.txt");
     string XbFilename = "XbOutput.txt";
     std::ofstream XbOutput ("XbOutput.txt");
@@ -187,10 +194,11 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
-    std::cout << "Time loop starts...\n";
+
+	std::cout << "Time loop starts...\n";
     for ( Real t = 0; t < TF; )
     {
-
+		// Stimuli for ionic model
     	if ( t >= timeSt && t <= timeSt + 1.0 )
     	{
     	   	Iapp = -52.0;
@@ -199,6 +207,11 @@ Int main ( Int argc, char** argv )
     	}
     	else
     	   	Iapp = 0;
+
+		// Velocity of motion
+
+        xb.computeVelocity( dt, X, vel );
+
 
         //********************************************//
         // Compute Calcium concentration. Here it is  //
@@ -212,8 +225,10 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        xb.computeRhs ( XbStates, Ca, vel, XbRhs );
-        ionicModel.computeRhs ( states, Iapp, rhs );
+        xb.computeRhs             ( XbStates, Ca, vel, XbRhs );
+        ionicModel.computeRhs     ( states, Iapp, rhs );
+        std::vector<Real> gateInf ( ionicModel.gateInf( states ) );
+		std::vector<Real> BErhs   ( xb.computeBackwardEuler( XbStates, Ca, vel, dt ) );
 
         //********************************************//
         // Use forward Euler method to advance the    //
@@ -221,11 +236,19 @@ Int main ( Int argc, char** argv )
         //********************************************//
         for ( int j (0); j < ionicModel.Size(); j++)
         {
-            states.at (j) = states.at (j)  + dt * rhs.at (j);
+        	if ( j < 13 && j != 0 )
+        		states.at (j) = gateInf.at(j-1) + ( states.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
+        	else
+        	    states.at (j) = states.at (j)   + dt * rhs.at (j);
         }
-        XbStates.at (0) = XbStates.at (0)  + dt * XbRhs.at (0);
-        XbStates.at (1) = XbStates.at (1)  + dt * XbRhs.at (1);
-        XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
+//        XbStates.at (0) = XbStates.at (0)  + dt * XbRhs.at (0);
+//        XbStates.at (1) = XbStates.at (1)  + dt * XbRhs.at (1);
+//        XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
+
+		// Implicit method
+		XbStates.at (0) = BErhs.at (0);
+		XbStates.at (1) = BErhs.at (1);
+		XbStates.at (2) = BErhs.at (2);
 
         //********************************************//
         // Writes solution on file.                   //

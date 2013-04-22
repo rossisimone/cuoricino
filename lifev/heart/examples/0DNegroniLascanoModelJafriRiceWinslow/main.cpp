@@ -243,7 +243,7 @@ Int main ( Int argc, char** argv )
 		xb.computeRhs             ( XbStates, Ca, vel, XbRhs );
         ionicModel.computeRhs     ( states, Iapp, rhs );
         std::vector<Real> gateInf ( ionicModel.gateInf( states ) );
-//		std::vector<Real> BErhs   ( XbStates, Ca, vel, dt );
+//		std::vector<Real> BErhs   ( xb.computeBackwardEuler( XbStates, Ca, vel, dt ) );
 
         //********************************************//
         // Use forward Euler method to advance the    //
@@ -268,9 +268,9 @@ Int main ( Int argc, char** argv )
         XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
 
 		// Implicit method
-		//XbStates.at (0) = BErhs (0);
-		//XbStates.at (1) = BErhs (1);
-		//XbStates.at (2) = BErhs (2);
+//        XbStates.at (0) = BErhs.at (0);
+//        XbStates.at (1) = BErhs.at (1);
+//        XbStates.at (2) = BErhs.at (2);
 
         //********************************************//
         // Writes solution on file.                   //

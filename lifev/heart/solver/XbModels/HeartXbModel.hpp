@@ -112,8 +112,6 @@ HeartXbModel::HeartXbModel ( int n ) :
 {
 }
 
-
-
 HeartXbModel::HeartXbModel ( const HeartXbModel& Xb ) :
     M_numberOfEquations ( Xb.Size() )
 {
@@ -124,6 +122,7 @@ HeartXbModel::HeartXbModel ( const HeartXbModel& Xb ) :
 // ===================================================
 HeartXbModel& HeartXbModel::operator = ( const HeartXbModel& Xb )
 {
+	M_numberOfEquations = Xb.M_numberOfEquations;
     return      *this;
 }
 

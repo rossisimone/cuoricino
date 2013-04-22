@@ -9,6 +9,7 @@ ADD_SUBDIRECTORIES(
   0DTenTusscherModel
   0DMinimalModel
   0DNegroniLascanoModel
+  0DNegroniLascanoModelTenTusscher
   0DFitzHughNagumoModel
   FiberInterpolation
 #  ActiveStrainODE
