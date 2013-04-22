@@ -265,7 +265,7 @@ Int main ( Int argc, char** argv )
     std::string fibersDirectory = monodomainList.get ("fiber_path", "./" );
     std::string fibersFile = monodomainList.get ("fiber_file", "fibers.dat" );
 
-    HeartUtility::importFibers(fiber,fibersFile, fibersDirectory);
+    HeartUtility::importFibersFromTextFile(fiber,fibersFile, fibersDirectory);
 
     splitting -> setFiberPtr(fiber);
 
