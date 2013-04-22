@@ -57,9 +57,9 @@ namespace LifeV
 namespace HeartUtility
 {
 
-inline void importFibers( boost::shared_ptr<VectorEpetra> fiber, std::string& name, boost::shared_ptr< RegionMesh<LinearTetra> > mesh  )
+template<typename Mesh> inline void importFibers( boost::shared_ptr<VectorEpetra> fiber, const std::string& name, boost::shared_ptr< Mesh > mesh  )
 {
-    typedef RegionMesh<LinearTetra>                         mesh_Type;
+    typedef Mesh                         mesh_Type;
     typedef ExporterData<mesh_Type> 						   exporterData_Type;
     typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > > filterPtr_Type;
     typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >  hdf5Filter_Type;
@@ -85,11 +85,8 @@ inline void importFibers( boost::shared_ptr<VectorEpetra> fiber, std::string& na
 //format 1: fibers saved as fx in each row for all the mesh
 //							fy in each row for all the mesh
 //							fz in each row for all the mesh
-inline void importFibers( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath, int format = 0 )
+inline void importFibersFromTextFile( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath, int format = 0 )
 {
-
-    typedef RegionMesh<LinearTetra>                         mesh_Type;
-    typedef ExporterData<mesh_Type> 						   exporterData_Type;
     typedef VectorEpetra                                    vector_Type;
     typedef boost::shared_ptr<vector_Type>                  vectorPtr_Type;
 
