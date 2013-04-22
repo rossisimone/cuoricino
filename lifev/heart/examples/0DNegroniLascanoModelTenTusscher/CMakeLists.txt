@@ -14,4 +14,3 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(data_heart_0DNegroniLascanoModelTenTusscher_dat
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-

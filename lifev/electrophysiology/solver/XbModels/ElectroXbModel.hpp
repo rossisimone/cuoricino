@@ -112,8 +112,6 @@ ElectroXbModel::ElectroXbModel ( int n ) :
 {
 }
 
-
-
 ElectroXbModel::ElectroXbModel ( const ElectroXbModel& Xb ) :
     M_numberOfEquations ( Xb.Size() )
 {
@@ -124,6 +122,7 @@ ElectroXbModel::ElectroXbModel ( const ElectroXbModel& Xb ) :
 // ===================================================
 ElectroXbModel& ElectroXbModel::operator = ( const ElectroXbModel& Xb )
 {
+	M_numberOfEquations = Xb.M_numberOfEquations;
     return      *this;
 }
 
