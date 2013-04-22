@@ -1,18 +1,18 @@
 <!-- Model Parameters -->
 	<ParameterList name="Ten Tusscher : Parameter list">
-	<Parameter name="endTime" type="double" value="2300.0"/>
-	<Parameter name="timeStep" type="double" value="1e-2"/>
+	<Parameter name="endTime"  type="double" value="2300" />
+	<Parameter name="timeStep"  type="double" value="1e-2" />
 	<Parameter name="stimuliTime" type="double" value="10.0"/>
 	<Parameter name="stimuliInterval" type="double" value="500.0"/>
 	<Parameter name="savedt" type="double" value="0.01"/>
 	<Parameter name="gasConst" type="double" value="8314.472"/>
 	<Parameter name="temp" type="double" value="310.0"/>
 	<Parameter name="farad" type="double" value="96485.3415"/>
-	<Parameter name="capMem" type="double" value="2.0"/>
+	<Parameter name="capMem" type="double" value="0.185"/>
 	<Parameter name="svRatio" type="double" value="0.2"/>
 	<Parameter name="resCell" type="double" value="162.0"/>
-	<Parameter name="volCyt" type="double" value="0.016404"/>
-	<Parameter name="volSR" type="double" value="0.001094"/>
+	<Parameter name="volCyt" type="double" value="16404"/>
+	<Parameter name="volSR" type="double" value="1094"/>
 	<Parameter name="concKO" type="double" value="5.4"/>
 	<Parameter name="concNaO" type="double" value="140.0"/>
 	<Parameter name="concCaO" type="double" value="2.0"/>
@@ -21,10 +21,10 @@
 	<Parameter name="maxCondToEpiM" type="double" value="0.294"/>
 	<Parameter name="maxCondToEndo" type="double" value="0.073"/>
 	<Parameter name="maxCondKr" type="double" value="0.096"/>
-	<Parameter name="maxCondKs" type="double" value="0.392"/>
+	<Parameter name="maxCondKs" type="double" value="0.295"/>
 	<Parameter name="maxCondKsM" type="double" value="0.098"/>
 	<Parameter name="relPermKNa" type="double" value="0.03"/>
-	<Parameter name="maxCondCaL" type="double" value="5.5e-5"/>
+	<Parameter name="maxCondCaL" type="double" value="6.5e-5"/>
 	<Parameter name="maxCourNaCa" type="double" value="1000.0"/>
 	<Parameter name="gamma" type="double" value="0.35"/>
 	<Parameter name="constmCa" type="double" value="1.38"/>
@@ -39,7 +39,7 @@
 	<Parameter name="constpCa" type="double" value="0.0005"/>
 	<Parameter name="maxCondNab" type="double" value="0.00029"/>
 	<Parameter name="maxCondCab" type="double" value="0.000592"/>
-	<Parameter name="maxCourUp" type="double" value="0.007375"/>
+	<Parameter name="maxCourUp" type="double" value="0.006375"/>
 	<Parameter name="constUp" type="double" value="0.00025"/>
 	<Parameter name="aRel" type="double" value="0.016464"/>
 	<Parameter name="bRel" type="double" value="0.25"/>
