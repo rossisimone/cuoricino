@@ -228,7 +228,7 @@ Int main ( Int argc, char** argv )
 
     function_Type f = &Stimulus;
     splitting -> setPotentialFromFunction ( f );
-    ici -> copyPotential ( splitting -> potentialPtr() );
+    ici -> setPotential ( *( splitting -> potentialPtr() ) );
     if ( Comm->MyPID() == 0 )
     {
         cout << "Done! \n" ;
