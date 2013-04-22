@@ -185,7 +185,7 @@ Int main ( Int argc, char** argv )
     std::string fibersDirectory = list1.get ("fiber_path", "./" );
     std::string fibersFile = list1.get ("fiber_file", "fibers.dat" );
 
-    HeartUtility::importFibers(fiber1,fibersFile, fibersDirectory, 1 );
+    HeartUtility::importFibersFromTextFile(fiber1,fibersFile, fibersDirectory, 1 );
 
     //********************************************//
     // Create the new fiber direction in the finer//
