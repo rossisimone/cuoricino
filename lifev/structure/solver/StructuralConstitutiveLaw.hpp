@@ -236,6 +236,11 @@ public:
     //@{
 
     //! Getters
+    inline const dataPtr_Type materialData() const
+    {
+    	return M_dataMaterial;
+    }
+
     //! Get the Epetramap
     MapEpetra   const& map()     const
     {
@@ -277,7 +282,7 @@ public:
 
     inline virtual void setGammaf(const vector_Type& /*gammaf*/){}
 
-    inline virtual vectorPtr_Type const gammaf()  const
+    inline virtual vectorPtr_Type gammaf()
     {
     	vectorPtr_Type k;
     	k.reset( new vector_Type( M_dispFESpace -> map() ) );

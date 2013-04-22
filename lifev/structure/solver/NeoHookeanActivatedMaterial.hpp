@@ -269,7 +269,7 @@ public:
         return M_fiberVector;
     }
 
-    inline  vectorPtr_Type const gammaf() const
+    inline  vectorPtr_Type gammaf()
     {
         return M_Gammaf;
     }
