@@ -59,6 +59,8 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_exporterElectro              (),
     M_fiber						   (),
     M_gammaf					   (),
+    M_usingDifferentMeshes		   (false),
+    M_oneWayCoupling			   (true),
     M_activationCenter             (3),
     M_dataFileName				   ()
 {
@@ -113,6 +115,8 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_activationRadius = monodomainList.get ("activation_radius", 1.);
     M_activationMarker = monodomainList.get ("activation_marker", 0);
 
+    M_usingDifferentMeshes = monodomainList.get("using_different_meshes", false);
+    M_oneWayCoupling	   = monodomainList.get("one_way_coupling", true);
     // Electrics solution exporter
 
     M_exporterElectro -> setDataFromGetPot ( dataFile );
@@ -150,6 +154,7 @@ MultiscaleModelFSI3DActivated::setupModel()
 
 	super::setupModel();
 	boost::shared_ptr<mesh_Type> solidLocalMeshPtr( new super::mesh_Type( super::solver() -> solidLocalMesh() ) );
+    M_gammafSolid.reset( new vector_Type( super::solver() -> solid().displacementPtr() -> map() ) );
 
 	HeartUtility::importFibers( super::solver() -> solid().material() -> fiberVector(),
     							super::solver() -> solid().material() -> materialData() -> fileFiberDirections(),
@@ -171,6 +176,7 @@ MultiscaleModelFSI3DActivated::setupModel()
     * ( M_monodomain -> globalSolution().at (3) ) = 0.021553043080281;
 
     super::solver() -> solid().material() -> setGammaf( *M_gammaf );
+    if(!M_oneWayCoupling) M_monodomain -> setDisplacementPtr( M_displacementMonodomain );
 
 
     setupInterpolant();
@@ -202,17 +208,20 @@ MultiscaleModelFSI3DActivated::solveModel()
 
     if ( M_nonLinearRichardsonIteration == 0 )
     {
-        if( !(M_displacementMonodomain ) )
-        {
+    	if(!M_oneWayCoupling)
+    	{
+			if( M_usingDifferentMeshes )
+			{
+				M_coarseToFineInterpolant -> updateRhs( super::solver() -> solid().displacementPtr() );
+				M_coarseToFineInterpolant -> interpolate();
+				M_coarseToFineInterpolant -> solution ( M_displacementMonodomain );
+			}
+			else M_displacementMonodomain = super::solver() -> solid().displacementPtr();
 
-        	M_coarseToFineInterpolant -> buildOperators();
-            M_coarseToFineInterpolant -> interpolate();
-            M_coarseToFineInterpolant -> solution ( M_displacementMonodomain );
-            M_monodomain -> setDisplacementPtr( M_displacementMonodomain );
+			M_monodomain -> setDisplacementPtr( M_displacementMonodomain );
 			M_monodomain -> setupStiffnessMatrix();
 			M_monodomain -> setupGlobalMatrix();
-        }
-
+    	}
         // TODO: Better handling of different time steps (HeartETAMonodomainSolver uses ms for time)
         Real timeStep = base::globalData() -> dataTime() -> timeStep();
         Real tn       = base::globalData() -> dataTime() -> time() - timeStep;
@@ -230,10 +239,15 @@ MultiscaleModelFSI3DActivated::solveModel()
 
         HeartUtility::rescaleVector( *M_gammaf, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
 
-        M_fineToCoarseInterpolant -> buildOperators();
+        if( M_usingDifferentMeshes )
+        {
+        M_fineToCoarseInterpolant -> updateRhs( M_gammaf );
         M_fineToCoarseInterpolant -> interpolate();
-        M_fineToCoarseInterpolant -> solution ( M_gammaf );
-        super::solver() -> solid().material() -> setGammaf( *M_gammaf );
+        M_fineToCoarseInterpolant -> solution ( M_gammafSolid );
+        }
+        else M_gammafSolid = M_gammaf;
+        super::solver() -> solid().material() -> setGammaf( *M_gammafSolid );
+
     }
 
     super::solveModel();

@@ -193,6 +193,7 @@ private:
     vectorPtr_Type							M_displacementMonodomain;;
 
     vectorPtr_Type							M_gammaf;
+    vectorPtr_Type							M_gammafSolid;
     std::vector<Real>                       M_activationCenter;
     Real                                    M_activationRadius;
     UInt                                    M_activationMarker;
@@ -210,6 +211,9 @@ private:
     interpolationPtr_Type					M_fineToCoarseInterpolant;
 
     std::string								M_dataFileName;
+
+    bool									M_usingDifferentMeshes;
+    bool									M_oneWayCoupling;
 
 
 };
