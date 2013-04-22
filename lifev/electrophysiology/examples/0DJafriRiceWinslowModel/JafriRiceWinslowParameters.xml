@@ -44,7 +44,7 @@
 	<Parameter name="maxCondCab" type="double" value="6.032e-5"/>
 	<Parameter name="maxCondNab" type="double" value="1.41e-5"/>
 	<Parameter name="maxRyRPerm" type="double" value="1.8"/>
-	<Parameter name="leakRateConst" type="double" value="0.58e-4"/>
+	<Parameter name="leakRateConst" type="double" value="5.8e-5"/>
 	<Parameter name="pumpRateATPase" type="double" value="1.8e-3"/>
 	<Parameter name="constmUp" type="double" value="0.5e-3"/>
 	<Parameter name="timeConstNsrJsr" type="double" value="34.48"/>
