@@ -38,8 +38,8 @@
 #define MultiscaleModelFSI3DActivated_H 1
 
 #include <lifev/multiscale/models/MultiscaleModelFSI3D.hpp>
-#include <lifev/heart/solver/HeartETAMonodomainSolver.hpp>
-#include <lifev/heart/solver/IonicModels/IonicMinimalModel.hpp>
+#include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
 
@@ -66,7 +66,7 @@ public:
 
     typedef IonicMinimalModel							  minimalModel_Type;
     typedef boost::shared_ptr< minimalModel_Type >        minimalModelPtr_Type;
-    typedef HeartETAMonodomainSolver< mesh_Type, minimalModel_Type >        monoSolver_Type;
+    typedef ElectroETAMonodomainSolver< mesh_Type, minimalModel_Type >        monoSolver_Type;
 //    typedef Heart
     typedef boost::shared_ptr< monoSolver_Type >         monoSolverPtr_Type;
 

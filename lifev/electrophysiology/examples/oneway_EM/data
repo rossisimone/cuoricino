@@ -1,0 +1,156 @@
+# -*- getpot -*- (GetPot mode activation for emacs)
+#      Data file for the nonlinear Bidomain equations
+
+[exporter]
+type       = hdf5
+
+[solid]
+        [./physics]
+        density   = 1.0               # 0 kills the inertial term
+        young     = 3.0E6
+        poisson   = 0.3
+        rho       = 1.0
+<<<<<<< Updated upstream
+        solidType 		= neoHookean
+	material_flag = 1
+=======
+        solidType 		= linearVenantKirchhoff #neoHookean
+>>>>>>> Stashed changes
+
+        [../time_discretization]
+        initialtime = 0.01
+        endtime     = 50
+        timestep    = 0.01
+        [../miscellaneous]
+        factor    = 5   # 5 elli
+        verbose   = 1
+        [../space_discretization]
+        mesh_dir  = ./
+        mesh_file = canineHeart2.mesh # rousseauMeshRescaled.mesh #lid16.mesh #meshIUTAMfine.mesh #heartJean.mesh #biventrRescaled.mesh #heart13628Rescaled.mesh #ellipsoid5272.mesh #ellissoide29560.mesh #canineHeart2.mesh
+        order     = P1
+        [../newton]
+        maxiter = 1
+        reltol  = 1.e-8
+        [../solver]
+        solver          = gmres
+        scaling         = none
+        output          = all # none
+        conv            = rhs
+        max_iter        = 100
+        reuse           = true
+        max_iter_reuse  = 80
+        kspace          = 100
+        tol             = 1.e-10
+        [../prec]
+        prectype                = Ifpack # Ifpack or ML
+        displayList             = true
+        [./ifpack]
+        overlap  = 2
+        [./fact]
+        ilut_level-of-fill            = 1
+        drop_tolerance                = 1.e-5
+        relax_value                   = 0
+        [../amesos]
+        solvertype =  Amesos_Umfpack
+        [../partitioner]
+        overlap = 2
+        [../schwarz]
+        reordering_type = none #metis, rcm, none
+        filter_singletons = true
+[electric]
+        [./physics]
+        test_case       = 2             # in particular for b.c. condition
+        ion_model       = 4		        # 1: RM 2: LR 3: MS 4:minimal
+        D               = 0.012 #0.01256    #0.0156 slab 0.1256 elli
+        u0              =-84.0
+        beta = 0.5 # elli 0.5
+
+        heart_diff_fct = 0
+        #stim_center_1 = '-0.137 0.34 -3.87' #elli #'-0.1 .2 -4.25' #with fibers
+        #stim_center_1 = '0.0 0.0 -2.75'
+        #stim_center_1 	= '37.0 40.0 31.5'
+        #stim_center_1 	= '55.0 40.0 9.0'
+
+        #stim_center_1 = '3.499 3.32 0.483' #Canine
+        #stim_center_1 = '3.81 1.74 2.32' #Heart rescaled
+        #stim_center_1 = '0.33 0.16 -4.369' #Biventr rescaled
+        #stim_center_1 = '3.78 2.09 2.77' #Biventr rescaled
+        #stim_radius_1 = 1.5 	#1.5 ellisoide #35 heart
+        #stim_start_1  = 0
+        #stim_stop_1   = 1	#RM=1
+        #stim_value_1  = 100 	#RM=100
+        #stim_period_1 = 230
+        #sigmal		= 0.0328		#O^-1cm^-1
+        #sigmat		=  0.00699		#O^-1cm^-1
+
+
+        stim_center_1 	= '1.9 2.0 0.17'
+        stim_radius_1 	= 1.5
+        stim_start_1 	= 0
+        stim_stop_1 	= 3
+        stim_value_1 	= 100
+        stim_period_1 	= 750 #450
+
+        stim_left_1b 	= '0.0 0.17 0.14'
+        stim_right_1b 	= '2.0 2.4 4.3'
+        stim_start_1b	= 10
+        stim_stop_1b 	= 15
+        stim_value_1b 	= -50
+        stim_period_1b 	= 600
+
+
+        [../time_discretization]
+        initialtime	= 0
+        endtime		= 800
+        timestep    = 0.5#1
+        BDF_order	= 1
+
+        [../space_discretization]
+        mesh_dir        = ./Mesh/
+        mesh_file       = canineHeart2.mesh #rousseauMeshRescaled.mesh #lid16.mesh #heartJean.mesh #biventrRescaled.mesh #heart13628Rescaled.mesh #ellipsoid5272.mesh #ellissoide29560.mesh #canineHeart2.mesh
+        mesh_type       = .mesh
+        has_fibers      = 0
+        fibers_dir = ./Mesh/
+        fibers_file = canineHeartfibers #ellissoide29560fibers #
+        linearized      = 0
+        diagonalize     = 1
+
+        [../miscellaneous]
+        verbose         = 1
+
+        [../solver]
+        solver          = gmres #umfpack
+        scaling         = none
+        output          = all # warnings , none , last
+        conv            = rhs
+        max_iter        = 100   #it was 100
+        max_iter_reuse  = 7   #it was 100
+        kspace          = 100
+        precond         = dom_decomp #none,jacobi,sym_gs,neumann,ls,smoother
+        subdomain_solve = icc #ilu, ilut
+        overlap         = 1
+        ilut_fill       = 5
+        graph_fill      = 0
+        drop            = 1.e-4
+        tol             = 1.e-6 #1.e-5
+        keep_info       = 1
+
+[mesh_motion]
+        [./solver]
+        output          = all
+        max_iter        = 300
+        poly_ord        = 5
+        kspace          = 40
+        precond         = dom_decomp
+        drop            = 1.e-4
+        ilut_fill       = 4
+        tol             = 1.e-10
+        keep_info       = 1
+
+        [../prec]
+        prectype        = Ifpack
+        reuse           = true
+        overlap         = 2
+        droptol         = 1.e-7
+        fill 		    = 1
+

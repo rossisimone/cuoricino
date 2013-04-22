@@ -1,0 +1,10 @@
+<!-- Model Parameters -->
+<ParameterList name="Mitchell Schaeffer: Parameter list">
+	<Parameter name="vGate" type="double" value="0.13"/>
+	<Parameter name="tauCose" type="double" value="150.0"/>
+	<Parameter name="tauOpen" type="double" value="120.0"  />
+	<Parameter name="tauIn" type="double" value="0.3"  />
+	<Parameter name="tauOut" type="double" value="6.0"  />
+</ParameterList>
+
+	

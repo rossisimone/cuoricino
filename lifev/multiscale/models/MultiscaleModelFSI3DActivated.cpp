@@ -179,7 +179,7 @@ MultiscaleModelFSI3DActivated::setupModel()
     if(!M_oneWayCoupling) M_monodomain -> setDisplacementPtr( M_displacementMonodomain );
 
 
-    setupInterpolant();
+    if( M_usingDifferentMeshes ) setupInterpolant();
 
 
 

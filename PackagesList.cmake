@@ -76,7 +76,7 @@ SET( LifeV_PACKAGES_AND_DIRS_AND_CLASSIFICATIONS
   Core                  lifev/core                        PS
   NavierStokes          lifev/navier_stokes               PS
   ETA                   lifev/eta                         EX
-  Heart                 lifev/heart                       EX
+  Electrophysiology     lifev/electrophysiology           EX
   BCInterface           lifev/bc_interface                PS
   OneDFSI               lifev/one_d_fsi                   PS
   ZeroDimensional       lifev/zero_dimensional            PS 

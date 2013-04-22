@@ -99,7 +99,7 @@ ENDIF()
 
 
 
-IF (LifeV_ENABLE_Heart)
+IF (LifeV_ENABLE_Electrophysiology)
 IF (LifeV_ENABLE_FSI)
 
 SET(modelsFSI3DActivated_HEADERS

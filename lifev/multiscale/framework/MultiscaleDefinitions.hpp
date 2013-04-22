@@ -206,7 +206,7 @@ multiscaleMapsDefinition()
 #endif
 #if defined(LIFEV_HAS_FSI)
     multiscaleModelsMap["FSI3D"]           = FSI3D;
-#if defined(LIFEV_HAS_HEART)
+#if defined(LIFEV_HAS_ELECTROPHYSIOLOGY)
     multiscaleModelsMap["FSI3DActivated"]  = FSI3DActivated;
 #endif
 #endif
