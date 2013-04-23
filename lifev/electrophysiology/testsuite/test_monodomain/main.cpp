@@ -87,7 +87,7 @@
 
 using namespace LifeV;
 
-Real smoothing (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& z, const ID& /*i*/)
+Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
 {
     return ( 0.5 + 0.5 * ( std::tanh ( - ( z - 50 ) / 5.0 ) ) );
 }
@@ -279,7 +279,7 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-    Real saveStep = monodomainList.get ("saveStep", 1.0);
+    Real saveStep = monodomainList.get ("saveStep", 1);
 
 //    splitting   -> solveSplitting ( exporterSplitting, saveStep );
 
