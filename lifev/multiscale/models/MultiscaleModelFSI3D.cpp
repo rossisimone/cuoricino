@@ -314,11 +314,12 @@ MultiscaleModelFSI3D::solveModel()
     {
         // Set initial guess as extrapolation from previous time step only if this is the first
         // MS iteration, otherwise use the solution at the last MS iteration as initial guess.
-        M_FSIoperator->extrapolation ( *M_stateVariable );
+
     }
 
     // Non-linear Richardson solver
     UInt maxSubIterationNumber = M_data->maxSubIterationNumber();
+    M_FSIoperator->extrapolation ( *M_stateVariable );
 
     NonLinearRichardson ( *M_stateVariable, *M_FSIoperator,
                           M_data->absoluteTolerance(), M_data->relativeTolerance(),

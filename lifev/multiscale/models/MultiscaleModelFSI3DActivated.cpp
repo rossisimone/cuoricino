@@ -62,7 +62,9 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_usingDifferentMeshes		   (false),
     M_oneWayCoupling			   (true),
     M_activationCenter             (3),
-    M_dataFileName				   ()
+    M_dataFileName				   (),
+    M_gammafSolid                  (),
+    M_displacementMonodomain       ()
 {
 	M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledVectorial" ) );
 	M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledScalar" ) );
@@ -121,7 +123,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 
     M_exporterElectro -> setDataFromGetPot ( dataFile );
     //std::string prefix = multiscaleProblemPrefix  + number2string ( M_ID ) +  "_electrophysiology" + "_" + number2string ( multiscaleProblemStep );
-    std::string prefix = multiscaleProblemPrefix + "_Model_" + number2string ( M_ID ) +  "_electro_" + number2string ( multiscaleProblemStep );
+    std::string prefix = multiscaleProblemPrefix + "_Model_" + number2string ( M_ID ) +  "_Electro_" + number2string ( multiscaleProblemStep );
     M_exporterElectro->setPostDir ( multiscaleProblemFolder );
     M_monodomain -> setupExporter ( *M_exporterElectro, prefix);
 
@@ -154,14 +156,14 @@ MultiscaleModelFSI3DActivated::setupModel()
 
 	super::setupModel();
 	boost::shared_ptr<mesh_Type> solidLocalMeshPtr( new super::mesh_Type( super::solver() -> solidLocalMesh() ) );
-    M_gammafSolid.reset( new vector_Type( super::solver() -> solid().displacementPtr() -> map() ) );
+    //M_gammafSolid.reset( new vector_Type( super::solver() -> solid().displacementPtr() -> map() ) );
+
 
 	HeartUtility::importFibers( super::solver() -> solid().material() -> fiberVector(),
     							super::solver() -> solid().material() -> materialData() -> fileFiberDirections(),
     							solidLocalMeshPtr );
 
     HeartUtility::setValueOnBoundary( *(M_monodomain -> potentialPtr() ), M_monodomain -> fullMeshPtr(), 1.0, M_activationMarker );
-    //HeartUtility::setValueOnBoundary( *(M_monodomain -> potentialPtr() ), M_monodomain -> fullMeshPtr(), 1.0, 45 );
 
     function_Type f( boost::bind ( &MultiscaleModelFSI3DActivated::activationFunction, this, _1, _2, _3, _4, _5 ) );
     vectorPtr_Type smoother( new vector_Type( M_monodomain -> potentialPtr() -> map() ) );
@@ -233,8 +235,8 @@ MultiscaleModelFSI3DActivated::solveModel()
         M_gammaf.reset( new  vector_Type( *( M_monodomain -> globalSolution().at(3) ) ) );
 
         //rescaling parameters for gammaf with minimal model
-        Real maxCalciumLikeVariable = 0.838443;
-        Real minCalciumLikeVariable = 0.021553;
+        Real maxCalciumLikeVariable = 0.84;
+        Real minCalciumLikeVariable = 0.02;
         Real beta = -0.3;
 
         HeartUtility::rescaleVector( *M_gammaf, minCalciumLikeVariable, maxCalciumLikeVariable, beta);

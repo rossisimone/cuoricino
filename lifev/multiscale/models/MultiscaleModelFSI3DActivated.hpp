@@ -42,7 +42,7 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
-
+#include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
 
 
 namespace LifeV
@@ -190,7 +190,7 @@ private:
 
 
     vectorPtr_Type							M_fiber;
-    vectorPtr_Type							M_displacementMonodomain;;
+    vectorPtr_Type							M_displacementMonodomain;
 
     vectorPtr_Type							M_gammaf;
     vectorPtr_Type							M_gammafSolid;
