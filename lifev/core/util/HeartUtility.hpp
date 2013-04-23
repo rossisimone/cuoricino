@@ -57,7 +57,7 @@ namespace LifeV
 namespace HeartUtility
 {
 
-template<typename Mesh> inline void importFibers( boost::shared_ptr<VectorEpetra> fiber, const std::string& name, boost::shared_ptr< Mesh > mesh  )
+template<typename Mesh> inline void importFibers(  boost::shared_ptr<VectorEpetra> fiberVector, const std::string& name, boost::shared_ptr< Mesh > mesh  )
 {
     typedef Mesh                         mesh_Type;
     typedef ExporterData<mesh_Type> 						   exporterData_Type;
@@ -70,7 +70,7 @@ template<typename Mesh> inline void importFibers( boost::shared_ptr<VectorEpetra
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > fiberSpace( new FESpace< mesh_Type, MapEpetra > ( mesh, "P1", 3, comm ) );
 
     exporterData_Type impData (exporterData_Type::VectorField, "fibers.00000", fiberSpace,
-                               fiber, UInt (0), exporterData_Type::UnsteadyRegime);
+                               fiberVector, UInt (0), exporterData_Type::UnsteadyRegime);
 
     //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
     filterPtr_Type importer ( new hdf5Filter_Type() );

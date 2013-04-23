@@ -563,8 +563,11 @@ private:
     vectorPtr_Type                          M_fluidPressure;
     vectorPtr_Type                          M_fluidDisplacement;
     vectorPtr_Type                          M_solidVelocity;
+
+protected:
     vectorPtr_Type                          M_solidDisplacement;
 
+private:
 #ifdef FSI_WITH_STRESSOUTPUT
     vectorPtr_Type                          M_solidStressXX;
     vectorPtr_Type                          M_solidStressXY;

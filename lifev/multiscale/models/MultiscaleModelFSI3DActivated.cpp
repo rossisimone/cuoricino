@@ -156,7 +156,7 @@ MultiscaleModelFSI3DActivated::setupModel()
 
 	super::setupModel();
 	boost::shared_ptr<mesh_Type> solidLocalMeshPtr( new super::mesh_Type( super::solver() -> solidLocalMesh() ) );
-    //M_gammafSolid.reset( new vector_Type( super::solver() -> solid().displacementPtr() -> map() ) );
+
 
 
 	HeartUtility::importFibers( super::solver() -> solid().material() -> fiberVector(),
@@ -214,7 +214,7 @@ MultiscaleModelFSI3DActivated::solveModel()
     	{
 			if( M_usingDifferentMeshes )
 			{
-				M_coarseToFineInterpolant -> updateRhs( super::solver() -> solid().displacementPtr() );
+				M_coarseToFineInterpolant -> updateRhs( M_solidDisplacement );
 				M_coarseToFineInterpolant -> interpolate();
 				M_coarseToFineInterpolant -> solution ( M_displacementMonodomain );
 			}
@@ -240,7 +240,7 @@ MultiscaleModelFSI3DActivated::solveModel()
         Real beta = -0.3;
 
         HeartUtility::rescaleVector( *M_gammaf, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
-
+        M_gammafSolid.reset( new vector_Type( *M_solidDisplacement ) );
         if( M_usingDifferentMeshes )
         {
         M_fineToCoarseInterpolant -> updateRhs( M_gammaf );
@@ -269,6 +269,10 @@ MultiscaleModelFSI3DActivated::saveSolution()
 {
 	super::saveSolution();
 	M_monodomain -> exportSolution( *M_exporterElectro, base::globalData() -> dataTime() -> time() );
+    if ( super::data() ->dataFluid()->dataTime()->isLastTimeStep() )
+    {
+        	M_exporterElectro->closeFile();
+    }
 }
 
 void
