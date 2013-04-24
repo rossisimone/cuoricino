@@ -3,12 +3,13 @@
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="rousseauMesh.mesh"  />
     <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/humanBiventricular/"  />
-    <Parameter name="fiber_file" type="string" value="fiberfile.dat"  />
+    <Parameter name="fiber_file" type="string" value="old_fiberfile.dat"  />
     <Parameter name="fiber_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/humanBiventricular/"  />
     <Parameter name="fiber_X" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />
     <Parameter name="fiber_file_format" type="int" value="1"  />
+    <Parameter name="interpolation" type="bool" value="false"/>
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>

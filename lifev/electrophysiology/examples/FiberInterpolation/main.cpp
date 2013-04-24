@@ -185,7 +185,9 @@ Int main ( Int argc, char** argv )
     std::string fibersDirectory = list1.get ("fiber_path", "./" );
     std::string fibersFile = list1.get ("fiber_file", "fibers.dat" );
 
-    HeartUtility::importFibersFromTextFile(fiber1,fibersFile, fibersDirectory, 1 );
+    int format = list1.get ("format", 0 );
+
+    HeartUtility::importFibersFromTextFile(fiber1,fibersFile, fibersDirectory, format );
 
     //********************************************//
     // Create the new fiber direction in the finer//
@@ -197,38 +199,44 @@ Int main ( Int argc, char** argv )
     // Interpolate the fiber direction in the fine//
     // mesh                                       //
     //********************************************//
+    bool interpolation = list1.get ("interpolation", false );
 
-    if ( comm->MyPID() == 0 )
+    if(interpolation)
     {
-        std::cout << "\nStarting interpolation...";
-    }
-    int nFlags = 1;
-    std::vector<int> flags (nFlags);
-    flags[0] = -1;
+		if ( comm->MyPID() == 0 )
+		{
+			std::cout << "\nStarting interpolation...";
+		}
+		int nFlags = 1;
+		std::vector<int> flags (nFlags);
+		flags[0] = -1;
 
-    interpolationPtr_Type RBFinterpolant;
+		interpolationPtr_Type RBFinterpolant;
 
-    RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFrescaledVectorial" ) );
-    RBFinterpolant->setup( fullMesh1, mesh1, fullMesh2, mesh2, flags);
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "\t Setting up...";
-    }
+	    int method = list1.get ("interpolation_method", 0 );
+		if( method == 0 ) RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFrescaledVectorial" ) );
+		if( method == 1 ) RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFLlocallyRescaledescaledVectorial" ) );
 
-    RBFinterpolant->setRadius( (double) MeshUtility::MeshStatistics::computeSize (*fullMesh1).maxH );
-    RBFinterpolant->setupRBFData (fiber1, fiber2, dataFile, belosList);
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "\t Building operators...";
-    }
-    RBFinterpolant->buildOperators();
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << " Done!\n";
-    }
+		RBFinterpolant->setup( fullMesh1, mesh1, fullMesh2, mesh2, flags);
+		if ( comm->MyPID() == 0 )
+		{
+			std::cout << "\t Setting up...";
+		}
 
-    RBFinterpolant->interpolate();
-    RBFinterpolant->solution (fiber2);
+		RBFinterpolant->setRadius( (double) MeshUtility::MeshStatistics::computeSize (*fullMesh1).maxH );
+		RBFinterpolant->setupRBFData (fiber1, fiber2, dataFile, belosList);
+		if ( comm->MyPID() == 0 )
+		{
+			std::cout << "\t Building operators...";
+		}
+		RBFinterpolant->buildOperators();
+		if ( comm->MyPID() == 0 )
+		{
+			std::cout << " Done!\n";
+		}
+
+		RBFinterpolant->interpolate();
+		RBFinterpolant->solution (fiber2);
 
 
 
@@ -236,23 +244,25 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Normalize                                  //
     //********************************************//
-    int n2 = (*fiber2).epetraVector().MyLength();
-    int d2 = n2 / 3;
-    int i2 (0);
-    int j2 (0);
-    int k2 (0);
-    for ( int l (0); l < d2; l++)
-    {
+		int n2 = (*fiber2).epetraVector().MyLength();
+		int d2 = n2 / 3;
+		int i2 (0);
+		int j2 (0);
+		int k2 (0);
+		for ( int l (0); l < d2; l++)
+		{
 
-        i2 = (*fiber2).blockMap().GID (l);
-        j2 = (*fiber2).blockMap().GID (l + d2);
-        k2 = (*fiber2).blockMap().GID (l + 2 * d2);
+			i2 = (*fiber2).blockMap().GID (l);
+			j2 = (*fiber2).blockMap().GID (l + d2);
+			k2 = (*fiber2).blockMap().GID (l + 2 * d2);
 
-        Real norm2 = std::sqrt( (*fiber2) [i2] * (*fiber2) [i2] + (*fiber2) [j2] * (*fiber2) [j2] + (*fiber2) [k2] * (*fiber2) [k2] );
+			Real norm2 = std::sqrt( (*fiber2) [i2] * (*fiber2) [i2] + (*fiber2) [j2] * (*fiber2) [j2] + (*fiber2) [k2] * (*fiber2) [k2] );
 
-        (*fiber2) [i2] = (*fiber2) [i2] / norm2;
-        (*fiber2) [j2] = (*fiber2) [j2] / norm2;
-        (*fiber2) [k2] = (*fiber2) [k2] / norm2;
+			(*fiber2) [i2] = (*fiber2) [i2] / norm2;
+			(*fiber2) [j2] = (*fiber2) [j2] / norm2;
+			(*fiber2) [k2] = (*fiber2) [k2] / norm2;
+		}
+
     }
     //********************************************//
     // Creating exporters to save the solution    //
@@ -265,9 +275,10 @@ Int main ( Int argc, char** argv )
     exporter1.closeFile();
 
 
+    std::string outputFileName = list2.get ("output_filename", "interpolatedFiberDirection");
     ExporterHDF5< mesh_Type > exporter2;
     exporter2.setMeshProcId ( mesh2, comm -> MyPID() );
-    exporter2.setPrefix ("InterpolatedFineFiberDirection");
+    exporter2.setPrefix (outputFileName);
     exporter2.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", fine, fiber2, UInt (0) );
     exporter2.postProcess (0);
     exporter2.closeFile();
