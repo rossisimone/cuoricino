@@ -26,7 +26,7 @@
 
 /*!
     @file
-    @brief Implementation of the Rosenbrock method ROS3P
+    @brief Implemetation of a small vector used with MatrixStandard
 
     @author Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
     @maintainer Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
@@ -34,32 +34,55 @@
     @date 01-04-2013
  */
 
-#include <lifev/core/fem/ROS3P.hpp>
+#ifndef VectorStandard_HPP_
+#define VectorStandard_HPP_
+
+// Tell the compiler to ignore specific kind of warnings:
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
+#include <Epetra_ConfigDefs.h>
+#ifdef EPETRA_MPI
+#include <Epetra_MpiComm.h>
+#else
+#include <Epetra_SerialComm.h>
+#endif
+
+#include <fstream>
+#include <string>
+#include <math.h>
+#include <vector>
+
+#include <lifev/core/LifeV.hpp>
 
 
 namespace LifeV
 {
 
-ROS3P::ROS3P()
-: RosenbrockTransformed<3>()
+class VectorStandard : public std::vector<Real>
 {
-	MatrixStandard A(3,3);
-	MatrixStandard C(3,3);
-	VectorStandard gammai(3,0.0);
-	VectorStandard a(3,0.0);
-	VectorStandard m(3,0.0);
-	VectorStandard mhat(3,0.0);
-	Real g(0.7886751345948129);
 
-	A[1][0] = 1.267949192431123;		A[2][0] = 1.267949192431123;
-	C[1][0] = -1.607695154586736;		C[2][0] = -3.464101615137755;		C[2][1] = -1.732050807568877;
-	gammai[0] = 0.7886751345948129;		gammai[1] = -0.2113248654051871;	gammai[2] = -1.077350269189626;
-	a[0] = 0.0;							a[1] = 1.0;							a[2] = 1.0;
-	m[0] = 2.0;							m[1] = 0.5773502691896258;			m[2] = 0.4226497308103742;
-	mhat[0] = 2.113248654051871;		mhat[1] = 1.0;						mhat[2] = 0.4226497308103742;
+public:
+	VectorStandard(){};
+	VectorStandard(UInt size, Real r);
+	virtual ~VectorStandard(){};
 
-	this->setMethod(g, A, C, gammai, a, m, mhat, 3);
-	this->initMembers();
-}
+	Real norm2() const;
+	void disp() const;
+
+	VectorStandard operator+ (const VectorStandard& w) const;
+	VectorStandard& operator+=(const VectorStandard& w);
+	VectorStandard operator- (const VectorStandard& w) const;
+	VectorStandard& operator-=(const VectorStandard& w);
+	VectorStandard operator* (const Real r) const;
+	VectorStandard& operator*=(const Real r);
+	VectorStandard operator/ (const Real r) const;
+	VectorStandard& operator/=(const Real r);
+
+};
 
 }// namespace LifeV
+
+
+
+#endif /* VectorStandard_HPP_ */

@@ -58,6 +58,10 @@
 #include <lifev/core/array/VectorSmall.hpp>
 #include <lifev/core/array/MatrixLU.hpp>
 #include <lifev/core/array/VectorLU.hpp>
+#include <lifev/core/array/MatrixStandard.hpp>
+#include <lifev/core/array/VectorStandard.hpp>
+#include <lifev/core/algorithm/MatrixStandardSolver.hpp>
+
 
 namespace LifeV
 {
@@ -67,8 +71,8 @@ template<UInt s> class RosenbrockTransformed
 public:
 	RosenbrockTransformed(){};
 
-	RosenbrockTransformed(Real g, const MatrixSmall<s,s>& A, const MatrixSmall<s,s>& C, const VectorSmall<s>& gammai,
-						  const VectorSmall<s>& a, const VectorSmall<s>& m, const VectorSmall<s>& mhat, UInt order);
+	RosenbrockTransformed(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
+						  const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat, UInt order);
 
 	virtual ~RosenbrockTransformed(){};
 
@@ -79,33 +83,35 @@ public:
 	void solve(boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init);
 
 	template<typename RightHandSide>
-	void solve(RightHandSide& Fun, VectorLU& y0, Real t0, Real TF, Real& dt_init);
+	void solve(RightHandSide& Fun, VectorStandard& y0, Real t0, Real TF, Real& dt_init);
 
 	template<typename RightHandSide>
-	void solve(boost::shared_ptr<RightHandSide> Fun, VectorLU& y0, Real t0, Real TF, Real& dt_init);
+	void solve(boost::shared_ptr<RightHandSide> Fun, VectorStandard& y, Real t0, Real TF, Real& dt);
 
 
-public:
+protected:
 
 	void initMembers();
-	void setMethod(Real g, const MatrixSmall<s,s>& A, const MatrixSmall<s,s>& C, const VectorSmall<s>& gammai,
-				   const VectorSmall<s>& a, const VectorSmall<s>& m, const VectorSmall<s>& mhat, UInt order);
+	void setMethod(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
+				   const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat, UInt order);
 
 	template<typename RightHandSide>
-	void computeStages(MatrixLU& U, const VectorLU& y, VectorLU& ytmp, VectorLU& rhs, VectorLU& Utmp,
-					   boost::shared_ptr<RightHandSide> Fun, Real dt, MatrixLU& Lsys, MatrixLU& Usys,
-					   MatrixLU& Psys, MatrixLU& Qsys);
-	bool computeError(const MatrixLU& U, VectorLU& Utmp, Real& err_n, Real& err_n_1,
+	void computeStages(MatrixStandard& U, const VectorStandard& y, VectorStandard& ytmp, VectorStandard& rhs, VectorStandard& Utmp,
+					   boost::shared_ptr<RightHandSide> Fun, Real dt, MatrixStandard& Lsys, MatrixStandard& Usys,
+					   MatrixStandard& Psys, MatrixStandard& Qsys);
+	bool computeError(const MatrixStandard& U, VectorStandard& Utmp, Real& err_n, Real& err_n_1,
 					  Real fac_max, Real& dt, Real& dt_old, Real Trem, Real ynorm, bool& rejected);
 
 
+	MatrixStandardSolver M_solver;
+	UInt 			 M_s;
 	Real 			 M_g;
-	MatrixSmall<s,s> M_A;
-	MatrixSmall<s,s> M_C;
-	VectorSmall<s>   M_gammai;
-	VectorSmall<s>   M_a;
-	VectorSmall<s>   M_m;
-	VectorSmall<s>   M_mhat;
+	MatrixStandard   M_A;
+	MatrixStandard   M_C;
+	VectorStandard   M_gammai;
+	VectorStandard   M_a;
+	VectorStandard   M_m;
+	VectorStandard   M_mdiff;
 	Real 			 M_S;
 	Real			 M_D;
 	Real			 M_p;

@@ -28,6 +28,8 @@ SET(array_HEADERS
   array/GhostHandler.hpp
   array/MatrixLU.hpp
   array/VectorLU.hpp
+  array/MatrixStandard.hpp
+  array/VectorStandard.hpp
 CACHE INTERNAL "")
 
 SET(array_SOURCES
@@ -43,6 +45,8 @@ SET(array_SOURCES
   array/VectorEpetraStructured.cpp
   array/MatrixLU.cpp
   array/VectorLU.cpp
+  array/MatrixStandard.cpp
+  array/VectorStandard.cpp
 CACHE INTERNAL "")
 
 

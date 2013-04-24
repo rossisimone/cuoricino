@@ -60,7 +60,7 @@
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MatrixSmall.hpp>
 #include <lifev/core/array/VectorSmall.hpp>
-#include <lifev/core/array/VectorLU.hpp>
+#include <lifev/core/array/VectorStandard.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 
 #include <lifev/core/util/LifeChrono.hpp>
@@ -270,7 +270,7 @@ void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
 
 	if (meth==1)
 	{
-		VectorLU vett(2);
+		VectorStandard vett(2,0.0);
 		vett[0] = y0(0);
 		vett[1] = y0(1);
 		boost::shared_ptr<IonicFitzHughNagumo> modelPtr(new IonicFitzHughNagumo(model));

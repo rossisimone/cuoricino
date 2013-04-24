@@ -68,7 +68,7 @@
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
-#include <lifev/core/array/VectorLU.hpp>
+#include <lifev/core/array/VectorStandard.hpp>
 #include <lifev/core/fem/SobolevNorms.hpp>
 #include <lifev/core/fem/GeometricMap.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/ElectroIonicModel.hpp>
@@ -1336,7 +1336,7 @@ template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P(
 		vectorPtr_Type dtVec, Real dt_min) {
 	ROS3P ros;
-	VectorLU localVec(M_ionicModelPtr->Size());
+	VectorStandard localVec(M_ionicModelPtr->Size(), 0.0);
 	Real dt;
 
 	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
@@ -1360,7 +1360,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P(
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P() {
 	ROS3P ros;
-	VectorLU localVec(M_ionicModelPtr->Size());
+	VectorStandard localVec(M_ionicModelPtr->Size(), 0.0);
 	Real dt;
 
 	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
