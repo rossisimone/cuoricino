@@ -63,6 +63,9 @@ public:
     //@{
 	typedef MultiscaleModel									base;
     typedef MultiscaleModelFSI3D                             super;
+	typedef super::mesh_Type								mesh_Type;
+	typedef boost::shared_ptr<mesh_Type>					meshPtr_Type;
+
 
     typedef IonicMinimalModel							  minimalModel_Type;
     typedef boost::shared_ptr< minimalModel_Type >        minimalModelPtr_Type;
@@ -188,15 +191,11 @@ private:
 
     //@}
 
-
+    meshPtr_Type   							M_fullSolidMesh;
     vectorPtr_Type							M_fiber;
-    vectorPtr_Type							M_displacementMonodomain;
 
-    vectorPtr_Type							M_gammaf;
-    vectorPtr_Type							M_gammafSolid;
-    std::vector<Real>                       M_activationCenter;
-    Real                                    M_activationRadius;
-    UInt                                    M_activationMarker;
+
+
 
     // Operator
     monoSolverPtr_Type                      M_monodomain;
@@ -207,15 +206,21 @@ private:
     // Importers
     IOFilePtr_Type                          M_importerElectro;
 
-    interpolationPtr_Type					M_coarseToFineInterpolant;
-    interpolationPtr_Type					M_fineToCoarseInterpolant;
-
-    std::string								M_dataFileName;
+    vectorPtr_Type							M_gammaf;
 
     bool									M_usingDifferentMeshes;
     bool									M_oneWayCoupling;
+    vectorPtr_Type							M_gammafSolid;
+    std::vector<Real>                       M_activationCenter;
+    Real                                    M_activationRadius;
+    UInt                                    M_activationMarker;
 
+    std::string								M_dataFileName;
 
+    vectorPtr_Type							M_displacementMonodomain;
+
+    interpolationPtr_Type					M_coarseToFineInterpolant;
+    interpolationPtr_Type					M_fineToCoarseInterpolant;
 };
 
 //! Factory create function

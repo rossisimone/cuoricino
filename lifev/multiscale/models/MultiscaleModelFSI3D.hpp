@@ -514,10 +514,10 @@ private:
     }
 
     //@}
-
+protected:
     // Operator
     FSIOperatorPtr_Type                     M_FSIoperator;
-
+private:
     // Data
     dataPtr_Type                            M_data;
 
