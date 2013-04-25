@@ -259,16 +259,16 @@ private:
 // ===================================================
 XbNegroniLascano96::XbNegroniLascano96()    :
     super (  3  ),
-    M_Y1  ( 39.0 ),
-    M_Y2  ( 1.3 ),
-    M_Y3  ( 30.0 ),
-    M_Y4  ( 40.0 ),
-    M_Yd  ( 9.0 ),
-    M_Z1  ( 30.0 ),
-    M_Z2  ( 1.3 ),
-    M_Z3  ( 1560.0 ),
+    M_Y1  ( 39.0e-3 ),
+    M_Y2  ( 1.3e-3 ),
+    M_Y3  ( 30.0e-3 ),
+    M_Y4  ( 40.0e-3 ),
+    M_Yd  ( 9.0e3 ),
+    M_Z1  ( 30.0e-3 ),
+    M_Z2  ( 1.3e-3 ),
+    M_Z3  ( 1560.0e-2 ),
     M_Tt  ( 70.0 ),
-    M_B   ( 1200.0 ),
+    M_B   ( 1200.0e-3 ),
     M_Hc  ( 0.005 ),
     M_La  ( 1.17 ),
     M_R   ( 20.0 )
@@ -278,17 +278,17 @@ XbNegroniLascano96::XbNegroniLascano96()    :
 XbNegroniLascano96::XbNegroniLascano96 ( Teuchos::ParameterList& parameterList )   :
     super ( 3 )
 {
-    M_Y1 = parameterList.get ("y1", 39.0);
-    M_Y2 = parameterList.get ("y2", 1.3);
-    M_Y3 = parameterList.get ("y3", 30.0);
-    M_Y4 = parameterList.get ("y4", 40.0);
-    M_Yd = parameterList.get ("yd", 9.0);
-    M_Z1 = parameterList.get ("z1", 30.0);
-    M_Z2 = parameterList.get ("z2", 1.3);
-    M_Z3 = parameterList.get ("z3", 1560.0);
+    M_Y1 = parameterList.get ("y1", 39.0e-3);
+    M_Y2 = parameterList.get ("y2", 1.3e-3);
+    M_Y3 = parameterList.get ("y3", 30.0e-3);
+    M_Y4 = parameterList.get ("y4", 40.0e-3);
+    M_Yd = parameterList.get ("yd", 9.0e3);
+    M_Z1 = parameterList.get ("z1", 30.0e-3);
+    M_Z2 = parameterList.get ("z2", 1.3e-2);
+    M_Z3 = parameterList.get ("z3", 1560.0e-3);
     M_Tt = parameterList.get ("tt", 70.0);
-    M_B  = parameterList.get ("b", 70.0);
-    M_Hc = parameterList.get ("hc", 70.0);
+    M_B  = parameterList.get ("b", 1200.0e-3);
+    M_Hc = parameterList.get ("hc", 0.005);
     M_La = parameterList.get ("la", 1.17);
     M_R  = parameterList.get ("r", 20.0 );
 
@@ -445,6 +445,8 @@ void XbNegroniLascano96::showMe()
     std::cout << "z2: " << this->Z2() << std::endl;
     std::cout << "z3: " << this->Z3() << std::endl;
     std::cout << "tt: " << this->Tt() << std::endl;
+    std::cout << "b: " << this->B() << std::endl;
+    std::cout << "hc: " << this->Hc() << std::endl;
     std::cout << "la: " << this->La() << std::endl;
     std::cout << "r: "  << this->R() << std::endl;
     std::cout << "\n\t\t End of XbNegroniLascano96 Informations\n\n\n";
