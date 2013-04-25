@@ -26,7 +26,8 @@
 
 /*!
 	  @file
-	  @brief Ionic model based on Jafri, Rice And Winslow model.
+	  @brief Ionic model based on Jafri, Rice And Winslow model coupled with
+	  @ Negroni Lascano crossbridge model
 	  @date 03-2013
 	  @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
@@ -215,7 +216,6 @@ Int main ( Int argc, char** argv )
 
         xb.computeVelocity( dt, X, vel );
 
-
         //********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
@@ -230,14 +230,18 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
+
         xb.computeRhs             ( XbStates, Ca, vel, XbRhs );
         ionicModel.computeRhs     ( states, Iapp, rhs );
         std::vector<Real> gateInf ( ionicModel.gateInf( states ) );
 
         //********************************************//
         // Use forward Euler method to advance the    //
-        // solution in time.                          //
+        // solution in time for the concentration     //
+        // and Rush and Larsen for the gating         //
+        // variables                                  //
         //********************************************//
+
         for ( int j (0); j < ionicModel.Size(); j++)
         {
         	if ( j < 13 && j != 0 )
@@ -273,13 +277,16 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Update the time.                           //
         //********************************************//
-        t = t + dt;
+
+		t = t + dt;
     }
     std::cout << "\n...Time loop ends.\n";
     std::cout << "Solution written on file: " << filename << "\n";
+
     //********************************************//
     // Close exported file.                       //
     //********************************************//
+
     XbOutput.close();
     output.close();
 
