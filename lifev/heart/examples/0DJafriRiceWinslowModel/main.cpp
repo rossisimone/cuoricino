@@ -194,26 +194,25 @@ Int main ( Int argc, char** argv )
     cout << "Time loop starts...\n";
 
 
-    int iter(0);
-    int savedt( parameterList.get( "savedt", 1.0) / dt );
+    int iter       ( 0 );
+    int savedt     ( parameterList.get( "savedt", 1.0) / dt );
 
     for ( Real t = 0; t < TF; )
     {
 
     	//********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
+        // Set the stimulus over time 				  //
+        // according to different pacing protocol     //
         //********************************************//
-        if ( t >= timeSt && t <= timeSt + 1.0 )
-        {
-        	Iapp = 0.516289;
-        	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
-        		timeSt = timeSt + stInt;
-        }
-        else
-        {
-        	Iapp = 0;
-        }
+
+    	if ( t >= timeSt && t <= timeSt + 1.0 )
+    	{
+    		Iapp = 0.516289;
+    	  	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
+    			timeSt = timeSt + stInt;
+    	 }
+    	 else
+    	   	Iapp = 0;
 
         cout << "\r " << t << " ms.       " << std::flush;
 

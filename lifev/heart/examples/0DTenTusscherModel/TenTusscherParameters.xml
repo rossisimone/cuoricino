@@ -1,18 +1,18 @@
 <!-- Model Parameters -->
 	<ParameterList name="Ten Tusscher : Parameter list">
-	<Parameter name="endTime"  type="double" value="2300" />
+	<Parameter name="endTime"  type="double" value="8000" />
 	<Parameter name="timeStep"  type="double" value="1e-2" />
-	<Parameter name="stimuliTime" type="double" value="10.0"/>
-	<Parameter name="stimuliInterval" type="double" value="500.0"/>
+	<Parameter name="stimuliTime" type="double" value="1.0"/>
+	<Parameter name="stimuliInterval" type="double" value="600.0"/>
 	<Parameter name="savedt" type="double" value="0.01"/>
 	<Parameter name="gasConst" type="double" value="8314.472"/>
 	<Parameter name="temp" type="double" value="310.0"/>
 	<Parameter name="farad" type="double" value="96485.3415"/>
-	<Parameter name="capMem" type="double" value="0.185"/>
+	<Parameter name="capMem" type="double" value="1.14e4"/>
 	<Parameter name="svRatio" type="double" value="0.2"/>
 	<Parameter name="resCell" type="double" value="162.0"/>
-	<Parameter name="volCyt" type="double" value="16404"/>
-	<Parameter name="volSR" type="double" value="1094"/>
+	<Parameter name="volCyt" type="double" value="25840"/>
+	<Parameter name="volSR" type="double" value="2018"/>
 	<Parameter name="concKO" type="double" value="5.4"/>
 	<Parameter name="concNaO" type="double" value="140.0"/>
 	<Parameter name="concCaO" type="double" value="2.0"/>
