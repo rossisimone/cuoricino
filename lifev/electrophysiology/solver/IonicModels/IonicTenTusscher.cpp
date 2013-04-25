@@ -740,7 +740,7 @@
 
 	void IonicTenTusscher::showMe()
 	{
-		std::cout << "\n\n\t\tIonicJafriRiceWinslow Informations\n\n";
+		std::cout << "\n\n\t\tIonicTenTusscher Informations\n\n";
 		std::cout << "number of unkowns: "  << this->Size() << std::endl;
 
 		std::cout << "\n\t\tList of model parameters:\n\n";
