@@ -113,13 +113,12 @@ Int main ( Int argc, char** argv )
 	xb.showMe();
 
 
-    //********************************************//
-    // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
-    //********************************************//
+	//********************************************//
+	// Initialize the solution to 0. The model    //
+	// consist of 31 state variables.             //
+	// model.Size() returns the number of state   //
+	// variables of the model.                    //
+	//********************************************//
 
 	std::cout << "Initializing solution vector...";
     std::vector<Real> XbStates (xb.Size(), 0);
