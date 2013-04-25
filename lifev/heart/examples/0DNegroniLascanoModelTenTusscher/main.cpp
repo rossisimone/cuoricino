@@ -25,15 +25,15 @@
 //@HEADER
 
 /*!
-    @file
-    @brief 0D test with the Negroni Lascano model of 1996.
+	  @file
+	  @brief Ionic model based on Jafri, Rice And Winslow model.
+	  @date 03-2013
+	  @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
-    @date 01−2013
-    @author Simone Rossi <simone.rossi@epfl.ch>
-
-    @contributor
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
- */
+	  @contributors
+	  @mantainer Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
+	  @last update 03-2013
+	 */
 
 // Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -167,7 +167,7 @@ Int main ( Int argc, char** argv )
     Real vel  ( 0.0 );
     Real Ca   ( 0.0 );
     Real Iapp ( 0.0 );
-    Real X    ( 1.045 );
+    Real X    ( 1.05 );
 
     //********************************************//
     // Simulation starts on t=0 and ends on t=TF. //
@@ -195,6 +195,9 @@ Int main ( Int argc, char** argv )
     // Time loop starts.                          //
     //********************************************//
 
+    int iter(0);
+    int savedt( IonicParameterList.get( "savedt", 1.0) / dt );
+
 	std::cout << "Time loop starts...\n";
     for ( Real t = 0; t < TF; )
     {
@@ -218,7 +221,9 @@ Int main ( Int argc, char** argv )
         // given as a function of time.               //
         //********************************************//
 
-    	Ca = states.at(13);
+    	Ca = states.at(13)*1000;
+    	// Because the concentration is in mM in the ionic model
+    	// and in the Xb model it sould be in uM.
 
         std::cout << "\r " << t << " ms.       " << std::flush;
 
@@ -228,7 +233,6 @@ Int main ( Int argc, char** argv )
         xb.computeRhs             ( XbStates, Ca, vel, XbRhs );
         ionicModel.computeRhs     ( states, Iapp, rhs );
         std::vector<Real> gateInf ( ionicModel.gateInf( states ) );
-		std::vector<Real> BErhs   ( xb.computeBackwardEuler( XbStates, Ca, vel, dt ) );
 
         //********************************************//
         // Use forward Euler method to advance the    //
@@ -241,26 +245,31 @@ Int main ( Int argc, char** argv )
         	else
         	    states.at (j) = states.at (j)   + dt * rhs.at (j);
         }
-//        XbStates.at (0) = XbStates.at (0)  + dt * XbRhs.at (0);
-//        XbStates.at (1) = XbStates.at (1)  + dt * XbRhs.at (1);
+        XbStates.at (0) = XbStates.at (0)  + dt * XbRhs.at (0);
+        XbStates.at (1) = XbStates.at (1)  + dt * XbRhs.at (1);
 //        XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
 
 		// Implicit method
-		XbStates.at (0) = BErhs.at (0);
-		XbStates.at (1) = BErhs.at (1);
+        std::vector<Real> BErhs    ( xb.computeBackwardEuler( XbStates, Ca, vel, dt ) );
+//		XbStates.at (0) = BErhs.at (0);
+//		XbStates.at (1) = BErhs.at (1);
 		XbStates.at (2) = BErhs.at (2);
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
-        for ( int j (0); j < ionicModel.Size() - 1; j++)
-        {
-            output << states.at (j) << ", ";
-        }
-        output << states.at ( ionicModel.Size() - 1 ) << "\n";
 
-        XbOutput << Ca << ", " << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
+		iter++;
+		if( iter % savedt == 0)
+		{
+			for ( int j (0); j < ionicModel.Size() - 1; j++)
+			{
+				output << states.at (j) << ", ";
+			}
+			output << states.at ( ionicModel.Size() - 1 ) << "\n";
 
+			XbOutput << X << ", " << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
+		}
         //********************************************//
         // Update the time.                           //
         //********************************************//

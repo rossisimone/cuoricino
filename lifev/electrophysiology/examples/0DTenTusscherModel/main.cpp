@@ -60,6 +60,8 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher.hpp>
 #include <lifev/core/LifeV.hpp>
 
+#include <lifev/heart/examples/0DTenTusscherModel/stimulation.hpp>
+
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -86,18 +88,24 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Importing parameters list...";
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
+    Teuchos::ParameterList ionicMParameterList  = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
+    Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
     cout << " Done!" << endl;
 
 
     //********************************************//
     // Creates a new model object representing the//
-    // model from Negroni and Lascano 1996. The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
+    // model from Ten Tusscher ionic model.       //
+    // It creates also a stimulation protocol     //
+    // object that defines the way to create the  //
+    // stimulus excitation.                       //
+    // The model input are the parameters. Pass   //
+    // the parameter list in the constructor      //
     //********************************************//
+
     cout << "Building Constructor for TenTusscher Model with parameters ... ";
-    IonicTenTusscher  model ( parameterList );
+    IonicTenTusscher    model       ( ionicMParameterList );
+    StimulationProtocol stimulation ( pacingPParameterList );
     cout << " Done!" << endl;
 
 
@@ -105,7 +113,9 @@ Int main ( Int argc, char** argv )
     // Show the parameters of the model as well as//
     // other informations  about the object.      //
     //********************************************//
+
     model.showMe();
+    stimulation.showMe();
 
 
     //********************************************//
@@ -115,6 +125,7 @@ Int main ( Int argc, char** argv )
     // the model. rStates is the reference to the //
     // the vector states                          //
     //********************************************//
+
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
     unknowns[0]  = - 86.2;
@@ -144,6 +155,7 @@ Int main ( Int argc, char** argv )
     // variables, that is, the right hand side of //
     // the differential equation.                 //
     //********************************************//
+
     cout << "Initializing rhs..." ;
     std::vector<Real> rhs (model.Size(), 0);
     cout << " Done! "  << endl;
@@ -153,6 +165,7 @@ Int main ( Int argc, char** argv )
     // the contraction velocity and the Calcium   //
     // concentration.                             //
     //********************************************//
+
     Real Iapp (0.0);
 
 
@@ -161,15 +174,14 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF     = parameterList.get( "endTime", 5.0 );
-    Real dt     = parameterList.get( "timeStep", 1e-3 );
-    Real timeSt = parameterList.get( "stimuliTime", 10.0 );
-    Real stInt  = parameterList.get( "stimuliInterval", 1000.0 );
+    Real TF     = ionicMParameterList.get( "endTime", 5.0 );
+    Real dt     = ionicMParameterList.get( "timeStep", 1e-3 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
+
     string filename = "output.txt";
     std::ofstream output  ("output.txt");
 
@@ -177,28 +189,22 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
+
     cout << "Time loop starts...\n";
 
     int iter(0);
-    int savedt( parameterList.get( "savedt", 1.0) / dt );
+    int savedt( ionicMParameterList.get( "savedt", 1.0) / dt );
+    int NbStimulus ( 0 );
 
     for ( Real t = 0; t < TF; )
     {
 
     	//********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
+        // Gives the appropriate Iapp (stimulation .  //
+        // current ) according to time variable.      //
         //********************************************//
-        if ( t >= timeSt && t <= timeSt + 1.0 )
-        {
-        	Iapp = -52.0;
-        	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
-        		timeSt = timeSt + stInt;
-        }
-        else
-        {
-        	Iapp = 0;
-        }
+
+    	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp );
 
         cout << "\r " << t << " ms.       " << std::flush;
 
