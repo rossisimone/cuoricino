@@ -96,6 +96,7 @@ Int main ( Int argc, char** argv )
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
+
     cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
     IonicJafriRiceWinslow  model ( parameterList );
     cout << " Done!" << endl;
@@ -105,16 +106,17 @@ Int main ( Int argc, char** argv )
     // Show the parameters of the model as well as//
     // other informations  about the object.      //
     //********************************************//
+
     model.showMe();
 
 
     //********************************************//
     // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
+    // consist of 31 state variables.             //
+    // model.Size() returns the number of state   //
+    // variables of the model.                    //
     //********************************************//
+
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
     unknowns[0] = - 84.1638;
@@ -158,16 +160,16 @@ Int main ( Int argc, char** argv )
     // variables, that is, the right hand side of //
     // the differential equation.                 //
     //********************************************//
+
     cout << "Initializing rhs..." ;
     std::vector<Real> rhs (model.Size(), 0);
     cout << " Done! "  << endl;
 
 
     //********************************************//
-    // The model needs as external informations   //
-    // the contraction velocity and the Calcium   //
-    // concentration.                             //
+    //Initialization of the applied current       //
     //********************************************//
+
     Real Iapp (0.0);
 
 
@@ -175,6 +177,7 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
+
     Real TF     = parameterList.get( "endTime", 5.0 );
     Real dt     = parameterList.get( "timeStep", 5.77e-5 );
     Real timeSt = parameterList.get( "stimuliTime", 1.0 );
@@ -184,6 +187,7 @@ Int main ( Int argc, char** argv )
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
+
     string filename = "output.txt";
     std::ofstream output  ("output.txt");
 
@@ -191,6 +195,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
+
     cout << "Time loop starts...\n";
 
 
@@ -219,6 +224,7 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
+
         model.computeRhs ( unknowns, Iapp, rhs );
 //        std::vector<Real> gateInf     ( model.gateInf( unknowns ) );
 //        std::vector<Real> otherVarInf ( model.otherVarInf( unknowns ) );
@@ -251,7 +257,10 @@ Int main ( Int argc, char** argv )
 
          //********************************************//
          // Use forward Euler method to advance the    //
-         // solution in time.                          //
+         // solution in time for all the variables     //
+         // different that the ionic concentrations.   //
+         // This ones are treated with Euler implicit  //
+         // method and Newton algorithm.               //
          //********************************************//
 
         for(int j(0); j <= 30; ++j)
@@ -278,7 +287,8 @@ Int main ( Int argc, char** argv )
     	 //********************************************//
          // Update the time.                           //
          //********************************************//
-         t = t + dt;
+
+        t = t + dt;
        }
 
     cout << "\n...Time loop ends.\n";
@@ -287,6 +297,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Close exported file.                       //
     //********************************************//
+
     output.close();
 
 
