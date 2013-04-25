@@ -1,6 +1,6 @@
 <!-- Model Parameters -->
 <ParameterList name="Jafri Rice Winslow: Parameter list">
-	<Parameter name="endTime" type="double" value="5000.0"/>
+	<Parameter name="endTime" type="double" value="500.0"/>
 	<Parameter name="timeStep" type="double" value="1e-3"/>
 	<Parameter name="stimuliTime" type="double" value="10.0"/>
 	<Parameter name="stimuliInterval" type="double" value="600.0"/>
