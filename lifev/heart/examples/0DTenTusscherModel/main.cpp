@@ -113,10 +113,9 @@ Int main ( Int argc, char** argv )
 
     //********************************************//
     // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
+    // consist of 17 state variables.             //
+    // model.Size() returns the number of state   //
+    // variables of the model.                    //
     //********************************************//
 
     cout << "Initializing solution vector...";
