@@ -60,7 +60,6 @@
 #include <lifev/heart/solver/IonicModels/IonicTenTusscher.hpp>
 #include <lifev/core/LifeV.hpp>
 
-#include <lifev/heart/examples/0DTenTusscherModel/stimulation.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -88,24 +87,19 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Importing parameters list...";
-    Teuchos::ParameterList ionicMParameterList  = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
-    Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
+    Teuchos::ParameterList parameterList  = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
     cout << " Done!" << endl;
 
 
     //********************************************//
     // Creates a new model object representing the//
     // model from Ten Tusscher ionic model.       //
-    // It creates also a stimulation protocol     //
-    // object that defines the way to create the  //
-    // stimulus excitation.                       //
     // The model input are the parameters. Pass   //
     // the parameter list in the constructor      //
     //********************************************//
 
     cout << "Building Constructor for TenTusscher Model with parameters ... ";
-    IonicTenTusscher    model       ( ionicMParameterList );
-    StimulationProtocol stimulation ( pacingPParameterList );
+    IonicTenTusscher model ( parameterList );
     cout << " Done!" << endl;
 
 
@@ -115,7 +109,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     model.showMe();
-    stimulation.showMe();
 
 
     //********************************************//
@@ -161,9 +154,7 @@ Int main ( Int argc, char** argv )
     cout << " Done! "  << endl;
 
     //********************************************//
-    // The model needs as external informations   //
-    // the contraction velocity and the Calcium   //
-    // concentration.                             //
+    //Initialization of the applied current       //
     //********************************************//
 
     Real Iapp (0.0);
@@ -174,8 +165,10 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF     = ionicMParameterList.get( "endTime", 5.0 );
-    Real dt     = ionicMParameterList.get( "timeStep", 1e-3 );
+    Real TF     = parameterList.get( "endTime", 5.0 );
+    Real dt     = parameterList.get( "timeStep", 5.77e-5 );
+    Real timeSt = parameterList.get( "stimuliTime", 1.0 );
+    Real stInt  = parameterList.get( "stimuliInterval", 400.0 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -193,8 +186,7 @@ Int main ( Int argc, char** argv )
     cout << "Time loop starts...\n";
 
     int iter(0);
-    int savedt( ionicMParameterList.get( "savedt", 1.0) / dt );
-    int NbStimulus ( 0 );
+    int savedt( parameterList.get( "savedt", 1.0) / dt );
 
     for ( Real t = 0; t < TF; )
     {
@@ -204,19 +196,28 @@ Int main ( Int argc, char** argv )
         // current ) according to time variable.      //
         //********************************************//
 
-    	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp );
+    	if ( t >= timeSt && t <= timeSt + 1.0 )
+    	{
+    		Iapp = -52.0;
+    	    if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
+    	    	timeSt = timeSt + stInt;
+    	}
+    	else
+    	   	Iapp = 0;
 
         cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
+
         model.computeRhs ( unknowns, Iapp, rhs );
         std::vector<Real> gateInf ( model.gateInf( unknowns ) );
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
+
         iter++;
         if( iter % savedt == 0)
         {
@@ -233,7 +234,9 @@ Int main ( Int argc, char** argv )
 
          //********************************************//
          // Use forward Euler method to advance the    //
-         // solution in time.                          //
+         // solution in time for the concentration     //
+         // and Rush and Larsen for the gating         //
+         // variables                                  //
          //********************************************//
 
          for(int j(0); j <= 16; ++j)
@@ -248,6 +251,7 @@ Int main ( Int argc, char** argv )
          //********************************************//
          // Update the time.                           //
          //********************************************//
+
          t = t + dt;
        }
 
@@ -257,6 +261,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Close exported file.                       //
     //********************************************//
+
     output.close();
 
 
