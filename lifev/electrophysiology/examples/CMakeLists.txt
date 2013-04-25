@@ -11,6 +11,7 @@ ADD_SUBDIRECTORIES(
   0DMinimalModel
   0DNegroniLascanoModel
   0DNegroniLascanoModelTenTusscher
+  0DNegroniLascanoModelJafriRiceWinslow
   0DFitzHughNagumoModel
 #  CreateFiberEllipsoid
   FiberInterpolation
