@@ -252,7 +252,10 @@ Int main ( Int argc, char** argv )
 
         //********************************************//
         // Use forward Euler method to advance the    //
-        // solution in time.                          //
+        // solution in time for all the variables     //
+        // different that the ionic concentrations.   //
+        // This ones are treated with Euler implicit  //
+        // method and Newton algorithm.               //
         //********************************************//
         
 		for(int j(0); j <= 30; ++j)
@@ -297,13 +300,16 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Update the time.                           //
         //********************************************//
+
         t = t + dt;
     }
     std::cout << "\n...Time loop ends.\n";
     std::cout << "Solution written on file: " << filename << "\n";
+
     //********************************************//
     // Close exported file.                       //
     //********************************************//
+
     XbOutput.close();
     output.close();
 
