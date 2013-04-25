@@ -16,6 +16,7 @@ SET(solver_HEADERS
   solver/HeartETAMonodomainSolver.hpp
   solver/HeartUpdatedMonodomainSolver.hpp
   solver/HeartODEModel.hpp
+  solver/StimulationProtocol.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES
