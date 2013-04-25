@@ -7,6 +7,7 @@ ADD_SUBDIRECTORIES(
   0DMitchellSchaefferModel
   0DJafriRiceWinslowModel
   0DTenTusscherModel
+  0DTenTusscherModelwStimPro
   0DMinimalModel
   0DNegroniLascanoModel
   0DNegroniLascanoModelTenTusscher
