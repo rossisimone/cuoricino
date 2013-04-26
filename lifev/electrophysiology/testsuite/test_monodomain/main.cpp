@@ -89,7 +89,7 @@ using namespace LifeV;
 
 Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
 {
-    return ( 0.5 + 0.5 * ( std::tanh ( - ( z - 50 ) / 5.0 ) ) );
+    return ( 0.5 + 0.5 * ( std::tanh ( - ( y - 90.0 ) / 5.0 ) ) );
 }
 
 
@@ -203,8 +203,8 @@ Int main ( Int argc, char** argv )
         cout << "\nInitializing potential:  " ;
     }
 
-    HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 43 );
-    HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 45 );
+    HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 3 );
+ //   HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 45 );
 
     function_Type f = &smoothing;
     vectorPtr_Type smoother( new vector_Type( splitting -> potentialPtr() -> map() ) );
