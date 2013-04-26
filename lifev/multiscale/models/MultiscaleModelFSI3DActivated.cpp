@@ -67,7 +67,8 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_activationMarker			   (),
     M_dataFileName				   (),
     M_gammafSolid                  (),
-    M_displacementMonodomain       ()
+    M_displacementMonodomain       (),
+    M_activationSpacePtr			()
 {
 	M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledVectorial" ) );
 	M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledScalar" ) );
@@ -158,6 +159,9 @@ MultiscaleModelFSI3DActivated::setupModel()
 
 	super::setupModel();
 	boost::shared_ptr<mesh_Type> solidLocalMeshPtr( new super::mesh_Type( super::solver() -> solidLocalMesh() ) );
+	M_activationSpacePtr.reset( new FESpace<mesh_Type, MapEpetra>( solidLocalMeshPtr, "P1", 1,  M_comm ) );
+	M_gammafSolid.reset( new vector_Type( M_activationSpacePtr -> map() ) );
+    M_exporterSolid->addVariable ( IOData_Type::ScalarField, "activation", M_activationSpacePtr , M_gammafSolid, static_cast<UInt> ( 0 ) );
 
 
 
@@ -181,7 +185,7 @@ MultiscaleModelFSI3DActivated::setupModel()
 
     super::solver() -> solid().material() -> setGammaf( *M_gammaf );
     if(!M_oneWayCoupling) M_monodomain -> setDisplacementPtr( M_displacementMonodomain );
-
+    if( M_monodomain -> displacementPtr() ) return 0;
 
     setupInterpolant();
 
@@ -194,6 +198,7 @@ MultiscaleModelFSI3DActivated::buildModel()
 {
 	super::buildModel();
 	if( M_usingDifferentMeshes ) M_fineToCoarseInterpolant -> buildOperators();
+	assert( M_fullSolidMesh != 0 && "Burn in hell!!!");
 	if( !M_oneWayCoupling ) M_coarseToFineInterpolant -> buildOperators();
 
 	M_monodomain -> setupLumpedMassMatrix();
@@ -236,15 +241,11 @@ MultiscaleModelFSI3DActivated::solveModel()
         M_monodomain -> setEndTime( 1000.0 * (tn + timeStep) );
         M_monodomain ->solveSplitting();
 
-        M_gammaf.reset( new  vector_Type( *( M_monodomain -> globalSolution().at(3) ) ) );
+        *M_gammaf = *( M_monodomain -> globalSolution().at(3) );
+        //M_gammaf.reset( new  vector_Type( *( M_monodomain -> globalSolution().at(3) ) ) );
 
         //rescaling parameters for gammaf with minimal model
-        Real maxCalciumLikeVariable = 0.84;
-        Real minCalciumLikeVariable = 0.02;
-        Real beta = -0.3;
-
-        HeartUtility::rescaleVector( *M_gammaf, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
-        M_gammafSolid.reset( new vector_Type( *M_solidDisplacement ) );
+        //M_gammafSolid.reset( new vector_Type( M_activationSpacePtr -> map() ) );
         if( M_usingDifferentMeshes )
         {
         M_fineToCoarseInterpolant -> updateRhs( M_gammaf );
@@ -252,6 +253,14 @@ MultiscaleModelFSI3DActivated::solveModel()
         M_fineToCoarseInterpolant -> solution ( M_gammafSolid );
         }
         else M_gammafSolid = M_gammaf;
+
+        Real maxCalciumLikeVariable = M_monodomain -> globalSolution().at(3) -> maxValue();
+        Real minCalciumLikeVariable = M_monodomain -> globalSolution().at(3) -> minValue();
+        Real beta = -0.3;
+
+        HeartUtility::rescaleVector( *M_gammafSolid, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
+        *M_gammafSolid *= ( M_gammafSolid -> operator >=(0.0) );
+
         super::solver() -> solid().material() -> setGammaf( *M_gammafSolid );
 
     }
@@ -318,7 +327,7 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
 	    M_fineToCoarseInterpolant -> setup( M_monodomain -> fullMeshPtr(), M_monodomain -> localMeshPtr(),
 	    		M_fullSolidMesh, solidLocalMeshPtr,  std::vector<int>(1,-1) );
 	    M_fineToCoarseInterpolant -> setRadius( (double) MeshUtility::MeshStatistics::computeSize ( * (M_monodomain -> fullMeshPtr() ) ).maxH );
-	    M_fineToCoarseInterpolant -> setupRBFData ( M_gammaf, super::solver() -> solid().material() -> fiberVector(), dataFile, monodomainList);
+	    M_fineToCoarseInterpolant -> setupRBFData ( M_gammaf, M_gammafSolid, dataFile, monodomainList);
 	    }
 	    if( !M_oneWayCoupling )
 	    {
@@ -328,6 +337,7 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
 	    M_coarseToFineInterpolant -> setRadius( (double) MeshUtility::MeshStatistics::computeSize ( * (M_fullSolidMesh) ).maxH );
 	    M_coarseToFineInterpolant -> setupRBFData ( M_solidDisplacement , M_monodomain -> displacementPtr(), dataFile, monodomainList);
 	    }
+
 }
 
 } // Namespace multiscale

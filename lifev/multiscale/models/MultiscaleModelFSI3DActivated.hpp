@@ -221,6 +221,7 @@ private:
 
     interpolationPtr_Type					M_coarseToFineInterpolant;
     interpolationPtr_Type					M_fineToCoarseInterpolant;
+    boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > M_activationSpacePtr;
 };
 
 //! Factory create function

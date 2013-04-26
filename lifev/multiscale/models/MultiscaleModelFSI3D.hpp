@@ -520,11 +520,11 @@ protected:
 private:
     // Data
     dataPtr_Type                            M_data;
-
+protected:
     // Exporters
     IOFilePtr_Type                          M_exporterFluid;
     IOFilePtr_Type                          M_exporterSolid;
-
+private:
     // Importers
     IOFilePtr_Type                          M_importerFluid;
     IOFilePtr_Type                          M_importerSolid;
