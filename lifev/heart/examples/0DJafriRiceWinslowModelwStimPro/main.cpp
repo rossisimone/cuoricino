@@ -88,7 +88,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Importing parameters list...";
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    Teuchos::ParameterList ionicMParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
     Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
     cout << " Done!" << endl;
 
@@ -183,8 +183,8 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF     = parameterList.get( "endTime", 5.0 );
-    Real dt     = parameterList.get( "timeStep", 5.77e-5 );
+    Real TF     = ionicMParameterList.get( "endTime", 5.0 );
+    Real dt     = ionicMParameterList.get( "timeStep", 5.77e-5 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //

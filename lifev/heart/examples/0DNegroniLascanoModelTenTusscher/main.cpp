@@ -26,9 +26,9 @@
 
 /*!
 	  @file
-	  @brief Ionic model based on Jafri, Rice And Winslow model coupled with
+	  @brief Ionic model based on Ten Tusscher 2004 model coupled with
 	  @ Negroni Lascano crossbridge model
-	  @date 03-2013
+	  @date 04-2013
 	  @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
 	  @contributors
@@ -62,6 +62,8 @@
 #include <lifev/heart/solver/IonicModels/IonicTenTusscher.hpp>
 #include <lifev/core/LifeV.hpp>
 
+#include <lifev/heart/solver/StimulationProtocol.hpp>
+
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -88,8 +90,9 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     std::cout << "Importing parameters list...";
-    Teuchos::ParameterList NLParameterList    = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
-    Teuchos::ParameterList IonicParameterList = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
+    Teuchos::ParameterList nlParameterList    = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
+    Teuchos::ParameterList ionicParameterList = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
+    Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
     std::cout << " Done!" << endl;
 
 
@@ -101,8 +104,9 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
 	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
-    XbNegroniLascano96  xb ( NLParameterList );
-    IonicTenTusscher  ionicModel ( IonicParameterList );
+    XbNegroniLascano96  xb ( nlParameterList );
+    IonicTenTusscher  ionicModel ( ionicParameterList );
+    StimulationProtocol   stimulation ( pacingPParameterList );
     std::cout << " Done!" << endl;
 
 
@@ -112,6 +116,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
 	xb.showMe();
+	stimulation.showMe();
 
 
     //********************************************//
@@ -175,10 +180,8 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF     = NLParameterList.get("endTime", 100.0);
-    Real dt     = NLParameterList.get("timeStep", 0.001);
-    Real timeSt = IonicParameterList.get( "stimuliTime", 10.0 );
-    Real stInt  = IonicParameterList.get( "stimuliInterval", 1000.0 );
+    Real TF     = nlParameterList.get("endTime", 100.0);
+    Real dt     = nlParameterList.get("timeStep", 0.001);
 
 
     //********************************************//
@@ -197,20 +200,15 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     int iter(0);
-    int savedt( IonicParameterList.get( "savedt", 1.0) / dt );
+    int savedt( ionicParameterList.get( "savedt", 1.0) / dt );
+    int NbStimulus ( 0 );
 
 	std::cout << "Time loop starts...\n";
     for ( Real t = 0; t < TF; )
     {
 		// Stimuli for ionic model
-    	if ( t >= timeSt && t <= timeSt + 1.0 )
-    	{
-    	   	Iapp = -52.0;
-    	   	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
-    	   		timeSt = timeSt + stInt;
-    	}
-    	else
-    	   	Iapp = 0;
+
+    	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
 
 		// Velocity of motion
 
