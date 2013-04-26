@@ -259,7 +259,7 @@ MultiscaleModelFSI3DActivated::solveModel()
         Real beta = -0.3;
 
         HeartUtility::rescaleVector( *M_gammafSolid, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
-        *M_gammafSolid *= ( M_gammafSolid -> operator >=(0.0) );
+        *M_gammafSolid *= ( M_gammafSolid -> operator <=(0.0) );
 
         super::solver() -> solid().material() -> setGammaf( *M_gammafSolid );
 
