@@ -987,33 +987,33 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>& ElectroETAMonodomainSolver<Mesh,
 		IonicModel>::operator=(const ElectroETAMonodomainSolver& solver) {
 	M_surfaceVolumeRatio = solver.M_surfaceVolumeRatio;
 	M_membraneCapacitance = solver.M_membraneCapacitance;
-	copyIonicModel(solver.M_ionicModelPtr);
+	setIonicModel( (*solver.M_ionicModelPtr) );
 	M_commPtr = solver.M_commPtr;
 	M_localMeshPtr = solver.M_localMeshPtr;
 	M_fullMeshPtr = solver.M_fullMeshPtr;
-	copyETFESpace(solver.M_ETFESpacePtr);
-	copyFeSpace(solver.M_feSpacePtr);
-	copyMassMatrix(solver.M_massMatrixPtr);
-	copyStiffnessMatrix(solver.M_stiffnessMatrixPtr);
-	copyGlobalMatrix(solver.M_globalMatrixPtr);
+	setETFESpace( *( solver.M_ETFESpacePtr ) );
+	setFeSpace( * ( solver.M_feSpacePtr ) );
+	setMassMatrix( * ( solver.M_massMatrixPtr ) );
+	setStiffnessMatrix( * ( solver.M_stiffnessMatrixPtr ) );
+	setGlobalMatrix( * ( solver.M_globalMatrixPtr ) );
 	M_initialTime = solver.M_initialTime;
 	M_endTime = solver.M_endTime;
 	M_timeStep = solver.M_timeStep;
 	M_diffusionTensor = solver.M_diffusionTensor;
-	copyRhs(solver.M_rhsPtr);
-	copyRhsUnique(solver.M_rhsPtrUnique);
+	setRhs( * ( solver.M_rhsPtr ) );
+	setRhsUnique( * ( solver.M_rhsPtrUnique ) );
 	std::cout << "new potential: " << M_potentialPtr << endl;
 	std::cout << "given potential: " << solver.M_potentialPtr << endl;
-	copyPotential(solver.M_potentialPtr);
+	setPotential( * ( solver.M_potentialPtr ) );
 	std::cout << "new potential: " << M_potentialPtr << endl;
 	std::cout << "given potential: " << solver.M_potentialPtr << endl;
 
-	copyAppliedCurrent(solver.M_appliedCurrentPtr);
-	copyLinearSolver(solver.M_linearSolverPtr);
+	setAppliedCurrent( * ( solver.M_appliedCurrentPtr ) );
+	setLinearSolver( * ( solver.M_linearSolverPtr ) );
 	copyGlobalSolution(solver.M_globalSolution);
 	copyGlobalRhs(solver.M_globalRhs);
 	M_elementsOrder = solver.M_elementsOrder;
-	copyFiber(solver.M_fiberPtr);
+	setFiber( * ( solver.M_fiberPtr ) );
 
 	return *this;
 }
