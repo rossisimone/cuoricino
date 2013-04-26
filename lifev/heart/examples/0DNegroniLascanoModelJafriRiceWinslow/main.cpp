@@ -25,15 +25,16 @@
 //@HEADER
 
 /*!
-    @file
-    @brief 0D test with the Negroni Lascano model of 1996.
+	  @file
+	  @brief Ionic model based on Jafri, Rice And Winslow model coupled with
+	  @ Negroni Lascano crossbridge model
+	  @date 04-2013
+	  @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
-    @date 01−2013
-    @author Simone Rossi <simone.rossi@epfl.ch>
-
-    @contributor
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
- */
+	  @contributors
+	  @mantainer Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
+	  @last update 03-2013
+	 */
 
 // Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -61,6 +62,8 @@
 #include <lifev/heart/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
 
+#include <lifev/heart/solver/StimulationProtocol.hpp>
+
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -87,8 +90,9 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     std::cout << "Importing parameters list...";
-    Teuchos::ParameterList NLParameterList    = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
-    Teuchos::ParameterList IonicParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    Teuchos::ParameterList nlParameterList    = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
+    Teuchos::ParameterList ionicParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
     std::cout << " Done!" << endl;
 
 
@@ -100,8 +104,9 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
 	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
-    XbNegroniLascano96  xb ( NLParameterList );
-    IonicJafriRiceWinslow ionicModel ( IonicParameterList );
+    XbNegroniLascano96  xb ( nlParameterList );
+    IonicJafriRiceWinslow ionicModel ( ionicParameterList );
+    StimulationProtocol   stimulation ( pacingPParameterList );
     std::cout << " Done!" << endl;
 
 
@@ -111,6 +116,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
 	xb.showMe();
+	stimulation.showMe();
 
 
 	//********************************************//
@@ -187,11 +193,8 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF     = NLParameterList.get( "endTime", 5.0 );
-    Real dt     = NLParameterList.get( "timeStep", 5.77e-5 );
-    Real timeSt = IonicParameterList.get( "stimuliTime", 1.0 );
-    Real stInt  = IonicParameterList.get( "stimuliInterval", 400.0 );
-
+    Real TF     = nlParameterList.get( "endTime", 5.0 );
+    Real dt     = nlParameterList.get( "timeStep", 5.77e-5 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -209,20 +212,15 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     int iter(0);
-    int savedt( IonicParameterList.get( "savedt", 1.0) / dt );
+    int savedt( ionicParameterList.get( "savedt", 1.0) / dt );
+    int NbStimulus ( 0 );
 
 	std::cout << "Time loop starts...\n";
     for ( Real t = 0; t < TF; )
     {
 		// Stimuli for ionic model
-    	if ( t >= timeSt && t <= timeSt + 1.0 )
-    	{
-    		Iapp = 0.516289;
-    	   	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
-    	   		timeSt = timeSt + stInt;
-    	}
-    	else
-    	   	Iapp = 0;
+
+    	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
 
 		// Velocity of motion
 
