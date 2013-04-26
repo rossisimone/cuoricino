@@ -279,7 +279,7 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-    Real saveStep = monodomainList.get ("saveStep", 1);
+    Real saveStep = monodomainList.get ("saveStep", 1.0);
 
 //    splitting   -> solveSplitting ( exporterSplitting, saveStep );
 
