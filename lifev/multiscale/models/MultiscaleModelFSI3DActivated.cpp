@@ -243,7 +243,11 @@ MultiscaleModelFSI3DActivated::solveModel()
 
         *M_gammaf = *( M_monodomain -> globalSolution().at(3) );
         //M_gammaf.reset( new  vector_Type( *( M_monodomain -> globalSolution().at(3) ) ) );
+        Real maxCalciumLikeVariable = M_monodomain -> globalSolution().at(3) -> maxValue();
+        Real minCalciumLikeVariable = M_monodomain -> globalSolution().at(3) -> minValue();
+        Real beta = -0.3;
 
+        HeartUtility::rescaleVector( *M_gammafSolid, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
         //rescaling parameters for gammaf with minimal model
         //M_gammafSolid.reset( new vector_Type( M_activationSpacePtr -> map() ) );
         if( M_usingDifferentMeshes )
@@ -254,11 +258,9 @@ MultiscaleModelFSI3DActivated::solveModel()
         }
         else M_gammafSolid = M_gammaf;
 
-        Real maxCalciumLikeVariable = M_monodomain -> globalSolution().at(3) -> maxValue();
-        Real minCalciumLikeVariable = M_monodomain -> globalSolution().at(3) -> minValue();
-        Real beta = -0.3;
 
-        HeartUtility::rescaleVector( *M_gammafSolid, minCalciumLikeVariable, maxCalciumLikeVariable, beta);
+
+
         *M_gammafSolid *= ( M_gammafSolid -> operator <=(0.0) );
 
         super::solver() -> solid().material() -> setGammaf( *M_gammafSolid );
