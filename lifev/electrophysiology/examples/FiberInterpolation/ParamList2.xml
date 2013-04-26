@@ -1,8 +1,9 @@
 <ParameterList>
 	<!-- LinearSolver parameters -->
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="rousseau_smoothed_coarsened_remeshed_reclassified.mesh"  />
+    <Parameter name="mesh_name" type="string" value="rousseau_smoothed_coarsened_remeshed_reclassified_bestfit.mesh"  />
     <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/humanBiventricular/"  />
+    <Parameter name="output_filename" type="string" value="humanCoarseFiberDirection"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>

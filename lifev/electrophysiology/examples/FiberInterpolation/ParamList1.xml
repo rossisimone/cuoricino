@@ -8,7 +8,7 @@
     <Parameter name="fiber_X" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />
-    <Parameter name="fiber_file_format" type="int" value="1"  />
+    <Parameter name="format" type="int" value="0"  />
     <Parameter name="interpolation" type="bool" value="false"/>
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
