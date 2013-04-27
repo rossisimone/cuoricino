@@ -79,6 +79,7 @@
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicFitzHughNagumo.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -174,7 +175,7 @@ Int main ( Int argc, char** argv )
                                     const Real& /*z*/,
                                     const ID&   /*i*/ ) > function_Type;
 
-    typedef ElectroETAMonodomainSolver< mesh_Type, IonicFitzHughNagumo > monodomainSolver_Type;
+    typedef ElectroETAMonodomainSolver< mesh_Type, IonicJafriRiceWinslow > monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
 
     //********************************************//
@@ -187,7 +188,7 @@ Int main ( Int argc, char** argv )
     {
         std::cout << "Importing parameters list...";
     }
-    Teuchos::ParameterList FHNParameterList = * ( Teuchos::getParametersFromXmlFile ( "FitzHughNagumoParameters.xml" ) );
+    Teuchos::ParameterList JRWParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
     if ( Comm->MyPID() == 0 )
     {
@@ -202,13 +203,20 @@ Int main ( Int argc, char** argv )
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << "Building Constructor for Fitz-Hugh Nagumo Model with parameters ... ";
+        std::cout << "Building Constructor for JafriRiceWinslow model with parameters ... ";
     }
-    boost::shared_ptr<IonicFitzHughNagumo>  model ( new IonicFitzHughNagumo (FHNParameterList) );
+    boost::shared_ptr<IonicJafriRiceWinslow>  model ( new IonicJafriRiceWinslow (JRWParameterList) );
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
     }
+
+
+    //********************************************//
+    // Show the parameters of the model as well as//
+    // other informations  about the object.      //
+    //********************************************//
+    model->showMe();
 
 
     //********************************************//
@@ -257,7 +265,37 @@ Int main ( Int argc, char** argv )
     splitting -> setPotentialFromFunction ( f ); //initialize potential
 
     //setting up initial conditions
-    * ( splitting -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
+    //* ( splitting -> globalSolution().at (0) ) = - 84.1638;
+    * ( splitting -> globalSolution().at (1) ) = 0.0328302;
+    * ( splitting -> globalSolution().at (2) ) = 0.988354;
+    * ( splitting -> globalSolution().at (3) ) = 0.992540;
+    * ( splitting -> globalSolution().at (4) ) = 0.000928836;
+    * ( splitting -> globalSolution().at (5) ) = 10.2042;
+    * ( splitting -> globalSolution().at (6) ) = 143.727;
+    * ( splitting -> globalSolution().at (7) ) = 5.4;
+    * ( splitting -> globalSolution().at (8) ) = 9.94893e-11;
+    * ( splitting -> globalSolution().at (9) ) = 1.243891;
+    * ( splitting -> globalSolution().at (10) ) = 1.36058e-4;
+    * ( splitting -> globalSolution().at (11) ) = 1.17504;
+    * ( splitting -> globalSolution().at (12) ) = 0.762527;
+    * ( splitting -> globalSolution().at (13) ) = 1.19168e-3;
+    * ( splitting -> globalSolution().at (14) ) = 6.30613e-9;
+    * ( splitting -> globalSolution().at (15) ) = 0.236283;
+    * ( splitting -> globalSolution().at (16) ) = 0.997208;
+    * ( splitting -> globalSolution().at (17) ) = 6.38897e-5;
+    * ( splitting -> globalSolution().at (18) ) = 1.535e-9;
+    * ( splitting -> globalSolution().at (19) ) = 1.63909e-14;
+    * ( splitting -> globalSolution().at (20) ) = 6.56337e-20;
+    * ( splitting -> globalSolution().at (21) ) = 9.84546e-21;
+    * ( splitting -> globalSolution().at (22) ) = 2.72826e-3;
+    * ( splitting -> globalSolution().at (23) ) = 6.99215e-7;
+    * ( splitting -> globalSolution().at (24) ) = 6.71989e-11;
+    * ( splitting -> globalSolution().at (25) ) = 2.87031e-15;
+    * ( splitting -> globalSolution().at (26) ) = 4.59752e-20;
+    * ( splitting -> globalSolution().at (27) ) = 0.0;
+    * ( splitting -> globalSolution().at (28) ) = 0.998983;
+    * ( splitting -> globalSolution().at (29) ) = 0.00635;
+    * ( splitting -> globalSolution().at (30) ) = 0.13598;
 
     if ( Comm->MyPID() == 0 )
     {
@@ -300,17 +338,16 @@ Int main ( Int argc, char** argv )
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        cout << "\nstart solving:  " ;
+        cout << "\nstart solving: \n\n " ;
     }
 
-
-    Real dt = monodomainList.get ("timeStep", 0.1);
-    Real TF = monodomainList.get ("endTime", 150.0);
-    Real TCut1 = monodomainList.get ("TCut", 35.0) - dt/2.0;
-    Real TCut2 = monodomainList.get ("TCut", 35.0) + dt/2.0;
-    Int iter = monodomainList.get ("saveStep", 1.0) / dt;
-    Int meth = monodomainList.get ("meth", 1.0);
-    Real dt_min = dt/50.0;;
+    Real TF     = JRWParameterList.get( "endTime", 5.0 );
+    Real dt     = JRWParameterList.get( "timeStep", 5.77e-5 );
+    Real TCut1 = JRWParameterList.get ("TCut", 35.0) - dt/2.0;
+    Real TCut2 = JRWParameterList.get ("TCut", 35.0) + dt/2.0;
+    Int iter = JRWParameterList.get( "savedt", 1.0) / dt;
+    Int meth = JRWParameterList.get ("meth", 1.0);
+    Real dt_min = 1e-10;
     Int k(0),j(0);
     Int nodes;
 
@@ -329,10 +366,12 @@ Int main ( Int argc, char** argv )
 
 		//splitting   -> solveSplitting ( exporterSplitting );
 
-		for ( Real t = 0.0; t < TF; )
+        cout<<"Starting for...\n";
+		for ( Real t = 0.0; t < TF-1e-8; )
 		{
 			t = t + dt;
 
+			cout<<"Done!\nStarting reaction...";
 			chrono.start();
 			if(meth==1)
 				splitting->solveOneReactionStepROS3P(dtVec, dt_min);
@@ -345,6 +384,7 @@ Int main ( Int argc, char** argv )
 			(*splitting->rhsPtrUnique()) *= 0.0;
 			splitting->updateRhs();
 
+			cout<<"Done!\nStarting diffusion...";
 			chrono.start();
 			splitting->solveOneDiffusionStepBE();
 			chrono.stop();
@@ -365,7 +405,6 @@ Int main ( Int argc, char** argv )
 				if(dt_min>(*dtVec)[j])
 					dt_min = (*dtVec)[j];
 			}
-
 
 			k++;
 
