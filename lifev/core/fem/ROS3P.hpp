@@ -44,7 +44,7 @@
 namespace LifeV
 {
 
-class ROS3P : public RosenbrockTransformed<3>
+class ROS3P : public RosenbrockTransformed
 {
 public:
 	ROS3P();

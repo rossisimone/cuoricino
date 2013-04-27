@@ -34,10 +34,13 @@
     @date 01-04-2013
  */
 
+#include <lifev/core/fem/RosenbrockTransformed.hpp>
 
 
-template<UInt s>
-RosenbrockTransformed<s>::RosenbrockTransformed(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
+namespace LifeV
+{
+
+RosenbrockTransformed::RosenbrockTransformed(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
 												const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat,
 												UInt order)
 :M_g(g), M_A(A), M_C(C), M_gammai(gammai), M_a(a), M_m(m), M_mdiff(m-mhat), M_p(order)
@@ -45,129 +48,8 @@ RosenbrockTransformed<s>::RosenbrockTransformed(Real g, const MatrixStandard& A,
 	initMembers();
 }
 
-template<UInt s>
-template<typename RightHandSide>
-void RosenbrockTransformed<s>::solve(RightHandSide& Fun, VectorStandard& y0, Real t0, Real TF, Real& dt_init)
-{
-	boost::shared_ptr<RightHandSide> FunPtr(new RightHandSide(Fun));
 
-	solve(FunPtr, y0, t0, TF, dt_init);
-}
-
-template<UInt s>
-template<typename RightHandSide>
-void RosenbrockTransformed<s>::solve(RightHandSide& Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
-{
-	boost::shared_ptr<RightHandSide> FunPtr(new RightHandSide(Fun));
-
-	VectorStandard y0LU(y0);
-	solve(FunPtr, y0LU, t0, TF, dt_init);
-	y0 = y0LU;
-}
-
-template<UInt s>
-template<typename RightHandSide>
-void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
-{
-	VectorStandard y0LU(y0);
-	solve(Fun, y0LU, t0, TF, dt_init);
-	y0 = y0LU;
-}
-
-template<UInt s>
-template<typename RightHandSide>
-void RosenbrockTransformed<s>::solve( boost::shared_ptr<RightHandSide> Fun, VectorStandard& y, Real t0, Real TF, Real& dt)
-{
-	ofstream output("test_ros3p_VectorStandard.txt");
-
-	Real t(t0);						//time t_k
-	Real dt_old(dt);
-
-	UInt n= y.size();
-	MatrixStandard U(n, M_s);
-	MatrixStandard I(n);
-	MatrixStandard Psys(n,n),Qsys(n,n),Usys(n,n),Lsys(n,n);
-	MatrixStandard B(n);			//Linear system matrix
-	VectorStandard ytmp(y);				//temporary variable
-	VectorStandard Utmp(y);
-	VectorStandard rhs(y);					//rhs will be the right hand side
-	Real err_n;							//error at step n
-	Real err_n_1;						//error at step n-1
-	Real fac_max = 5.0;					//maximal value for this factor, dt(k+1) < dt(k)*fac_max
-	Int k = 1;							//iteration counter
-	bool rejected = false;					//used to know if a step is rejected two times consecutively
-
-	output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
-
-	//First step, to set err_n_1
-	//cout<<"Begin of iteration k = 0\n";
-
-	B = I/(dt*M_g);
-	B -= Fun->getJac(y);
-	M_solver.LU(B, Psys, Qsys, Lsys, Usys, I);
-	computeStages<RightHandSide>(U, y, ytmp, rhs, Utmp, Fun, dt, Lsys, Usys, Psys, Qsys);
-
-	U.times(M_m, ytmp);
-	y += ytmp ;
-	U.times(M_mdiff, Utmp);
-	err_n_1 = Utmp.norm2();
-	t += dt;
-
-	/*
-	cout<<"t(k) = "<<t-dt<<"\n";
-	cout<<"dt(k) = "<<dt<<"\n";
-	cout<<"err_n_1 = "<<err_n_1<<"\n";
-	cout<<"dt(k+1) = "<<dt<<"\n";
-	cout<<"Iteration 0 finished."<<"\n\n";
-	 */
-
-
-	output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
-
-	while (t < TF)
-	{
-		/*
-		cout<<"Begin of iteration k = "<<k<<"\n";
-		cout<<"t("<<k<<") = "<<t<<"\n";
-		cout<<"dt("<<k<<") = "<<dt<<"\n";
-		*/
-
-
-		U *= 0.0;
-		B = I/(dt*M_g);
-		B -=  Fun->getJac(y);
-		M_solver.LU(B, Psys, Qsys, Lsys, Usys, I);								//Computing the inverse, which will be used s times
-		computeStages<RightHandSide>(U, y, ytmp, rhs, Utmp, Fun, dt, Lsys, Usys, Psys, Qsys);
-
-		if( computeError(U, Utmp, err_n, err_n_1, fac_max, dt, dt_old, TF-t, y.norm2(), rejected) )
-		{
-			rejected = true;
-			continue;
-		}
-		else
-		{
-			U.times(M_m, ytmp);
-			y += ytmp;
-			t += dt;									//upgrading the time
-			k++;
-
-
-			//cout<<"dt("<<k<<") = "<<dt<<"\n";
-			//cout<<"Iteration "<<k-1<<" finished."<<"\n\n";
-
-
-			output << t << " " << y[0] << " " << y[1] << " " <<dt<< " " << rejected <<"\n";
-
-			rejected = false;
-		}
-
-	}
-
-	output.close();
-}
-
-template<UInt s>
-void RosenbrockTransformed<s>::initMembers()
+void RosenbrockTransformed::initMembers()
 {
 	M_s = M_m.size();
 	M_D = 1.5;
@@ -177,8 +59,7 @@ void RosenbrockTransformed<s>::initMembers()
 	M_p_1 = 1.0/M_p;
 }
 
-template<UInt s>
-void RosenbrockTransformed<s>::setMethod(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
+void RosenbrockTransformed::setMethod(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
 		   	   	   	   	   	   	   	   	 const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat, UInt order)
 {
 	M_g = g;
@@ -191,30 +72,8 @@ void RosenbrockTransformed<s>::setMethod(Real g, const MatrixStandard& A, const 
 	M_p = (double)(order);
 }
 
-template<UInt s>
-template<typename RightHandSide>
-void RosenbrockTransformed<s>::computeStages(MatrixStandard& U, const VectorStandard& y, VectorStandard& ytmp, VectorStandard& rhs, VectorStandard& Utmp,
-		   boost::shared_ptr<RightHandSide> Fun, Real dt, MatrixStandard& Lsys, MatrixStandard& Usys,
-		   MatrixStandard& Psys, MatrixStandard& Qsys)
-{
-	for (UInt i = 0; i<M_s; i++)
-	{
-		U.times(M_A.getLine(i), Utmp);
-		ytmp = y + Utmp;											//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
-		U.times(M_C.getLine(i), Utmp);				//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
-		Utmp /= dt;
-		Fun->computeRhs( ytmp, 0.0, rhs);
-		Utmp += rhs;
-		Psys.times(Utmp, rhs);
-		M_solver.solveL(Lsys, rhs);
-		M_solver.solveU(Usys, rhs);
-		Qsys.times(rhs, Utmp);
-		U.setCol(i,Utmp);
-	}
-}
 
-template<UInt s>
-bool RosenbrockTransformed<s>::computeError(const MatrixStandard& U, VectorStandard& Utmp, Real& err_n, Real& err_n_1,
+bool RosenbrockTransformed::computeError(const MatrixStandard& U, VectorStandard& Utmp, Real& err_n, Real& err_n_1,
 					  Real fac_max, Real& dt, Real& dt_old, Real Trem, Real ynorm, bool& rejected)
 {
 	Real Tol = M_absTol + M_relTol * ynorm;			//Tol = atol + rtol*|y_k|
@@ -245,4 +104,6 @@ bool RosenbrockTransformed<s>::computeError(const MatrixStandard& U, VectorStand
 		return false;
 	}
 }
+
+} //namespace LifeV
 

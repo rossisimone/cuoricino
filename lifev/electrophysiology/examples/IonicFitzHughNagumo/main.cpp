@@ -26,13 +26,13 @@
 
 /*!
     @file
-    @brief 0D test with the Negroni Lascano model of 1996.
+    @brief 0D test with the FitzHugh Nagumo model.
 
     @date 01−2013
-    @author Simone Rossi <simone.rossi@epfl.ch>
+    @author Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
 
     @contributor
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
+    @mantainer Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
  */
 
 // Tell the compiler to ignore specific kind of warnings:

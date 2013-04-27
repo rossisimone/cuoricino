@@ -41,7 +41,7 @@ namespace LifeV
 {
 
 ROS3P::ROS3P()
-: RosenbrockTransformed<3>()
+: RosenbrockTransformed()
 {
 	MatrixStandard A(3,3);
 	MatrixStandard C(3,3);
