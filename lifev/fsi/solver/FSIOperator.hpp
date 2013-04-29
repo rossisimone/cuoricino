@@ -120,7 +120,7 @@ public:
 #ifdef HAVE_HDF5
     typedef ExporterHDF5Mesh3D<mesh_Type>                                           meshFilter_Type;
 #endif
-
+    typedef boost::shared_ptr<mesh_Type>											meshPtr_Type;
     typedef OseenSolverShapeDerivative   <mesh_Type>                                fluid_Type;
     typedef StructuralOperator  <mesh_Type>                                           solid_Type;
     typedef HarmonicExtensionSolver<mesh_Type>                                      meshMotion_Type;
@@ -675,6 +675,12 @@ public:
     {
         return *M_solidLocalMesh;
     }
+
+    inline meshPtr_Type& solidLocalMeshPtr()
+    {
+        return M_solidLocalMesh;
+    }
+
 
     //!getter for the fluid velocity FESpace
     const FESpace<mesh_Type, MapEpetra>& uFESpace()               const
