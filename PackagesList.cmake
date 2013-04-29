@@ -81,6 +81,7 @@ SET( LifeV_PACKAGES_AND_DIRS_AND_CLASSIFICATIONS
   OneDFSI               lifev/one_d_fsi                   PS
   ZeroDimensional       lifev/zero_dimensional            PS 
   Structure             lifev/structure                   PS
+  EM		        lifev/em	                  EX
   FSI                   lifev/fsi                         PS
   Multiscale            lifev/multiscale                  EX
   Darcy                 lifev/darcy                       PS
