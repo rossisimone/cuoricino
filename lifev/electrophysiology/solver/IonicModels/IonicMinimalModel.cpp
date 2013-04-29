@@ -109,6 +109,11 @@ IonicMinimalModel::IonicMinimalModel()  :
     M_tauwinf   ( 0.07  ),
     M_winfstar  ( 0.94  )
 {
+	M_restingConditions.at(0) = 0.0;
+	M_restingConditions.at(1) = 1.0;
+	M_restingConditions.at(2) = 1.0;
+	M_restingConditions.at(3) = 0.021553043080281;
+
 }
 
 IonicMinimalModel::IonicMinimalModel ( Teuchos::ParameterList& parameterList     )   :
@@ -294,8 +299,6 @@ Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v, c
 
     return dPotential;
 }
-
-
 
 
 void IonicMinimalModel::showMe()

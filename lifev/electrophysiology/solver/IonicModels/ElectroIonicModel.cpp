@@ -46,12 +46,14 @@ namespace LifeV
 //! Constructors
 // ===================================================
 ElectroIonicModel::ElectroIonicModel() :
-    M_numberOfEquations (0)
+    M_numberOfEquations (0),
+	M_restingConditions	()
 {
 }
 
 ElectroIonicModel::ElectroIonicModel ( int n ) :
-    M_numberOfEquations (n)
+    M_numberOfEquations (n),
+	M_restingConditions (std::vector<Real>(M_numberOfEquations, 0.0) )
 {
 }
 
@@ -357,6 +359,24 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
         }
     }
 }
+
+void ElectroIonicModel::initialize( std::vector<Real>& v )
+{
+	for(int i(0); i <  M_numberOfEquations; i++ )
+	{
+	v.at(i) = M_restingConditions.at(i);
+	}
+}
+
+void ElectroIonicModel::initialize( std::vector<vectorPtr_Type>& v )
+{
+	for(int i(0); i < M_numberOfEquations; i++ )
+	{
+	*( v.at(i) ) = M_restingConditions.at(i);
+	}
+}
+
+
 }
 
 

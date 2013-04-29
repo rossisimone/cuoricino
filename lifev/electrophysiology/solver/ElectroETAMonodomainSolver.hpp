@@ -829,6 +829,11 @@ public:
 		exporter.postProcess(t);
 	}
 
+	void inline setInitialConditions()
+	{
+		M_ionicModelPtr -> initialize( M_globalSolution );
+	}
+
 	//@}
 
 private:
@@ -1383,6 +1388,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P() {
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBE() {
 	M_linearSolverPtr->setRightHandSide(M_rhsPtrUnique);
+	cout << "\n\nnorm inf V: " << M_rhsPtrUnique -> normInf() << "\n\n";
 	M_linearSolverPtr->solve(M_potentialPtr);
 }
 

@@ -134,11 +134,18 @@ public:
     //@}
 
     virtual void showMe() = 0;
+
+    //initialize with given conditions
+    virtual void initialize( std::vector<Real>& v );
+
+    //initialize with given conditions
+    virtual void initialize( std::vector<vectorPtr_Type>& v );
     //@}
 
 protected:
 
     short int  M_numberOfEquations;
+    std::vector<Real> M_restingConditions;
 
 
 };

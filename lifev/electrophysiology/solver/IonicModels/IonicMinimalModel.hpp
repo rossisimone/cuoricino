@@ -346,18 +346,8 @@ public:
 
     void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
 
-    //Compute the rhs on a mesh/ 3D case
-    //    void computeRhs( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
-    //
-    //    void computeRhs( const std::vector<vectorPtr_Type>& v, const VectorEpetra& Iapp, std::vector<vectorPtr_Type>& rhs );
-
     // compute the rhs with state variable interpolation
     Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
-
-    //    void computePotentialRhs(     const std::vector<vectorPtr_Type>& v,
-    //                                  const VectorEpetra& Iapp,
-    //                                  std::vector<vectorPtr_Type>& rhs,
-    //                                  FESpace<mesh_Type, MapEpetra>& uFESpace );
 
     //! Display information about the model
     void showMe();
