@@ -274,6 +274,11 @@ public:
         return M_Gammaf;
     }
 
+    inline  matrixSmall_Type& identity()
+    {
+        return M_identity;
+    }
+
     void apply ( const vector_Type& sol, vector_Type& res,
                  const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
                  const mapMarkerIndexesPtr_Type mapsMarkerIndexes);
