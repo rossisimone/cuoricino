@@ -46,12 +46,12 @@ MatrixStandard::MatrixStandard(UInt n)
 }
 
 MatrixStandard::MatrixStandard(UInt n, UInt m, Real r)
-: vector<vector <Real> >(n, vector<Real>(m, r))
+: std::vector<std::vector <Real> >(n, std::vector<Real>(m, r))
 {
 }
 
 MatrixStandard::MatrixStandard(std::vector<std::vector<Real> > A)
-: vector<vector <Real> >(A)
+: std::vector<std::vector <Real> >(A)
 {
 }
 
@@ -168,7 +168,7 @@ MatrixStandard& MatrixStandard::operator-=(const MatrixStandard& B)
 	return *this;
 }
 
-MatrixStandard& MatrixStandard::operator-=(const vector<vector<Real> >& B)
+MatrixStandard& MatrixStandard::operator-=(const std::vector<std::vector<Real> >& B)
 {
 	for(UInt i = 0; i<this->size(); i++)
 		for(UInt j = 0; j<this->at(0).size(); j++)
