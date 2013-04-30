@@ -976,12 +976,8 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 				new LinearSolver(*(solver.M_linearSolverPtr))), M_elementsOrder(
 				solver.M_elementsOrder), M_fiberPtr(
 				new vector_Type(*(solver.M_fiberPtr))) {
-	std::cout << "new potential: " << M_potentialPtr << endl;
-	std::cout << "given potential: " << solver.M_potentialPtr << endl;
 
 	setupGlobalSolution(M_ionicModelPtr->Size());
-	std::cout << "new potential: " << M_potentialPtr << endl;
-	std::cout << "given potential: " << solver.M_potentialPtr << endl;
 	copyGlobalSolution(solver.M_globalSolution);
 	setupGlobalRhs(M_ionicModelPtr->Size());
 	copyGlobalRhs(solver.M_globalRhs);
@@ -1007,11 +1003,7 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>& ElectroETAMonodomainSolver<Mesh,
 	M_diffusionTensor = solver.M_diffusionTensor;
 	setRhs( * ( solver.M_rhsPtr ) );
 	setRhsUnique( * ( solver.M_rhsPtrUnique ) );
-	std::cout << "new potential: " << M_potentialPtr << endl;
-	std::cout << "given potential: " << solver.M_potentialPtr << endl;
 	setPotential( * ( solver.M_potentialPtr ) );
-	std::cout << "new potential: " << M_potentialPtr << endl;
-	std::cout << "given potential: " << solver.M_potentialPtr << endl;
 
 	setAppliedCurrent( * ( solver.M_appliedCurrentPtr ) );
 	setLinearSolver( * ( solver.M_linearSolverPtr ) );
@@ -1389,7 +1381,6 @@ template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBE() {
 	if(M_displacementPtr) M_linearSolverPtr ->setOperator(M_globalMatrixPtr);
 	M_linearSolverPtr->setRightHandSide(M_rhsPtrUnique);
-	cout << "\n\nnorm inf V: " << M_rhsPtrUnique -> normInf() << "\n\n";
 	M_linearSolverPtr->solve(M_potentialPtr);
 }
 
