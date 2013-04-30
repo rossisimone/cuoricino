@@ -3,6 +3,7 @@ SET(solver_HEADERS
 CACHE INTERNAL "")
 
 SET(solver_SOURCES
+	solver/EMSolver.cpp
 CACHE INTERNAL "")
 
 
