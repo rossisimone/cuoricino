@@ -21,6 +21,7 @@ ADD_SUBDIRECTORIES(
   XbNegroniLascano96
   IonicAlievPanfilov
   IonicFitzHughNagumo
+  IonicFitzHughNagumo_test
   IonicRogersMcCulloch
   IonicMinimalModel
   IonicFox
