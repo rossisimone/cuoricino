@@ -6,6 +6,7 @@ SET( solver_IonicModels_HEADERS
   solver/IonicModels/IonicTenTusscher.hpp
   solver/IonicModels/IonicMinimalModel.hpp
   solver/IonicModels/ElectroIonicModel.hpp
+  solver/IonicModels/IonicFox.hpp
 CACHE INTERNAL "")
 
 SET( solver_IonicModels_SOURCES
@@ -15,6 +16,7 @@ SET( solver_IonicModels_SOURCES
   solver/IonicModels/IonicJafriRiceWinslow.cpp
   solver/IonicModels/IonicTenTusscher.cpp
   solver/IonicModels/IonicMinimalModel.cpp
+  solver/IonicModels/IonicFox.cpp
   solver/IonicModels/ElectroIonicModel.cpp
 CACHE INTERNAL "")
 

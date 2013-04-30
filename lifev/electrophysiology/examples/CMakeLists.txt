@@ -7,9 +7,11 @@ ADD_SUBDIRECTORIES(
   0DMitchellSchaefferModel
   0DJafriRiceWinslowModel
   0DTenTusscherModel
+  0DFoxModel
   0DMinimalModel
   0DNegroniLascanoModel
   0DFitzHughNagumoModel
+#  CreateFiberEllipsoid
   FiberInterpolation
 #  ActiveStrainODE
 #  AlievPanfilov
@@ -19,8 +21,10 @@ ADD_SUBDIRECTORIES(
   XbNegroniLascano96
   IonicAlievPanfilov
   IonicFitzHughNagumo
+  IonicRogersMcCulloch
   IonicMinimalModel
+  IonicFox
   Restart
-#  RosenbrockTest  
+  RosenbrockTest  
 #  RiceModel
 )
