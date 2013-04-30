@@ -1,5 +1,6 @@
 SET(solver_HEADERS
   solver/EMSolver.hpp
+  solver/EMETAFunctors.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES
