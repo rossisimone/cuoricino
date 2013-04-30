@@ -106,6 +106,19 @@ public:
 
     void updateRhs(vectorPtr_Type newRhs);
 
+    void getinterpolationOperatorMap(mapPtr_Type& map)
+    {
+        map.reset(new map_Type(*M_interpolationOperatorMap));
+        *map += *M_interpolationOperatorMap;
+        *map += *M_interpolationOperatorMap;
+    }
+
+    void getSolutionOnGamma (vectorPtr_Type& GammaSolution) { GammaSolution.reset(new vector_Type ( *M_solOnGamma ) ); }
+
+    void getprojectionOperatorMap (mapPtr_Type& map) { map.reset(new map_Type(*M_projectionOperatorMap)); }
+
+    void buildUnknownVectorialInterfaceMap();
+
 private:
 
     meshPtr_Type        M_fullMeshKnown;
@@ -130,6 +143,12 @@ private:
     mapPtr_Type         M_projectionOperatorMap;
     neighborsPtr_Type   M_neighbors;
     vectorPtr_Type      M_unknownField_rbf;
+
+    matrixPtr_Type      M_interpolationOperatorVecMap;
+    matrixPtr_Type      M_projectionOperatorVecMap;
+
+    vectorPtr_Type      M_solOnGamma;
+    mapPtr_Type         M_gammaMapUnknownVectorial;
 
 };
 
@@ -415,7 +434,6 @@ void RBFlocallyRescaledVectorial<mesh_Type>::interpolate()
     solverRBF3.setRightHandSide (M_RhsF3);
     solverRBF3.solve (gamma_f3);
 
-
     vectorPtr_Type rbf_f1;
     rbf_f1.reset (new vector_Type (*M_projectionOperatorMap) );
 
@@ -458,7 +476,48 @@ void RBFlocallyRescaledVectorial<mesh_Type>::interpolate()
     M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
     M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
 
+    /*
+    mapPtr_Type solOnGammaMap;
+
+    solOnGammaMap.reset( new map_Type( *M_projectionOperatorMap ) );
+    *solOnGammaMap += *M_projectionOperatorMap;
+    *solOnGammaMap += *M_projectionOperatorMap;
+    */
+
+    /*
+    M_solOnGamma.reset(new vector_Type( *M_gammaMapUnknownVectorial ) );
+
+    M_solOnGamma->subset (*solution1, *M_projectionOperatorMap, 0, 0);
+    M_solOnGamma->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
+    M_solOnGamma->subset (*solution3, *M_projectionOperatorMap, 0, 2*M_unknownField->size()/3);
+    */
 }
+
+template <typename mesh_Type>
+void RBFlocallyRescaledVectorial<mesh_Type>::buildUnknownVectorialInterfaceMap()
+{
+    std::set<ID> GID_vectorial;
+    for ( UInt i = 0; i < M_localMeshUnknown->numVertices(); ++i )
+        if ( this->isInside (M_localMeshUnknown->point (i).markerID(), M_flags) )
+            if (M_unknownField->blockMap().LID (M_localMeshUnknown->point (i).id() ) != -1)
+                for(int nDim = 0; nDim < 3; ++nDim)
+                    GID_vectorial.insert (M_localMeshUnknown->point (i).id() + nDim*M_fullMeshUnknown->numVertices());
+
+    int LocalNodesNumber = GID_vectorial.size();
+    //std::cout << LocalNodesNumber << std::endl;
+    int* GlobalID = new int[LocalNodesNumber];
+    int k = 0;
+
+    for (std::set<ID>::iterator it = GID_vectorial.begin(); it != GID_vectorial.end(); ++it)
+    {
+        GlobalID[k] = *it;
+        ++k;
+    }
+
+    M_gammaMapUnknownVectorial.reset (new map_Type (-1, LocalNodesNumber, GlobalID, M_unknownField->mapPtr()->commPtr() ) );
+    delete GlobalID;
+}
+
 
 template <typename mesh_Type>
 void RBFlocallyRescaledVectorial<mesh_Type>::identifyNodes (meshPtr_Type LocalMesh, std::set<ID>& GID_nodes, vectorPtr_Type CheckVector)

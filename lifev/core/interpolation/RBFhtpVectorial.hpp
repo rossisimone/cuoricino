@@ -34,8 +34,8 @@
     A more detailed description of the file (if necessary)
  */
 
-#ifndef RBFHTP_H
-#define RBFHTP_H 1
+#ifndef RBFHTPVECTORIAL_H
+#define RBFHTPVECTORIAL_H 1
 
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 
@@ -43,7 +43,7 @@ namespace LifeV
 {
 
 template <typename mesh_Type>
-class RBFhtp: public RBFInterpolation<mesh_Type>
+class RBFhtpVectorial: public RBFInterpolation<mesh_Type>
 {
 public:
 
@@ -73,9 +73,9 @@ public:
 
     typedef Teuchos::RCP< Teuchos::ParameterList >                                parameterList_Type;
 
-    RBFhtp();
+    RBFhtpVectorial();
 
-    virtual ~RBFhtp();
+    virtual ~RBFhtpVectorial();
 
     void setup ( meshPtr_Type fullMeshKnown, meshPtr_Type localMeshKnown, meshPtr_Type fullMeshUnknown, meshPtr_Type localMeshUnknown, flagContainer_Type flags );
 
@@ -105,8 +105,6 @@ public:
 
     void updateRhs(vectorPtr_Type newRhs);
 
-    void setRadius ( double radius );
-
     void approximateInverse();
 
     void buildInterpolationMatrix();
@@ -130,7 +128,9 @@ private:
     matrixPtr_Type      M_approximatedInverse;
     matrixPtr_Type      M_interpolationOperator;
     matrixPtr_Type      M_projectionOperator;
-    vectorPtr_Type      M_RhsF;
+    vectorPtr_Type      M_RhsF1;
+    vectorPtr_Type      M_RhsF2;
+    vectorPtr_Type      M_RhsF3;
     vectorPtr_Type      M_RhsOne;
     vectorPtr_Type      M_rbf_one;
     mapPtr_Type         M_interpolationOperatorMap;
@@ -144,15 +144,15 @@ private:
 };
 
 template <typename mesh_Type>
-RBFhtp<mesh_Type>::RBFhtp()
+RBFhtpVectorial<mesh_Type>::RBFhtpVectorial()
 {}
 
 template <typename mesh_Type>
-RBFhtp<mesh_Type>::~RBFhtp()
+RBFhtpVectorial<mesh_Type>::~RBFhtpVectorial()
 {}
 
 template <typename mesh_Type>
-void RBFhtp<mesh_Type>::setup ( meshPtr_Type fullMeshKnown, meshPtr_Type localMeshKnown, meshPtr_Type fullMeshUnknown, meshPtr_Type localMeshUnknown, flagContainer_Type flags )
+void RBFhtpVectorial<mesh_Type>::setup ( meshPtr_Type fullMeshKnown, meshPtr_Type localMeshKnown, meshPtr_Type fullMeshUnknown, meshPtr_Type localMeshUnknown, flagContainer_Type flags )
 {
     M_fullMeshKnown = fullMeshKnown;
     M_localMeshKnown = localMeshKnown;
@@ -162,7 +162,7 @@ void RBFhtp<mesh_Type>::setup ( meshPtr_Type fullMeshKnown, meshPtr_Type localMe
 }
 
 template <typename mesh_Type>
-void RBFhtp<mesh_Type>::setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type UnknownField, GetPot datafile, parameterList_Type belosList)
+void RBFhtpVectorial<mesh_Type>::setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type UnknownField, GetPot datafile, parameterList_Type belosList)
 {
     M_knownField   = KnownField;
     M_unknownField = UnknownField;
@@ -170,21 +170,17 @@ void RBFhtp<mesh_Type>::setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type 
     M_belosList    = belosList;
 }
 
-template <typename mesh_Type>
-void RBFhtp<mesh_Type>::setRadius ( double radius )
-{
-    M_radius = radius;
-}
-
 template <typename Mesh>
-void RBFhtp<Mesh>::buildOperators()
+void RBFhtpVectorial<Mesh>::buildOperators()
 {
     if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
         std::cout << "\n[Assembling Interpolation and Projection operators ] -----> ";
     LifeChrono TimeBuilding;
     TimeBuilding.start();
+
     this->interpolationOperator();
     this->projectionOperator();
+
     TimeBuilding.stop();
     if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
         std::cout << "done in " << TimeBuilding.diff() << " s \n\n";
@@ -196,21 +192,23 @@ void RBFhtp<Mesh>::buildOperators()
 
     LifeChrono TimeBuildingMatrix;
     TimeBuildingMatrix.start();
+
     this->approximateInverse();
+
     this->buildInterpolationMatrix();
+
     if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
         std::cout << "done in " << TimeBuildingMatrix.diff() << " s \n\n";
-
 }
 
 template <typename Mesh>
-void RBFhtp<Mesh>::approximateInverse()
+void RBFhtpVectorial<Mesh>::approximateInverse()
 {
     M_multiplicative.reset(new matrix_Type(*M_interpolationOperator));
     *M_approximatedInverse -= *M_interpolationOperator;
     matrixPtr_Type result;
 
-    for (int n = 2; n < 8; ++n)
+    for (int n = 2; n < 12; ++n)
     {
         if(n>2)
             M_multiplicative.reset(new matrix_Type(*result));
@@ -224,7 +222,7 @@ void RBFhtp<Mesh>::approximateInverse()
 }
 
 template <typename Mesh>
-void RBFhtp<Mesh>::buildInterpolationMatrix()
+void RBFhtpVectorial<Mesh>::buildInterpolationMatrix()
 {
     M_RBFMatrix.reset ( new matrix_Type (*M_projectionOperatorMap, 5000) );
     M_projectionOperator->multiply(false, *M_approximatedInverse, false, *M_RBFMatrix, false);
@@ -238,7 +236,7 @@ void RBFhtp<Mesh>::buildInterpolationMatrix()
     invDiag.reset ( new matrix_Type(*M_projectionOperatorMap, 5000) );
 
     int* Indices = new int[1];
-    double Values = 0.25;
+    double Values;
 
     for ( int i = 0 ; i < M_projectionOperator->matrixPtr()->Map().NumMyElements(); ++i )
     {
@@ -262,37 +260,41 @@ void RBFhtp<Mesh>::buildInterpolationMatrix()
 
 
 template <typename mesh_Type>
-void RBFhtp<mesh_Type>::interpolate()
+void RBFhtpVectorial<mesh_Type>::interpolate()
 {
-    vectorPtr_Type solution;
-    solution.reset (new vector_Type (*M_projectionOperatorMap) );
+
+    vectorPtr_Type solution1;
+    solution1.reset (new vector_Type (*M_projectionOperatorMap) );
+
+    vectorPtr_Type solution2;
+    solution2.reset (new vector_Type (*M_projectionOperatorMap) );
+
+    vectorPtr_Type solution3;
+    solution3.reset (new vector_Type (*M_projectionOperatorMap) );
 
     if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
         std::cout << "[Interpolate ] -----> ";
     LifeChrono TimeInterpolate;
     TimeInterpolate.start();
-    M_RescaledRBFMatrix->multiply (false, *M_RhsF, *solution);
+
+    M_RescaledRBFMatrix->multiply (false, *M_RhsF1, *solution1);
+    M_RescaledRBFMatrix->multiply (false, *M_RhsF2, *solution2);
+    M_RescaledRBFMatrix->multiply (false, *M_RhsF3, *solution3);
+
     if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
         std::cout << "done in " << TimeInterpolate.diff() << " s \n\n";
 
-    vectorPtr_Type solution2;
-    solution2.reset (new vector_Type (*M_interpolationOperatorMap) );
-    M_RescaledRBFMatrix->multiply (true, *solution, *solution2);
-
-
-    solution3.reset (new vector_Type (*M_interpolationOperatorMap) );
-    *solution3 = 0;
-
-    solution3->subset (*solution2, *M_interpolationOperatorMap, 0, 0);
-    M_unknownField->subset (*solution, *M_projectionOperatorMap, 0, 0);
+    M_unknownField->subset (*solution1, *M_projectionOperatorMap, 0, 0);
+    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
+    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
 }
 
 template <typename Mesh>
-void RBFhtp<Mesh>::interpolationOperator()
+void RBFhtpVectorial<Mesh>::interpolationOperator()
 {
     this->identifyNodes (M_localMeshKnown, M_GIdsKnownMesh, M_knownField);
     M_neighbors.reset ( new neighbors_Type ( M_fullMeshKnown, M_localMeshKnown, M_knownField->mapPtr(), M_knownField->mapPtr()->commPtr() ) );
-    if (M_flags[0] == -1) 
+    if (M_flags[0] == -1)
     {
         M_neighbors->setUp();
     }
@@ -357,7 +359,7 @@ void RBFhtp<Mesh>::interpolationOperator()
 }
 
 template <typename mesh_Type>
-void RBFhtp<mesh_Type>::projectionOperator()
+void RBFhtpVectorial<mesh_Type>::projectionOperator()
 {
 
     this->identifyNodes (M_localMeshUnknown, M_GIdsUnknownMesh, M_unknownField);
@@ -434,7 +436,7 @@ void RBFhtp<mesh_Type>::projectionOperator()
 }
 
 template <typename mesh_Type>
-double RBFhtp<mesh_Type>::computeRBFradius (meshPtr_Type MeshNeighbors, meshPtr_Type MeshGID, idContainer_Type Neighbors, ID GlobalID)
+double RBFhtpVectorial<mesh_Type>::computeRBFradius (meshPtr_Type MeshNeighbors, meshPtr_Type MeshGID, idContainer_Type Neighbors, ID GlobalID)
 {
     double r = 0;
     double r_max = 0;
@@ -449,17 +451,21 @@ double RBFhtp<mesh_Type>::computeRBFradius (meshPtr_Type MeshNeighbors, meshPtr_
 }
 
 template <typename mesh_Type>
-void RBFhtp<mesh_Type>::buildRhs()
+void RBFhtpVectorial<mesh_Type>::buildRhs()
 {
-    M_RhsF.reset (new vector_Type (*M_interpolationOperatorMap) );
+    M_RhsF1.reset (new vector_Type (*M_interpolationOperatorMap) );
+    M_RhsF2.reset (new vector_Type (*M_interpolationOperatorMap) );
+    M_RhsF3.reset (new vector_Type (*M_interpolationOperatorMap) );
     M_RhsOne.reset (new vector_Type (*M_interpolationOperatorMap) );
 
-    M_RhsF->subset (*M_knownField, *M_interpolationOperatorMap, 0, 0);
+    M_RhsF1->subset (*M_knownField, *M_interpolationOperatorMap, 0, 0);
+    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3, 0);
+    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3*2, 0);
     *M_RhsOne += 1;
 }
 
 template <typename mesh_Type>
-void RBFhtp<mesh_Type>::identifyNodes (meshPtr_Type LocalMesh, std::set<ID>& GID_nodes, vectorPtr_Type CheckVector)
+void RBFhtpVectorial<mesh_Type>::identifyNodes (meshPtr_Type LocalMesh, std::set<ID>& GID_nodes, vectorPtr_Type CheckVector)
 {
     if (M_flags[0] == -1)
     {
@@ -481,7 +487,7 @@ void RBFhtp<mesh_Type>::identifyNodes (meshPtr_Type LocalMesh, std::set<ID>& GID
 }
 
 template <typename mesh_Type>
-bool RBFhtp<mesh_Type>::isInside (ID pointMarker, flagContainer_Type flags)
+bool RBFhtpVectorial<mesh_Type>::isInside (ID pointMarker, flagContainer_Type flags)
 {
     int check = 0;
     for (UInt i = 0; i < flags.size(); ++i)
@@ -493,43 +499,47 @@ bool RBFhtp<mesh_Type>::isInside (ID pointMarker, flagContainer_Type flags)
 }
 
 template <typename mesh_Type>
-double RBFhtp<mesh_Type>::rbf (double x1, double y1, double z1, double x2, double y2, double z2, double radius)
+double RBFhtpVectorial<mesh_Type>::rbf (double x1, double y1, double z1, double x2, double y2, double z2, double radius)
 {
     double distance = sqrt ( pow (x1 - x2, 2) + pow (y1 - y2, 2) + pow (z1 - z2, 2) );
     return pow (1 - distance / radius, 4) * (4 * distance / radius + 1);
 }
 
 template <typename mesh_Type>
-void RBFhtp<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
+void RBFhtpVectorial<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
 {
-    *M_RhsF *= 0;
-    *M_RhsF = *newRhs;
+    *M_RhsF1 *= 0;
+    M_RhsF1->subset (*newRhs, *M_interpolationOperatorMap, 0, 0);
+    *M_RhsF2 *= 0;
+    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3, 0);
+    *M_RhsF3 *= 0;
+    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3*2, 0);
 }
 
 template <typename mesh_Type>
-void RBFhtp<mesh_Type>::solution (vectorPtr_Type& Solution)
+void RBFhtpVectorial<mesh_Type>::solution (vectorPtr_Type& Solution)
 {
     Solution = M_unknownField;
 }
 
 template <typename mesh_Type>
-void RBFhtp<mesh_Type>::solutionrbf (vectorPtr_Type& Solution_rbf)
+void RBFhtpVectorial<mesh_Type>::solutionrbf (vectorPtr_Type& Solution_rbf)
 {
     Solution_rbf = solution3;
 }
 
 //! Factory create function
 template <typename mesh_Type>
-inline RBFInterpolation<mesh_Type> * createRBFhtp()
+inline RBFInterpolation<mesh_Type> * createRBFhtpVectorial()
 {
-    return new RBFhtp< mesh_Type > ();
+    return new RBFhtpVectorial< mesh_Type > ();
 }
 namespace
 {
-static bool S_registerTriHTP = RBFInterpolation<LifeV::RegionMesh<LinearTriangle > >::InterpolationFactory::instance().registerProduct ( "RBFhtp", &createRBFhtp<LifeV::RegionMesh<LinearTriangle > > );
-static bool S_registerTetHTP = RBFInterpolation<LifeV::RegionMesh<LinearTetra > >::InterpolationFactory::instance().registerProduct ( "RBFhtp", &createRBFhtp<LifeV::RegionMesh<LinearTetra > > );
+static bool S_registerTriHTPV = RBFInterpolation<LifeV::RegionMesh<LinearTriangle > >::InterpolationFactory::instance().registerProduct ( "RBFhtpVectorial", &createRBFhtpVectorial<LifeV::RegionMesh<LinearTriangle > > );
+static bool S_registerTetHTPV = RBFInterpolation<LifeV::RegionMesh<LinearTetra > >::InterpolationFactory::instance().registerProduct ( "RBFhtpVectorial", &createRBFhtpVectorial<LifeV::RegionMesh<LinearTetra > > );
 }
 
 } // Namespace LifeV
 
-#endif /* RBFHTP_H */
+#endif /* RBFHTPVECTORIAL_H */
