@@ -1387,6 +1387,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P() {
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBE() {
+	if(M_displacementPtr) M_linearSolverPtr ->setOperator(M_globalMatrixPtr);
 	M_linearSolverPtr->setRightHandSide(M_rhsPtrUnique);
 	cout << "\n\nnorm inf V: " << M_rhsPtrUnique -> normInf() << "\n\n";
 	M_linearSolverPtr->solve(M_potentialPtr);
@@ -1476,6 +1477,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneICIStep() {
 	computeRhsICI();
+	if(M_displacementPtr) M_linearSolverPtr ->setOperator(M_globalMatrixPtr);
 	M_linearSolverPtr->setRightHandSide(M_rhsPtrUnique);
 	M_linearSolverPtr->solve(M_potentialPtr);
 }
@@ -1483,6 +1485,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneICIStep() {
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneSVIStep() {
 	computeRhsSVI();
+	if(M_displacementPtr) M_linearSolverPtr ->setOperator(M_globalMatrixPtr);
 	M_linearSolverPtr->setRightHandSide(M_rhsPtrUnique);
 	M_linearSolverPtr->solve(M_potentialPtr);
 }
