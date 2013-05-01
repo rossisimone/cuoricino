@@ -79,6 +79,9 @@
 #include <lifev/eta/expression/ExpressionIfCrossed.hpp>
 
 #include <lifev/eta/expression/ExpressionRotateMatrix.hpp>
+#include <lifev/eta/expression/ExpressionRotateSmallMatrix.hpp>
+#include <lifev/eta/expression/ExpressionVectorsToMatrix.hpp>
+
 
 #include <lifev/eta/expression/EvaluationPhiI.hpp>
 #include <lifev/eta/expression/EvaluationPhiJ.hpp>
@@ -123,6 +126,8 @@
 #include <lifev/eta/expression/EvaluationIfCrossed.hpp>
 
 #include <lifev/eta/expression/EvaluationRotateMatrix.hpp>
+#include <lifev/eta/expression/EvaluationRotateSmallMatrix.hpp>
+#include <lifev/eta/expression/EvaluationVectorsToMatrix.hpp>
 
 namespace LifeV
 {
@@ -652,7 +657,7 @@ private:
     ~ExpressionToEvaluation();
 };
 
-// Specialized for an interpolated gradient
+// Specialized for the rotation a vector small representing a diffusion tensor
 template<typename MeshType, typename MapType, UInt FESpaceDim, UInt FEFieldDim, UInt testDim, UInt solutionDim, UInt spaceDim>
 class ExpressionToEvaluation <
     ExpressionRotateMatrix<MeshType, MapType, FESpaceDim, FEFieldDim>, testDim, solutionDim, spaceDim >
@@ -664,6 +669,30 @@ private:
     ~ExpressionToEvaluation();
 };
 
+
+// Specialized for the rotation a matrix small representing a diffusion tensor
+template<typename MeshType, typename MapType, UInt FESpaceDim, UInt FEFieldDim, UInt testDim, UInt solutionDim, UInt spaceDim>
+class ExpressionToEvaluation <
+    ExpressionRotateSmallMatrix<MeshType, MapType, FESpaceDim, FEFieldDim>, testDim, solutionDim, spaceDim >
+{
+public:
+    typedef EvaluationRotateSmallMatrix<MeshType, MapType, FESpaceDim, FEFieldDim> evaluation_Type;
+private:
+    ExpressionToEvaluation();
+    ~ExpressionToEvaluation();
+};
+
+// create a diffusion tensor from 3 vectors epetra
+template<typename MeshType, typename MapType, UInt FESpaceDim, UInt FEFieldDim, UInt testDim, UInt solutionDim, UInt spaceDim>
+class ExpressionToEvaluation <
+    ExpressionVectorsToMatrix<MeshType, MapType, FESpaceDim, FEFieldDim>, testDim, solutionDim, spaceDim >
+{
+public:
+    typedef EvaluationVectorsToMatrix<MeshType, MapType, FESpaceDim, FEFieldDim> evaluation_Type;
+private:
+    ExpressionToEvaluation();
+    ~ExpressionToEvaluation();
+};
 // \endcond
 
 } // Namespace ExpressionAssembly

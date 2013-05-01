@@ -21,7 +21,9 @@ SET(expression_HEADERS
 	expression/EvaluationPhiJ.hpp
 	expression/EvaluationPosition.hpp
 	expression/EvaluationProduct.hpp
-	expression/EvaluationRotateMatrix.hpp	
+	expression/EvaluationRotateMatrix.hpp
+	expression/EvaluationRotateSmallMatrix.hpp	
+	expression/EvaluationVectorsToMatrix.hpp	
 	expression/EvaluationPower.hpp
 	expression/EvaluationLogarithm.hpp
 	expression/EvaluationExponential.hpp
@@ -55,7 +57,9 @@ SET(expression_HEADERS
 	expression/ExpressionPhiJ.hpp
 	expression/ExpressionPosition.hpp
 	expression/ExpressionMatrix.hpp
-	expression/ExpressionRotateMatrix.hpp	
+	expression/ExpressionRotateMatrix.hpp
+	expression/ExpressionRotateSmallMatrix.hpp	
+	expression/ExpressionVectorsToMatrix.hpp		
 	expression/ExpressionNormal.hpp
 	expression/ExpressionProduct.hpp
 	expression/ExpressionPower.hpp
