@@ -57,7 +57,7 @@ namespace LifeV
 namespace HeartUtility
 {
 
-template<typename Mesh> inline void importFibers(  boost::shared_ptr<VectorEpetra> fiberVector, const std::string& name, boost::shared_ptr< Mesh > mesh  )
+template<typename Mesh> inline void importFibers(  boost::shared_ptr<VectorEpetra> fiberVector, const std::string& name, boost::shared_ptr< Mesh > localMesh  )
 {
     typedef Mesh                         mesh_Type;
     typedef ExporterData<mesh_Type> 						   exporterData_Type;
@@ -67,14 +67,14 @@ template<typename Mesh> inline void importFibers(  boost::shared_ptr<VectorEpetr
 
 
     boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
-    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > fiberSpace( new FESpace< mesh_Type, MapEpetra > ( mesh, "P1", 3, comm ) );
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > fiberSpace( new FESpace< mesh_Type, MapEpetra > ( localMesh, "P1", 3, comm ) );
 
     exporterData_Type impData (exporterData_Type::VectorField, "fibers.00000", fiberSpace,
                                fiberVector, UInt (0), exporterData_Type::UnsteadyRegime);
 
     //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
     filterPtr_Type importer ( new hdf5Filter_Type() );
-    importer -> setMeshProcId ( mesh, comm -> MyPID() );
+    importer -> setMeshProcId ( localMesh, comm -> MyPID() );
     importer-> setPrefix (name);
     importer -> readVariable (impData);
     importer -> closeFile();
