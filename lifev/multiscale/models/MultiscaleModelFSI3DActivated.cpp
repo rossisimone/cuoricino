@@ -74,6 +74,8 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
 {
 	M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledVectorial" ) );
 	M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledScalar" ) );
+//	M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFhtpVectorial" ) );
+//	M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFhtp" ) );
 }
 
 // ===================================================
