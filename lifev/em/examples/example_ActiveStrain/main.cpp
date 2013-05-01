@@ -197,8 +197,9 @@ int main (int argc, char** argv)
     }
 
     //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
-    function_Type Vlid = &initialVlid;
-    monodomain -> setPotentialFromFunction( Vlid );
+//    function_Type Vlid = &initialVlid;
+//    monodomain -> setPotentialFromFunction( Vlid );
+    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 5 );
 
     for(int i(0); i < ionicModel -> Size(); i++ )
     {
@@ -326,11 +327,15 @@ int main (int argc, char** argv)
 
 
     //! =================================================================================
-    //! BC for
+    //! BC for quarter ring
     //! =================================================================================
-    BCh->addBC ("EdgesIn",      29,  Essential, Component, zero,    compz);
-    BCh->addBC ("EdgesIn",      31,  Essential, Component, zero,    compy);
-    BCh->addBC ("EdgesIn",      32,  Essential, Component, zero,    compx);
+//    BCh->addBC ("EdgesIn",      29,  Essential, Component, zero,    compz);
+//    BCh->addBC ("EdgesIn",      31,  Essential, Component, zero,    compy);
+//    BCh->addBC ("EdgesIn",      32,  Essential, Component, zero,    compx);
+    //! =================================================================================
+    //! BC for idealHeart
+    //! =================================================================================
+    BCh->addBC ("EdgesIn",      40,  Essential, Full, zero,    3);
     //! =================================================================================
 
     if ( comm->MyPID() == 0 )
@@ -355,28 +360,22 @@ int main (int argc, char** argv)
    //  vectorPtr_Type fibersRotated( new vector_Type( dFESpace -> map() ) );
     // dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *fibersRotated , 0);
 
-     if ( comm->MyPID() == 0 )
-     {
-         std::cout << "\nread fibers" << std::endl;
-     }
-     VectorSmall<3> fibers;
-
+     vectorPtr_Type fibers( new vector_Type( dFESpace -> map() ) );
      if ( comm->MyPID() == 0 )
      {
          std::cout << "\nread fibers" << std::endl;
      }
 
-     fibers[0] = parameterList.get("fx",1.0);
-     fibers[1] = parameterList.get("fy",0.0);
-     fibers[2] = parameterList.get("fz",0.0);
-
+     HeartUtility::importFibers(fibers, parameterList.get ("fiber_file", ""), monodomain-> localMeshPtr() );
 
      if ( comm->MyPID() == 0 )
      {
          std::cout << "\nset fibers" << std::endl;
      }
-     monodomain -> setupFibers(fibers);
-//     monodomain -> setFiberPtr( fibersRotated );
+
+
+//     monodomain -> setupFibers();
+     monodomain -> setFiberPtr( fibers );
      monodomain -> exportFiberDirection();
      //********************************************//
      // Create the global matrix: mass + stiffness in ELECTROPHYSIOLOGY //
@@ -467,16 +466,16 @@ int main (int argc, char** argv)
 //    HeartUtility::rescaleVector(*gammaf, min, max, beta);
 
 
-      matrixPtr_Type mass(new matrix_Type( monodomain -> massMatrixPtr() -> map() ) ) ;
-
-  	{
-  		using namespace ExpressionAssembly;
-
-  		integrate(elements(monodomain -> localMeshPtr() ), quadRuleTetra4pt, monodomain -> ETFESpacePtr(),
-  				monodomain -> ETFESpacePtr(), phi_i * phi_j) >> mass;
-
-  	}
-  	mass -> globalAssemble();
+//      matrixPtr_Type mass(new matrix_Type( monodomain -> massMatrixPtr() -> map() ) ) ;
+//
+//  	{
+//  		using namespace ExpressionAssembly;
+//
+//  		integrate(elements(monodomain -> localMeshPtr() ), monodomain -> feSpacePtr() -> qr(), monodomain -> ETFESpacePtr(),
+//  				monodomain -> ETFESpacePtr(), phi_i * phi_j) >> mass;
+//
+//  	}
+//  	mass -> globalAssemble();
 
 
   	vectorPtr_Type rhsActivation( new vector_Type( *gammaf ) );
@@ -539,7 +538,8 @@ int main (int argc, char** argv)
     linearSolver.setCommunicator ( comm );
     linearSolver.setParameters ( *solverParamList );
     linearSolver.setPreconditioner ( precPtr );
-	linearSolver.setOperator( mass );
+//	linearSolver.setOperator( mass );
+	linearSolver.setOperator( monodomain -> massMatrixPtr() );
 
     if ( comm->MyPID() == 0 )
     {
@@ -567,15 +567,16 @@ int main (int argc, char** argv)
     #define Pa			  beta * eval( fl,  I4f)
 	#define Gammaf 			( value( aETFESpace, *gammaf ) )
     #define GammaPlusOne ( Gammaf + value(1.0) )
-    #define dgGammaf ( value(-1.0) + value(-2.0) / GammaPlusOne + value(2.0) * Gammaf * ( Gammaf + value(2.0) * pow( GammaPlusOne, -3 ) )  )
-    #define activationEquation ( Pa  -  ( value(2.0) * GammaPlusOne * firstInvariantC + dgGammaf * I4f )  * value( mu / 2.0 ) ) / beta
-//#define activationEquation ( Pa - ( value(2.0) ) ) / beta
-   	vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map() ) );
+    #define dgGammaf ( value(-1.0) + value(-2.0) / ( GammaPlusOne ) + value(2.0) * Gammaf * ( Gammaf + value(2.0)  )* pow( GammaPlusOne, -3 ) )
+    #define activationEquation value(-1.0) * ( Pa  -  ( value(2.0) * GammaPlusOne * firstInvariantC + dgGammaf * I4f )  * value( mu / 2.0 ) ) / beta
+
+   	vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
 
   	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
   			monodomain -> feSpacePtr(), gammaf, UInt(0));
   	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "rhs",
-  			monodomain -> feSpacePtr(), tmpRhsActivation, UInt(0));
+  			monodomain -> feSpacePtr(), rhsActivation, UInt(0));
+
 
   	expGammaf.postProcess(0.0);
 
@@ -602,7 +603,7 @@ int main (int argc, char** argv)
 
 
 				integrate ( elements ( monodomain -> localMeshPtr() ),
-						quadRuleTetra4pt,
+						monodomain -> feSpacePtr() -> qr() ,
 						monodomain -> ETFESpacePtr(),
 						activationEquation * phi_i
 				) >> tmpRhsActivation;
@@ -614,14 +615,14 @@ int main (int argc, char** argv)
 			linearSolver.solve(gammaf);
 
 
-		  if (k % iter == 0){
+		  //if ( k % iter == 0){
 			  solid.material() -> setGammaf( *gammaf );
 			  solid.iterate ( BCh );
 
 			//        timeAdvance->shiftRight ( solid.displacement() );
 
 			  *solidDisp = solid.displacement();
-		  }
+		  //}
 		  //*solidVel  = timeAdvance->firstDerivative();
 		  //*solidAcc  = timeAdvance->secondDerivative();
 		  expGammaf.postProcess(t);
