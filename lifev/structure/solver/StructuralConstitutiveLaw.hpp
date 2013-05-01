@@ -292,7 +292,7 @@ public:
     inline virtual void setupFiberVector( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
 
 
-    inline  MatrixSmall<3, 3>& identity()
+    inline virtual MatrixSmall<3, 3>& identity()
     {
     	MatrixSmall<3, 3> I;
         I (0, 0) = 1.0;
