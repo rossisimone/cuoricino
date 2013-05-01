@@ -155,7 +155,7 @@ LifeV::Real
 MultiscaleModelFSI3DActivated::activationFunction(const Real& t, const Real& x, const Real& y, const Real& z, const LifeV::ID& i)
 {
     return std::exp( -( std::pow(x-M_activationCenter[0],2) + std::pow(y-M_activationCenter[1],2) + std::pow(z-M_activationCenter[2],2) ) / std::pow(M_activationRadius,2) );
-}
+ }
 
 void
 MultiscaleModelFSI3DActivated::setupModel()
@@ -267,7 +267,7 @@ MultiscaleModelFSI3DActivated::solveModel()
         M_fineToCoarseInterpolant -> interpolate();
         M_fineToCoarseInterpolant -> solution ( M_gammafSolid );
         }
-        else M_gammafSolid = M_gammaf;
+        else *M_gammafSolid = *M_gammaf;
 
 
 
