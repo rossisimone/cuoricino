@@ -604,7 +604,7 @@ int main (int argc, char** argv)
 				integrate ( elements ( monodomain -> localMeshPtr() ),
 						quadRuleTetra4pt,
 						monodomain -> ETFESpacePtr(),
-						activationEquation + * phi_i
+						activationEquation * phi_i
 				) >> tmpRhsActivation;
 
 		  	}
