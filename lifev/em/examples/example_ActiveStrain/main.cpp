@@ -456,15 +456,16 @@ int main (int argc, char** argv)
 
       vectorPtr_Type gammaf( new vector_Type( monodomain -> globalSolution().at(3) -> map() ) );
       *gammaf *= 0;
-  	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
-  			monodomain -> feSpacePtr(), gammaf, UInt(0));
-    Real min =  0.2;
-    Real max =  0.85;
+//  	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
+//  			monodomain -> feSpacePtr(), gammaf, UInt(0));
+//    expGammaf.postProcess(0.0);
+//    Real min =  0.2;
+//    Real max =  0.85;
+//
+//    Real beta = -0.3;
+//
+//    HeartUtility::rescaleVector(*gammaf, min, max, beta);
 
-    Real beta = -0.3;
-
-    HeartUtility::rescaleVector(*gammaf, min, max, beta);
-    expGammaf.postProcess(0.0);
 
       matrixPtr_Type mass(new matrix_Type( monodomain -> massMatrixPtr() -> map() ) ) ;
 
@@ -538,7 +539,7 @@ int main (int argc, char** argv)
     linearSolver.setCommunicator ( comm );
     linearSolver.setParameters ( *solverParamList );
     linearSolver.setPreconditioner ( precPtr );
-	linearSolver.setOperator(mass);
+	linearSolver.setOperator( mass );
 
     if ( comm->MyPID() == 0 )
     {
@@ -569,6 +570,14 @@ int main (int argc, char** argv)
     #define dgGammaf ( value(-1.0) + value(-2.0) / GammaPlusOne + value(2.0) * Gammaf * ( Gammaf + value(2.0) * pow( GammaPlusOne, -3 ) )  )
     #define activationEquation ( Pa  -  ( value(2.0) * GammaPlusOne * firstInvariantC + dgGammaf * I4f )  * value( mu / 2.0 ) ) / beta
 //#define activationEquation ( Pa - ( value(2.0) ) ) / beta
+   	vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map() ) );
+
+  	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
+  			monodomain -> feSpacePtr(), gammaf, UInt(0));
+  	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "rhs",
+  			monodomain -> feSpacePtr(), tmpRhsActivation, UInt(0));
+
+  	expGammaf.postProcess(0.0);
 
 
 
@@ -585,20 +594,22 @@ int main (int argc, char** argv)
 
 //		  HeartUtility::rescaleVector(*gammaf, min, max, beta);
 
-		  *rhsActivation *= 0;
+		  *tmpRhsActivation *= 0;
 		  	{
 		  		using namespace ExpressionAssembly;
 
 
 
 
-		    integrate ( elements ( monodomain -> localMeshPtr() ),
-		    		quadRuleTetra4pt,
-		    		monodomain -> ETFESpacePtr(),
-		    		activationEquation * phi_i
-		    ) >> rhsActivation;
+				integrate ( elements ( monodomain -> localMeshPtr() ),
+						quadRuleTetra4pt,
+						monodomain -> ETFESpacePtr(),
+						activationEquation + * phi_i
+				) >> tmpRhsActivation;
 
 		  	}
+		  	*rhsActivation += ( monodomain -> timeStep() * *tmpRhsActivation );
+
 			linearSolver.setRightHandSide(rhsActivation);
 			linearSolver.solve(gammaf);
 
