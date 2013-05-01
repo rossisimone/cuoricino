@@ -443,7 +443,7 @@ MultiscaleModelFSI3D::imposeBoundaryFlowRate ( const multiscaleID_Type& boundary
             M_boundaryFlowRateFunctions.push_back ( boundaryFlowRateFunction );
 
             base.setFunction ( boost::bind ( &FSI3DBoundaryFlowRateFunction::function, M_boundaryFlowRateFunctions.back(), _1, _2, _3, _4, _5 ) );
-            M_fluidBC->handler()->addBC ( "CouplingFlowRate_Model_" + number2string ( M_ID ) + "_BoundaryID_" + number2string ( boundaryID ), boundaryFlag ( boundaryID ), EssentialVertices, Full, base, 3 );
+            M_fluidBC->handler()->addBC ( "CouplingFlowRate_Model_" + number2string ( M_ID ) + "_BoundaryID_" + number2string ( boundaryID ), boundaryFlag ( boundaryID ), Essential, Full, base, 3 );
 
             break;
         }
