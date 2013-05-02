@@ -26,7 +26,7 @@
 
 /*!
     @file
-    @brief 1D Test RogersMcCulloch, with a pacing protocol
+    @brief 1D Test RogersMcCulloch, with a pacing protocol; Map of the APD and deltaAPD; pseudo-ECG
 
     @date 22.04.2013
     @author Simone Rossi <simone.rossi@epfl.ch> & Marie Dupraz <dupraz.marie@gmail.com>
@@ -444,8 +444,8 @@ Int main ( Int argc, char** argv )
 		if( pacingDelta > 0 ){
 			for(i = 0; i<= NumberPacingPeriods * stimulusNumber - 1; i++){
                 if ( control < 1 ){
-                    if ( ( t >=stimulusStart &&   t <=  stimulusStop + 2* dt) ||
-                        (t >= (returnStimulusTime[i] + stimulusStart) && t <= (returnStimulusTime[i] + stimulusStop + 5* dt)) ){
+                    if ( ( t >=stimulusStart &&   t <=  stimulusStop + dt) ||
+                        (t >= (returnStimulusTime[i] + stimulusStart) && t <= (returnStimulusTime[i] + stimulusStop + dt)) ){
                         splitting -> setAppliedCurrentFromFunction ( pacing );
                         control = control + 1;
                     }else{

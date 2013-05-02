@@ -23,15 +23,15 @@
     <Parameter name="Solver Type" type="string" value="AztecOO"/>
     
     <!-- Pacing parameters-->
-    <Parameter name="pacingPeriod" type="double" value="110."/>
-    <Parameter name="pacingPeriodMin" type="double" value="40."/>
+    <Parameter name="pacingPeriod" type="double" value="300."/>
+    <Parameter name="pacingPeriodMin" type="double" value="80."/>
     <Parameter name="pacingDelta" type="double" value="10."/>
     <Parameter name="stimulusStart" type="double" value="0."/>
-    <Parameter name="stimulusStop" type="double" value="0.2"/>
+    <Parameter name="stimulusStop" type="double" value="1.0"/>
     <Parameter name="pacingSite_X" type="double" value="0."/>
     <Parameter name="pacingSite_Y" type="double" value="0."/>
-    <Parameter name="stimulusRadius" type="double" value="0.15"/>
-    <Parameter name="stimulusValue" type="double" value="110."/>
+    <Parameter name="stimulusRadius" type="double" value="0.1"/>
+    <Parameter name="stimulusValue" type="double" value="80."/>
     <Parameter name="stimulusNumber" type="int" value="10."/>
     
     <!-- Post-processing parameters-->
