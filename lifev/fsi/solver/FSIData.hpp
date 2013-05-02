@@ -353,6 +353,16 @@ public:
         return M_restartTimeStep;
     }
 
+    //! Get the boolean indicating whether solution from previous iteration should be reused
+    /*!
+     * @return the boolean indicating whether consecutive calls to the NonlinearRichardson() method should reuse the
+     * last iterant of the previous call to NonlinearRichardson() (by default the solution from the previous time step
+     * is always used as an initial guess for the Newton iteration)
+     */
+    const bool& reuseSolution() const
+    {
+        return M_reuseSolution;
+    }
 
     //@}
 
@@ -369,6 +379,7 @@ private:
     Real                          M_relativeTolerance;
     Real                          M_errorTolerance;
     Int                           M_NonLinearLineSearch;
+    bool                          M_reuseSolution;
 
     // Problem - Methods
     std::string                   M_method;

@@ -310,7 +310,7 @@ MultiscaleModelFSI3D::solveModel()
         M_FSIoperator->updateRHS();
         M_FSIoperator->applyBoundaryConditions();
     }
-    else
+    else if ( M_data->reuseSolution() )
     {
         // Set initial guess as extrapolation from previous time step only if this is the first
         // MS iteration, otherwise use the solution at the last MS iteration as initial guess.
@@ -319,7 +319,7 @@ MultiscaleModelFSI3D::solveModel()
 
     // Non-linear Richardson solver
     UInt maxSubIterationNumber = M_data->maxSubIterationNumber();
-    //M_FSIoperator->extrapolation ( *M_stateVariable );
+    if ( !M_data->reuseSolution() )  M_FSIoperator->extrapolation ( *M_stateVariable );
 
     NonLinearRichardson ( *M_stateVariable, *M_FSIoperator,
                           M_data->absoluteTolerance(), M_data->relativeTolerance(),

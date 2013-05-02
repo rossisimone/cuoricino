@@ -38,6 +38,7 @@
 
 
 #include <lifev/fsi/solver/FSIData.hpp>
+#include <lifev/core/util/LifeDebug.cpp>
 
 namespace LifeV
 {
@@ -53,6 +54,7 @@ FSIData::FSIData( ) :
     M_relativeTolerance             (),
     M_errorTolerance                (),
     M_NonLinearLineSearch           (),
+    M_reuseSolution                 (),
     M_method                        (),
     M_algorithm                     (),
     M_defaultOmega                  (),
@@ -74,6 +76,7 @@ FSIData::FSIData ( const FSIData& FSIData ) :
     M_relativeTolerance             ( FSIData.M_relativeTolerance ),
     M_errorTolerance                ( FSIData.M_errorTolerance ),
     M_NonLinearLineSearch           ( FSIData.M_NonLinearLineSearch ),
+    M_reuseSolution                 ( FSIData.M_reuseSolution ),
     M_method                        ( FSIData.M_method ),
     M_algorithm                     ( FSIData.M_algorithm ),
     M_defaultOmega                  ( FSIData.M_defaultOmega ),
@@ -104,6 +107,7 @@ FSIData::operator= ( const FSIData& FSIData )
         M_relativeTolerance             = FSIData.M_relativeTolerance;
         M_errorTolerance                = FSIData.M_errorTolerance;
         M_NonLinearLineSearch           = FSIData.M_NonLinearLineSearch;
+        M_reuseSolution                 = FSIData.M_reuseSolution;
         M_method                        = FSIData.M_method;
         M_algorithm                     = FSIData.M_algorithm;
         M_defaultOmega                  = FSIData.M_defaultOmega;
@@ -143,6 +147,14 @@ FSIData::setup ( const GetPot& dataFile, const std::string& section )
     M_relativeTolerance = dataFile ( ( section + "/reltol" ).data(), 1.e-04 );
     M_errorTolerance = dataFile ( ( section + "/etamax" ).data(), 1.e-03 );
     M_NonLinearLineSearch = static_cast<Int> ( dataFile ( ( section + "/NonLinearLineSearch" ).data(), 0 ) );
+    M_reuseSolution = dataFile ( ( section + "/reuseSolution" ).data(), false );
+
+#ifdef HAVE_LIFEV_DEBUG
+    if ( M_absoluteTolerance == 0 && M_reuseSolution )
+    {
+        debugStream( 5000 ) << "Re-using the solution between nonlinear Richardson calls may lead to stagnation when using relative residual as stopping criteria.\n";
+    }
+#endif
 
     // Problem - Methods
     M_method = dataFile ( ( section + "/method" ).data(), "steklovPoincare" );
