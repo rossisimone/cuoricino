@@ -6,11 +6,11 @@
 	<Parameter name="gasConst" type="double" value="8314.472"/>
 	<Parameter name="temp" type="double" value="310.0"/>
 	<Parameter name="farad" type="double" value="96485.3415"/>
-	<Parameter name="capMem" type="double" value="1.14e4"/>
+	<Parameter name="capMem" type="double" value="5e3"/>
 	<Parameter name="svRatio" type="double" value="0.2"/>
 	<Parameter name="resCell" type="double" value="162.0"/>
-	<Parameter name="volCyt" type="double" value="25840"/>
-	<Parameter name="volSR" type="double" value="2018"/>
+	<Parameter name="volCyt" type="double" value="16404"/>
+	<Parameter name="volSR" type="double" value="1094"/>
 	<Parameter name="concKO" type="double" value="5.4"/>
 	<Parameter name="concNaO" type="double" value="140.0"/>
 	<Parameter name="concCaO" type="double" value="2.0"/>
@@ -19,10 +19,10 @@
 	<Parameter name="maxCondToEpiM" type="double" value="0.294"/>
 	<Parameter name="maxCondToEndo" type="double" value="0.073"/>
 	<Parameter name="maxCondKr" type="double" value="0.096"/>
-	<Parameter name="maxCondKs" type="double" value="0.295"/>
+	<Parameter name="maxCondKs" type="double" value="0.322"/>
 	<Parameter name="maxCondKsM" type="double" value="0.098"/>
-	<Parameter name="relPermKNa" type="double" value="0.03"/>
-	<Parameter name="maxCondCaL" type="double" value="6.5e-5"/>
+	<Parameter name="relPermKNa" type="double" value="0.01833"/>
+	<Parameter name="maxCondCaL" type="double" value="9.25e-5"/>
 	<Parameter name="maxCourNaCa" type="double" value="1000.0"/>
 	<Parameter name="gamma" type="double" value="0.35"/>
 	<Parameter name="constmCa" type="double" value="1.38"/>
@@ -30,13 +30,13 @@
 	<Parameter name="kSat" type="double" value="0.1"/>
 	<Parameter name="alpha" type="double" value="2.5"/>
 	<Parameter name="permNaK" type="double" value="2.724"/>
-	<Parameter name="constmK" type="double" value="1.0"/>
-	<Parameter name="constmNa" type="double" value="40.0"/>
-	<Parameter name="maxCondKp" type="double" value="0.0146"/>
+	<Parameter name="constmK" type="double" value="1.5"/>
+	<Parameter name="constmNa" type="double" value="10.0"/>
+	<Parameter name="maxCondKp" type="double" value="0.00828"/>
 	<Parameter name="maxCondCap" type="double" value="0.1238"/>
 	<Parameter name="constpCa" type="double" value="0.0005"/>
-	<Parameter name="maxCondNab" type="double" value="0.00029"/>
-	<Parameter name="maxCondCab" type="double" value="0.000592"/>
+	<Parameter name="maxCondNab" type="double" value="0.00141"/>
+	<Parameter name="maxCondCab" type="double" value="0.003016"/>
 	<Parameter name="maxCourUp" type="double" value="0.006375"/>
 	<Parameter name="constUp" type="double" value="0.00025"/>
 	<Parameter name="aRel" type="double" value="0.016464"/>

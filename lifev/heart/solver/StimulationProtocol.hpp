@@ -27,6 +27,20 @@
 	/*!
 	  @file
 	  @brief Stimulation protocol class with different protocol methods
+	  @ List of protocols parameters used in the different models:
+	  @ PACPRO
+	  *********
+	  FCL -> Fixed Cycle Length
+	  FCL-ExtraSt -> Fixed Cycle Length with premature or long-short
+	                 extrastimulation.
+	                 The choice of the type depends only on the parameters in the xml.
+	    PACPROTYPE
+	  *************
+	  S1-S2       -> Single Extrastimuli interval
+	  S1-S2-S3    -> Double Extrastimuli interval
+	  S1-S2-S3-S4 -> Triple Extrastimuli interval
+
+	  @
 	  @date 04-2013
 	  @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
@@ -167,8 +181,10 @@
 
 		// Protocol methods
 
+		// Used for dynamic stimulation protocol
 		void fixedCycleLength( const Real& t, const Real& dt, int& NbStimulus, Real& Iapp );
 
+		// Used for standard stimulation protocol
 		void fixedCycleLengthwExtraStim( const Real& t, const Real& dt, int& NbStimulus, Real& Iapp );
 
 		void showMe();
@@ -253,7 +269,7 @@
 	//! Methods
 	// ===================================================
 
-	// Change the number of stimulus alreagy applied at a given time and the appropriate value of Iapp
+	// Change the number of stimulus already applied at a given time and the appropriate value of Iapp
 
 	void StimulationProtocol::pacingProtocolChoice( const Real& t, const Real& dt, int& NbStimulus, Real& Iapp )
 	{
@@ -337,8 +353,8 @@
 			std::cout << "1st stimuli time: " << this->timeSt() << std::endl;
 			std::cout << "Stimulation interval: " << this->stInt() << std::endl;
 			std::cout << "S1-S2 interval: " << this->stIntS1S2() << std::endl;
-			std::cout << "S1-S2-S3 interval: " << this->stIntS2S3() << std::endl;
-			std::cout << "S1-S2-S3-S4 interval: " << this->stIntS3S4() << std::endl;
+			std::cout << "S2-S3 interval: " << this->stIntS2S3() << std::endl;
+			std::cout << "S3-S4 interval: " << this->stIntS3S4() << std::endl;
 			std::cout << "Pacing protocol: " << this->pacPro() << std::endl;
 			std::cout << "Pacing protocol type: " << this->pacProTyp() << std::endl;
 			std::cout << "Istim: " << this->currStim() << std::endl;
