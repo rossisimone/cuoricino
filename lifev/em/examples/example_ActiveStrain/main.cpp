@@ -563,12 +563,17 @@ int main (int argc, char** argv)
     #define fiber0       ( value(  dETFESpace, *( solid.material() -> fiberVector() ) ) )
     #define fiber        ( deformationGradientTensor * fiber0 )
     #define I4f				dot( fiber, fiber)
-    #define beta         ( value(0.5) * pow( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ), -2 ) )
-    #define Pa			  beta * eval( fl,  I4f)
+    #define Ca         ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) * value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
+	#define dCa         ( ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) + value(-0.2) ) *  ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) + value(-0.2) ) )
+   	#define Pa         ( value(-2.0) * dCa )
+//   	#define Pa			  beta * eval( fl,  I4f)
 	#define Gammaf 			( value( aETFESpace, *gammaf ) )
     #define GammaPlusOne ( Gammaf + value(1.0) )
-    #define dgGammaf ( value(-1.0) + value(-2.0) / ( GammaPlusOne ) + value(2.0) * Gammaf * ( Gammaf + value(2.0)  )* pow( GammaPlusOne, -3 ) )
-    #define activationEquation value(-1.0) * ( Pa  -  ( value(2.0) * GammaPlusOne * firstInvariantC + dgGammaf * I4f )  * value( mu / 2.0 ) ) / beta
+	#define dW		( ( I4f - value(1.0) ) )
+
+   //	#define dgGammaf ( value(-1.0) + value(-2.0) / ( GammaPlusOne ) + value(2.0) * Gammaf * ( Gammaf + value(2.0)  )* pow( GammaPlusOne, -3 ) )
+   //	#define activationEquation value(-1.0) * ( Pa  -  ( value(2.0) * GammaPlusOne * firstInvariantC + dgGammaf * I4f )  * value( mu / 2.0 ) ) / beta
+#define activationEquation value(0.001) * (Pa - dW) / ( Ca )
 
    	vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
 
