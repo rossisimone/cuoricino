@@ -221,6 +221,8 @@ Int main ( Int argc, char** argv )
 		// Stimuli for ionic model
 
     	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
+    	// The list of protocols are described in the StimulationProtocol.hpp
+
 
 		// Velocity of motion
 
@@ -291,7 +293,7 @@ Int main ( Int argc, char** argv )
         	}
         	output << states.at ( ionicModel.Size() - 1 ) << "\n";
 
-        	XbOutput << X << ", " << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
+        	XbOutput << t << ", " << X << ", " << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
         }
 
         //********************************************//

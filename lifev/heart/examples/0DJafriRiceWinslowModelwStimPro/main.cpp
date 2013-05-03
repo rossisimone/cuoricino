@@ -215,6 +215,8 @@ Int main ( Int argc, char** argv )
         //********************************************//
 
     	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
+    	// The list of protocols are described in the StimulationProtocol.hpp
+
 
         cout << "\r " << t << " ms.       " << std::flush;
 

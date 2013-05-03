@@ -778,6 +778,7 @@
 		std::cout << "constpCa: " << this->constpCa() << std::endl;
 		std::cout << "maxCondNab: " << this->maxCondNab() << std::endl;
 		std::cout << "maxCondCab: " << this->maxCondCab() << std::endl;
+		std::cout << "maxCourUp: " << this->maxCourUp() << std::endl;
 		std::cout << "constUp: " << this->constUp() << std::endl;
 		std::cout << "aRel: " << this->aRel() << std::endl;
 		std::cout << "bRel: " << this->bRel() << std::endl;

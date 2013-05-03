@@ -3,11 +3,11 @@
 	<Parameter name="stimuliTime" type="double" value="10.0"/>
 	<Parameter name="stimuliInterval" type="double" value="600.0"/>
 	<Parameter name="savedt" type="double" value="0.01"/>
-	<Parameter name="areaCap" type="double" value="1.14e-3"/>
-	<Parameter name="volMyo" type="double" value="25.84e-6"/>
-	<Parameter name="volJSR" type="double" value="0.12e-6"/>
-	<Parameter name="volNSR" type="double" value="2.098e-6"/>
-	<Parameter name="volSS" type="double" value="1.485e-9"/>
+	<Parameter name="areaCap" type="double" value="546.69"/>
+	<Parameter name="volMyo" type="double" value="0.92"/>
+	<Parameter name="volJSR" type="double" value="0.0042688"/>
+	<Parameter name="volNSR" type="double" value="0.07452"/>
+	<Parameter name="volSS" type="double" value="0.000053618"/>
 	<Parameter name="concNa0" type="double" value="140.0"/>
 	<Parameter name="concCa0" type="double" value="1.8"/>
 	<Parameter name="lTrpnTot" type="double" value="0.07"/>
