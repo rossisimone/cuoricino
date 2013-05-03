@@ -332,7 +332,7 @@ Int main ( Int argc, char** argv )
     boost::shared_ptr<vector_Type> pseudoEcgVec_ptr ( new vector_Type ( FESpacePtr->map() ) );
 
     // fill the matrix
-    adrAssembler.addDiffusion ( systemMatrixL, 1.0 );
+    adrAssembler.addDiffusion ( systemMatrixL, -1.0 );
     adrAssembler.addMass ( systemMatrixM, 1.0 );
     // closed
     systemMatrixL->globalAssemble();
