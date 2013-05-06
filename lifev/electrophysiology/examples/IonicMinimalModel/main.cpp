@@ -214,6 +214,8 @@ Int main ( Int argc, char** argv )
     }
 
     monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    monodomainSolverPtr_Type ICI ( new monodomainSolver_Type ( dataFile, model, splitting ->  localMeshPtr() ) );
+
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Splitting solver done... ";
@@ -232,11 +234,16 @@ Int main ( Int argc, char** argv )
 //    function_Type f = &Stimulus;
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f );
+    ICI -> setPotentialFromFunction ( f ); //initialize potential
 
     //setting up initial conditions
     * ( splitting -> globalSolution().at (1) ) = 1.0;
     * ( splitting -> globalSolution().at (2) ) = 1.0;
     * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
+
+    * ( ICI -> globalSolution().at (1) ) = 1.0;
+    * ( ICI -> globalSolution().at (2) ) = 1.0;
+    * ( ICI -> globalSolution().at (3) ) = 0.021553043080281;
 
     if ( Comm->MyPID() == 0 )
     {
@@ -247,6 +254,7 @@ Int main ( Int argc, char** argv )
     // Setting up the time data                   //
     //********************************************//
     splitting -> setParameters ( monodomainList );
+    ICI -> setParameters ( monodomainList );
 
     //********************************************//
     // Create a fiber direction                   //
@@ -257,6 +265,7 @@ Int main ( Int argc, char** argv )
     fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
 
     splitting ->setupFibers (fibers);
+    ICI->setupFibers(fibers);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
@@ -265,14 +274,33 @@ Int main ( Int argc, char** argv )
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
 
+    ICI -> setupLumpedMassMatrix();
+    ICI -> setupStiffnessMatrix();
+    ICI -> setupGlobalMatrix();
+
+    monodomainSolverPtr_Type SVI ( new monodomainSolver_Type ( *ICI ) );
+
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
 
-    splitting -> setupExporter ( exporterSplitting, "Splitting" );
+    string filenameSplitting =  monodomainList.get ("OutputFile", "MinMod" );
+    filenameSplitting += "Splitting";
+    string filenameICI =  monodomainList.get ("OutputFile", "MinMod");
+    filenameICI += "ICI";
+    string filenameSVI =  monodomainList.get ("OutputFile", "MinMod" );
+    filenameSVI += "SVI";
+
+    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
+    ICI -> setupExporter ( exporterICI, filenameICI );
+    SVI -> setupExporter ( exporterSVI, filenameSVI );
 
     splitting -> exportSolution ( exporterSplitting, 0);
+    ICI -> exportSolution ( exporterICI, 0);
+    SVI -> exportSolution ( exporterSVI, 0);
 
     //********************************************//
     // Solving the system                         //
@@ -282,10 +310,14 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-
     splitting   -> solveSplitting ( exporterSplitting );
     exporterSplitting.closeFile();
 
+    ICI         -> solveICI ( exporterICI );
+    exporterICI.closeFile();
+
+    SVI         -> solveSVI ( exporterSVI );
+    exporterSVI.closeFile();
 
     //********************************************//
     // Saving Fiber direction to file             //
