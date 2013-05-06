@@ -819,6 +819,10 @@ public:
 	void solveICI(exporter_Type& exporter);
 	//! solve system using SVI from M_initialTime to the M_endTime with time step M_timeStep and export the solution
 	void solveSVI(exporter_Type& exporter);
+    //!Solve the system using ICI from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
+	void solveICI(exporter_Type& exporter, Real dt);
+    //!Solve the using SVI from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
+	void solveSVI(exporter_Type& exporter, Real dt);
 	//! Generates a file where the fiber direction is saved
 	void exportFiberDirection();
 	//! save the fiber direction into the given exporter
@@ -1424,7 +1428,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSplitting(
 	assert(
 			dt >= M_timeStep
 					&& "Cannot save the solution for step smaller than the timestep!");
-	int iter((dt / M_timeStep));
+	int iter((dt / M_timeStep)+ 1e-9);
 	int k(0);
 	if (M_endTime > M_timeStep) {
 		for (Real t = M_initialTime; t < M_endTime;) {
@@ -1535,6 +1539,55 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSVI(
 		solveOneStepGatingVariablesFE();
 		solveOneSVIStep(exporter, t);
 	}
+}
+
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveICI(
+        exporter_Type& exporter, Real dt) {
+    assert(
+            dt >= M_timeStep
+                    && "Cannot save the solution for step smaller than the timestep!");
+    int iter((dt / M_timeStep)+ 1e-9);
+    int k(0);
+
+    if (M_endTime > M_timeStep) {
+        for (Real t = M_initialTime; t < M_endTime;) {
+
+            t += M_timeStep;
+            if (t > M_endTime)
+                            M_timeStep = M_endTime - (t - dt);
+            k++;
+            solveOneStepGatingVariablesFE();
+            if (k % iter == 0)
+                solveOneICIStep(exporter, t);
+            else
+                solveOneICIStep();
+
+        }
+    }
+}
+
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSVI(
+        exporter_Type& exporter, Real dt) {
+    assert(
+            dt >= M_timeStep
+                    && "Cannot save the solution for step smaller than the timestep!");
+    int iter((dt / M_timeStep)+ 1e-9);
+    int k(0);
+    if (M_endTime > M_timeStep) {
+        for (Real t = M_initialTime; t < M_endTime;) {
+
+            t += M_timeStep;
+            k++;
+            solveOneStepGatingVariablesFE();
+            if (k % iter == 0)
+                solveOneSVIStep(exporter, t);
+            else
+                solveOneSVIStep();
+
+        }
+    }
 }
 
 /********   INITIALIZITION FOR CONSTRUCTOR ****/    //////
