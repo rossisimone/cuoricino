@@ -293,12 +293,13 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-    Real dt = monodomainList.get ("timeStep", 0.1);
-    Real TF = monodomainList.get ("endTime", 150.0);
+//    Real dt = monodomainList.get ("timeStep", 0.1);
+//    Real TF = monodomainList.get ("endTime", 150.0);
+    Real Savedt = monodomainList.get ("saveStep", 1.0);
 //    Real TCut1 = monodomainList.get ("TCut", 35.0) - 0.05;
 //    Real TCut2 = monodomainList.get ("TCut", 35.0) + 0.05;
 //
-    splitting   -> solveSplitting ( exporterSplitting );
+    splitting   -> solveSplitting ( exporterSplitting, Savedt );
 //
 //    for ( Real t = 0.0; t < TF; )
 //    {

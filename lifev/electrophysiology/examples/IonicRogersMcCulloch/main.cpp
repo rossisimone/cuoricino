@@ -425,7 +425,11 @@ Int main ( Int argc, char** argv )
     }
 
     Real dt = monodomainList.get ("timeStep", 0.1);
+    Real deltat = monodomainList.get ("SaveStep", 1.0);
     Real TF = monodomainList.get ("endTime", 150.0);
+
+    int iter((deltat / dt));
+    int k(0);
 
     for ( Real t = 0.0; t < TF; ){
 
@@ -454,7 +458,13 @@ Int main ( Int argc, char** argv )
                 }
 			}
 		}
-		splitting -> solveOneSplittingStep (exporterSplitting, t);
+
+		k++;
+        if (k % iter == 0)
+            splitting -> solveOneSplittingStep(exporterSplitting, t);
+        else
+            splitting -> solveOneSplittingStep();
+//		splitting -> solveOneSplittingStep (exporterSplitting, t);
 
 		// ECG : discrete laplacian of the solution
 		(*rhs_Laplacian) = (*systemMatrixL) * (*(splitting->globalSolution().at(0)));
