@@ -306,8 +306,8 @@ void RosenbrockTransformedFunction( IonicFitzHughNagumo model, const VectorSmall
 
 	//Stepsize control variables
 	//Real S = 0.9;						//Safety parameter for the new time step
-	Real abs_tol = 0.0000001;			//absolute error tolerance
-	Real rel_tol = 0.00001;				//relative error tolerance
+	Real abs_tol = 0.001;			//absolute error tolerance
+	Real rel_tol = 0.001;				//relative error tolerance
 	Real p = 3.0; 						//order of the method, which is also phat+1
 	Real p_1 = 1.0/p;						//used in computations
 	//Real D = 2.0;
@@ -359,9 +359,9 @@ void RosenbrockTransformedFunction( IonicFitzHughNagumo model, const VectorSmall
 	cout<<"dt(k+1) = "<<dt<<endl;
 	cout<<"Iteration 0 finished."<<endl<<endl;
 
-	output << t << " " << y(0) << " " << y(1) << " " << dt << " " <<rejected<<"\n";
+	output << t << " " << y(0) << " " << y(1) << " " << dt_old << " " <<rejected<<"\n";
 
-	while (t < TF)
+	while (t < TF-1e-5)
 	{
 		cout<<"Begin of iteration k = "<<k<<endl;
 		cout<<"t("<<k<<") = "<<t<<endl;
@@ -425,7 +425,7 @@ void RosenbrockTransformedFunction( IonicFitzHughNagumo model, const VectorSmall
 		cout<<"dt("<<k<<") = "<<dt<<endl;
 		cout<<"Iteration "<<k-1<<" finished."<<endl<<endl;
 
-		output << t << " " << y(0) << " " << y(1) << " " <<dt<< " " << rejected <<"\n";
+		output << t << " " << y(0) << " " << y(1) << " " <<dt_old<< " " << rejected <<"\n";
 
 		rejected = 0;								//here the step has been accepted, reset rejections to 0
 	}
