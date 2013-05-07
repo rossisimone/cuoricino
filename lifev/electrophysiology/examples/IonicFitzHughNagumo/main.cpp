@@ -137,10 +137,10 @@ Real Stimulus3 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, 
 
 Real Cut (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( y<= 4.5 )
+    if ( y<= 0.45 )
     	return 1.0;
-    else if( y<= 5.5)
-    	return ( 0.55 - y/10.0 )/(0.1);
+    else if( y<= 0.55)
+    	return ( 0.55 - y )/(0.1);
     else
     	return 0.0;
 }
@@ -159,10 +159,10 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Starts the chronometer.                    //
     //********************************************//
-    LifeChrono chronoinitialsettings;
+    LifeChrono chrono, chrono_total;
+    Real time_mesh, time1, time2, time3, time4, time_other, time_total, time_matrix, time_potential;
+    chrono_total.start();
 
-    if ( Comm->MyPID() == 0 )
-    	chronoinitialsettings.start();
 
     typedef RegionMesh<LinearTetra> mesh_Type;
     typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
@@ -237,11 +237,14 @@ Int main ( Int argc, char** argv )
         std::cout << "Building Monodomain Solvers... ";
     }
 
+    chrono.start();
     monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Splitting solver done... ";
     }
+    chrono.stop();
+    time_mesh = chrono.globalDiff(*Comm);
 
     //********************************************//
     // Setting up the initial condition form      //
@@ -252,9 +255,12 @@ Int main ( Int argc, char** argv )
         cout << "\nInitializing potential:  " ;
     }
 
+    chrono.start();
     //Compute the potential at t0
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
+    chrono.stop();
+    time_potential = chrono.globalDiff(*Comm);
 
     //setting up initial conditions
     * ( splitting -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
@@ -263,6 +269,7 @@ Int main ( Int argc, char** argv )
     {
         cout << "Done! \n" ;
     }
+
 
     //********************************************//
     // Setting up the time data                   //
@@ -279,12 +286,18 @@ Int main ( Int argc, char** argv )
 
     splitting ->setupFibers (fibers);
 
+
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
+    chrono.start();
+
     splitting -> setupLumpedMassMatrix();
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
+
+    chrono.stop();
+    time_matrix = chrono.globalDiff(*Comm);
 
     //********************************************//
     // Creating exporters to save the solution    //
@@ -294,6 +307,8 @@ Int main ( Int argc, char** argv )
     splitting -> setupExporter ( exporterSplitting, monodomainList.get ("OutputFile", "Splitting") );
 
     splitting -> exportSolution ( exporterSplitting, 0);
+
+
 
     //********************************************//
     // Solving the system                         //
@@ -313,10 +328,11 @@ Int main ( Int argc, char** argv )
     Real dt_min = dt/50.0;;
     Int k(0),j(0);
     Int nodes;
+    time1 = 0;
+    time2 = 0;
+    time3 = 0;
+    time4 = 0;
 
-    Real timeReac = 0.0;
-    Real timeDiff = 0.0;
-    LifeChrono chrono;
 
     if (meth <= 1.0)
     {
@@ -333,14 +349,21 @@ Int main ( Int argc, char** argv )
 		{
 			t = t + dt;
 
-			chrono.start();
 			if(meth==1)
+			{
+				chrono.start();
 				splitting->solveOneReactionStepROS3P(dtVec, dt_min);
 				//splitting->solveOneReactionStepROS3P();
+				chrono.stop();
+				time1 += chrono.globalDiff(*Comm);
+			}
 			else
+			{
+				chrono.start();
 				splitting->solveOneReactionStepFE();
-			chrono.stop();
-			timeReac += chrono.diff();
+				chrono.stop();
+				time1 += chrono.globalDiff(*Comm);
+			}
 
 			(*splitting->rhsPtrUnique()) *= 0.0;
 			splitting->updateRhs();
@@ -348,22 +371,31 @@ Int main ( Int argc, char** argv )
 			chrono.start();
 			splitting->solveOneDiffusionStepBE();
 			chrono.stop();
-			timeDiff += chrono.diff();
+			time2 += chrono.globalDiff(*Comm);
 
 			if( k % iter == 0 )
 			{
+				chrono.start();
 				splitting -> exportSolution (exporterSplitting, t);
 				Exp.postProcess (t);
+				chrono.stop();
+				time3 += chrono.globalDiff(*Comm);
 			}
 
-			nodes = dtVec->epetraVector().MyLength();
-			j = dtVec->blockMap().GID (0);
-			dt_min = (*dtVec)[j];
-			for(int i=1; i<nodes; i++)
+			if(meth==1)
 			{
-				j = dtVec->blockMap().GID (i);
-				if(dt_min>(*dtVec)[j])
-					dt_min = (*dtVec)[j];
+				chrono.start();
+				nodes = dtVec->epetraVector().MyLength();
+				j = dtVec->blockMap().GID (0);
+				dt_min = (*dtVec)[j];
+				for(int i=1; i<nodes; i++)
+				{
+					j = dtVec->blockMap().GID (i);
+					if(dt_min>(*dtVec)[j])
+						dt_min = (*dtVec)[j];
+				}
+				chrono.stop();
+				time4 += chrono.globalDiff(*Comm);
 			}
 
 
@@ -397,18 +429,31 @@ Int main ( Int argc, char** argv )
 			chrono.start();
 			splitting -> solveOneStepGatingVariablesFE();
 			chrono.stop();
-			timeReac += chrono.diff();
+			time1 += chrono.globalDiff(*Comm);
 
-			chrono.start();
+
 			if(meth==2)
+			{
+				chrono.start();
 				splitting -> solveOneICIStep ();
+				chrono.stop();
+				time2 += chrono.globalDiff(*Comm);
+			}
 			else
+			{
+				chrono.start();
 				splitting -> solveOneSVIStep ();
-			chrono.stop();
-			timeDiff += chrono.diff();
+				chrono.stop();
+				time2 += chrono.globalDiff(*Comm);
+			}
 
 			if( k % iter == 0 )
+			{
+				chrono.start();
 				splitting -> exportSolution (exporterSplitting, t);
+				chrono.stop();
+				time3 += chrono.globalDiff(*Comm);
+			}
 
 			k++;
 
@@ -431,18 +476,41 @@ Int main ( Int argc, char** argv )
     exporterSplitting.closeFile();
 
 
-
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
     splitting -> exportFiberDirection();
+    chrono_total.stop();
+    time_total = chrono_total.globalDiff(*Comm);
 
     if ( Comm->MyPID() == 0 )
     {
-    	chronoinitialsettings.stop();
-    	std::cout << "\n\n\nTotal elapsed time : " << chronoinitialsettings.diff() << std::endl;
-    	std::cout<<"Diffusion/ICI/SVI time : "<<timeDiff<<std::endl;
-    	std::cout<<"Reaction/GatingVar time : "<<timeReac<<std::endl;
+    	ofstream output_time(monodomainList.get ("OutputTimes", "Times").c_str());
+    	output_time << "Total elapsed time : " << time_total << std::endl;
+    	output_time<< "Time importing mesh : "<<time_mesh<<std::endl;
+    	output_time<< "Time creating matrices : "<<time_matrix<<endl;
+    	output_time<< "Time setting potential : "<<time_potential<<endl;
+    	if(meth<=1)
+    	{
+    		if(meth == 0)
+    			output_time<<"Time Reaction - explicit Euler : "<<time1<<endl;
+    		if(meth == 1)
+    			output_time<<"Time Reaction - Rosenbrock : "<<time1<<endl;
+    		output_time<<"Time Diffusion - BE : "<<time2<<endl;
+    		output_time<<"Time Postprocess : "<<time3<<endl;
+    		if(meth==1)
+    			output_time<<"Time to find minimal dt : "<<time4<<endl;
+    	}
+    	else
+    	{
+    		output_time<<"Time Gating variables - FE : "<<time1<<endl;
+    		if(meth == 2)
+    			output_time<<"Time ICI : "<<time2<<endl;
+    		if(meth == 3)
+    			output_time<<"Time SVI : "<<time2<<endl;
+    		output_time<<"Time Postprocess : "<<time3<<endl;
+    	}
+    	output_time.close();
 
         cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }

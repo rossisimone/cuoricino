@@ -1,10 +1,10 @@
 <!-- Model Parameters -->
 <ParameterList name="Jafri Rice Winslow: Parameter list">
-	<Parameter name="endTime" type="double" value="2300.0"/>
-	<Parameter name="timeStep" type="double" value="1e-2"/>
+	<Parameter name="endTime" type="double" value="1e-7"/>
+	<Parameter name="timeStep" type="double" value="1e-9"/>
 	<Parameter name="stimuliTime" type="double" value="10.0"/>
 	<Parameter name="stimuliInterval" type="double" value="400.0"/>
-	<Parameter name="savedt" type="double" value="0.01"/>
+	<Parameter name="savedt" type="double" value="1e-8"/>
 	<Parameter name="meth" type="double" value="1.0"/>
 	<Parameter name="TCut" type="double" value="35.0"/>
 	<Parameter name="areaCap" type="double" value="546.69"/>
