@@ -569,8 +569,7 @@ int main (int argc, char** argv)
 
 
    	boost::shared_ptr<FLRelationship> fl (new FLRelationship);
-#define Ca         ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) * value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
-#define dCa         ( ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) + value(-0.2) ) *  ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) + value(-0.2) ) )
+#define Ca    ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
 #define Gammaf 			( value( aETFESpace, *gammaf ) )
 
 	//Activation as in the IUTAM proceedings
@@ -595,7 +594,7 @@ int main (int argc, char** argv)
 		  t = t + monodomain -> timeStep();
 		  k++;
 		  monodomain -> solveOneSplittingStep( exp, t );
-		  *gammaf = *( monodomain -> globalSolution().at(3) );
+//		  *gammaf = *( monodomain -> globalSolution().at(3) );
 //		  Real min =  0.2;
 //		  Real max =  0.85;
 //
@@ -617,6 +616,8 @@ int main (int argc, char** argv)
 				) >> tmpRhsActivation;
 
 		  	}
+			*rhsActivation *= 0;
+		  	*rhsActivation = ( *(monodomain -> massMatrixPtr() ) * ( *gammaf ) );
 		  	*rhsActivation += ( monodomain -> timeStep() * *tmpRhsActivation );
 
 			linearSolver.setRightHandSide(rhsActivation);
