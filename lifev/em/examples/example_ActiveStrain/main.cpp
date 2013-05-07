@@ -772,7 +772,7 @@ int main (int argc, char** argv)
   	expGammaf.postProcess(0.0);
 
 
-  	bool finiteElement = parameterList.get("finite_element", true);
+  	bool twoWayCoupling = parameterList.get("two_way", false);
      for( Real t(0.0); t< monodomain -> endTime(); )
 	 {
 		  t = t + monodomain -> timeStep();
@@ -856,8 +856,12 @@ int main (int argc, char** argv)
 
 				  exporter->postProcess ( t );
 
-			     monodomain -> setupStiffnessMatrix();
-			     monodomain -> setupGlobalMatrix();
+				  if(twoWayCoupling)
+				  {
+					     monodomain -> setupStiffnessMatrix();
+					     monodomain -> setupGlobalMatrix();
+
+				  }
 		  }
 		  //*solidVel  = timeAdvance->firstDerivative();
 		  //*solidAcc  = timeAdvance->secondDerivative();
