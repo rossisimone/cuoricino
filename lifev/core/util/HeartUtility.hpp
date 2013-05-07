@@ -251,6 +251,20 @@ inline void rescaleVector( VectorEpetra& vec, Real scaleFactor = 1.0 )
 	rescaleVector( vec, min, max, scaleFactor);
 }
 
+inline void rescaleVectorOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, UInt flag, Real scaleFactor = 1.0 )
+{
+	for( UInt j (0); j < vec.epetraVector().MyLength() ; ++j )
+	{
+		if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flag )
+		{
+			if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
+			{
+				(vec) ( vec.blockMap().GID (j) ) *= scaleFactor;
+			}
+		}
+    }
+}
+
 } // namespace HeartUtility
 
 } // namespace LifeV
