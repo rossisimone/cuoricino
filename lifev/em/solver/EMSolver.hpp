@@ -126,18 +126,79 @@ public:
 
 	typedef MatrixSmall<3, 3>                          matrixSmall_Type;
 
+	typedef ElectroETAMonodomainSolver<ionicModel_Type>					monodomainSolver_Type;
+	typedef boost::shared_ptr<monodomainSolver_Type>					monodomainSolverPtr_Type;
+
+    typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >               solidFESpace_Type;
+    typedef boost::shared_ptr<solidFESpace_Type>                        solidFESpacePtr_Type;
+
+    typedef ETFESpace< RegionMesh<LinearTetra>, MapEpetra, 3, 1 >       scalarETFESpace_Type;
+    typedef boost::shared_ptr<scalarETFESpace_Type>                      scalarETFESpacePtr_Type;
+    typedef ETFESpace< RegionMesh<LinearTetra>, MapEpetra, 3, 3 >       solidETFESpace_Type;
+    typedef boost::shared_ptr<solidETFESpace_Type>                      solidETFESpacePtr_Type;
+
+    typedef StructuralConstitutiveLawData			structuralLawData_Type;
+    typedef boost::shared_ptr<structuralLawData_Type>			structuralLawDataPtr_Type;
+
+    typedef StructuralOperator< RegionMesh<LinearTetra> > structuralOperator_Type;
+    typedef boost::shared_ptr< structuralOperator_Type > structuralOperatorPtr_Type;
 
 	//@}
 
 	//! @name Constructors & Destructor
 	//@{
+	EMSolver();
 
+	EMSolver( const std::string& meshName, const std::string& meshPath, const GetPot& dataFile, IonicModel& ionicModel );
 	//!Empty Constructor
 	/*!
 	 */
+	monodomainSolverPtr_Type	M_monodomainSolverPtr;
+	bool						M_usingDifferentMeshes;
+	structuralLawDataPtr_Type   M_solidDataPtr;
 
+	structuralOperatorPtr_Type  M_solidPtr;
 
 };
+
+// ===================================================
+//! Constructors
+// ===================================================
+template<typename Mesh, typename IonicModel>
+EMSolver<Mesh, IonicModel>::EMSolver():
+	M_monodomainSolverPtr(),
+	M_usingDifferentMeshes(false),
+	M_solidDataPtr(),
+	M_solidPtr()
+	{}
+
+template<typename Mesh, typename IonicModel>
+EMSolver<Mesh, IonicModel>::EMSolver( 	const std::string& meshName,
+											const std::string& meshPath,
+											const GetPot& dataFile,
+											IonicModel& ionicModel )
+{
+	M_monodomainSolverPtr.reset( new monodomainSolver_Type ( meshName, meshPath, dataFile, ionicModel ) );
+	M_usingDifferentMeshes = false;
+	M_solidDataPtr.reset( new structuralLawData_Type() );
+	M_solidDataPtr -> setup(dataFile);
+
+    std::string dOrder =  dataFile ( "solid/space_discretization/order", "P1");
+    solidFESpacePtr_Type dFESpace ( new solidFESpace_Type (	M_monodomainSolverPtr -> localMeshPtr(),
+    														dOrder,
+    														3,
+    														M_monodomainSolverPtr -> localMeshPtr() -> comm() ) );
+
+//    solidFESpacePtr_Type aFESpace ( new solidFESpace_Type (M_monodomainSolverPtr -> localMeshPtr(), dOrder, 1, comm) );
+//    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (M_monodomainSolverPtr -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
+//    scalarETFESpacePtr_Type aETFESpace ( new scalarETFESpace_Type (M_monodomainSolverPtr -> localMeshPtr(), & (aFESpace->refFE() ), & (aFESpace->fe().geoMap() ), comm) );
+
+
+
+}
+
+
+
 
 } // namespace LifeV
 
