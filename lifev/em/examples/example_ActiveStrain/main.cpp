@@ -23,6 +23,11 @@
 
 #include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
+#include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
+#include <lifev/core/interpolation/RBFrescaledScalar.hpp>
+
+
+#include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 
 using namespace LifeV;
 
@@ -98,6 +103,13 @@ int main (int argc, char** argv)
 
 	typedef MatrixEpetra<Real> matrix_Type;
 	typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
+
+    typedef BCHandler                                          bc_Type;
+    typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
+    typedef  StructuralOperator< RegionMesh<LinearTetra> >		physicalSolver_Type;
+    typedef BCInterface3D< bc_Type, physicalSolver_Type >              bcInterface_Type;
+    typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
+
 
 
 #ifdef HAVE_MPI
@@ -261,7 +273,6 @@ int main (int argc, char** argv)
         std::cout << "\n\ninitialization bc handler" << std::endl;
     }
 
-    boost::shared_ptr<BCHandler> BCh ( new BCHandler() );
 
 
     if ( comm->MyPID() == 0 )
@@ -358,21 +369,28 @@ int main (int argc, char** argv)
     compyz[0] = 1;
     compyz[1] = 2;
 
-    BCFunctionBase zero (bcZero);
+//   boost::shared_ptr<BCHandler> BCh ( new BCHandler() );
+//
+//    BCFunctionBase zero (bcZero);
 //    BCFunctionBase load (Private::boundaryLoad);
+//
+//
+//    //! =================================================================================
+//    //! BC for quarter ring
+//    //! =================================================================================
+////    BCh->addBC ("EdgesIn",      29,  Essential, Component, zero,    compz);
+////    BCh->addBC ("EdgesIn",      31,  Essential, Component, zero,    compy);
+////    BCh->addBC ("EdgesIn",      32,  Essential, Component, zero,    compx);
+//    //! =================================================================================
+//    //! BC for idealHeart
+//    //! =================================================================================
+//    BCh->addBC ("EdgesIn",      40,  Essential, Full, zero,    3);
+    //! =================================================================================
+    bcInterfacePtr_Type                     solidBC( new bcInterface_Type() );
+    solidBC->createHandler();
+    solidBC->fillHandler ( data_file_name, "solid" );
 
-
-    //! =================================================================================
-    //! BC for quarter ring
-    //! =================================================================================
-//    BCh->addBC ("EdgesIn",      29,  Essential, Component, zero,    compz);
-//    BCh->addBC ("EdgesIn",      31,  Essential, Component, zero,    compy);
-//    BCh->addBC ("EdgesIn",      32,  Essential, Component, zero,    compx);
-    //! =================================================================================
-    //! BC for idealHeart
-    //! =================================================================================
-    BCh->addBC ("EdgesIn",      40,  Essential, Full, zero,    3);
-    //! =================================================================================
+    //M_FSIoperator->setSolidBC ( M_solidBC->handler() );
 
     if ( comm->MyPID() == 0 )
     {
@@ -383,7 +401,7 @@ int main (int argc, char** argv)
      solid.setup (dataStructure,
                   dFESpace,
                   dETFESpace,
-                  BCh,
+                  solidBC -> handler(),
                   comm);
      if ( comm->MyPID() == 0 )
      {
@@ -495,7 +513,9 @@ int main (int argc, char** argv)
 	 typedef RBFInterpolation<mesh_Type>           interpolation_Type;
 	 typedef boost::shared_ptr<interpolation_Type> interpolationPtr_Type;
 
+	 //Coarse To Fine ( C2F )
 	 interpolationPtr_Type C2F;
+	 //Fine To Coarse ( F2C )
 	 interpolationPtr_Type F2C;
      if(usingDifferentMeshes)
      {
@@ -506,8 +526,11 @@ int main (int argc, char** argv)
 		     {
 		         std::cout << "\nresetting" << std::endl;
 		     }
-		 C2F.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFhtpVectorial" ) );
-		 F2C.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFhtp" ) );
+		     std::string c2f = parameterList.get ("c2f", "RBFrescaledVectorial");
+		     std::string f2c = parameterList.get ("f2c", "RBFrescaledScalar");
+
+	     C2F.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( c2f ) );
+		 F2C.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( f2c ) );
 //		 C2F.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledVectorial" ) );
 //		 F2C.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledScalar" ) );
 
@@ -723,14 +746,7 @@ int main (int argc, char** argv)
 
 
 
-	//===========================================================
-  	//===========================================================
-  	//				TIME LOOP
-  	//===========================================================
-  	//===========================================================
-      Real emdt = parameterList.get("emdt",1.0);
-      int iter((emdt / monodomain -> timeStep()));
-      	int k(0);
+
 
 
    	boost::shared_ptr<FLRelationshipGamma> flg (new FLRelationshipGamma);
@@ -745,9 +761,9 @@ int main (int argc, char** argv)
     #define I4f				dot( fiber, fiber)
     #define Ca    ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
     #define Ca2         (  Ca * Ca )
-	#define dCa         ( Ca + value(-0.02) )
+	#define dCa         ( Ca + value(-0.02155) )
 #define Gammaf 			( value( aETFESpace, *gammaf ) )
-   	#define Pa         ( value(-2.0) * eval(H, dCa ) * eval(H, dCa )/*eval( fl,  I4f) */ * eval( flg,  Gammaf) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) )
+   	#define Pa         ( value(-2.5) * eval(H, dCa ) * eval(H, dCa )/*eval( fl,  I4f) */ * eval( flg,  Gammaf) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) )
 //   	#define Pa			  beta * eval( fl,  I4f)
 
 #define GammaPlusOne ( Gammaf + value(1.0) )
@@ -772,12 +788,26 @@ int main (int argc, char** argv)
   	expGammaf.postProcess(0.0);
 
 
+	//===========================================================
+  	//===========================================================
+  	//				TIME LOOP
+  	//===========================================================
+  	//===========================================================
+      Real emdt = parameterList.get("emdt",1.0);
+      int iter((emdt / monodomain -> timeStep()));
+      	int k(0);
+        Real saveStep = parameterList.get("save_step",1.0);
+        int saveIter((saveStep / monodomain -> timeStep()));
+
+
+
   	bool twoWayCoupling = parameterList.get("two_way", false);
      for( Real t(0.0); t< monodomain -> endTime(); )
 	 {
 		  t = t + monodomain -> timeStep();
 		  k++;
-		  monodomain -> solveOneSplittingStep( exp, t );
+
+		  monodomain -> solveOneSplittingStep();
 
 
 //		  *gammaf = *( monodomain -> globalSolution().at(3) );
@@ -819,7 +849,7 @@ int main (int argc, char** argv)
 
 		  	}
 		  	*rhsActivation *= 0;
-		  	*rhsActivation = ( *(monodomain -> massMatrixPtr() ) * ( *gammaf ) );
+		  	*rhsActivation = ( *(mass) * ( *gammaf ) );
 		  	*rhsActivation += ( ( monodomain -> timeStep() * *tmpRhsActivation ) );
 
 			linearSolver.setRightHandSide(rhsActivation);
@@ -838,7 +868,7 @@ int main (int argc, char** argv)
 			  	}
 
 			  solid.material() -> setGammaf( *solidGammaf );
-			  solid.iterate ( BCh );
+			  solid.iterate ( solidBC -> handler() );
 
 			//        timeAdvance->shiftRight ( solid.displacement() );
 
@@ -852,9 +882,7 @@ int main (int argc, char** argv)
 			  		C2F -> solution( emDisp );
 			  	}
 
-				  expGammaf.postProcess(t);
 
-				  exporter->postProcess ( t );
 
 				  if(twoWayCoupling)
 				  {
@@ -865,7 +893,13 @@ int main (int argc, char** argv)
 		  }
 		  //*solidVel  = timeAdvance->firstDerivative();
 		  //*solidAcc  = timeAdvance->secondDerivative();
+		  if ( k % saveIter == 0){
 
+		  monodomain -> exportSolution(exp, t);
+		  expGammaf.postProcess(t);
+
+		  exporter->postProcess ( t );
+		  }
       }
       exp.closeFile();
       expGammaf.closeFile();
