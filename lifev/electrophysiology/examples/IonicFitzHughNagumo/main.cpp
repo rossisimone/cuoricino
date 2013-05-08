@@ -159,8 +159,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Starts the chronometer.                    //
     //********************************************//
-    LifeChrono chrono, chrono_total;
-    Real time_mesh, time1, time2, time3, time4, time_other, time_total, time_matrix, time_potential;
+    LifeChrono chrono, chrono_total, chrono_cycle;
+    Real time_mesh, time1, time2, time3, time4, time_other, time_total, time_matrix, time_potential, time_cycle;
     chrono_total.start();
 
 
@@ -345,6 +345,7 @@ Int main ( Int argc, char** argv )
 
 		//splitting   -> solveSplitting ( exporterSplitting );
 
+        chrono_cycle.start();
 		for ( Real t = 0.0; t < TF; )
 		{
 			t = t + dt;
@@ -417,11 +418,15 @@ Int main ( Int argc, char** argv )
 
 		}
 
+		chrono_cycle.stop();
+		time_cycle = chrono_cycle.globalDiff(*Comm);
+
 		Exp.closeFile();
 
     }
     else
     {
+    	chrono_cycle.start();
     	for ( Real t = 0.0; t < TF; )
     	{
 			t = t + dt;
@@ -471,6 +476,9 @@ Int main ( Int argc, char** argv )
 			if ( Comm->MyPID() == 0 )
 				std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
     	}
+
+    	chrono_cycle.stop();
+    	time_cycle = chrono_cycle.globalDiff(*Comm);
     }
 
     exporterSplitting.closeFile();
@@ -487,6 +495,7 @@ Int main ( Int argc, char** argv )
     {
     	ofstream output_time(monodomainList.get ("OutputTimes", "Times").c_str());
     	output_time << "Total elapsed time : " << time_total << std::endl;
+    	output_time << "Total cycle time : " << time_cycle << std::endl;
     	output_time<< "Time importing mesh : "<<time_mesh<<std::endl;
     	output_time<< "Time creating matrices : "<<time_matrix<<endl;
     	output_time<< "Time setting potential : "<<time_potential<<endl;
