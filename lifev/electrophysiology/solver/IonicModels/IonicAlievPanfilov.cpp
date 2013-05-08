@@ -56,6 +56,8 @@ IonicAlievPanfilov::IonicAlievPanfilov()    :
     M_a         ( 0.1 ),
     M_epsilon   ( 0.01 )
 {
+	M_restingConditions.at(0) = 0.0;
+	M_restingConditions.at(1) = 0.0;
 }
 
 IonicAlievPanfilov::IonicAlievPanfilov ( Teuchos::ParameterList& parameterList   )   :
@@ -78,6 +80,7 @@ IonicAlievPanfilov::IonicAlievPanfilov ( const IonicAlievPanfilov& model )
     M_epsilon   =  model.M_epsilon;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
 }
 
 // ===================================================
@@ -92,6 +95,7 @@ IonicAlievPanfilov& IonicAlievPanfilov::operator= ( const IonicAlievPanfilov& mo
     M_epsilon   =  model.M_epsilon;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
 
     return      *this;
 }
