@@ -43,6 +43,8 @@
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
+#include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
+#include <lifev/core/interpolation/RBFrescaledScalar.hpp>
 #include <lifev/core/interpolation/RBFhtpVectorial.hpp>
 #include <lifev/core/interpolation/RBFhtp.hpp>
 

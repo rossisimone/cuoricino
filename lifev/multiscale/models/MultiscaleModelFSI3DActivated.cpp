@@ -71,12 +71,10 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_activationSpacePtr           (),
     M_minCalciumLikeVariable       (0.21),
     M_maxCalciumLikeVariable       (0.85),
-    M_activationSolver             ()
+    M_activationSolver             (),
+    M_coarseToFineInterpolant		(),
+    M_fineToCoarseInterpolant		()
 {
-    M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledVectorial" ) );
-    M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledScalar" ) );
-    //  M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFhtpVectorial" ) );
-    //  M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFhtp" ) );
 }
 
 // ===================================================
@@ -178,6 +176,13 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_displacementMonodomain.reset ( new vector_Type ( Space3D -> map() ) );
     Space3D.reset();
     M_gammaf.reset ( new vector_Type ( M_monodomain -> potentialPtr() -> map() ) );
+
+//=======================================
+// setup INTERPOLATION
+//=======================================
+    M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("disp_interpolation","RBFRescaledVectorial" ) ) );
+    M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("gammaf_interpolation","RBFrescaledScalar" ) ) );
+
 }
 
 
