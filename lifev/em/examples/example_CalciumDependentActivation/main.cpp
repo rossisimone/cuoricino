@@ -335,20 +335,22 @@ int main (int argc, char** argv)
     compyz[1] = 2;
 
     BCFunctionBase zero (bcZero);
-//    BCFunctionBase load (Private::boundaryLoad);
+    //    BCFunctionBase load (Private::boundaryLoad);
 
 
     //! =================================================================================
-    //! BC for quarter ring
+    //! Fixed base - biventricular geometry
+        BCh->addBC ("EdgesIn",      20,  Essential, Full, zero,    3);
+
     //! =================================================================================
-//    BCh->addBC ("EdgesIn",      29,  Essential, Component, zero,    compz);
-//    BCh->addBC ("EdgesIn",      31,  Essential, Component, zero,    compy);
-//    BCh->addBC ("EdgesIn",      32,  Essential, Component, zero,    compx);
+    /*! Robin bc everywhere
+    BCh->addBC ("EdgesIn",      20,  Robin, Full, RobinWall,    3);
+    BCh->addBC ("EdgesIn",      21,  Robin, Full, RobinWall,    3);
+    BCh->addBC ("EdgesIn",      22,  Robin, Full, RobinWall,    3);
+    BCh->addBC ("EdgesIn",      23,  Robin, Full, RobinWall,    3);
+    BCh->addBC ("EdgesIn",      24,  Robin, Full, RobinWall,    3);
     //! =================================================================================
-    //! BC for biventricular geometry
-    //! =================================================================================
-    BCh->addBC ("EdgesIn",      20,  Essential, Full, zero,    3);
-    //! =================================================================================
+    */
 
     if ( comm->MyPID() == 0 )
     {
@@ -570,10 +572,6 @@ int main (int argc, char** argv)
 		  *tmpRhsActivation *= 0;
 		  	{
 		  		using namespace ExpressionAssembly;
-
-
-
-
 				integrate ( elements ( monodomain -> localMeshPtr() ),
 						monodomain -> feSpacePtr() -> qr() ,
 						monodomain -> ETFESpacePtr(),
