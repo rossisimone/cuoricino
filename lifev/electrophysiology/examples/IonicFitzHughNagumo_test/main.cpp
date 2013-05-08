@@ -340,7 +340,7 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-    Real Savedt = monodomainList.get ("saveStep", 1.0);
+    Real Savedt = monodomainList.get ("saveStep", 0.1);
 //    Real TF = monodomainList.get ("endTime", 150.0);
 
     splitting   -> solveSplitting ( exporterSplitting, Savedt );
