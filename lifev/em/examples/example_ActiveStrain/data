@@ -25,7 +25,60 @@ save       = 1
 
 [solid]
 
-[./physics]
+    [./boundary_conditions]
+    list = 'Top Epicardium Endocardium'
+#    list = 'Top InnerRing Epicardium'
+
+        [./Top]
+        type       = Robin
+        flag       = 40
+        mode       = Full
+        component  = 3
+        functionSD = RobinWall
+
+            [./RobinAlpha]
+            function = ' 5.00 * 1000' # D
+
+            [../RobinBeta]
+            function = ' 5.00 * 1000' # D
+
+            [../]
+
+        [../Epicardium]
+        type       = Robin
+        flag       = 10
+        mode       = Full
+        component  = 3
+        functionSD = RobinWall
+
+            [./RobinAlpha]
+            function = ' 5.00 * 1000' # D
+
+            [../RobinBeta]
+            function = ' 5.00 * 1000' # D
+
+            [../]
+
+        [../Endocardium]
+        type       = Robin
+        flag       = 5
+        mode       = Full
+        component  = 3
+        functionSD = RobinWall
+
+            [./RobinAlpha]
+            function = ' 5.00 * 1000' # D
+
+            [../RobinBeta]
+            function = ' 5.00 * 1000' # D
+
+            [../]
+
+        [../]
+
+   # [../]
+
+[../physics]
 density   	= 1.2
 material_flag   = 0 #101 #1000
 young     	= 1478.08
