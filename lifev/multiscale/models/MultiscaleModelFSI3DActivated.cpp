@@ -333,10 +333,6 @@ MultiscaleModelFSI3DActivated::solveModel()
             M_fineToCoarseInterpolant -> updateRhs ( M_gammaf );
             M_fineToCoarseInterpolant -> interpolate();
             M_fineToCoarseInterpolant -> solution ( M_gammafSolid );
-
-            if (M_interpolationType != "RBFscalar")
-              M_fineToCoarseInterpolant->solutionrbf (Solid_solution_rbf);
-
         }
         else
         {
