@@ -27,7 +27,9 @@ ADD_SUBDIRECTORIES(
   IonicFitzHughNagumo_test
   IonicRogersMcCulloch
   IonicMinimalModel
+  IonicMinimalModel_pacingECG
   IonicFox
+  IonicFox_pacingECG
   Restart
   RosenbrockTest
 #  RiceModel
