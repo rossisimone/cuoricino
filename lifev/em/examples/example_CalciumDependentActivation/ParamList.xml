@@ -4,12 +4,12 @@
     <Parameter name="endTime" type="double" value="10"  />
     <Parameter name="saveStep" type="double" value="1.0"  />
     <Parameter name="meth" type="double" value="1.0"  />
-    <Parameter name="longitudinalDiffusion" type="double" value="0.10"  />
+    <Parameter name="longitudinalDiffusion" type="double" value="0.05"  />
     <Parameter name="transversalDiffusion" type="double" value="0.005"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="human_test2.mesh"  />
     <Parameter name="mesh_path" type="string" value="/u/cmcs/ruizbaie/Dropbox/myMeshes/IH_meshes/humanBiventricular/"  />
-    <Parameter name="fiber_file" type="string" value="FiberDirection"  />
+    <Parameter name="fiber_file" type="string" value="InterpolatedFineFiberDirection"  />
     <Parameter name="fiber_path" type="string" value="./"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
