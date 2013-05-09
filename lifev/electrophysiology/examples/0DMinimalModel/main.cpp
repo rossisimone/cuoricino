@@ -197,6 +197,7 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
+        output << t << ", ";
         for ( int j (0); j < ionicModel.Size() - 1; j++)
         {
             output << rStates.at (j) << ", ";
