@@ -182,6 +182,8 @@ IonicMinimalModel::IonicMinimalModel ( const IonicMinimalModel& model )
     M_winfstar  =  model.M_winfstar;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
+
 }
 
 // ===================================================
@@ -219,6 +221,8 @@ IonicMinimalModel& IonicMinimalModel::operator= ( const IonicMinimalModel& model
     M_winfstar  =  model.M_winfstar;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
+
 
     return      *this;
 }

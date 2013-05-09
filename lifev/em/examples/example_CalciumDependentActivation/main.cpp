@@ -335,20 +335,22 @@ int main (int argc, char** argv)
     compyz[1] = 2;
 
     BCFunctionBase zero (bcZero);
-//    BCFunctionBase load (Private::boundaryLoad);
+    //    BCFunctionBase load (Private::boundaryLoad);
 
 
     //! =================================================================================
-    //! BC for quarter ring
+    //! Fixed base - biventricular geometry
+        BCh->addBC ("EdgesIn",      20,  Essential, Full, zero,    3);
+
     //! =================================================================================
-//    BCh->addBC ("EdgesIn",      29,  Essential, Component, zero,    compz);
-//    BCh->addBC ("EdgesIn",      31,  Essential, Component, zero,    compy);
-//    BCh->addBC ("EdgesIn",      32,  Essential, Component, zero,    compx);
+    /*! Robin bc everywhere
+    BCh->addBC ("EdgesIn",      20,  Robin, Full, RobinWall,    3);
+    BCh->addBC ("EdgesIn",      21,  Robin, Full, RobinWall,    3);
+    BCh->addBC ("EdgesIn",      22,  Robin, Full, RobinWall,    3);
+    BCh->addBC ("EdgesIn",      23,  Robin, Full, RobinWall,    3);
+    BCh->addBC ("EdgesIn",      24,  Robin, Full, RobinWall,    3);
     //! =================================================================================
-    //! BC for idealHeart
-    //! =================================================================================
-    BCh->addBC ("EdgesIn",      40,  Essential, Full, zero,    3);
-    //! =================================================================================
+    */
 
     if ( comm->MyPID() == 0 )
     {
@@ -368,10 +370,6 @@ int main (int argc, char** argv)
 
      solid.setDataFromGetPot (dataFile);
 
- //    function_Type fibersDirection = &fiberRotation;
-   //  vectorPtr_Type fibersRotated( new vector_Type( dFESpace -> map() ) );
-    // dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *fibersRotated , 0);
-
      vectorPtr_Type fibers( new vector_Type( dFESpace -> map() ) );
      if ( comm->MyPID() == 0 )
      {
@@ -386,9 +384,9 @@ int main (int argc, char** argv)
      }
 
 
-//     monodomain -> setupFibers();
      monodomain -> setFiberPtr( fibers );
      monodomain -> exportFiberDirection();
+
      //********************************************//
      // Create the global matrix: mass + stiffness in ELECTROPHYSIOLOGY //
      //********************************************//
@@ -408,9 +406,6 @@ int main (int argc, char** argv)
      }
 
 
-     //     function_Type initialGuess = &d0;
-//     vectorPtr_Type initd( new vector_Type( dFESpace -> map() ) );
-//     dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( initialGuess ), *initd , 0);
      if ( comm->MyPID() == 0 )
      {
          std::cout << "\nset gammaf and fibers" << std::endl;
@@ -419,11 +414,6 @@ int main (int argc, char** argv)
 
      solid.material() -> setFiberVector( * ( monodomain -> fiberPtr() ) );
 
-//     if ( comm->MyPID() == 0 )
-//	  {
-//		  std::cout << "\nnorm inf gammaf: " << solid.material() -> gammaf() -> normInf() << std::endl;
-//		  std::cout << "\nnorm inf fiber: " << solid.material() -> fiberVector() -> normInf() << std::endl;
-//	  }
      if ( comm->MyPID() == 0 )
      {
          std::cout << "\nbuild solid system" << std::endl;
@@ -467,29 +457,6 @@ int main (int argc, char** argv)
 
       vectorPtr_Type gammaf( new vector_Type( monodomain -> globalSolution().at(3) -> map() ) );
       *gammaf *= 0;
-//  	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
-//  			monodomain -> feSpacePtr(), gammaf, UInt(0));
-//    expGammaf.postProcess(0.0);
-//    Real min =  0.2;
-//    Real max =  0.85;
-//
-//    Real beta = -0.3;
-//
-//    HeartUtility::rescaleVector(*gammaf, min, max, beta);
-
-
-//      matrixPtr_Type mass(new matrix_Type( monodomain -> massMatrixPtr() -> map() ) ) ;
-//
-//  	{
-//  		using namespace ExpressionAssembly;
-//
-//  		integrate(elements(monodomain -> localMeshPtr() ), monodomain -> feSpacePtr() -> qr(), monodomain -> ETFESpacePtr(),
-//  				monodomain -> ETFESpacePtr(), phi_i * phi_j) >> mass;
-//
-//  	}
-//  	mass -> globalAssemble();
-
-
   	vectorPtr_Type rhsActivation( new vector_Type( *gammaf ) );
   	*rhsActivation *= 0;
 
@@ -569,12 +536,11 @@ int main (int argc, char** argv)
 
 
    	boost::shared_ptr<FLRelationship> fl (new FLRelationship);
-#define Ca         ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) * value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
-#define dCa         ( ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) + value(-0.2) ) *  ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) + value(-0.2) ) )
+#define Ca    ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
 #define Gammaf 			( value( aETFESpace, *gammaf ) )
 
 	//Activation as in the IUTAM proceedings
-#define activationEquation value(-0.02) *Ca - value(0.04)*Gammaf  
+#define activationEquation value(-0.02) *Ca + value(-0.04)*Gammaf  
 
 
 
@@ -595,7 +561,7 @@ int main (int argc, char** argv)
 		  t = t + monodomain -> timeStep();
 		  k++;
 		  monodomain -> solveOneSplittingStep( exp, t );
-		  *gammaf = *( monodomain -> globalSolution().at(3) );
+//		  *gammaf = *( monodomain -> globalSolution().at(3) );
 //		  Real min =  0.2;
 //		  Real max =  0.85;
 //
@@ -606,10 +572,6 @@ int main (int argc, char** argv)
 		  *tmpRhsActivation *= 0;
 		  	{
 		  		using namespace ExpressionAssembly;
-
-
-
-
 				integrate ( elements ( monodomain -> localMeshPtr() ),
 						monodomain -> feSpacePtr() -> qr() ,
 						monodomain -> ETFESpacePtr(),
@@ -617,6 +579,8 @@ int main (int argc, char** argv)
 				) >> tmpRhsActivation;
 
 		  	}
+			*rhsActivation *= 0;
+		  	*rhsActivation = ( *(monodomain -> massMatrixPtr() ) * ( *gammaf ) );
 		  	*rhsActivation += ( monodomain -> timeStep() * *tmpRhsActivation );
 
 			linearSolver.setRightHandSide(rhsActivation);

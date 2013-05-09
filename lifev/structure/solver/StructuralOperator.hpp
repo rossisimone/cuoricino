@@ -231,7 +231,7 @@ public:
     void setup ( boost::shared_ptr<data_Type>  data,
                  const FESpacePtr_Type&        dFESpace,
                  const ETFESpacePtr_Type&      dETFESpace,
-                 bcHandler_Type&       BCh,
+                 const bcHandler_Type&       BCh,
                  boost::shared_ptr<Epetra_Comm>&     comm
                );
 
@@ -845,7 +845,7 @@ void
 StructuralOperator<Mesh>::setup (boost::shared_ptr<data_Type>          data,
                                  const FESpacePtr_Type& dFESpace,
                                  const ETFESpacePtr_Type& dETFESpace,
-                                 bcHandler_Type&                    BCh,
+                                 const bcHandler_Type&                    BCh,
                                  boost::shared_ptr<Epetra_Comm>&   comm)
 {
     setup (data, dFESpace, dETFESpace, comm);

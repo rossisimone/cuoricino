@@ -93,7 +93,21 @@
         M_Pleak     ( 0.000001 ),
         M_KmfCa     ( 0.18 ),
         M_KmK1      ( 13.0 )
-    {}
+    {
+    	    M_restingConditions.at(0) = - 94.7;
+    	    M_restingConditions.at(1) = 2.4676e-4;
+    	    M_restingConditions.at(2) = 0.99869;
+    	    M_restingConditions.at(3) = 0.99887;
+    	    M_restingConditions.at(4) = 0.229;
+    	    M_restingConditions.at(5) = 0.0001;
+    	    M_restingConditions.at(6) = 3.742e-5;
+    	    M_restingConditions.at(7) = 1.0;
+    	    M_restingConditions.at(8) = 0.983;
+    	    M_restingConditions.at(9) = 0.0001;
+    	    M_restingConditions.at(10) = 0.942;
+    	    M_restingConditions.at(11) = 0.0472;
+    	    M_restingConditions.at(12) = 320.0;
+    }
 
     IonicFox::IonicFox ( Teuchos::ParameterList& parameterList ) :
         super       ( 13 )
@@ -190,6 +204,7 @@
       M_KmK1      = model. M_KmK1;
 
         M_numberOfEquations = model.M_numberOfEquations;
+        M_restingConditions = model.M_restingConditions;
     }
 
     // ===================================================
@@ -242,6 +257,7 @@
          M_KmK1      = model. M_KmK1;
 
         M_numberOfEquations = model.M_numberOfEquations;
+        M_restingConditions = model.M_restingConditions;
 
         return *this;
     }

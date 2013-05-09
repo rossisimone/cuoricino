@@ -214,6 +214,8 @@ Int main ( Int argc, char** argv )
     }
 
     monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    monodomainSolverPtr_Type ICI ( new monodomainSolver_Type ( dataFile, model, splitting ->  localMeshPtr() ) );
+
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Splitting solver done... ";
@@ -232,6 +234,7 @@ Int main ( Int argc, char** argv )
     //Compute the potential at t0
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
+    ICI -> setPotentialFromFunction ( f ); //initialize potential
 //    splitting -> initializePotential( -94.7 );
 
     //setting up initial conditions
@@ -249,6 +252,19 @@ Int main ( Int argc, char** argv )
     * ( splitting -> globalSolution().at (11) ) = FoxParameterList.get ("concentrationCAIN", 0.0472);
     * ( splitting -> globalSolution().at (12) ) = FoxParameterList.get ("concentrationCASR", 320.0);
 
+    * ( ICI -> globalSolution().at (1) ) = FoxParameterList.get ("gatingM",2.4676e-4);
+    * ( ICI -> globalSolution().at (2) ) = FoxParameterList.get ("gatingH", 0.99869);
+    * ( ICI -> globalSolution().at (3) ) = FoxParameterList.get ("gatingJ", 0.99887);
+    * ( ICI -> globalSolution().at (4) ) = FoxParameterList.get ("gatingXKR", 0.229);
+    * ( ICI -> globalSolution().at (5) ) = FoxParameterList.get ("gatingXKS", 0.0001);
+    * ( ICI -> globalSolution().at (6) ) = FoxParameterList.get ("gatingXT0", 3.742e-5);
+    * ( ICI -> globalSolution().at (7) ) = FoxParameterList.get ("gatingYT0", 1.0);
+    * ( ICI -> globalSolution().at (8) ) = FoxParameterList.get ("gatingF", 0.983);
+    * ( ICI -> globalSolution().at (9) ) = FoxParameterList.get ("gatingD", 0.0001);
+    * ( ICI -> globalSolution().at (10) ) = FoxParameterList.get ("gatingFCA", 0.942);
+    * ( ICI -> globalSolution().at (11) ) = FoxParameterList.get ("concentrationCAIN", 0.0472);
+    * ( ICI -> globalSolution().at (12) ) = FoxParameterList.get ("concentrationCASR", 320.0);
+
     if ( Comm->MyPID() == 0 )
     {
         cout << "Done! \n" ;
@@ -258,6 +274,7 @@ Int main ( Int argc, char** argv )
     // Setting up the time data                   //
     //********************************************//
     splitting -> setParameters ( monodomainList );
+    ICI -> setParameters ( monodomainList );
 
     //********************************************//
     // Create a fiber direction                   //
@@ -268,6 +285,7 @@ Int main ( Int argc, char** argv )
     fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
 
     splitting ->setupFibers (fibers);
+    ICI->setupFibers(fibers);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
@@ -276,14 +294,33 @@ Int main ( Int argc, char** argv )
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
 
+    ICI -> setupLumpedMassMatrix();
+    ICI -> setupStiffnessMatrix();
+    ICI -> setupGlobalMatrix();
+
+    monodomainSolverPtr_Type SVI ( new monodomainSolver_Type ( *ICI ) );
+
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
 
-    splitting -> setupExporter ( exporterSplitting, "Splitting" );
+    string filenameSplitting =  monodomainList.get ("OutputFile", "Fox" );
+    filenameSplitting += "Splitting";
+    string filenameICI =  monodomainList.get ("OutputFile", "Fox");
+    filenameICI += "ICI";
+    string filenameSVI =  monodomainList.get ("OutputFile", "Fox" );
+    filenameSVI += "SVI";
+
+    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
+    ICI -> setupExporter ( exporterICI, filenameICI );
+    SVI -> setupExporter ( exporterSVI, filenameSVI );
 
     splitting -> exportSolution ( exporterSplitting, 0);
+    ICI -> exportSolution ( exporterICI, 0);
+    SVI -> exportSolution ( exporterSVI, 0);
 
     //********************************************//
     // Solving the system                         //
@@ -296,10 +333,15 @@ Int main ( Int argc, char** argv )
 //    Real dt = monodomainList.get ("timeStep", 0.1);
 //    Real TF = monodomainList.get ("endTime", 150.0);
     Real Savedt = monodomainList.get ("saveStep", 1.0);
-//    Real TCut1 = monodomainList.get ("TCut", 35.0) - 0.05;
-//    Real TCut2 = monodomainList.get ("TCut", 35.0) + 0.05;
-//
+
     splitting   -> solveSplitting ( exporterSplitting, Savedt );
+    exporterSplitting.closeFile();
+
+    ICI         -> solveICI ( exporterICI, Savedt );
+    exporterICI.closeFile();
+
+    SVI         -> solveSVI ( exporterSVI, Savedt );
+    exporterSVI.closeFile();
 //
 //    for ( Real t = 0.0; t < TF; )
 //    {

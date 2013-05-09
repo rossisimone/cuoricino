@@ -43,6 +43,8 @@
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
+#include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
+#include <lifev/core/interpolation/RBFrescaledScalar.hpp>
 #include <lifev/core/interpolation/RBFhtpVectorial.hpp>
 #include <lifev/core/interpolation/RBFhtp.hpp>
 
@@ -94,6 +96,11 @@ public:
 
     typedef RBFInterpolation<mesh_Type>           interpolation_Type;
     typedef boost::shared_ptr<interpolation_Type> interpolationPtr_Type;
+
+    typedef LifeV::Preconditioner basePrec_Type;
+    typedef boost::shared_ptr<basePrec_Type> basePrecPtr_Type;
+    typedef LifeV::PreconditionerIfpack prec_Type;
+    typedef boost::shared_ptr<prec_Type> precPtr_Type;
 
    //@}
 
@@ -225,6 +232,9 @@ private:
     boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > M_activationSpacePtr;
     Real									M_minCalciumLikeVariable;
     Real									M_maxCalciumLikeVariable;
+
+    boost::shared_ptr<LinearSolver>         M_activationSolver;
+    std::string                             M_interpolationType;
 };
 
 //! Factory create function
