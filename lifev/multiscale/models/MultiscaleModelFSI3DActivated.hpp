@@ -234,7 +234,7 @@ private:
     Real									M_maxCalciumLikeVariable;
 
     boost::shared_ptr<LinearSolver>         M_activationSolver;
-    std::string                             M_interpolationType;
+
 };
 
 //! Factory create function
