@@ -60,6 +60,8 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
 
+#include <lifev/electrophysiology/solver/StimulationProtocol.hpp>
+
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -86,7 +88,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Importing parameters list...";
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    Teuchos::ParameterList ionicMParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
     cout << " Done!" << endl;
 
 
@@ -96,8 +99,10 @@ Int main ( Int argc, char** argv )
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
+
     cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
-    IonicJafriRiceWinslow  model ( parameterList );
+    IonicJafriRiceWinslow model       ( ionicMParameterList );
+    StimulationProtocol   stimulation ( pacingPParameterList );
     cout << " Done!" << endl;
 
 
@@ -105,16 +110,18 @@ Int main ( Int argc, char** argv )
     // Show the parameters of the model as well as//
     // other informations  about the object.      //
     //********************************************//
+
     model.showMe();
+    stimulation.showMe();
 
 
     //********************************************//
     // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
+    // consist of 31 state variables.             //
+    // model.Size() returns the number of state   //
+    // variables of the model.                    //
     //********************************************//
+
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
     unknowns[0] = - 84.1638;
@@ -158,16 +165,16 @@ Int main ( Int argc, char** argv )
     // variables, that is, the right hand side of //
     // the differential equation.                 //
     //********************************************//
+
     cout << "Initializing rhs..." ;
     std::vector<Real> rhs (model.Size(), 0);
     cout << " Done! "  << endl;
 
 
     //********************************************//
-    // The model needs as external informations   //
-    // the contraction velocity and the Calcium   //
-    // concentration.                             //
+    //Initialization of the applied current       //
     //********************************************//
+
     Real Iapp (0.0);
 
 
@@ -175,15 +182,15 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF     = parameterList.get( "endTime", 5.0 );
-    Real dt     = parameterList.get( "timeStep", 5.77e-5 );
-    Real timeSt = parameterList.get( "stimuliTime", 1.0 );
-    Real stInt  = parameterList.get( "stimuliInterval", 400.0 );
+
+    Real TF     = ionicMParameterList.get( "endTime", 5.0 );
+    Real dt     = ionicMParameterList.get( "timeStep", 5.77e-5 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
+
     string filename = "output.txt";
     std::ofstream output  ("output.txt");
 
@@ -191,102 +198,99 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
+
     cout << "Time loop starts...\n";
 
 
+    int iter(0);
+    int savedt( ionicMParameterList.get( "savedt", 1.0) / dt );
+    int NbStimulus ( 0 );
 
     for ( Real t = 0; t < TF; )
     {
 
     	//********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
+        // Set the stimulus over time 				  //
+        // according to different pacing protocol     //
         //********************************************//
-        if ( t >= timeSt && t <= timeSt + 1.0 )
-        {
-        	Iapp = 0.516289;
-        	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
-        		timeSt = timeSt + stInt;
-        }
-        else
-        {
-        	Iapp = 0;
-        }
+
+    	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
+    	// The list of protocols are described in the StimulationProtocol.hpp
+
 
         cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
+
         model.computeRhs ( unknowns, Iapp, rhs );
+//        std::vector<Real> gateInf     ( model.gateInf( unknowns ) );
+//        std::vector<Real> otherVarInf ( model.otherVarInf( unknowns ) );
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
 
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
-       		 << unknowns.at (2) << ", " << unknowns.at (3) << ", "
-       		 << unknowns.at (4) << ", " << unknowns.at (5) << ", "
-       		 << unknowns.at (6) << ", " << unknowns.at (7) << ", "
-       		 << unknowns.at (8) << ", " << unknowns.at (9) << ", "
-       		 << unknowns.at (10) << ", " << unknowns.at (11) << ", "
-       		 << unknowns.at (12) << ", " << unknowns.at (13) << ", "
-       		 << unknowns.at (14) << ", " << unknowns.at (15) << ", "
-       		 << unknowns.at (16) << ", " << unknowns.at (17) << ", "
-       		 << unknowns.at (18) << ", " << unknowns.at (19) << ", "
-             << unknowns.at (20) << ", " << unknowns.at (21) << ", "
-             << unknowns.at (22) << ", " << unknowns.at (23) << ", "
-             << unknowns.at (24) << ", " << unknowns.at (25) << ", "
-             << unknowns.at (26) << ", " << unknowns.at (27) << ", "
-             << unknowns.at (28) << ", " << unknowns.at (29) << ", "
-             << unknowns.at (30) << "\n";
-
+        if ( t / 10000 >= 1.0 )
+        {
+        	iter++;
+        	if( iter % savedt == 0)
+        	{
+        		output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
+        				<< unknowns.at (2) << ", " << unknowns.at (3) << ", "
+        				<< unknowns.at (4) << ", " << unknowns.at (5) << ", "
+        				<< unknowns.at (6) << ", " << unknowns.at (7) << ", "
+        				<< unknowns.at (8) << ", " << unknowns.at (9) << ", "
+        				<< unknowns.at (10) << ", " << unknowns.at (11) << ", "
+        				<< unknowns.at (12) << ", " << unknowns.at (13) << ", "
+        				<< unknowns.at (14) << ", " << unknowns.at (15) << ", "
+        				<< unknowns.at (16) << ", " << unknowns.at (17) << ", "
+        				<< unknowns.at (18) << ", " << unknowns.at (19) << ", "
+        				<< unknowns.at (20) << ", " << unknowns.at (21) << ", "
+        				<< unknowns.at (22) << ", " << unknowns.at (23) << ", "
+        				<< unknowns.at (24) << ", " << unknowns.at (25) << ", "
+        				<< unknowns.at (26) << ", " << unknowns.at (27) << ", "
+        				<< unknowns.at (28) << ", " << unknowns.at (29) << ", "
+        				<< unknowns.at (30) << "\n";
+        	}
+        }
 
 
          //********************************************//
          // Use forward Euler method to advance the    //
-         // solution in time.                          //
+         // solution in time for all the variables     //
+         // different that the ionic concentrations.   //
+         // This ones are treated with Euler implicit  //
+         // method and Newton algorithm.               //
          //********************************************//
 
-    	 for(int j(0); j <= 30; ++j)
-         {
-//    		 if( ( t > 21 && t < 26.5 ) || ( t > 421 && t < 426.5 ) ||
-//    	        		( t > 821 && t < 826.5 ) || ( t > 1221 && t < 1226.5 ) || ( t > 1621 && t < 1626.5 ) ||
-//    	        		( t > 2001 && t < 2036.5 ) || ( t > 2401 && t < 2436.5 ) || ( t > 2801 && t < 2866.5 ) )
-//    		 {
-				 if(j!= 10)
-					 unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-				 else
-				 {
-//					 for( int k(0) ; k < 150; k++ )
-//					 {
-//						 unknowns.at (10) = unknowns.at (10)   + dt / 150 * rhs.at (10);
-//						 model.computeRhs ( unknowns, Iapp, rhs );
-//					 }
-					 unknowns.at (10) = model.computeNewtonCaSS(unknowns, dt, 10);
-				 }
-//    		 }
-//    		 else unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+        for(int j(0); j <= 30; ++j)
+        {
+    		if ( ( j <= 4 ) || ( j >= 12 ) )
+    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+
+//    		if( j == 0 || j >= 12 )
+//    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+//    		else if ( ( j <= 4 ) && ( j != 0 ) )
+//    			unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
+//			else if ( j >= 12 )
+//				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
          }
 
-//         unknowns.at(1) = ( unknowns.at(1) / dt + model.fastINa(unknowns).at(1) )
-//        		 / ( 1 / dt + model.fastINa(unknowns).at(1) + model.fastINa(unknowns).at(2) );
-//      	 unknowns.at(2) = ( unknowns.at(2) / dt + model.fastINa(unknowns).at(3) )
-//      			 / ( 1 / dt + model.fastINa(unknowns).at(3) + model.fastINa(unknowns).at(5) );
-//    	 unknowns.at(3) = ( unknowns.at(3) / dt + model.fastINa(unknowns).at(4) )
-//    			 / ( 1 / dt + model.fastINa(unknowns).at(4) + model.fastINa(unknowns).at(6) );
-//    	 unknowns.at(4) = ( unknowns.at(4) / dt + model.timeDIK(unknowns).at(1) )
-//    			 / ( 1 / dt + model.timeDIK(unknowns).at(1) + model.timeDIK(unknowns).at(2) );
+        unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
+        unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
+        unknowns.at (7)  = model.computeNewtonKo    (unknowns, dt, 10);
+        unknowns.at (8)  = model.computeNewtonCai   (unknowns, dt, 10);
+        unknowns.at (9)  = model.computeNewtonCaNSR (unknowns, dt, 10);
+        unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
+        unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
 
-
-//    	 unknowns.at (28) = ( unknowns.at(28) / dt + model.computeYParameters(unknowns).at(0) /  model.computeYParameters(unknowns).at(1) )
-//    			 / ( 1 / dt + 1 /  model.computeYParameters(unknowns).at(1) );
-
-
-         //********************************************//
+    	 //********************************************//
          // Update the time.                           //
          //********************************************//
-         t = t + dt;
+
+        t = t + dt;
        }
 
     cout << "\n...Time loop ends.\n";
@@ -295,6 +299,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Close exported file.                       //
     //********************************************//
+
     output.close();
 
 

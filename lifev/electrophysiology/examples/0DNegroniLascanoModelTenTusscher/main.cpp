@@ -25,15 +25,16 @@
 //@HEADER
 
 /*!
-    @file
-    @brief 0D test with the Mitchell-Schaeffer model
+	  @file
+	  @brief Ionic model based on Ten Tusscher 2004 model coupled with
+	  @ Negroni Lascano crossbridge model
+	  @date 04-2013
+	  @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
-    @date 04−2013
-    @author Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
-
-    @contributor
-    @mantainer Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
- */
+	  @contributors
+	  @mantainer Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
+	  @last update 03-2013
+	 */
 
 // Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -57,8 +58,11 @@
 
 #include <lifev/core/array/MatrixEpetra.hpp>
 
-#include <lifev/electrophysiology/solver/IonicModels/IonicMitchellSchaeffer.hpp>
+#include <lifev/electrophysiology/solver/XbModels/XbNegroniLascano96.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher.hpp>
 #include <lifev/core/LifeV.hpp>
+
+#include <lifev/electrophysiology/solver/StimulationProtocol.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -86,7 +90,9 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     std::cout << "Importing parameters list...";
-    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "MitchellSchaefferParameters.xml" ) );
+    Teuchos::ParameterList nlParameterList    = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
+    Teuchos::ParameterList ionicParameterList = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
+    Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
     std::cout << " Done!" << endl;
 
 
@@ -96,8 +102,11 @@ Int main ( Int argc, char** argv )
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
-    std::cout << "Building Constructor for MitchellSchaeffer Model with parameters ... ";
-    IonicMitchellSchaeffer  model ( ParameterList );
+
+	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
+    XbNegroniLascano96  xb ( nlParameterList );
+    IonicTenTusscher  ionicModel ( ionicParameterList );
+    StimulationProtocol   stimulation ( pacingPParameterList );
     std::cout << " Done!" << endl;
 
 
@@ -105,7 +114,9 @@ Int main ( Int argc, char** argv )
     // Show the parameters of the model as well as//
     // other informations  about the object.      //
     //********************************************//
-    model.showMe();
+
+	xb.showMe();
+	stimulation.showMe();
 
 
     //********************************************//
@@ -115,9 +126,27 @@ Int main ( Int argc, char** argv )
     // the model. rStates is the reference to the //
     // the vector states                          //
     //********************************************//
-    std::cout << "Initializing solution vector...";
-    std::vector<Real> unknowns (model.Size(), 0 );
-    unknowns[1] = 1;
+
+	std::cout << "Initializing solution vector...";
+    std::vector<Real> XbStates (xb.Size(), 0);
+    std::vector<Real> states (ionicModel.Size(), 0);
+    states.at (0)  = - 86.2;
+    states.at (1)  = 0.0;
+    states.at (2)  = 0.75;
+    states.at (3)  = 0.75;
+    states.at (4)  = 0.0;
+    states.at (5)  = 1.0;
+    states.at (6)  = 0.0;
+    states.at (7)  = 0.0;
+    states.at (8)  = 1.0;
+    states.at (9)  = 1.0;
+    states.at (10) = 0.0;
+    states.at (11) = 1.0;
+    states.at (12) = 1.0;
+    states.at (13) = 2e-4;
+    states.at (14) = 0.2;
+    states.at (15) = 11.6;
+    states.at (16) = 138.3;
     std::cout << " Done!" << endl;
 
 
@@ -128,11 +157,11 @@ Int main ( Int argc, char** argv )
     // variables, that is, the right hand side of //
     // the differential equation.                 //
     //********************************************//
-    std::cout << "Initializing rhs..." ;
-    std::vector<Real> rhs (model.Size(), 0);
+
+	std::cout << "Initializing rhs..." ;
+    std::vector<Real> XbRhs (xb.Size(), 0);
+    std::vector<Real> rhs (ionicModel.Size(), 0);
     std::cout << " Done! "  << endl;
-
-
 
 
     //********************************************//
@@ -140,74 +169,125 @@ Int main ( Int argc, char** argv )
     // the contraction velocity and the Calcium   //
     // concentration.                             //
     //********************************************//
-    Real Iapp (0.0);
 
+    Real vel  ( 0.0 );
+    Real Ca   ( 0.0 );
+    Real Iapp ( 0.0 );
+    Real X    ( 1.05 );
 
     //********************************************//
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (400);
-    Real dt (0.02);
+
+    Real TF     = nlParameterList.get("endTime", 100.0);
+    Real dt     = nlParameterList.get("timeStep", 0.001);
 
 
     //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
-    string filename = "output.txt";
+
+	string filename = "output.txt";
     std::ofstream output ("output.txt");
+    string XbFilename = "XbOutput.txt";
+    std::ofstream XbOutput ("XbOutput.txt");
 
 
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
-    std::cout << "Time loop starts...\n";
+
+    int iter(0);
+    int savedt( ionicParameterList.get( "savedt", 1.0) / dt );
+    int NbStimulus ( 0 );
+
+	std::cout << "Time loop starts...\n";
     for ( Real t = 0; t < TF; )
     {
+		// Stimuli for ionic model
+
+    	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
+    	// The list of protocols are described in the StimulationProtocol.hpp
+
+
+		// Velocity of motion
+
+        xb.computeVelocity( dt, X, vel );
 
         //********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if ( t > 1 && t < 2 )
-        {
-        	Iapp = 0.1;
-        }
-        else
-        {
-            Iapp = 0;
-        }
+
+    	Ca = states.at(13)*1000;
+    	// Because the concentration is in mM in the ionic model
+    	// and in the Xb model it sould be in uM.
 
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.computeRhs ( unknowns, Iapp, rhs);
+
+        xb.computeRhs             ( XbStates, Ca, vel, XbRhs );
+        ionicModel.computeRhs     ( states, Iapp, rhs );
+        std::vector<Real> gateInf ( ionicModel.gateInf( states ) );
 
         //********************************************//
         // Use forward Euler method to advance the    //
-        // solution in time.                          //
+        // solution in time for the concentration     //
+        // and Rush and Larsen for the gating         //
+        // variables                                  //
         //********************************************//
-        unknowns.at (0) = unknowns.at (0)  + dt * rhs.at (0);
-        unknowns.at (1) = unknowns.at (1)  + dt * rhs.at (1);
+
+        for ( int j (0); j < ionicModel.Size(); j++)
+        {
+        	if ( j < 13 && j != 0 )
+        		states.at (j) = gateInf.at(j-1) + ( states.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
+        	else
+        	    states.at (j) = states.at (j)   + dt * rhs.at (j);
+        }
+        XbStates.at (0) = XbStates.at (0)  + dt * XbRhs.at (0);
+        XbStates.at (1) = XbStates.at (1)  + dt * XbRhs.at (1);
+//        XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
+
+		// Implicit method
+        std::vector<Real> BErhs    ( xb.computeBackwardEuler( XbStates, Ca, vel, dt ) );
+//		XbStates.at (0) = BErhs.at (0);
+//		XbStates.at (1) = BErhs.at (1);
+		XbStates.at (2) = BErhs.at (2);
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << "\n";
 
+		iter++;
+		if( iter % savedt == 0)
+		{
+			for ( int j (0); j < ionicModel.Size() - 1; j++)
+			{
+				output << states.at (j) << ", ";
+			}
+			output << states.at ( ionicModel.Size() - 1 ) << "\n";
+
+			XbOutput << t << ", " << X << ", " << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
+		}
         //********************************************//
         // Update the time.                           //
         //********************************************//
-        t = t + dt;
+
+		t = t + dt;
     }
     std::cout << "\n...Time loop ends.\n";
     std::cout << "Solution written on file: " << filename << "\n";
+
     //********************************************//
     // Close exported file.                       //
     //********************************************//
+
+    XbOutput.close();
     output.close();
 
     //! Finalizing Epetra communicator

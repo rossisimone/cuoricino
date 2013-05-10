@@ -53,6 +53,7 @@
 		M_VNsr      ( 0.07452 ),
 		M_VSs       ( 0.000053618 ),
 		M_NaO       ( 140.0 ),
+//		M_KO        ( 5.4 ),
 		M_CaO       ( 1.8 ),
 		M_LtrpnTot  ( 0.07 ),
 		M_HtrpnTot  ( 0.14 ),
@@ -120,6 +121,7 @@
 		M_VNsr      = parameterList.get ( "volNSR", 0.07452 );
 		M_VSs       = parameterList.get ( "volSS", 0.000053618 );
 		M_NaO       = parameterList.get ( "concNa0", 140.0 );
+//		M_KO        = parameterList.get ( "concK0", 5.4 );
 		M_CaO       = parameterList.get ( "concCa0", 1.8 );
 		M_LtrpnTot  = parameterList.get ( "lTrpnTot", 0.07 );
 		M_HtrpnTot  = parameterList.get ( "hTrpnTot", 0.14 );
@@ -186,6 +188,7 @@
 		M_VNsr		= model.M_VNsr;
 		M_VSs		= model.M_VSs;
 		M_NaO		= model.M_NaO;
+//		M_KO		= model.M_KO;
 		M_CaO 		= model.M_CaO;
 		M_LtrpnTot	= model.M_LtrpnTot;
 		M_HtrpnTot	= model.M_HtrpnTot;
@@ -257,6 +260,7 @@
 		M_VNsr      = model.M_VNsr;
 		M_VSs       = model.M_VSs;
 		M_NaO       = model.M_NaO;
+//		M_KO		= model.M_KO;
 		M_CaO       = model.M_CaO;
 		M_LtrpnTot  = model.M_LtrpnTot;
 		M_HtrpnTot  = model.M_HtrpnTot;

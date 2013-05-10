@@ -151,6 +151,15 @@
 			this->M_NaO = concNa0;
 		}
 
+//		inline const Real& concK0() const
+//		{
+//			return M_KO;
+//		}
+//		inline void setK0(const Real& concK0)
+//		{
+//			this->M_KO = concK0;
+//		}
+
 		inline const Real& concCa0() const
 		{
 			return M_CaO;
@@ -731,6 +740,7 @@
 		//! Standard Ionic Concentrations (3)
 
 		Real M_NaO;
+//		Real M_KO;
 		Real M_CaO;
 
 		//! Buffering Parameters (10)

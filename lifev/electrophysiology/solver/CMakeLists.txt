@@ -15,6 +15,7 @@ SET(solver_HEADERS
   solver/ElectroMonodomainSolver.hpp
   solver/ElectroETAMonodomainSolver.hpp
   solver/ElectroUpdatedMonodomainSolver.hpp
+  solver/StimulationProtocol.hpp
 #  solver/ElectroODEModel.hpp
 CACHE INTERNAL "")
 
@@ -23,6 +24,7 @@ SET(solver_SOURCES
   solver/ElectroMonodomainData.cpp
   solver/ElectroBidomainData.cpp
   solver/ElectroFunctors.cpp
+  solver/StimulationProtocol.cpp
 CACHE INTERNAL "")
 
 

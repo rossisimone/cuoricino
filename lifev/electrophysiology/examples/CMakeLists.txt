@@ -30,6 +30,6 @@ ADD_SUBDIRECTORIES(
   IonicMinimalModel
   IonicFox
   Restart
-  RosenbrockTest  
+  RosenbrockTest
 #  RiceModel
 )
