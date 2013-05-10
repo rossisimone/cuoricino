@@ -46,8 +46,8 @@ BDF_order   	= 2
 
 [../space_discretization]
 mesh_type = .mesh
-mesh_dir  	= /home/junki/dev
-mesh_file 	= cube4x4x4.msh
+mesh_dir  	= ./
+mesh_file 	= cube2x2x2.mesh
 order     	= P1
 
 [../miscellaneous]
