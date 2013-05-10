@@ -153,15 +153,15 @@ int main (int argc, char** argv)
     //********************************************//
     if ( comm->MyPID() == 0 )
     {
-        std::cout << "Mesh Loading...";
+        std::cout << "Reading Mesh Name and Path...\n";
     }
 
     std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = parameterList.get ("mesh_path", "./");
 
-    meshPtr_Type mesh ( new mesh_Type ( comm ) );
-    meshPtr_Type fullMesh ( new mesh_Type ( comm ) );
-    MeshUtility::fillWithFullMesh (mesh, fullMesh, meshName, meshPath);
+//    meshPtr_Type mesh ( new mesh_Type ( comm ) );
+//    meshPtr_Type fullMesh ( new mesh_Type ( comm ) );
+//    MeshUtility::fillWithFullMesh (mesh, fullMesh, meshName, meshPath);
     if ( comm->MyPID() == 0 )
         {
             std::cout << " Done!" << endl;
@@ -216,7 +216,8 @@ int main (int argc, char** argv)
     //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
 //    function_Type Vlid = &initialVlid;
 //    monodomain -> setPotentialFromFunction( Vlid );
-    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 5 );
+    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 21 );
+    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 22 );
 
     for(int i(0); i < ionicModel -> Size(); i++ )
     {
