@@ -69,19 +69,18 @@
 namespace
 {
     typedef LifeV::Real real_t;
-    typedef LifeV::ID   id_t;
 
-    static real_t bcZero(const real_t&, const real_t&, const real_t&, const real_t&, const id_t&)
+    static real_t bcZero(const real_t&, const real_t&, const real_t&, const real_t&, const LifeV::ID&)
     {
         return 0.;
     }
 
-    static real_t u0fun(const real_t&, const real_t&, const real_t&, const real_t&, const id_t&)
+    static real_t u0fun(const real_t&, const real_t&, const real_t&, const real_t&, const LifeV::ID&)
     {
         return 0.;
     }
 
-    static real_t f0fun(const real_t&, const real_t&, const real_t&, const real_t& z, const id_t& comp)
+    static real_t f0fun(const real_t&, const real_t&, const real_t&, const real_t& z, const LifeV::ID& comp)
     {
         /*
         real_t alpha = - M_PI/3. * z + M_PI/3. * (1-z);
@@ -96,7 +95,7 @@ namespace
         return (comp == 0) ? 1.0 : 0.0;
     }
 
-    static real_t gamma0fun(const real_t&, const real_t&, const real_t&, const real_t&, const id_t&)
+    static real_t gamma0fun(const real_t&, const real_t&, const real_t&, const real_t&, const LifeV::ID&)
     {
         return -0.1;
     }
@@ -189,7 +188,7 @@ public:
 
         LifeV::BCFunctionBase zero(bcZero);
 
-        std::vector<id_t> compx(1, 0), compy(1, 1), compz(1, 2);
+        std::vector<LifeV::ID> compx(1, 0), compy(1, 1), compz(1, 2);
 
         // cube.msh
         //   10: top,  20: bottom

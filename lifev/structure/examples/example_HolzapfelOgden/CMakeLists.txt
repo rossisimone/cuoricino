@@ -16,6 +16,6 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(data_HolzapfelOgden
 )
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(mesh_HolzapfelOgden
-  SOURCE_FILES cube4x4x4.mesh
+  SOURCE_FILES cube2x2x2.mesh
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/lifev/structure/data/mesh/inria/
 )
