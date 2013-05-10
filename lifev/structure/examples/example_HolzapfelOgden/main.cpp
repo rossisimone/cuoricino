@@ -40,8 +40,11 @@
 
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/ParserGmsh.hpp>
+#include <lifev/core/filter/ParserINRIAMesh.hpp>
 #include <lifev/core/mesh/ConvertBareMesh.hpp>
 #include <lifev/core/mesh/RegionMesh.hpp>
+
+#include <lifev/core/mesh/MeshEntity.hpp>
 
 #include <lifev/core/fem/FESpace.hpp>
 #include <lifev/eta/fem/ETFESpace.hpp>
@@ -76,6 +79,26 @@ namespace
     static real_t u0fun(const real_t&, const real_t&, const real_t&, const real_t&, const id_t&)
     {
         return 0.;
+    }
+
+    static real_t f0fun(const real_t&, const real_t&, const real_t&, const real_t& z, const id_t& comp)
+    {
+        /*
+        real_t alpha = - M_PI/3. * z + M_PI/3. * (1-z);
+
+        if (comp == 0)
+            return cos(alpha);
+        else if (comp == 1)
+            return sin(alpha);
+        else
+            return 0.;
+        */
+        return (comp == 0) ? 1.0 : 0.0;
+    }
+
+    static real_t gamma0fun(const real_t&, const real_t&, const real_t&, const real_t&, const id_t&)
+    {
+        return -0.1;
     }
 
     using namespace LifeV;
@@ -130,10 +153,12 @@ public:
             // Start reading a bare mesh
             baremesh_t baremesh;
             std::string meshfile = this->params.get("meshfile", "");
-            LifeV::MeshIO::ReadGmshFile(meshfile, baremesh, 1, true);
+            //LifeV::MeshIO::ReadGmshFile(meshfile, baremesh, 1, true);
+            LifeV::MeshIO::ReadINRIAMeshFile(baremesh, meshfile, 1, true);
             // Conversion to a region mesh
             boost::shared_ptr<mesh_t> fullmesh(new mesh_t(comm));
             LifeV::convertBareMesh(baremesh, *fullmesh, true);
+            //std::cout << fullmesh->faceList.countElementsWithMarkerID(10, std::equal_to<LifeV::markerID_Type>()) << std::endl;
             // Partition
             fullmesh->updateElementFacets (true, true);
             fullmesh->updateElementRidges (true, true);
@@ -144,10 +169,13 @@ public:
         }
         if (ilead) std::cout << "   ---   END reading mesh\n" << std::endl;
 
+
         // =======
         // FESpace
         // -------
-        std::string order("P1");
+        // GetPot datafile
+        GetPot datatxt("data.txt");
+        std::string order(datatxt("solid/space_discretization/order", "P1"));
         boost::shared_ptr<fespace_t> u_space(new fespace_t(mesh, order, 3, comm));
         boost::shared_ptr<etfespace_t> u_etspace(new etfespace_t(mesh,
                                                                  &(u_space->refFE()),
@@ -167,18 +195,16 @@ public:
         //   10: top,  20: bottom
         //   30: back, 40: front
         //   50: left, 60: right
-
-        bcs->addBC("SymmetryX", 60, LifeV::Essential, LifeV::Component, zero, compx);
-        bcs->addBC("SymmetryY", 40, LifeV::Essential, LifeV::Component, zero, compy);
-        bcs->addBC("SymmetryZ", 20, LifeV::Essential, LifeV::Component, zero, compz);
-
+        bcs->addBC("SymmetryX", 30, LifeV::Essential, LifeV::Component, zero, compx);
+        bcs->addBC("SymmetryY", 50, LifeV::Essential, LifeV::Component, zero, compy);
+        bcs->addBC("SymmetryZ", 10, LifeV::Essential, LifeV::Component, zero, compz);
+        //bcs->addBC("SymmetryZ2", 20, LifeV::Essential, LifeV::Component, zero, compz);
+        //bcs->addBC("LockedZ", 10, LifeV::Essential, LifeV::Full, zero, 3);
 
         typedef LifeV::StructuralConstitutiveLawData datasolid_t;
         typedef LifeV::StructuralOperator<mesh_t>    solid_t;
 
         boost::shared_ptr<datasolid_t> datasolid(new datasolid_t());
-        // GetPot datafile
-        GetPot datatxt("data.txt");
         datasolid->setup(datatxt);
 
         solid_t solid;
@@ -193,6 +219,25 @@ public:
         u_space->interpolate(static_cast<fespace_t::function_Type>(u0fun), *u0, 0.0);
 
         solid.initialize(u0);
+
+        // Fibers
+        {
+            vector_t f0(u_space->map());
+            u_space->interpolate(static_cast<fespace_t::function_Type>(f0fun), f0, 0.0);
+            solid.material()->setFiberVector(f0);
+        }
+        // Sheets
+        {
+            Real sx = 0.0, sy = 0.0, sz = 1.0;
+            solid.material()->setupSheetVector(sx, sy, sz);
+        }
+        // Activation
+        {
+            fespace_t gamma_space(mesh, order, 1, comm);
+            vector_t  gammaf(gamma_space.map());
+            gamma_space.interpolate(static_cast<fespace_t::function_Type>(gamma0fun), gammaf, 0.0);
+            solid.material()->setGammaf(gammaf);
+        }
 
         MPI_Barrier(MPI_COMM_WORLD);
 
@@ -241,10 +286,6 @@ int main (int argc, char** argv)
     }
 
     ActiveStructure structure(argv[1], comm);
-    /*
-    Structure structure(argc, argv, Comm);
-    structure.run();
-    */
 
 #ifdef HAVE_MPI
     MPI_Finalize();

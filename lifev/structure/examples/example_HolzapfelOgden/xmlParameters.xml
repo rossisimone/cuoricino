@@ -1,6 +1,6 @@
 <ParameterList>
   <!-- Problem parameters -->
-  <Parameter name="meshfile" type="string" value="/home/junki/dev/cube2x2x2.msh" />
+  <Parameter name="meshfile" type="string" value="cube2x2x2.mesh" />
 	<!-- LinearSolver parameters -->
 	<Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>

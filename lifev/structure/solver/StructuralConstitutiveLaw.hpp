@@ -280,6 +280,8 @@ public:
 
     inline virtual void setFiberVector( const vector_Type& /*fiberVector*/) {  }
 
+    inline virtual void setSheetVector( const vector_Type& /*sheetVector*/) {  }
+
     inline virtual void setGammaf(const vector_Type& /*gammaf*/){}
 
     inline virtual vectorPtr_Type gammaf()
@@ -290,6 +292,8 @@ public:
     }
 
     inline virtual void setupFiberVector( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
+
+    inline virtual void setupSheetVector( Real& /*sx*/, Real& /*sy*/, Real& /*sz*/ ) {}
 
 
     inline virtual MatrixSmall<3, 3>& identity()
