@@ -91,7 +91,8 @@ MultiscaleModelFSI3D::MultiscaleModelFSI3D() :
     M_linearFluidBC                (),
     M_linearSolidBC                (),
     M_linearRHS                    (),
-    M_linearSolution               ()
+    M_linearSolution               (),
+    M_verbosityLevel               (1)
 {
 
 #ifdef HAVE_LIFEV_DEBUG
@@ -164,6 +165,9 @@ MultiscaleModelFSI3D::setupData ( const std::string& fileName )
         setupExporter ( M_exporterSolid, dataFile, "_Solid" );
         setupImporter ( M_importerSolid, dataFile, "_Solid" );
     }
+
+    // Set verbosite level for NonLinearRichardson
+    M_verbosityLevel = dataFile("problem/verbose", 1);
 
 #ifndef FSI_WITHOUT_VELOCITYPROFILE
     std::map< std::string, FSI3DBoundaryFlowRate_Type > boundaryFlowRateMap;
@@ -326,7 +330,7 @@ MultiscaleModelFSI3D::solveModel()
                           maxSubIterationNumber, M_data->errorTolerance(),
                           M_data->NonLinearLineSearch(),
                           M_nonLinearRichardsonIteration,
-                          1
+                          M_verbosityLevel
                         );
 
     // TODO This is a workaround of Paolo Crosetto to make it possible to perform subiterations

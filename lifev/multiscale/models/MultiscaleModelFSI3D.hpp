@@ -590,6 +590,8 @@ private:
     bcPtr_Type                              M_linearSolidBC;
     vectorPtr_Type                          M_linearRHS;
     vectorPtr_Type                          M_linearSolution;
+
+    UInt                                    M_verbosityLevel;
 };
 
 
