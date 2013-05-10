@@ -184,9 +184,9 @@ Int NonLinearRichardson ( VectorEpetra& sol,
         stepNormInf = step.normInf();
         if ( verboseLevel > 1 )
         {
-            output   << std::setw (5) << iter
+            output   << std::endl << std::setw (5) << iter
                      << std::setw (15) << solNormInf
-                     << std::setw (15) << stepNormInf;
+                     << std::setw (15) << stepNormInf << std::endl;
         }
         linres = linearRelTol;
 
