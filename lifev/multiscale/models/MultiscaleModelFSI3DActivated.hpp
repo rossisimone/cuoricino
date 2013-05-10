@@ -245,6 +245,10 @@ private:
     boost::shared_ptr<LinearSolver>         M_activationSolver;
     FSI3DActivated_ActivationModelType      M_activationModelType;
 
+    std::string                             M_interpolationType;
+
+//    UInt                                    M_endocardiumMarkers;
+//    UInt                                    M_epicardiumMarkers;
 };
 
 //! Factory create function

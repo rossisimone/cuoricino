@@ -235,6 +235,8 @@ MultiscaleModelFSI3DActivated::setupModel()
     }
     setupInterpolant();
 
+
+//    *M_activationSolver = *M_monodomain -> linearSolverPtr();
     //setting up activation solver
 
 }
@@ -253,6 +255,7 @@ MultiscaleModelFSI3DActivated::buildModel()
     M_monodomain -> setupStiffnessMatrix();
     M_monodomain -> setupGlobalMatrix();
 
+ //   M_activationSolver -> setOperator(M_monodomain -> massMatrixPtr());
 }
 
 void
@@ -300,7 +303,6 @@ MultiscaleModelFSI3DActivated::solveModel()
                 *M_gammaf = * ( M_monodomain -> globalSolution().at (3) );
                 if ( M_maxCalciumLikeVariable < M_gammaf -> maxValue() )
                     M_maxCalciumLikeVariable = M_gammaf -> maxValue();
-
                 if ( M_minCalciumLikeVariable > M_gammaf -> minValue() )
                     M_minCalciumLikeVariable = M_gammaf -> minValue();
 
@@ -319,7 +321,11 @@ MultiscaleModelFSI3DActivated::solveModel()
                 ASSERT(false, "ERROR: Stretch-dependent activation is not yet implemented.");
             }
         }
-
+/*
+        vectorPtr_Type rescaledGammaf(new vector_Type( *M_gammaf ) );
+        HeartUtility::rescaleVector(*rescaledGammaf, 0.12/0.3 );
+        HeartUtility::rescaleVectorOnBoundary(*rescaledGammaf, M_monodomain -> fullMeshPtr(), M_activationMarker, 0.2 / 0.12);
+*/
         // Transfer gammaf to solid mesh
         if ( M_usingDifferentMeshes )
         {
@@ -443,6 +449,8 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
         }
     }
 }
+
+
 
 } // Namespace multiscale
 } // Namespace LifeV
