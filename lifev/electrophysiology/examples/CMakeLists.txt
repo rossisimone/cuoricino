@@ -8,7 +8,6 @@ ADD_SUBDIRECTORIES(
   0DJafriRiceWinslowModel
   0DJafriRiceWinslowModelwStimPro
   0DTenTusscherModel
-  0DFoxModel
   0DTenTusscherModelwStimPro
   0DMinimalModel
   0DNegroniLascanoModel
