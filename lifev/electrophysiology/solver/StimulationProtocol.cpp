@@ -67,6 +67,7 @@
 			M_timeSt             ( 20.0 ),
 			M_tShortS1S1         ( 1000.0 ),
 			M_stInt              ( 600.0 ),
+			M_stIntMin           ( 600.0 ),
 			M_stIntS1S2          ( 350.0 ),
 			M_stIntS1S2Min       ( 200.0 ),
 			M_stIntS2S3          ( 250.0 ),
@@ -83,10 +84,11 @@
 			M_timeSt             = parameterList.get ( "stimuliTime", 20.0 );
 			M_tShortS1S1         = parameterList.get ( "tShortS1S1", 1000.0);
 			M_stInt     	     = parameterList.get ( "stInt", 600.0 );
+			M_stIntMin     	     = parameterList.get ( "stIntMin", 600.0 );
 			M_stIntS1S2          = parameterList.get ( "stIntS1S2", 350.0 );
 			M_stIntS1S2Min       = parameterList.get ( "stIntS1S2Min", 200.0 );
-			M_stIntS2S3          = parameterList.get ( "stIntS1S2S3", 250.0 );
-			M_stIntS3S4          = parameterList.get ( "stIntS2S3S4", 150.0 );
+			M_stIntS2S3          = parameterList.get ( "stIntS2S3", 250.0 );
+			M_stIntS3S4          = parameterList.get ( "stIntS3S4", 150.0 );
 			M_nbStimMax          = parameterList.get ( "nbStimMax", 20 );
 			M_repeatSt           = parameterList.get ( "repeatSt", 10 );
 			M_pacingProtocol     = parameterList.get ( "pacPro", "FCL" );
@@ -99,6 +101,7 @@
 			M_timeSt             = protocol.M_timeSt;
 			M_tShortS1S1         = protocol.M_tShortS1S1;
 			M_stInt              = protocol.M_stInt;
+			M_stIntMin           = protocol.M_stIntMin;
 			M_stIntS1S2          = protocol.M_stIntS1S2;
 			M_stIntS1S2Min       = protocol.M_stIntS1S2Min;
 			M_stIntS2S3          = protocol.M_stIntS2S3;
@@ -119,6 +122,7 @@
 			M_timeSt             = protocol.M_timeSt;
 			M_tShortS1S1         = protocol.M_tShortS1S1;
 			M_stInt              = protocol.M_stInt;
+			M_stIntMin           = protocol.M_stIntMin;
 			M_stIntS1S2          = protocol.M_stIntS1S2;
 			M_stIntS1S2Min       = protocol.M_stIntS1S2Min;
 			M_stIntS2S3          = protocol.M_stIntS2S3;
@@ -249,11 +253,28 @@
 		void StimulationProtocol::standardS1S2Protocol( const Real& t, const Real& dt, int& NbStimulus, Real& Iapp )
 		{
 			if ( t < M_nbStimMax * M_stInt )
-				fixedCycleLength ( t, dt, NbStimulus, Iapp );
+			{
+				if ( t >= M_timeSt && t <= M_timeSt + 1.0 )
+				{
+					Iapp = M_Istim;
 
+					if ( t >= M_timeSt + 1.0 - dt && t <= M_timeSt + 1.0 )
+					{
+						M_timeSt = M_timeSt + M_stInt;
+						
+						if ( t > ( M_nbStimMax - 1 ) * M_stInt && t < M_nbStimMax * M_stInt )
+							NbStimulus = 0;
+						
+						else
+							NbStimulus++;
+					}
+				}
+				else
+					Iapp = 0;
+			}
 			else
 			{
-				if ( M_stIntS1S2 > M_stIntS1S2Min )
+				if ( M_stIntS1S2 >= M_stIntS1S2Min )
 				{
 					if ( t >= M_timeSt && t <= M_timeSt + 1.0 )
 					{
@@ -288,6 +309,8 @@
 							}
 						}
 					}
+					else 
+						Iapp = 0;
 				}
 				else
 					Iapp = 0;
@@ -296,7 +319,7 @@
 
 		void StimulationProtocol::dynamicProtocol( const Real& t, const Real& dt, int& NbStimulus, Real& Iapp )
 		{
-			if ( M_stInt > M_stIntMin )
+			if ( M_stInt >= M_stIntMin )
 			{
 				if ( t >= M_timeSt && t <= M_timeSt + 1.0 )
 				{
@@ -318,17 +341,17 @@
 						M_stInt      = M_stInt - 1000;
 						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 50;
 					}
-					else if ( M_stIntS1S2 <= 1000 && M_stIntS1S2 > 300 )
+					else if ( M_stInt <= 1000 && M_stInt > 300 )
 					{
 						M_stInt      = M_stInt - 100 ;
 						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 50;
 					}
-					else if (  M_stIntS1S2 <= 300 &&  M_stIntS1S2 > 200 )
+					else if (  M_stInt <= 300 &&  M_stInt > 200 )
 					{
 						M_stInt      = M_stInt - 50;
 						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 50;
 					}
-					else if ( M_stIntS1S2 <= 200 )
+					else if ( M_stInt <= 200 )
 					{
 						M_stInt      = M_stInt - 5;
 						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 50;
