@@ -4,6 +4,7 @@ SET( solver_IonicModels_HEADERS
   solver/IonicModels/IonicMitchellSchaeffer.hpp
   solver/IonicModels/IonicJafriRiceWinslow.hpp
   solver/IonicModels/IonicTenTusscher.hpp
+  solver/IonicModels/IonicTenTusscherFE.hpp
   solver/IonicModels/IonicMinimalModel.hpp
   solver/IonicModels/ElectroIonicModel.hpp
   solver/IonicModels/IonicFox.hpp
@@ -15,6 +16,7 @@ SET( solver_IonicModels_SOURCES
   solver/IonicModels/IonicMitchellSchaeffer.cpp
   solver/IonicModels/IonicJafriRiceWinslow.cpp
   solver/IonicModels/IonicTenTusscher.cpp
+  solver/IonicModels/IonicTenTusscherFE.cpp
   solver/IonicModels/IonicMinimalModel.cpp
   solver/IonicModels/IonicFox.cpp
   solver/IonicModels/ElectroIonicModel.cpp

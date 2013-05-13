@@ -1,9 +1,8 @@
 <!-- Model Parameters -->
 <ParameterList name="Jafri Rice Winslow: Parameter list">
-	<Parameter name="endTime" type="double" value="200.0"/>
-	<Parameter name="timeStep" type="double" value="5.77e-4"/>
-	<Parameter name="stimuliTime" type="double" value="1.0"/>
-	<Parameter name="stimuliInterval" type="double" value="400.0"/>
+	<Parameter name="stimuliTime" type="double" value="10.0"/>
+	<Parameter name="stimuliInterval" type="double" value="600.0"/>
+	<Parameter name="savedt" type="double" value="0.01"/>
 	<Parameter name="areaCap" type="double" value="546.69"/>
 	<Parameter name="volMyo" type="double" value="0.92"/>
 	<Parameter name="volJSR" type="double" value="0.0042688"/>
@@ -43,7 +42,7 @@
 	<Parameter name="maxCondCab" type="double" value="6.032e-5"/>
 	<Parameter name="maxCondNab" type="double" value="1.41e-5"/>
 	<Parameter name="maxRyRPerm" type="double" value="1.8"/>
-	<Parameter name="leakRateConst" type="double" value="0.58e-4"/>
+	<Parameter name="leakRateConst" type="double" value="5.8e-5"/>
 	<Parameter name="pumpRateATPase" type="double" value="1.8e-3"/>
 	<Parameter name="constmUp" type="double" value="0.5e-3"/>
 	<Parameter name="timeConstNsrJsr" type="double" value="34.48"/>
@@ -67,3 +66,5 @@
 	<Parameter name="permK" type="double" value="1.0e-9"/>
 	<Parameter name="courCaHalf" type="double" value="-4.58e-3"/>
 </ParameterList>
+
+	

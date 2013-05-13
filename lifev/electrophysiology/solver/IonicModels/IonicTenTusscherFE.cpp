@@ -26,7 +26,7 @@
 
 	/*!
 	  @file
-	  @brief Ionic model based on ten Tusscher model.
+	  @brief Ionic model based on ten Tusscher model. Class to solve with pure forward Euler method
 	  @date 03-2013
 	  @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
@@ -37,7 +37,7 @@
 
 
 
-	#include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher.hpp>
+	#include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscherFE.hpp>
 
 
 
@@ -47,7 +47,7 @@
 	// ===================================================
 	//! Constructors
 	// ===================================================
-	IonicTenTusscher::IonicTenTusscher()    :
+	IonicTenTusscherFE::IonicTenTusscherFE()    :
 		super      ( 17 ),
 		M_R        ( 8314.472 ),
 		M_T        ( 310.0 ),
@@ -96,7 +96,7 @@
 		M_typeCell ("epicardial")
 	{}
 
-	IonicTenTusscher::IonicTenTusscher ( Teuchos::ParameterList& parameterList ) :
+	IonicTenTusscherFE::IonicTenTusscherFE ( Teuchos::ParameterList& parameterList ) :
 		super       ( 17 )
 	{
 		M_R        = parameterList.get ( "gasConst", 8314.472 );
@@ -146,7 +146,7 @@
 		M_typeCell = parameterList.get ( "typeCell", "epicardial");
 	}
 
-	IonicTenTusscher::IonicTenTusscher ( const IonicTenTusscher& model )
+	IonicTenTusscherFE::IonicTenTusscherFE ( const IonicTenTusscherFE& model )
 	{
 		M_R        = model.M_R;
 		M_T        = model.M_T;
@@ -200,7 +200,7 @@
 	// ===================================================
 	//! Operator
 	// ===================================================
-	IonicTenTusscher& IonicTenTusscher::operator= ( const IonicTenTusscher& model )
+	IonicTenTusscherFE& IonicTenTusscherFE::operator= ( const IonicTenTusscherFE& model )
 	{
 		M_R        = model.M_R;
 		M_T        = model.M_T;
@@ -258,7 +258,7 @@
 	//! Methods
 	// ===================================================
 	//Only gating variables
-	void IonicTenTusscher::computeRhs ( const std::vector<Real>&  v,
+	void IonicTenTusscherFE::computeRhs ( const std::vector<Real>&  v,
 											 std::vector<Real>& rhs )
 	{
 		std::vector<Real> gatingRhs     ( computeLocalGatingRhs(v) );
@@ -272,7 +272,7 @@
 	}
 
 	//Potential and gating variables
-	void IonicTenTusscher::computeRhs (const   std::vector<Real>&  v,
+	void IonicTenTusscherFE::computeRhs (const   std::vector<Real>&  v,
 											 const   Real& Istim,
 											 std::vector<Real>& rhs )
 	{
@@ -288,7 +288,7 @@
 
 	}
 
-	Real IonicTenTusscher::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Istim )
+	Real IonicTenTusscherFE::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Istim )
 	{
 		std::vector<Real> courSubSysCa ( computeLocalSubSysCaRhs(v) );
 		std::vector<Real> courINa	   ( fastINa(v) );
@@ -303,7 +303,7 @@
 		return  - ( iIon + Istim ) ;
 	}
 
-	std::vector<Real> IonicTenTusscher::computeLocalGatingRhs ( const std::vector<Real>& v )
+	std::vector<Real> IonicTenTusscherFE::computeLocalGatingRhs ( const std::vector<Real>& v )
 	{
 		std::vector<Real> gatingINa (fastINa(v));
 		std::vector<Real> gatingIKr (rapDelIKr(v));
@@ -323,12 +323,12 @@
 		return gatingRhs;
 	}
 
-	std::vector<Real> IonicTenTusscher::computeLocalConcRhs ( const std::vector<Real>& v )
+	std::vector<Real> IonicTenTusscherFE::computeLocalConcRhs ( const std::vector<Real>& v )
 	{
 
 		std::vector<Real> courSubSysCa ( computeLocalSubSysCaRhs(v) );
-		std::vector<Real> courINa	   ( fastINa(v) );
-		std::vector<Real> courIto	   ( transientIto(v) );
+		std::vector<Real> courINa      ( fastINa(v) );
+		std::vector<Real> courIto      ( transientIto(v) );
 		std::vector<Real> courIKs      ( slowIKs(v) );
 		std::vector<Real> courIKr      ( rapDelIKr(v) );
 
@@ -343,12 +343,12 @@
 		return concRhs;
 	}
 
-	std::vector<Real> IonicTenTusscher::computeLocalConcRhs ( const std::vector<Real>& v, const Real& Istim )
+	std::vector<Real> IonicTenTusscherFE::computeLocalConcRhs ( const std::vector<Real>& v, const Real& Istim )
 	{
 
 		std::vector<Real> courSubSysCa ( computeLocalSubSysCaRhs(v) );
-		std::vector<Real> courINa	   ( fastINa(v) );
-		std::vector<Real> courIto	   ( transientIto(v) );
+		std::vector<Real> courINa      ( fastINa(v) );
+		std::vector<Real> courIto      ( transientIto(v) );
 		std::vector<Real> courIKs      ( slowIKs(v) );
 		std::vector<Real> courIKr      ( rapDelIKr(v) );
 
@@ -365,7 +365,7 @@
 
 	//! Ca2+ Subsystem
 
-	std::vector<Real> IonicTenTusscher::computeLocalSubSysCaRhs( const std::vector<Real>& v )
+	std::vector<Real> IonicTenTusscherFE::computeLocalSubSysCaRhs( const std::vector<Real>& v )
 	{
 		std::vector<Real> subSysCaRHS(10);
 
@@ -401,13 +401,13 @@
 		Real cCai_bufc   = 1.0 / ( 1.0 + M_Buffc * M_KBuffc / ( ( cCa + M_KBuffc ) * ( cCa + M_KBuffc ) ) );
 		Real cCaSR_bufsr = 1.0 / ( 1.0 + M_BuffSR * M_KBuffSR / ( ( cCaSR + M_KBuffSR ) * ( cCaSR + M_KBuffSR ) ) );
 
-//		Real d_inf   = 1.0 / ( 1.0 + std::exp( ( -5.0 - V ) / 7.5 ) );
+		Real d_inf   = 1.0 / ( 1.0 + std::exp( ( -5.0 - V ) / 7.5 ) );
 		Real alpha_d = 1.4 / ( 1.0 + std::exp( ( -35.0 - V ) / 13.0 ) ) + 0.25;
 		Real beta_d  = 1.4 / ( 1.0 + std::exp( ( 5.0 + V ) / 5.0 ) );
 		Real gamma_d = 1.0 / ( 1.0 + std::exp( ( 50.0 - V ) / 20.0 ) );
 		Real tau_d   = alpha_d * beta_d + gamma_d;
 
-//		Real f_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 + V ) / 7.0 ) );
+		Real f_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 + V ) / 7.0 ) );
 		Real tau_f = 1125.0 * std::exp( -( 27.0 + V ) * ( 27.0 + V ) / 240.0 ) + 80.0 + 165.0 / ( 1.0 + std::exp( ( 25.0 - V ) / 10.0 ) );
 
 		Real alpha_fCa = 1.0 / ( 1.0 + std::pow(cCa / 0.000325, 8) );
@@ -430,14 +430,10 @@
 		subSysCaRHS[3] = jRel;
 		subSysCaRHS[4] = cCai_bufc;
 		subSysCaRHS[5] = cCaSR_bufsr;
-		subSysCaRHS[6] = - 1.0 / tau_d;
-		subSysCaRHS[7] = - 1.0 / tau_f;
-		subSysCaRHS[8] = - k_fCa / tau_fCa;
-		subSysCaRHS[9] = - k_g  / tau_g;
-//		subSysCaRHS[6] = ( d_inf - d ) / tau_d;
-//		subSysCaRHS[7] = ( f_inf - f ) / tau_f;
-//		subSysCaRHS[8] = k_fCa * ( fCa_inf - fCa ) / tau_fCa;
-//		subSysCaRHS[9] = k_g * ( g_inf - g ) / tau_g;
+		subSysCaRHS[6] = ( d_inf - d ) / tau_d;
+		subSysCaRHS[7] = ( f_inf - f ) / tau_f;
+		subSysCaRHS[8] = k_fCa * ( fCa_inf - fCa ) / tau_fCa;
+		subSysCaRHS[9] = k_g * ( g_inf - g ) / tau_g;
 
 		return subSysCaRHS;
 	}
@@ -445,7 +441,7 @@
 	//! Ionic Currents
 
 	// Fast Na+ Current INa
-	std::vector<Real> IonicTenTusscher::fastINa( const std::vector<Real>& v )
+	std::vector<Real> IonicTenTusscherFE::fastINa( const std::vector<Real>& v )
 	{
 		std::vector<Real> fastNa(4);
 
@@ -460,17 +456,16 @@
 		fastNa[0] = M_GNa * std::pow(m, 3) * h * j * ( V - potNa );
 
 		// Fast Na+ current m gate
-//		Real m_inf   = 1.0 / ( ( 1.0 + std::exp( ( -58.6 - V ) / 9.03 ) ) * ( 1.0 + std::exp( ( -58.6 - V ) / 9.03 ) ) );
+		Real m_inf   = 1.0 / ( ( 1.0 + std::exp( ( -58.6 - V ) / 9.03 ) ) * ( 1.0 + std::exp( ( -58.6 - V ) / 9.03 ) ) );
 		Real alpha_m = 1.0 / ( 1.0 + std::exp( ( -60.0 - V ) / 5.0 ) );
 		Real beta_m  = 0.1 / ( 1.0 + std::exp( ( V + 35.0 ) / 5.0 ) ) +  0.1 / ( 1.0 + std::exp( ( V - 50.0 ) / 200.0 ) );
 		Real tau_m   = alpha_m * beta_m;
 
-		fastNa[1] = - 1.0 / tau_m;
-//		fastNa[1] = ( m_inf - m ) / tau_m;
+		fastNa[1] = ( m_inf - m ) / tau_m;
 
 		// Fast Na+ current h and j gate
-//		Real h_inf   = 1.0 / ( ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) * ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) );
-//		Real j_inf   = 1.0 / ( ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) * ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) );
+		Real h_inf   = 1.0 / ( ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) * ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) );
+		Real j_inf   = 1.0 / ( ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) * ( 1 + std::exp( ( V + 71.55 ) / 7.43) ) );
 
 
 		Real alpha_h (0);
@@ -496,16 +491,14 @@
 		Real tau_h 	= 1.0 / ( alpha_h + beta_h );
 		Real tau_j  = 1.0 / ( alpha_j + beta_j );
 
-		fastNa[2] = - 1.0 / tau_j;
-		fastNa[3] = - 1.0 / tau_h;
-//		fastNa[2] = ( j_inf - j ) / tau_j;
-//		fastNa[3] = ( h_inf - h ) / tau_h;
+		fastNa[2] = ( j_inf - j ) / tau_j;
+		fastNa[3] = ( h_inf - h ) / tau_h;
 
 		return fastNa;
 	}
 
 	// Transient outward current Ito
-	std::vector<Real> IonicTenTusscher::transientIto( const std::vector<Real>& v )
+	std::vector<Real> IonicTenTusscherFE::transientIto( const std::vector<Real>& v )
 	{
 		std::vector<Real> transIto(3);
 
@@ -524,40 +517,38 @@
 			transIto[0] = M_GToEpiM * r * s * ( V - potK );
 
 
-//		Real r_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 - V ) / 6.0 ) );
+		Real r_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 - V ) / 6.0 ) );
 		Real tau_r = 9.5 * std::exp( - ( V + 40 ) * ( V + 40 ) / 1800.0 ) + 0.8;
 
 
-//		Real s_inf (0);
+		Real s_inf (0);
 		Real tau_s (0);
 
 		if ( ( M_typeCell == "epicardial" ) || ( M_typeCell == "M cell" ) )
 		{
-//			s_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 + V ) / 5.0 ) );
+			s_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 + V ) / 5.0 ) );
 			tau_s = 85.0 * std::exp( - ( V + 45.0 ) * ( V + 45.0 ) / 320.0 ) + 5.0 / ( 1.0 + std::exp( ( -20.0 + V ) / 5.0 ) ) + 3.0;
 		}
 		else if ( M_typeCell == "endocardial" )
 		{
-//			s_inf = 1.0 / ( 1.0 + std::exp( ( 28.0 + V ) / 5.0 ) );
+			s_inf = 1.0 / ( 1.0 + std::exp( ( 28.0 + V ) / 5.0 ) );
 			tau_s = 1000.0 * std::exp( - ( V + 67.0 ) * ( V + 67.0 ) / 1000.0 ) + 8.0;
 		}
 		else
 		{
-//			s_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 + V ) / 5.0 ) );
+			s_inf = 1.0 / ( 1.0 + std::exp( ( 20.0 + V ) / 5.0 ) );
 			tau_s = 85.0 * std::exp( - ( V + 45.0 ) * ( V + 45.0 ) / 320.0 ) + 5.0 / ( 1.0 + std::exp( ( -20.0 + V ) / 5.0 ) ) + 3.0;
 		}
 
 
-		transIto[1] = - 1.0 / tau_r;
-		transIto[2] = - 1.0 / tau_s;
-//		transIto[1] = ( r_inf -r ) / tau_r;
-//		transIto[2] = ( s_inf -s ) / tau_s;
+		transIto[1] = ( r_inf -r ) / tau_r;
+		transIto[2] = ( s_inf -s ) / tau_s;
 
 		return transIto;
 	}
 
 	// Slow Delayed Rectifier Current IKs
-	std::vector<Real> IonicTenTusscher::slowIKs( const std::vector<Real>& v )
+	std::vector<Real> IonicTenTusscherFE::slowIKs( const std::vector<Real>& v )
 	{
 		Real V    ( v[0] );
 		Real Xs   ( v[6] );
@@ -578,17 +569,16 @@
 		else
 			slowIKs[0] = M_GKs * Xs * Xs * ( V - potKs );
 
-//		Real Xs_inf = 1.0 / ( 1.0 + std::exp( ( -5.0 - V ) / 14.0 ) );
+		Real Xs_inf = 1.0 / ( 1.0 + std::exp( ( -5.0 - V ) / 14.0 ) );
 		Real tau_xs = alpha_xs * beta_xs;
 
-		slowIKs[1] = - 1.0 / tau_xs;
-//		slowIKs[1] = ( Xs_inf - Xs ) / tau_xs;
+		slowIKs[1] = ( Xs_inf - Xs ) / tau_xs;
 
 		return  slowIKs;
 	}
 
 	// Rapid Delayed Rectifier Current
-	std::vector<Real> IonicTenTusscher::rapDelIKr( const std::vector<Real>& v )
+	std::vector<Real> IonicTenTusscherFE::rapDelIKr( const std::vector<Real>& v )
 	{
 		Real V   ( v[0] );
 		Real Xr1 ( v[4] );
@@ -606,21 +596,20 @@
 
 		rapidIKr[0] = M_GKr * sqrt( M_KO / 5.4 ) * Xr1 * Xr2 * ( V - potK );
 
-//		Real Xr1_inf = 1.0 / ( 1.0 + std::exp( ( -26.0 - V ) / 7.0 ) );
+		Real Xr1_inf = 1.0 / ( 1.0 + std::exp( ( -26.0 - V ) / 7.0 ) );
 		Real tau_xr1 = alpha_xr1 * beta_xr1;
-//		Real Xr2_inf = 1.0 / ( 1.0 + std::exp( ( 88.0 + V ) / 24.0 ) );
+		Real Xr2_inf = 1.0 / ( 1.0 + std::exp( ( 88.0 + V ) / 24.0 ) );
 		Real tau_xr2 = alpha_xr2 * beta_xr2;
 
-		rapidIKr[1] = - 1.0 / tau_xr1;
-		rapidIKr[2] = - 1.0 / tau_xr2;
-//		rapidIKr[1] = ( Xr1_inf - Xr1 ) / tau_xr1;
-//		rapidIKr[2] = ( Xr2_inf - Xr2 ) / tau_xr2;
+		
+		rapidIKr[1] = ( Xr1_inf - Xr1 ) / tau_xr1;
+		rapidIKr[2] = ( Xr2_inf - Xr2 ) / tau_xr2;
 
 		return rapidIKr;
 	}
 
 	// Inward Rectifier K+ Current
-	Real IonicTenTusscher::inwardIK1( const std::vector<Real>& v )
+	Real IonicTenTusscherFE::inwardIK1( const std::vector<Real>& v )
 	{
 		Real V   ( v[0] );
 		Real cKi ( v[16] );
@@ -637,7 +626,7 @@
 
 
 	// Na+/Ca2+ exchanger current INaCa
-	Real IonicTenTusscher::exINaCa( const std::vector<Real>& v )
+	Real IonicTenTusscherFE::exINaCa( const std::vector<Real>& v )
 	{
 
 		Real V    ( v[0] );
@@ -652,7 +641,7 @@
 	}
 
 	// Na+/K+ pump INaK
-	Real IonicTenTusscher::pumpINaK( const std::vector<Real>& v )
+	Real IonicTenTusscherFE::pumpINaK( const std::vector<Real>& v )
 	{
 		Real V   ( v[0] );
 		Real cNa ( v[15] );
@@ -663,13 +652,13 @@
 	}
 
 	// Sarcolemmal Ca2+ pump current IpCa
-	Real IonicTenTusscher::pumpIpCa( const std::vector<Real>& v )
+	Real IonicTenTusscherFE::pumpIpCa( const std::vector<Real>& v )
 	{
 		return M_GCap * v[13] / ( M_KpCa + v[13] );
 	}
 
 	// K+ pump current IpK
-	Real IonicTenTusscher::pumpIpK( const std::vector<Real>& v )
+	Real IonicTenTusscherFE::pumpIpK( const std::vector<Real>& v )
 	{
 		Real V   ( v[0] );
 		Real cKi ( v[16] );
@@ -680,7 +669,7 @@
 	}
 
 	// Ca2+ background current ICab
-	Real IonicTenTusscher::backICab( const std::vector<Real>& v )
+	Real IonicTenTusscherFE::backICab( const std::vector<Real>& v )
 	{
 		Real V    ( v[0] );
 		Real cCa  ( v[13] );
@@ -691,7 +680,7 @@
 	}
 
 	// Na+ background current INab
-	Real IonicTenTusscher::backINab( const std::vector<Real>& v )
+	Real IonicTenTusscherFE::backINab( const std::vector<Real>& v )
 	{
 		Real V    ( v[0] );
 		Real cNa  ( v[15] );
@@ -701,46 +690,9 @@
 		return M_GNab * ( V - potNaN );
 	}
 
-	std::vector<Real> IonicTenTusscher::gateInf( const std::vector<Real>& v )
+	void IonicTenTusscherFE::showMe()
 	{
-		Real V   ( v[0] );
-		Real cCa ( v[13] );
-		std::vector<Real> gate_inf (12);
-
-		gate_inf[0] = 1.0 / pow( 1.0 + exp( ( -58.6 - V ) / 9.03), 2);
-		gate_inf[1] = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
-		gate_inf[2] = 1.0 / pow( 1 + exp( ( V + 71.55 ) / 7.43), 2);
-		gate_inf[3] =  1.0 / ( 1.0 + exp( ( -26.0 - V ) / 7.0 ) );
-		gate_inf[4] = 1.0 / ( 1.0 + exp( ( 88.0 + V ) / 24.0 ) );
-		gate_inf[5] = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 14.0 ) );
-		gate_inf[6] = 1.0 / ( 1.0 + exp( ( -5.0 - V ) / 7.5 ) );
-		gate_inf[7] = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 7.0 ) );
-
-		Real alpha_fCa = 1.0 / ( 1.0 + pow(cCa / 0.000325, 8) );
-		Real beta_fCa  = 0.1 / ( 1.0 + exp( ( cCa - 0.0005 ) / 0.0001 ) );
-		Real gamma_fCa = 0.2 / ( 1.0 + exp( ( cCa - 0.00075 ) / 0.0008 ) );
-		gate_inf[8]    = ( alpha_fCa + beta_fCa + gamma_fCa + 0.23 ) / 1.46;
-
-		gate_inf[9] = 1.0 / ( 1.0 + exp( ( 20.0 - V ) / 6.0 ) );
-
-		if ( ( M_typeCell == "epicardial" ) || ( M_typeCell == "M cell" ) )
-			gate_inf[10] = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 5.0 ) );
-		else if ( M_typeCell == "endocardial" )
-			gate_inf[10] = 1.0 / ( 1.0 + exp( ( 28.0 + V ) / 5.0 ) );
-		else
-			gate_inf[10] = 1.0 / ( 1.0 + exp( ( 20.0 + V ) / 5.0 ) );
-
-		if ( cCa <= 0.00035 )
-			gate_inf[11]  = 1.0 / ( 1.0 + pow(cCa / 0.00035, 6) );
-		else
-			gate_inf[11] = 1.0 / ( 1.0 + pow(cCa / 0.00035, 16) );
-
-		return gate_inf;
-	}
-
-	void IonicTenTusscher::showMe()
-	{
-		std::cout << "\n\n\t\tIonicTenTusscher Informations\n\n";
+		std::cout << "\n\n\t\tIonicTenTusscherFE Informations\n\n";
 		std::cout << "number of unkowns: "  << this->Size() << std::endl;
 
 		std::cout << "\n\t\tList of model parameters:\n\n";
@@ -790,7 +742,7 @@
 		std::cout << "constBuffSR: " << this->constBuffSR() << std::endl;
 		std::cout << "typeCell: " << this->typeCell() << std::endl;
 
-		std::cout << "\n\t\t End of IonicTenTusscher Informations\n\n\n";
+		std::cout << "\n\t\t End of IonicTenTusscherFE Informations\n\n\n";
 	}
 
 

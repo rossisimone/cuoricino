@@ -26,7 +26,7 @@
 
 	/*!
 	  @file
-	  @brief Ionic model based on ten Tusscher model.
+	  @brief Ionic model based on ten Tusscher model. Class to solve with pure forward Euler method
 	  @date 03-2013
 	  @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
@@ -36,8 +36,8 @@
 	 */
 
 
-	#ifndef TENTUSSCHER_HPP_INCLUDED
-	#define TENTUSSCHER_HPP_INCLUDED
+	#ifndef TENTUSSCHERFE_HPP_INCLUDED
+	#define TENTUSSCHERFE_HPP_INCLUDED
 
 	#include <lifev/electrophysiology/solver/IonicModels/ElectroIonicModel.hpp>
 
@@ -52,7 +52,7 @@
 	{
 	//! XbModel - This class implements a mean field model.
 
-	class IonicTenTusscher : public virtual ElectroIonicModel
+	class IonicTenTusscherFE : public virtual ElectroIonicModel
 	{
 
 	public:
@@ -69,28 +69,28 @@
 		//@{
 
 		//! Constructor
-		IonicTenTusscher();
+		IonicTenTusscherFE();
 
 		/*!
 		 * @param Epetra communicator
 		 * @param list of parameters in an xml file
 		 */
-		IonicTenTusscher ( Teuchos::ParameterList& parameterList );
+		IonicTenTusscherFE ( Teuchos::ParameterList& parameterList );
 
 		/*!
-		 * @param IonicTenTusscher object
+		 * @param IonicTenTusscherFE object
 		 */
-		IonicTenTusscher ( const IonicTenTusscher& model );
+		IonicTenTusscherFE ( const IonicTenTusscherFE& model );
 
 		//! Destructor
-		virtual ~IonicTenTusscher() {}
+		virtual ~IonicTenTusscherFE() {}
 
 		//@}
 
 		//! @name Overloads
 		//@{
 
-		IonicTenTusscher& operator= ( const IonicTenTusscher& model );
+		IonicTenTusscherFE& operator= ( const IonicTenTusscherFE& model );
 
 		//@}
 
@@ -546,7 +546,7 @@
 
 		Real backINab( const std::vector<Real>& v );
 
-		std::vector<Real> gateInf( const std::vector<Real>& v );
+		Real oneStepCaSR( const std::vector<Real>& v );
 
 		//! Display information about the model
 		void showMe();
@@ -603,9 +603,10 @@
 
 		//@}
 
-	}; // class IonicTenTusscher
+	}; // class IonicTenTusscherFE
 
 
 	}
 
-	#endif // TENTUSSCHER_HPP_INCLUDED
+	#endif // TENTUSSCHERFE_HPP_INCLUDED
+

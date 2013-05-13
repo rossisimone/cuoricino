@@ -30,8 +30,8 @@
   @date 01-2013
   @author Simone Rossi <simone.rossi@epfl.ch>
 
-  @contributors
-  @mantainer Simone Rossi <simone.rossi@epfl.ch>
+  @contributors Simone Rossi <simone.rossi@epfl.ch>
+  @mantainer Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
   @last update 01-2013
  */
 
@@ -45,6 +45,8 @@
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
+
+#include <cmath>
 
 namespace LifeV
 {
@@ -80,6 +82,7 @@ public:
      * @param XbNegroniLascano96 object
      */
     XbNegroniLascano96 ( const XbNegroniLascano96& Xb );
+
     //! Destructor
     virtual ~XbNegroniLascano96() {}
 
@@ -128,6 +131,26 @@ public:
     {
         return M_Z3;
     }
+    inline const Real& Tt()      const
+    {
+        return M_Tt;
+    }
+    inline const Real& B()      const
+    {
+        return M_B;
+    }
+    inline const Real& Hc()      const
+    {
+        return M_Hc;
+    }
+    inline const Real& La()      const
+    {
+        return M_La;
+    }
+    inline const Real& R()      const
+    {
+        return M_R;
+    }
 
     inline void setY1   ( const Real& y1 )
     {
@@ -149,19 +172,38 @@ public:
     {
         this->M_Yd = y5;
     }
-    inline void setZ1    ( const Real& z1  )
+    inline void setZ1    ( const Real& z1 )
     {
         this->M_Z1  =  z1;
     }
-    inline void setZ2    ( const Real& z2  )
+    inline void setZ2    ( const Real& z2 )
     {
         this->M_Z2  =  z2;
     }
-    inline void setZ3    ( const Real& z3  )
+    inline void setZ3    ( const Real& z3 )
     {
         this->M_Z3  =  z3;
     }
-
+    inline void setTt    ( const Real& tt )
+    {
+        this->M_Tt  =  tt;
+    }
+    inline void setB    ( const Real& b )
+    {
+        this->M_B  =  b;
+    }
+    inline void setHc    ( const Real& hc )
+    {
+        this->M_Hc  =  hc;
+    }
+    inline void setLa    ( const Real& la )
+    {
+        this->M_La  =  la;
+    }
+    inline void setR    ( const Real& r )
+    {
+        this->M_R  =  r;
+    }
 
     //@}
 
@@ -170,10 +212,15 @@ public:
 
     //Compute the rhs on a single node or for the 0D case
     void computeRhs ( const std::vector<Real>& v, const Real& Ca, const Real& vel,  std::vector<Real>& rhs);
+
     //Compute the rhs on a mesh/ 3D case
     void computeRhs ( const std::vector<vectorPtr_Type>& v, const VectorEpetra& Ca, const VectorEpetra& vel, std::vector<vectorPtr_Type>& rhs );
 
-    //! Display information about the model
+    std::vector<Real> computeBackwardEuler( const std::vector<Real>&  v, const Real& Ca, const Real& vel, const Real dt );
+
+    void computeVelocity( const Real& dt, Real& X, Real& vel );
+
+	//! Display information about the model
     void showMe();
 
     //! Solves the ionic model
@@ -194,7 +241,10 @@ private:
     Real M_Z2;
     Real M_Z3;
     Real M_Tt;
-
+    Real M_B;
+    Real M_Hc;
+    Real M_La;
+    Real M_R;
 
 
     //! Xb states == equivalent to the number of equations
@@ -208,44 +258,57 @@ private:
 //! Constructors
 // ===================================================
 XbNegroniLascano96::XbNegroniLascano96()    :
-    super    ( 3   ),
-    M_Y1 ( 39.0 ),
-    M_Y2 ( 1.3 ),
-    M_Y3 ( 30.0 ),
-    M_Y4 ( 40.0 ),
-    M_Yd ( 9.0 ),
-    M_Z1  ( 30.0 ),
-    M_Z2  ( 1.3 ),
-    M_Z3  ( 1560.0 ),
-    M_Tt ( 70.0)
+    super (  3  ),
+    M_Y1  ( 39.0e-3 ),
+    M_Y2  ( 1.3e-3 ),
+    M_Y3  ( 30.0e-3 ),
+    M_Y4  ( 40.0e-3 ),
+    M_Yd  ( 9.0e3 ),
+    M_Z1  ( 30.0e-3 ),
+    M_Z2  ( 1.3e-3 ),
+    M_Z3  ( 1560.0e-2 ),
+    M_Tt  ( 70.0 ),
+    M_B   ( 1200.0e-3 ),
+    M_Hc  ( 0.005 ),
+    M_La  ( 1.17 ),
+    M_R   ( 20.0 )
 {
 }
 
-XbNegroniLascano96::XbNegroniLascano96 ( Teuchos::ParameterList& parameterList   )   :
-    super    ( 3   )
+XbNegroniLascano96::XbNegroniLascano96 ( Teuchos::ParameterList& parameterList )   :
+    super ( 3 )
 {
-    M_Y1 =  parameterList.get ("y1", 39.0);
-    M_Y2 =  parameterList.get ("y2", 1.3);
-    M_Y3 =  parameterList.get ("y3", 30.0);
-    M_Y4 =  parameterList.get ("y4", 40.0);
-    M_Yd =  parameterList.get ("yd", 9.0);
-    M_Z1  =  parameterList.get ("z1",  30.0);
-    M_Z2  =  parameterList.get ("z2",  1.3);
-    M_Z3  =  parameterList.get ("z3",  1560.0);
-    M_Z3  =  parameterList.get ("z3",  70.0);
+    M_Y1 = parameterList.get ("y1", 39.0e-3);
+    M_Y2 = parameterList.get ("y2", 1.3e-3);
+    M_Y3 = parameterList.get ("y3", 30.0e-3);
+    M_Y4 = parameterList.get ("y4", 40.0e-3);
+    M_Yd = parameterList.get ("yd", 9.0e3);
+    M_Z1 = parameterList.get ("z1", 30.0e-3);
+    M_Z2 = parameterList.get ("z2", 1.3e-2);
+    M_Z3 = parameterList.get ("z3", 1560.0e-3);
+    M_Tt = parameterList.get ("tt", 70.0);
+    M_B  = parameterList.get ("b", 1200.0e-3);
+    M_Hc = parameterList.get ("hc", 0.005);
+    M_La = parameterList.get ("la", 1.17);
+    M_R  = parameterList.get ("r", 20.0 );
 
 }
 
 XbNegroniLascano96::XbNegroniLascano96 ( const XbNegroniLascano96& Xb )
 {
-    M_Y1 =  Xb.M_Y1;
-    M_Y2 =  Xb.M_Y2;
-    M_Y3 =  Xb.M_Y3;
-    M_Y4 =  Xb.M_Y4;
-    M_Yd =  Xb.M_Yd;
-    M_Z1  =  Xb.M_Z1;
-    M_Z2  =  Xb.M_Z2;
-    M_Z3  =  Xb.M_Z3;
+    M_Y1 = Xb.M_Y1;
+    M_Y2 = Xb.M_Y2;
+    M_Y3 = Xb.M_Y3;
+    M_Y4 = Xb.M_Y4;
+    M_Yd = Xb.M_Yd;
+    M_Z1 = Xb.M_Z1;
+    M_Z2 = Xb.M_Z2;
+    M_Z3 = Xb.M_Z3;
+    M_Tt = Xb.M_Tt;
+    M_B  = Xb.M_B;
+    M_Hc = Xb.M_Hc;
+    M_La = Xb.M_La;
+    M_R  = Xb.M_R;
 
     M_numberOfEquations = Xb.M_numberOfEquations;
 }
@@ -255,18 +318,23 @@ XbNegroniLascano96::XbNegroniLascano96 ( const XbNegroniLascano96& Xb )
 // ===================================================
 XbNegroniLascano96& XbNegroniLascano96::operator= ( const XbNegroniLascano96& Xb )
 {
-    M_Y1 =  Xb.M_Y1;
-    M_Y2 =  Xb.M_Y2;
-    M_Y3 =  Xb.M_Y3;
-    M_Y4 =  Xb.M_Y4;
-    M_Yd =  Xb.M_Yd;
-    M_Z1  =  Xb.M_Z1;
-    M_Z2  =  Xb.M_Z2;
-    M_Z3  =  Xb.M_Z3;
+    M_Y1 = Xb.M_Y1;
+    M_Y2 = Xb.M_Y2;
+    M_Y3 = Xb.M_Y3;
+    M_Y4 = Xb.M_Y4;
+    M_Yd = Xb.M_Yd;
+    M_Z1 = Xb.M_Z1;
+    M_Z2 = Xb.M_Z2;
+    M_Z3 = Xb.M_Z3;
+    M_Tt = Xb.M_Tt;
+    M_B  = Xb.M_B;
+    M_Hc = Xb.M_Hc;
+    M_La = Xb.M_La;
+    M_R  = Xb.M_R;
 
     M_numberOfEquations = Xb.M_numberOfEquations;
 
-    return      *this;
+    return *this;
 }
 
 
@@ -277,32 +345,55 @@ XbNegroniLascano96& XbNegroniLascano96::operator= ( const XbNegroniLascano96& Xb
 // v(1) = TCas
 // v(2) = Ts
 void XbNegroniLascano96::computeRhs (    const   std::vector<Real>&  v,
-                                         const   Real&           Ca,
-                                         const   Real&           vel,
+                                         const   Real& Ca,
+                                         const   Real& vel,
                                          std::vector<Real>& rhs )
 {
+	Real length ( 1.05 );
+    Real TCaEff = v[0] * std::exp( - M_R * ( length - M_La ) * ( length - M_La ) );
 
-    Real Qb = M_Y1 * Ca * ( M_Tt - v[0] - v[1] - v[2] ) - M_Z1 * v[0];
+    Real Qb  = M_Y1 * Ca * ( M_Tt - v[0] - v[1] - v[2] ) - M_Z1 * v[0];
+    Real Qa  = M_Y2 * TCaEff - M_Z2 * v[1];
+    Real Qr  = M_Y3 * v[1] - M_Z3 * Ca * v[2];
+    Real Qd  = M_Y4 * v[3];
+    Real Qd1 = M_Yd * vel * vel * v[2];
+    Real Qd2 = M_Yd * vel * vel * v[1];
 
-    Real TCaEff (1.0);
-    Real Qa = M_Y2 * v[0] * TCaEff - M_Z2 * v[1];
-    Real Qr = M_Y3 * v[1] - M_Z3 * Ca * v[2];
-    Real param (1.0);
-    Real Qd1 = M_Y4 * v[1] + M_Yd * ( param * vel ) * ( param * vel ) * v[2];
-    Real Qd2 = M_Yd * ( param * vel ) * ( param * vel ) * v[1];
 
-    cout << "\n\nQb: " << Qb;
-    cout << "\n\nQa: " << Qa;
-    cout << "\n\nQr: " << Qr;
-    cout << "\n\nQd1: " << Qd1;
-    cout << "\n\nQd2: " << Qd2;
-    cout << "\n\n";
 
     rhs[0] = Qb - Qa;
     rhs[1] = Qa - Qr - Qd2;
-    rhs[2] = Qr - Qd1;
+    rhs[2] = Qr - Qd - Qd1;
 
 
+}
+
+std::vector<Real> XbNegroniLascano96::computeBackwardEuler( const std::vector<Real>&  v,
+                                                            const Real& Ca,
+                                                            const Real& vel,
+                                                            const Real dt )
+{
+    std::vector<Real> BErhs(3);
+
+	Real length ( 1.05 );
+    Real TCaEff = v[0] * std::exp( - M_R * ( length - M_La ) * ( length - M_La ) );
+
+	BErhs[0] = ( v[0] / dt + M_Y1 * Ca * ( M_Tt - v[1] - v[2] ) - M_Z2 * v[1] )
+				/ ( 1.0 / dt + M_Y1 * Ca + M_Z1 + M_Y2 * std::exp( - M_R * ( length - M_La ) * ( length - M_La ) ) );
+    BErhs[1] = ( v[1] / dt + M_Y2 * TCaEff - M_Z3 * v[2] * Ca )
+				/ ( 1.0 / dt + M_Z3 + M_Y3 + M_Yd * vel * vel );
+	BErhs[2] = ( v[2] / dt + M_Y3 * v[1] )
+				/ ( 1.0 / dt + M_Z3 * Ca + M_Y4 + M_Yd * vel * vel );
+
+	return BErhs;
+}
+
+void XbNegroniLascano96::computeVelocity( const Real& dt, Real& X, Real& vel )
+{
+    Real length ( 1.05 );
+
+    X   = ( X / dt + M_B * ( length - M_Hc ) ) / ( 1.0 / dt + M_B );
+    vel = M_B * ( length - X - M_Hc );
 }
 
 void XbNegroniLascano96::computeRhs (    const std::vector<vectorPtr_Type>& v,
@@ -350,9 +441,14 @@ void XbNegroniLascano96::showMe()
     std::cout << "y3: " << this->Y3() << std::endl;
     std::cout << "y4: " << this->Y4() << std::endl;
     std::cout << "yd: " << this->Y5() << std::endl;
-    std::cout << "z1: "  << this->Z1()  << std::endl;
-    std::cout << "z2: "  << this->Z2()  << std::endl;
-    std::cout << "z3: "  << this->Z3()  << std::endl;
+    std::cout << "z1: " << this->Z1() << std::endl;
+    std::cout << "z2: " << this->Z2() << std::endl;
+    std::cout << "z3: " << this->Z3() << std::endl;
+    std::cout << "tt: " << this->Tt() << std::endl;
+    std::cout << "b: " << this->B() << std::endl;
+    std::cout << "hc: " << this->Hc() << std::endl;
+    std::cout << "la: " << this->La() << std::endl;
+    std::cout << "r: "  << this->R() << std::endl;
     std::cout << "\n\t\t End of XbNegroniLascano96 Informations\n\n\n";
 
 }

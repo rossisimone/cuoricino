@@ -60,6 +60,8 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
 
+#include <lifev/electrophysiology/solver/StimulationProtocol.hpp>
+
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -86,7 +88,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Importing parameters list...";
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    Teuchos::ParameterList ionicMParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
+    Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
     cout << " Done!" << endl;
 
 
@@ -98,7 +101,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
-    IonicJafriRiceWinslow  model ( parameterList );
+    IonicJafriRiceWinslow model       ( ionicMParameterList );
+    StimulationProtocol   stimulation ( pacingPParameterList );
     cout << " Done!" << endl;
 
 
@@ -108,6 +112,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     model.showMe();
+    stimulation.showMe();
 
 
     //********************************************//
@@ -127,7 +132,7 @@ Int main ( Int argc, char** argv )
     unknowns[5] = 10.2042;
     unknowns[6] = 143.727;
     unknowns[7] = 5.4;
-    unknowns[8] = 9.94893e-5;
+    unknowns[8] = 9.94893e-11;
     unknowns[9] = 1.243891;
     unknowns[10] = 1.36058e-4;
     unknowns[11] = 1.17504;
@@ -178,18 +183,16 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF     = parameterList.get( "endTime", 5.0 );
-    Real dt     = parameterList.get( "timeStep", 5.77e-5 );
-    Real timeSt = parameterList.get( "stimuliTime", 1.0 );
-    Real stInt  = parameterList.get( "stimuliInterval", 400.0 );
+    Real TF     = ionicMParameterList.get( "endTime", 5.0 );
+    Real dt     = ionicMParameterList.get( "timeStep", 5.77e-5 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
 
-    string filename = "output.txt";
-    std::ofstream output  ("output.txt");
+    string filename = "output100.txt";
+    std::ofstream output  ("output100.txt");
 
 
     //********************************************//
@@ -199,8 +202,9 @@ Int main ( Int argc, char** argv )
     cout << "Time loop starts...\n";
 
 
-    int iter       ( 0 );
-    int savedt     ( parameterList.get( "savedt", 1.0) / dt );
+    int iter(0);
+    int savedt( ionicMParameterList.get( "savedt", 1.0) / dt );
+    int NbStimulus ( 0 );
 
     for ( Real t = 0; t < TF; )
     {
@@ -210,16 +214,9 @@ Int main ( Int argc, char** argv )
         // according to different pacing protocol     //
         //********************************************//
 
+    	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
+    	// The list of protocols are described in the StimulationProtocol.hpp
 
-    	if ( t >= timeSt && t <= timeSt + 0.5 )
-    	{
-    		Iapp = 0.516289;
-    	  	if ( t >= timeSt + 0.5 - dt && t <= timeSt + 0.5 )
-
-    			timeSt = timeSt + stInt;
-    	 }
-    	 else
-    	   	Iapp = 0;
 
         cout << "\r " << t << " ms.       " << std::flush;
 
@@ -235,25 +232,28 @@ Int main ( Int argc, char** argv )
         // Writes solution on file.                   //
         //********************************************//
 
-        iter++;
-        if( iter % savedt == 0)
+        if ( t / 10000 >= 1.0 )
         {
-        	output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
-        		<< unknowns.at (2) << ", " << unknowns.at (3) << ", "
-        		<< unknowns.at (4) << ", " << unknowns.at (5) << ", "
-        		<< unknowns.at (6) << ", " << unknowns.at (7) << ", "
-        		<< unknowns.at (8) << ", " << unknowns.at (9) << ", "
-        		<< unknowns.at (10) << ", " << unknowns.at (11) << ", "
-        		<< unknowns.at (12) << ", " << unknowns.at (13) << ", "
-        		<< unknowns.at (14) << ", " << unknowns.at (15) << ", "
-        		<< unknowns.at (16) << ", " << unknowns.at (17) << ", "
-        		<< unknowns.at (18) << ", " << unknowns.at (19) << ", "
-        		<< unknowns.at (20) << ", " << unknowns.at (21) << ", "
-             	<< unknowns.at (22) << ", " << unknowns.at (23) << ", "
-             	<< unknowns.at (24) << ", " << unknowns.at (25) << ", "
-             	<< unknowns.at (26) << ", " << unknowns.at (27) << ", "
-             	<< unknowns.at (28) << ", " << unknowns.at (29) << ", "
-             	<< unknowns.at (30) << "\n";
+        	iter++;
+        	if( iter % savedt == 0)
+        	{
+        		output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
+        				<< unknowns.at (2) << ", " << unknowns.at (3) << ", "
+        				<< unknowns.at (4) << ", " << unknowns.at (5) << ", "
+        				<< unknowns.at (6) << ", " << unknowns.at (7) << ", "
+        				<< unknowns.at (8) << ", " << unknowns.at (9) << ", "
+        				<< unknowns.at (10) << ", " << unknowns.at (11) << ", "
+        				<< unknowns.at (12) << ", " << unknowns.at (13) << ", "
+        				<< unknowns.at (14) << ", " << unknowns.at (15) << ", "
+        				<< unknowns.at (16) << ", " << unknowns.at (17) << ", "
+        				<< unknowns.at (18) << ", " << unknowns.at (19) << ", "
+        				<< unknowns.at (20) << ", " << unknowns.at (21) << ", "
+        				<< unknowns.at (22) << ", " << unknowns.at (23) << ", "
+        				<< unknowns.at (24) << ", " << unknowns.at (25) << ", "
+        				<< unknowns.at (26) << ", " << unknowns.at (27) << ", "
+        				<< unknowns.at (28) << ", " << unknowns.at (29) << ", "
+        				<< unknowns.at (30) << "\n";
+        	}
         }
 
 

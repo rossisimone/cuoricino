@@ -57,8 +57,9 @@
 
 #include <lifev/core/array/MatrixEpetra.hpp>
 
-#include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscherFE.hpp>
 #include <lifev/core/LifeV.hpp>
+
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -86,18 +87,19 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Importing parameters list...";
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
+    Teuchos::ParameterList parameterList  = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
     cout << " Done!" << endl;
 
 
     //********************************************//
     // Creates a new model object representing the//
-    // model from Negroni and Lascano 1996. The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
+    // model from Ten Tusscher ionic model.       //
+    // The model input are the parameters. Pass   //
+    // the parameter list in the constructor      //
     //********************************************//
+
     cout << "Building Constructor for TenTusscher Model with parameters ... ";
-    IonicTenTusscher  model ( parameterList );
+    IonicTenTusscherFE model ( parameterList );
     cout << " Done!" << endl;
 
 
@@ -105,16 +107,17 @@ Int main ( Int argc, char** argv )
     // Show the parameters of the model as well as//
     // other informations  about the object.      //
     //********************************************//
+
     model.showMe();
 
 
     //********************************************//
     // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
+    // consist of 17 state variables.             //
+    // model.Size() returns the number of state   //
+    // variables of the model.                    //
     //********************************************//
+
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
     unknowns[0]  = - 86.2;
@@ -144,15 +147,15 @@ Int main ( Int argc, char** argv )
     // variables, that is, the right hand side of //
     // the differential equation.                 //
     //********************************************//
+
     cout << "Initializing rhs..." ;
     std::vector<Real> rhs (model.Size(), 0);
     cout << " Done! "  << endl;
 
     //********************************************//
-    // The model needs as external informations   //
-    // the contraction velocity and the Calcium   //
-    // concentration.                             //
+    //Initialization of the applied current       //
     //********************************************//
+
     Real Iapp (0.0);
 
 
@@ -162,14 +165,15 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     Real TF     = parameterList.get( "endTime", 5.0 );
-    Real dt     = parameterList.get( "timeStep", 1e-3 );
-    Real timeSt = parameterList.get( "stimuliTime", 10.0 );
-    Real stInt  = parameterList.get( "stimuliInterval", 1000.0 );
+    Real dt     = parameterList.get( "timeStep", 5.77e-5 );
+    Real timeSt = parameterList.get( "stimuliTime", 1.0 );
+    Real stInt  = parameterList.get( "stimuliInterval", 400.0 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
+
     string filename = "output.txt";
     std::ofstream output  ("output.txt");
 
@@ -177,6 +181,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
+
     cout << "Time loop starts...\n";
 
     int iter(0);
@@ -186,31 +191,31 @@ Int main ( Int argc, char** argv )
     {
 
     	//********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
+        // Gives the appropriate Iapp (stimulation .  //
+        // current ) according to time variable.      //
         //********************************************//
-        if ( t >= timeSt && t <= timeSt + 1.0 )
-        {
-        	Iapp = -52.0;
-        	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
-        		timeSt = timeSt + stInt;
-        }
-        else
-        {
-        	Iapp = 0;
-        }
+
+    	if ( t >= timeSt && t <= timeSt + 1.0 )
+    	{
+    		Iapp = -52.0;
+    	    if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
+    	    	timeSt = timeSt + stInt;
+    	}
+    	else
+    	   	Iapp = 0;
 
         cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
+
         model.computeRhs ( unknowns, Iapp, rhs );
-        std::vector<Real> gateInf ( model.gateInf( unknowns ) );
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
+
         iter++;
         if( iter % savedt == 0)
         {
@@ -227,21 +232,20 @@ Int main ( Int argc, char** argv )
 
          //********************************************//
          // Use forward Euler method to advance the    //
-         // solution in time.                          //
+         // solution in time for the concentration     //
+         // and Rush and Larsen for the gating         //
+         // variables                                  //
          //********************************************//
 
          for(int j(0); j <= 16; ++j)
          {
-			if ( j < 13 && j != 0 )
-        	 	 unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
-    		else
     			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-
          }
 
          //********************************************//
          // Update the time.                           //
          //********************************************//
+
          t = t + dt;
        }
 
@@ -251,6 +255,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Close exported file.                       //
     //********************************************//
+
     output.close();
 
 
