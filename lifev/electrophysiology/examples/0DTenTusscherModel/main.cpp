@@ -57,7 +57,7 @@
 
 #include <lifev/core/array/MatrixEpetra.hpp>
 
-#include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscherFE.hpp>
 #include <lifev/core/LifeV.hpp>
 
 
@@ -99,7 +99,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Building Constructor for TenTusscher Model with parameters ... ";
-    IonicTenTusscher model ( parameterList );
+    IonicTenTusscherFE model ( parameterList );
     cout << " Done!" << endl;
 
 
@@ -211,7 +211,6 @@ Int main ( Int argc, char** argv )
         //********************************************//
 
         model.computeRhs ( unknowns, Iapp, rhs );
-        std::vector<Real> gateInf ( model.gateInf( unknowns ) );
 
         //********************************************//
         // Writes solution on file.                   //
@@ -240,11 +239,7 @@ Int main ( Int argc, char** argv )
 
          for(int j(0); j <= 16; ++j)
          {
-			if ( j < 13 && j != 0 )
-        	 	 unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
-    		else
     			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-
          }
 
          //********************************************//
