@@ -19,7 +19,7 @@ lawType     	= nonlinear
 
 [../time_discretization]
 initialtime 	= 0.
-endtime     	= 10
+endtime     	= 0.1
 timestep    	= 0.1
 theta       	= 0.35
 zeta        	= 0.75
@@ -117,9 +117,3 @@ filter_singletons 	= true
 
 [../]
 [../]
-
-# -*- getpot -*- (GetPot mode activation for emacs)
-
-[electrophysiology]
-monodomain_xml_path = ./
-monodomain_xml_file = ParamList.xml
