@@ -548,8 +548,6 @@
 
 		std::vector<Real> gateInf( const std::vector<Real>& v );
 
-		Real oneStepCaSR( const std::vector<Real>& v );
-
 		//! Display information about the model
 		void showMe();
 
