@@ -90,8 +90,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     std::cout << "Importing parameters list...";
-    Teuchos::ParameterList nlParameterList    = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
-    Teuchos::ParameterList ionicParameterList = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
+    Teuchos::ParameterList nlParameterList      = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
+    Teuchos::ParameterList ionicParameterList   = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
     Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
     std::cout << " Done!" << endl;
 
@@ -104,9 +104,9 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
 	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
-    XbNegroniLascano96  xb ( nlParameterList );
-    IonicTenTusscher  ionicModel ( ionicParameterList );
-    StimulationProtocol   stimulation ( pacingPParameterList );
+    XbNegroniLascano96  xb          ( nlParameterList );
+    IonicTenTusscher    ionicModel  ( ionicParameterList );
+    StimulationProtocol stimulation ( pacingPParameterList );
     std::cout << " Done!" << endl;
 
 
@@ -173,7 +173,7 @@ Int main ( Int argc, char** argv )
     Real vel  ( 0.0 );
     Real Ca   ( 0.0 );
     Real Iapp ( 0.0 );
-    Real X    ( 1.05 );
+    Real X    ( 1.045 );
 
     //********************************************//
     // Simulation starts on t=0 and ends on t=TF. //
