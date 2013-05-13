@@ -59,7 +59,9 @@
 namespace LifeV
 {
 
-
+//==================================================================
+// FORCE LENGTH RELATIONSHIP WITH I4f
+//==================================================================
 class FLRelationship
 {
 public:
@@ -105,7 +107,89 @@ public:
 
 
 
+
+//==================================================================
+// FORCE LENGTH RELATIONSHIP WITH GAMMA
+//==================================================================
+class FLRelationshipGamma
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator() (const VectorSmall<1>& gamma)
+    {
+    	Real g = gamma[0];
+    	Real Force = this->operator()(g);
+    	return Force;
+    }
+
+    return_Type operator() (const Real& g)
+    {
+
+    	if(g>-0.0657788 && g<0.154989)
+    	{
+			Real d0 = -4.333618335582119e3;
+			Real d1 = 2.570395355352195e3;
+			Real e1 = -2.051827278991976e3;
+			Real d2 = 1.329536116891330e3;
+			Real e2 = 0.302216784558222e3;
+			Real d3 = 0.104943770305116e3;
+			Real e3 = 0.218375174229422e3;
+			Real l0 = 1.95;
+
+			Real Force = d0/2 + d1 * std::sin( ( 1.0 + g ) * ( 1.0 + g ) * l0)
+							  + e1 * std::cos( ( 1.0 + g ) * ( 1.0 + g ) * l0)
+							  + d2 * std::sin( 2 * ( 1.0 + g ) * ( 1.0 + g ) * l0)
+							  + e2 * std::cos( 2 * ( 1.0 + g ) * ( 1.0 + g ) * l0)
+							  + d3 * std::sin( 3 * ( 1.0 + g ) * ( 1.0 + g ) * l0)
+							  + e3 * std::cos( 3 * ( 1.0 + g ) * ( 1.0 + g ) * l0);
+			return Force;
+    	}
+    	else
+    		return 0.0;
+    }
+
+    FLRelationshipGamma() {}
+    FLRelationshipGamma (const FLRelationshipGamma&) {}
+    ~FLRelationshipGamma() {}
 };
+
+//==================================================================
+// HEAVISIDE
+//==================================================================
+class HeavisideFct
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator() (const VectorSmall<1>& g)
+    {
+    	Real p = g[0];
+    	Real F = this->operator()(p);
+    	return F;
+    }
+
+    return_Type operator() (const Real& p)
+    {
+    	if(p > 0.0 )
+    	{
+    		//cout << "\n\nSono positivo\n\n";
+			return p;
+    	}
+    	else
+    	{
+    		return 0.0;
+    	}
+    }
+
+    HeavisideFct() {}
+    HeavisideFct (const HeavisideFct&) {}
+    ~HeavisideFct() {}
+};
+
+
+
+}
 
 
 

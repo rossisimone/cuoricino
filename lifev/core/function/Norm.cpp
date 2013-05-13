@@ -43,10 +43,6 @@ namespace LifeV
 
 Real Norm::f ( const Real& /* t */, const Real& x, const Real& y, const Real& z, const ID& /* i */ )
 {
-	//~ Real xPosition = 1;
-	//~ Real yPosition = 1;
-	//~ Real zPosition = 0.5;
-	
 	return  sqrt( (x-M_xPosition)* (x-M_xPosition) + (y-M_yPosition)*(y-M_yPosition) + (z-M_zPosition)*(z-M_zPosition) ) ;
 }
 
@@ -60,7 +56,7 @@ void Norm::setPosition( const Real& xPosition, const Real& yPosition, const Real
 
 Real  Norm::M_xPosition = 1.;
 Real  Norm::M_yPosition = 1.;
-Real  Norm::M_zPosition = 1.;
+Real  Norm::M_zPosition = 0.5;
 
 
 } // namespace LifeV

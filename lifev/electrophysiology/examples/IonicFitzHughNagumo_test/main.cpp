@@ -340,16 +340,16 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-//    Real dt = monodomainList.get ("timeStep", 0.1);
+    Real Savedt = monodomainList.get ("saveStep", 0.1);
 //    Real TF = monodomainList.get ("endTime", 150.0);
 
-    splitting   -> solveSplitting ( exporterSplitting );
+    splitting   -> solveSplitting ( exporterSplitting, Savedt );
     exporterSplitting.closeFile();
 
-    ICI         -> solveICI ( exporterICI );
+    ICI         -> solveICI ( exporterICI, Savedt );
     exporterICI.closeFile();
 
-    SVI         -> solveSVI ( exporterSVI );
+    SVI         -> solveSVI ( exporterSVI, Savedt );
     exporterSVI.closeFile();
 
 //    for ( Real t = 0.0; t < TF; )

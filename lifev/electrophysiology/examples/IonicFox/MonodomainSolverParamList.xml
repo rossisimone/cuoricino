@@ -6,7 +6,8 @@
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
     <Parameter name="timeStep" type="double" value="0.0025"  />
-    <Parameter name="endTime" type="double" value="500.0"  />
+    <Parameter name="endTime" type="double" value="20.0"  />
+    <Parameter name="saveStep" type="double" value="0.25"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0001"  />
     <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
     <Parameter name="TCut" type="double" value="35.0"  />
