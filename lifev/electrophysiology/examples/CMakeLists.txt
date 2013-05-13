@@ -24,6 +24,7 @@ ADD_SUBDIRECTORIES(
   IonicFitzHughNagumo_test
   IonicRogersMcCulloch
   IonicMinimalModel
+  IonicMinimalModelNOlumping
   IonicMinimalModel_pacingECG
   IonicFox
   IonicFox_pacingECG
