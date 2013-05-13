@@ -1,6 +1,4 @@
 #include <lifev/core/LifeV.hpp>
-#include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
-#include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 
 #include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
 
@@ -31,13 +29,6 @@ Real d0(const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real& /*
     return  0.;
 }
 
-Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& /*Z*/, const ID& /*i*/)
-{
-	if( X < 0.1 ) return 1.0;
-	else return  0.;
-}
-
-
 Real initialVhumanSphere(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& /*i*/)
 {
 
@@ -47,43 +38,6 @@ Real initialVhumanSphere(const Real& /*t*/, const Real&  X, const Real& Y, const
   return auxexp;
 }
 
-
-
-Real fiberRotation(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& i)
-{
-	Real R = std::sqrt( X * X + Y * Y);
-	//Real teta = std::atan( Y / X );
-	Real fz = 0.0;
-	Real fx =  Y / R;
-	Real fy = - X / R;
-	Real sx = X / R;
-	Real sy = Y / R;
-	Real m = -1.9040;
-	Real q = 3.5224;
-	Real theta = m * R + q;
-
-//	f01a f001*cos(teta)+f001*s01^2*(1-cos(teta))+s01*s02*f002*(1-cos(teta))
-//	f02a s01*s02*f001*(1-cos(teta))+f002*cos(teta)+f002*s02^2*(1-cos(teta))
-//	f03a s01*f002*sin(teta)-s02*f001*sin(teta)
-
-    switch (i)
-    {
-        case 0:
-            return  fx * std::cos(theta) + fx * sx * sx * ( 1.0  - std::cos(theta) ) + sx * sy * fy * ( 1.0  - std::cos(theta) );
-            break;
-        case 1:
-            return sx * sy * fy *  ( 1.0  - std::cos(theta) ) + fy * std::cos(theta) + fy * sy * sy * ( 1.0  - std::cos(theta) ) ;
-            break;
-        case 2:
-            return sx * fy * std::sin(theta) - sy * fx * std::sin(theta);
-            break;
-        default:
-            ERROR_MSG ("This entry is not allowed: ud_functions.hpp");
-            return 0.;
-            break;
-    }
-
-}
 
 int main (int argc, char** argv)
 {
@@ -95,11 +49,7 @@ int main (int argc, char** argv)
                                     const Real &   y,
                                     const Real& /*z*/,
                                     const ID&   /*i*/ ) >   function_Type;
-    typedef IonicMinimalModel					ionicModel_Type;
-    typedef boost::shared_ptr< ionicModel_Type >  ionicModelPtr_Type;
 
-    typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type >        monodomainSolver_Type;
-    typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
     typedef VectorEpetra				vector_Type;
     typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
 
@@ -116,149 +66,12 @@ int main (int argc, char** argv)
 #endif
 
 
-
-  	//===========================================================
-  	//===========================================================
-  	//				ELECTROPHYSIOLOGY
-  	//===========================================================
-  	//===========================================================
-
-    boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
-    if ( comm->MyPID() == 0 )
-    {
-        cout << "% using MPI" << endl;
-    }
-
-    //********************************************//
-    // Import parameters from an xml list. Use    //
-    // Teuchos to create a list from a given file //
-    // in the execution directory.                //
-    //********************************************//
-
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "Importing parameters list...";
-    }
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << " Done!" << endl;
-    }
-
-
-    //********************************************//
-    // In the parameter list we need to specify   //
-    // the mesh name and the mesh path.           //
-    //********************************************//
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "Mesh Loading...";
-    }
-
-    std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
-    std::string meshPath = parameterList.get ("mesh_path", "./");
-
-    meshPtr_Type mesh ( new mesh_Type ( comm ) );
-    meshPtr_Type fullMesh ( new mesh_Type ( comm ) );
-    MeshUtility::fillWithFullMesh (mesh, fullMesh, meshName, meshPath);
-    if ( comm->MyPID() == 0 )
-        {
-            std::cout << " Done!" << endl;
-        }
-
-    //********************************************//
-    // We need the GetPot datafile for to setup   //
-    // the preconditioner.                        //
-    //********************************************//
-    GetPot command_line (argc, argv);
-    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
-    GetPot dataFile (data_file_name);
-
-    //********************************************//
-    // Creates a new model object representing the//
-    // model from Aliev and Panfilov 1996.  The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
-    //********************************************//
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "Building Constructor for Minimal Model with parameters ... ";
-    }
-    ionicModelPtr_Type  ionicModel ( new ionicModel_Type() );
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << " Done!" << endl;
-    }
-
-    //********************************************//
-    // set up the monodomain solver               //
-    //********************************************//
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "Building Monodomain Solvers... ";
-    }
-
-    monodomainSolverPtr_Type monodomain ( new monodomainSolver_Type ( meshName, meshPath, dataFile, ionicModel ) );
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << " Splitting solver done... ";
-    }
-
-//    ionicModel -> initialize( monodomain -> globalSolution() );
-    monodomain -> setInitialConditions();
-
-    for(int i(0); i < ionicModel -> Size(); i++ )
-    {
-    std::cout << "Norm Inf variable " << i  << " = " <<  (  *( monodomain -> globalSolution().at(i) ) ).normInf() << std::endl;
-    }
-
-    //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
-//    function_Type Vlid = &initialVlid;
-//    monodomain -> setPotentialFromFunction( Vlid );
-    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 21 );
-
-    for(int i(0); i < ionicModel -> Size(); i++ )
-    {
-    std::cout << "Norm Inf variable " << i  << " = " <<  (  *( monodomain -> globalSolution().at(i) ) ).normInf() << std::endl;
-    }
-    monodomain -> setParameters ( parameterList );
-
-    //********************************************//
-    // Creating exporters to save the solution    //
-    //********************************************//
-    ExporterHDF5< RegionMesh <LinearTetra> > exp;
-
-    if ( comm->MyPID() == 0 )
-    {
-        cout << "\nExporter setup:  " ;
-    }
-
-    monodomain -> setupExporter ( exp, parameterList.get ("OutputFile", "output") );
-
-    if ( comm->MyPID() == 0 )
-    {
-        cout << "\nExport at 0:  " ;
-    }
-
-    monodomain -> exportSolution ( exp, 0.0 );
-
-    if ( comm->MyPID() == 0 )
-    {
-        cout << "\nsolve system:  " ;
-    }
-
   	//===========================================================
   	//===========================================================
   	//				SOLID MECHANICS
   	//===========================================================
   	//===========================================================
 
-
-
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "monodomain: passed!" << std::endl;
-    }
 
     typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >               solidFESpace_Type;
     typedef boost::shared_ptr<solidFESpace_Type>                        solidFESpacePtr_Type;
@@ -312,35 +125,16 @@ int main (int argc, char** argv)
         std::cout << "setup spaces" << std::endl;
     }
     std::string dOrder =  dataFile ( "solid/space_discretization/order", "P1");
-    solidFESpacePtr_Type dFESpace ( new solidFESpace_Type (monodomain -> localMeshPtr(), dOrder, 3, comm) );
-    solidFESpacePtr_Type aFESpace ( new solidFESpace_Type (monodomain -> localMeshPtr(), dOrder, 1, comm) );
-    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (monodomain -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
-    scalarETFESpacePtr_Type aETFESpace ( new scalarETFESpace_Type (monodomain -> localMeshPtr(), & (aFESpace->refFE() ), & (aFESpace->fe().geoMap() ), comm) );
-
+    solidFESpacePtr_Type dFESpace ( new solidFESpace_Type (meshPart, dOrder, 3, parameters->comm ));
+    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (meshPart, & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), parameters->comm) );
 
     if ( comm->MyPID() == 0 )
     {
         std::cout << "\nsetup boundary conditions" << std::endl;
     }
 
-    //! #################################################################################
-    //! BOUNDARY CONDITIONS
-    //! #################################################################################
-    vector <ID> compx (1), compy (1), compz (1), compxy (2), compxz (2), compyz (2);
-    compx[0] = 0;
-    compy[0] = 1, compz[0] = 2;
-    compxy[0] = 0;
-    compxy[1] = 1;
-    compxz[0] = 0;
-    compxz[1] = 2;
-    compyz[0] = 1;
-    compyz[1] = 2;
-
-    //! ========================================================================
-    //! Fixed base - biventricular geometry
-    //   BCh->addBC ("EdgesIn",      20,  Essential, Full, zero,    3);
-
-    //! Setting solid BCs from data file
+     //! ========================================================================
+     //! Setting solid BCs from data file
 	bcInterfacePtr_Type                     solidBC( new bcInterface_Type() );
 	solidBC->createHandler();
 	solidBC->fillHandler ( data_file_name, "solid" );
@@ -371,33 +165,11 @@ int main (int argc, char** argv)
          std::cout << "\nread fibers" << std::endl;
      }
 
-     HeartUtility::importFibers(fibers, parameterList.get ("fiber_file", ""), monodomain-> localMeshPtr() );
+     HeartUtility::importFibers(fibers, parameterList.get ("fiber_file", ""), meshPart );
 
      if ( comm->MyPID() == 0 )
      {
          std::cout << "\nset fibers" << std::endl;
-     }
-
-
-     monodomain -> setFiberPtr( fibers );
-     monodomain -> exportFiberDirection();
-
-     //********************************************//
-     // Create the global matrix: mass + stiffness in ELECTROPHYSIOLOGY //
-     //********************************************//
-     if ( comm->MyPID() == 0 )
-     {
-         cout << "\nSetup operators:  dt = " << monodomain -> timeStep() << "\n" ;
-     }
-
-
-     monodomain -> setupLumpedMassMatrix();
-     monodomain -> setupStiffnessMatrix();
-     monodomain -> setupGlobalMatrix();
-
-     if ( comm->MyPID() == 0 )
-     {
-         cout << "Done! \n" ;
      }
 
 
@@ -512,7 +284,6 @@ int main (int argc, char** argv)
     linearSolver.setCommunicator ( comm );
     linearSolver.setParameters ( *solverParamList );
     linearSolver.setPreconditioner ( precPtr );
-//	linearSolver.setOperator( mass );
 	linearSolver.setOperator( monodomain -> massMatrixPtr() );
 
     if ( comm->MyPID() == 0 )
@@ -520,16 +291,10 @@ int main (int argc, char** argv)
         std::cout << "\nIt does!!!!" << std::endl;
     }
 
-	//===========================================================
   	//===========================================================
   	//				TIME LOOP
   	//===========================================================
-  	//===========================================================
-      Real emdt = parameterList.get("emdt",1.0);
-      int iter((emdt / monodomain -> timeStep()));
-      	int k(0);
-
-
+ 
    	boost::shared_ptr<FLRelationship> fl (new FLRelationship);
 #define Ca    ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
 #define Gammaf 			( value( aETFESpace, *gammaf ) )
@@ -556,13 +321,6 @@ int main (int argc, char** argv)
 		  t = t + monodomain -> timeStep();
 		  k++;
 		  monodomain -> solveOneSplittingStep( exp, t );
-//		  *gammaf = *( monodomain -> globalSolution().at(3) );
-//		  Real min =  0.2;
-//		  Real max =  0.85;
-//
-//		  Real beta = -0.3;
-
-//		  HeartUtility::rescaleVector(*gammaf, min, max, beta);
 
 		  *tmpRhsActivation *= 0;
 		  	{
@@ -581,17 +339,10 @@ int main (int argc, char** argv)
 			linearSolver.setRightHandSide(rhsActivation);
 			linearSolver.solve(gammaf);
 
-
-		  //if ( k % iter == 0){
 			  solid.material() -> setGammaf( *gammaf );
 			  solid.iterate ( solidBC -> handler() );
-
-			//        timeAdvance->shiftRight ( solid.displacement() );
-
 			  *solidDisp = solid.displacement();
-		  //}
-		  //*solidVel  = timeAdvance->firstDerivative();
-		  //*solidAcc  = timeAdvance->secondDerivative();
+
 		  expGammaf.postProcess(t);
 
 		  exporter->postProcess ( t );
