@@ -11,5 +11,6 @@ ADD_SUBDIRECTORIES(
   example_partitionMesh
   example_computationNorm
   example_activatedNeoHookean
+  example_HolzapfelOgden
 )
 

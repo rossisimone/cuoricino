@@ -132,7 +132,7 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
     Real pacingSite_X = monodomainList.get ("pacingSite_X", 0.);
     Real pacingSite_Y = monodomainList.get ("pacingSite_Y", 0.);
     Real stimulusRadius = monodomainList.get ("stimulusRadius", 0.1);
-    Real stimulusValue = monodomainList.get ("stimulusValue", 80.);
+    Real stimulusValue = monodomainList.get ("stimulusValue", 1.);
 
     Real returnValue1;
 

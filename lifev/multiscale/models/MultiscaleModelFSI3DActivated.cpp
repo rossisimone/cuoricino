@@ -180,8 +180,8 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 //=======================================
 // setup INTERPOLATION
 //=======================================
-    M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("disp_interpolation","RBFRescaledVectorial" ) ) );
-    M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("gammaf_interpolation","RBFrescaledScalar" ) ) );
+    M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("disp_interpolation_type","RBFrescaledVectorial" ) ) );
+    M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("gammaf_interpolation_type","RBFrescaledScalar" ) ) );
 
 }
 
@@ -409,23 +409,26 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
     boost::shared_ptr<mesh_Type> solidLocalMeshPtr ( new super::mesh_Type ( super::solver() -> solidLocalMesh() ) );
     MeshUtility::fillWithFullMesh (solidLocalMeshPtr, M_fullSolidMesh, meshName, meshPath);
 
-    M_interpolationType = dataFile("interpolation/interpolation_Type","none");
-
     if (M_usingDifferentMeshes)
     {
         M_fineToCoarseInterpolant -> setup ( M_monodomain -> fullMeshPtr(), M_monodomain -> localMeshPtr(),
                                              M_fullSolidMesh, M_FSIoperator -> solidLocalMeshPtr(),  std::vector<int> (1, -1) );
 
-        if (M_interpolationType != "RBFlocallyRescaledScalar")
+        std::string fineToCoarseInterpolationType = list.get ("gammaf_interpolation_type", "RBFrescaledScalar" );
+        std::string coarseToFineInterpolationType = list.get ("disp_interpolation_type", "RBFrescaledVectorial" );
+
+        if (fineToCoarseInterpolationType != "RBFlocallyRescaledScalar" && fineToCoarseInterpolationType != "RBFhtp")
         {
+            // Set radius only when using standard RBF interpolation
             M_fineToCoarseInterpolant -> setRadius ( (double) MeshUtility::MeshStatistics::computeSize ( * (M_monodomain -> fullMeshPtr() ) ).maxH );
         }
 
         M_fineToCoarseInterpolant -> setupRBFData ( M_gammaf, M_gammafSolid, dataFile, monodomainList);
 
-        if (M_interpolationType == "RBFscalar")
+        if (fineToCoarseInterpolationType == "RBFscalar")
         {
-            M_fineToCoarseInterpolant->setBasis (dataFile ("interpolation/basis", "none") );
+            // Set RBF basis function only when using standard RBF interpolation (default = thin-plate spline)
+            M_fineToCoarseInterpolant->setBasis ( list.get ("gammaf_interpolation_basis", "TPS" ) );
         }
 
         if ( !M_oneWayCoupling )
@@ -434,7 +437,20 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
                                                  M_monodomain -> fullMeshPtr(), M_monodomain -> localMeshPtr(),
                                                  std::vector<int> (1, -1) );
 
+            if (coarseToFineInterpolationType != "RBFlocallyRescaledVectorial" && coarseToFineInterpolationType != "RBFhtpVectorial")
+            {
+                // Set radius only when using standard RBF interpolation
+                M_coarseToFineInterpolant -> setRadius ( (double) MeshUtility::MeshStatistics::computeSize ( * (M_monodomain -> fullMeshPtr() ) ).maxH );
+            }
+
             M_coarseToFineInterpolant -> setupRBFData ( M_solidDisplacement , M_monodomain -> displacementPtr(), dataFile, monodomainList);
+
+            if (coarseToFineInterpolationType == "RBFvectorial")
+            {
+                // Set RBF basis function only when using standard RBF interpolation (default = thin-plate spline)
+                M_coarseToFineInterpolant->setBasis ( list.get ("disp_interpolation_basis", "TPS" ) );
+            }
+
             M_coarseToFineInterpolant -> buildOperators();
         }
     }
