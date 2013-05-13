@@ -191,8 +191,8 @@ Int main ( Int argc, char** argv )
     // solution.                                  //
     //********************************************//
 
-    string filename = "output.txt";
-    std::ofstream output  ("output.txt");
+    string filename = "output100.txt";
+    std::ofstream output  ("output100.txt");
 
 
     //********************************************//

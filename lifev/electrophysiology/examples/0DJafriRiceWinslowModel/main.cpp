@@ -210,10 +210,10 @@ Int main ( Int argc, char** argv )
         // according to different pacing protocol     //
         //********************************************//
 
-    	if ( t >= timeSt && t <= timeSt + 1.0 )
+    	if ( t >= timeSt && t <= timeSt + 0.5 )
     	{
     		Iapp = 0.516289;
-    	  	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
+    	  	if ( t >= timeSt + 0.5 - dt && t <= timeSt + 0.5 )
     			timeSt = timeSt + stInt;
     	 }
     	 else

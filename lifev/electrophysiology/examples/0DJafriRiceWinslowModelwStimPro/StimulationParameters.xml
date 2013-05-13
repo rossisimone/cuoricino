@@ -1,7 +1,7 @@
 <!-- Stimulation Parameters -->
 	<ParameterList name="Stimulation protocol : Parameter list">
 	<Parameter name="stimuliTime" type="double" value="20.0"/>
-	<Parameter name="stInt" type="double" value="350.0"/>
+	<Parameter name="stInt" type="double" value="1000.0"/>
 	<Parameter name="stIntS1S2" type="double" value="350.0"/>
 	<Parameter name="stIntS2S3" type="double" value="250.0"/>
 	<Parameter name="stIntS3S4" type="double" value="150.0"/>

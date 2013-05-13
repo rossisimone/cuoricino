@@ -177,16 +177,18 @@ Int main ( Int argc, char** argv )
     Real TF     = ionicMParameterList.get( "endTime", 5.0 );
     Real dt     = ionicMParameterList.get( "timeStep", 1e-3 );
 
+    Real tStim  ( 0 );
+
     //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
 
-    string filename             = "output.txt";
-    string filenameStimPro      = "outputStimPro.txt";
+    string filename             = "outputEpi.txt";
+    string filenameStimPro      = "outputStimProEpi.txt";
 
-    std::ofstream output        ("output.txt");
-    std::ofstream outputStimPro ("outputStimPro.txt");
+    std::ofstream output        ("outputEpi.txt");
+    std::ofstream outputStimPro ("outputStimProEpi.txt");
 
     //********************************************//
     // Time loop starts.                          //
@@ -236,6 +238,11 @@ Int main ( Int argc, char** argv )
         			<< unknowns.at (14) << ", " << unknowns.at (15) << ", "
         			<< unknowns.at (16) << "\n";
         }
+
+       	tStim = stimulation.timeSt();
+
+       	if ( t >= tStim && t <= tStim + dt )
+       		outputStimPro << t << "," << unknowns.at(0) << "," << NbStimulus << "\n";
 
 
          //********************************************//
