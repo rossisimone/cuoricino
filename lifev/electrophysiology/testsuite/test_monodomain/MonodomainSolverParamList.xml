@@ -8,7 +8,7 @@
     <Parameter name="timeStep" type="double" value="0.02"  />
     <Parameter name="endTime" type="double" value="0.06"  />
     <Parameter name="saveStep" type="double" value="1.0"  />
-    <Parameter name="meth" type="double" value="1.0"  />
+    <Parameter name="meth" type="int" value="1"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.10"  />
     <Parameter name="transversalDiffusion" type="double" value="0.010"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
