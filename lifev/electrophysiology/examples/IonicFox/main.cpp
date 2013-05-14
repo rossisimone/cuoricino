@@ -110,17 +110,14 @@ using std::endl;
 using namespace LifeV;
 
 
-//~ Real Stimulus1 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
-//~ {
-    //~ return 80.0 * ( 0.5 + 0.5 * ( std::tanh ( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
-//~ }
-
-Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( sqrt( x*x + y*y ) <= 0.1 )
-    	return -14.7;
+    if ( x<= 0.05 )
+        return -14.7;
+    else if( x<= 0.1)
+        return -14.7*( 0.1 - x )/(0.05);
     else
-    	return -94.7;
+        return -94.7;
 }
 
 Int main ( Int argc, char** argv )

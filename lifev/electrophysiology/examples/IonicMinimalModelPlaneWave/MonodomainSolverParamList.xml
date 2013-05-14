@@ -5,7 +5,7 @@
     <Parameter name="k" type="double" value="8.0"  />
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
-    <Parameter name="timeStep" type="double" value="0.05"  />
+    <Parameter name="timeStep" type="double" value="0.001"  />
     <Parameter name="endTime" type="double" value="20."  />
     <Parameter name="saveStep" type="double" value="0.1"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0001"  />
@@ -21,7 +21,7 @@
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
-	<Parameter name="OutputFile" type="string" value="MinModpw32"/>
+	<Parameter name="OutputFile" type="string" value="MinModpw32_0001"/>
 	
 	<!-- Operator specific parameters (AztecOO) -->
 	<ParameterList name="Solver: Operator List">

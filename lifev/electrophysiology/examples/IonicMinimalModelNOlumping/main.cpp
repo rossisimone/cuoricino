@@ -116,10 +116,12 @@ Real Stimulus (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*
     return ( 0.5 + 0.5 * ( std::tanh ( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
 }
 
-Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( sqrt( x*x + y*y ) <= 0.1 )
+    if ( x<= 0.05 )
         return 1.0;
+    else if( x<= 0.1)
+        return 1.0*( 0.1 - x )/(0.05);
     else
         return 0.0;
 }
@@ -316,10 +318,10 @@ Int main ( Int argc, char** argv )
     splitting   -> solveSplitting ( exporterSplitting, Savedt );
     exporterSplitting.closeFile();
 
-    ICI         -> solveICI ( exporterICI, Savedt );
+//    ICI         -> solveICI ( exporterICI, Savedt );
     exporterICI.closeFile();
 
-    SVI         -> solveSVI ( exporterSVI, Savedt );
+//    SVI         -> solveSVI ( exporterSVI, Savedt );
     exporterSVI.closeFile();
 
     //********************************************//
