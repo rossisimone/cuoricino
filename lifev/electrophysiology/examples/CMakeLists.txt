@@ -20,7 +20,6 @@ ADD_SUBDIRECTORIES(
 #  AlievPanfilov
   basic_example
   ETA_MonodomainSolver
-#  oneway_EM
   XbNegroniLascano96
   IonicAlievPanfilov
   IonicFitzHughNagumo
@@ -32,6 +31,7 @@ ADD_SUBDIRECTORIES(
   IonicMinimalModel_pacingECG
   IonicFox
   IonicFox_pacingECG
+  IonicTenTusscherModel
   Restart
   RosenbrockTest
 #  RiceModel
