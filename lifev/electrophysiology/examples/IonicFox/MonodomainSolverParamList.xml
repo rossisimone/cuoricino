@@ -6,13 +6,13 @@
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
     <Parameter name="timeStep" type="double" value="0.0025"  />
-    <Parameter name="endTime" type="double" value="20.0"  />
+    <Parameter name="endTime" type="double" value="2.0"  />
     <Parameter name="saveStep" type="double" value="0.25"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0001"  />
     <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
     <Parameter name="TCut" type="double" value="35.0"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="lid32.mesh"  />
+    <Parameter name="mesh_name" type="string" value="lid16.mesh"  />
     <Parameter name="mesh_path" type="string" value="../Meshes/"  />
     <Parameter name="fiber_X" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
