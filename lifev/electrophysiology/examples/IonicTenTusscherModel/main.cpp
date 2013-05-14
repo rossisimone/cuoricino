@@ -155,13 +155,13 @@ Int main ( Int argc, char** argv )
     monodomain -> setPotentialFromFunction ( f );
   
     //setting up initial conditions
-    * ( monodomain -> globalSolution().at (1) ) = 1.0;
-    * ( monodomain -> globalSolution().at (2) ) = 1.0;
-    * ( monodomain -> globalSolution().at (3) ) = 0.021553043080281;
-    * ( monodomain -> globalSolution().at (4) ) = 0.0;
+    //  * ( monodomain -> globalSolution().at (1) ) = 1.0;
+    //  * ( monodomain -> globalSolution().at (2) ) = 1.0;
+    //  * ( monodomain -> globalSolution().at (3) ) = 0.021553043080281;
+    //  * ( monodomain -> globalSolution().at (4) ) = 0.0;
 
     //! Or simply 
-    //monodomain -> setInitialConditions();
+    monodomain -> setInitialConditions();
     //monodomain -> setPotentialFromFunction( Vlid );
     //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
 
