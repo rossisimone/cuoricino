@@ -35,14 +35,14 @@ save       = 1
         type       = Natural
         flag       = 300
         mode       = Full
-        component  = 3
+        component  = 1
 		function  = '0.0'
 
         [../Endo]
         type       = Essential
         flag       = 5
         mode       = Full
-        component  = 3
+        component  = 1
 		function  = '0.0'
         
 
@@ -50,7 +50,7 @@ save       = 1
         type       = Essential
         flag       = 10
         mode       = Full
-        component  = 3
+        component  = 1
 		function  = '1.0'
     
         [../]
