@@ -7,4 +7,5 @@ ADD_SUBDIRECTORIES(
   basicExampleHO
   example_ActiveStrain
   example_CalciumDependentActivation
+  example_laplacian
 )
