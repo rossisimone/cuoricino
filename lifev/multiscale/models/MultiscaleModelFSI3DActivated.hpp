@@ -231,7 +231,8 @@ private:
     std::vector<Real>                       M_activationCenter;
     Real                                    M_activationRadius;
     UInt                                    M_activationMarker;
-
+ //   UInt                                    M_endocardiumMarker;
+ //   UInt                                    M_epicardiumMarker;
     std::string								M_dataFileName;
 
     vectorPtr_Type							M_displacementMonodomain;
@@ -242,13 +243,15 @@ private:
     Real									M_minCalciumLikeVariable;
     Real									M_maxCalciumLikeVariable;
 
-    boost::shared_ptr<LinearSolver>         M_activationSolver;
+
     FSI3DActivated_ActivationModelType      M_activationModelType;
+
+//    vectorPtr_Type							M_rescalingVector;
+//    boost::shared_ptr<LinearSolver>         M_activationSolver;
+
 
     std::string                             M_interpolationType;
 
-//    UInt                                    M_endocardiumMarkers;
-//    UInt                                    M_epicardiumMarkers;
 };
 
 //! Factory create function

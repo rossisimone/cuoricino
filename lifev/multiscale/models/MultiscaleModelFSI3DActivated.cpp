@@ -46,6 +46,7 @@
 
 namespace LifeV
 {
+
 namespace Multiscale
 {
 
@@ -65,15 +66,18 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_activationCenter             (3),
     M_activationRadius             (),
     M_activationMarker             (),
+//    M_endocardiumMarker				(),
+//    M_epicardiumMarker				(),
     M_dataFileName                 (),
     M_gammafSolid                  (),
     M_displacementMonodomain       (),
     M_activationSpacePtr           (),
     M_minCalciumLikeVariable       (0.21),
     M_maxCalciumLikeVariable       (0.85),
-    M_activationSolver             (),
+ //   M_activationSolver             (),
     M_coarseToFineInterpolant		(),
     M_fineToCoarseInterpolant		()
+//	M_rescalingVector				()
 {
 }
 
@@ -104,7 +108,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 
     // Activation solver
 
-    M_activationSolver.reset ( new LinearSolver( ) );
+  //  M_activationSolver.reset ( new LinearSolver( ) );
 
     xmlpath = dataFile ("electrophysiology/activation_solver_data_path", "./");
     xmlfile = dataFile ("electrophysiology/activation_solver_data_file", "Activation_solver");
@@ -158,6 +162,9 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_activationCenter[2] = monodomainList.get ("activation_center_Z", 0.);
     M_activationRadius = monodomainList.get ("activation_radius", 1.);
     M_activationMarker = monodomainList.get ("activation_marker", 0);
+//    M_endocardiumMarker = monodomainList.get ("endocardium_marker", 0);
+//    M_epicardiumMarker = monodomainList.get ("epicardium_marker", 0);
+
 
     M_usingDifferentMeshes = monodomainList.get ("using_different_meshes", false);
     M_oneWayCoupling       = monodomainList.get ("one_way_coupling", true);
@@ -190,6 +197,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("disp_interpolation_type","RBFrescaledVectorial" ) ) );
     M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("gammaf_interpolation_type","RBFrescaledScalar" ) ) );
 
+//    M_rescalingVector.reset(new vector_Type( M_monodomain -> potentialPtr() -> map() ) );
 }
 
 
@@ -234,6 +242,8 @@ MultiscaleModelFSI3DActivated::setupModel()
         M_monodomain -> setDisplacementPtr ( M_displacementMonodomain );
     }
     setupInterpolant();
+
+
 
 
 //    *M_activationSolver = *M_monodomain -> linearSolverPtr();
@@ -323,9 +333,15 @@ MultiscaleModelFSI3DActivated::solveModel()
         }
 /*
         vectorPtr_Type rescaledGammaf(new vector_Type( *M_gammaf ) );
-        HeartUtility::rescaleVector(*rescaledGammaf, 0.12/0.3 );
-        HeartUtility::rescaleVectorOnBoundary(*rescaledGammaf, M_monodomain -> fullMeshPtr(), M_activationMarker, 0.2 / 0.12);
+        HeartUtility::rescaleVector(*rescaledGammaf, 1.0/0.3 );
+        HeartUtility::rescaleVectorOnBoundary(*rescaledGammaf, M_monodomain -> fullMeshPtr(), M_activationMarker, 0.2 );
 */
+        /*
+
+
+
+          */
+
         // Transfer gammaf to solid mesh
         if ( M_usingDifferentMeshes )
         {
