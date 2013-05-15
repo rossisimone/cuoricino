@@ -122,6 +122,13 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 
     solverParamList = Teuchos::getParametersFromXmlFile (xmlpath + xmlfile);
 
+    std::map< std::string, FSI3DActivated_ActivationModelType > activationModelTypeMap;
+    activationModelTypeMap["Algebraic"]           = Algebraic;
+    activationModelTypeMap["SimpleODE"]           = SimpleODE;
+    activationModelTypeMap["StretchDependentODE"] = StretchDependentODE;
+
+    M_activationModelType = activationModelTypeMap[dataFile ( "electrophysiology/activation_model", "SimpleODE" )];
+
     /*
     M_activationSolver->setCommunicator ( comm );
     M_activationSolver->setParameters ( *solverParamList );
@@ -285,52 +292,33 @@ MultiscaleModelFSI3DActivated::solveModel()
         M_monodomain -> setEndTime ( 1000.0 * (tn + timeStep) );
         M_monodomain ->solveSplitting();
 
-        // Simplistic activation model (\gammaf = -C*Ca2)
-
-
-        *M_gammaf = * ( M_monodomain -> globalSolution().at (3) );
-        if ( M_maxCalciumLikeVariable < M_gammaf -> maxValue() )
+        switch (M_activationModelType)
         {
-            M_maxCalciumLikeVariable = M_gammaf -> maxValue();
+            case Algebraic:
+            {
+                // Simplistic activation model (\gammaf = -C*Ca2)
+                *M_gammaf = * ( M_monodomain -> globalSolution().at (3) );
+                if ( M_maxCalciumLikeVariable < M_gammaf -> maxValue() )
+                    M_maxCalciumLikeVariable = M_gammaf -> maxValue();
+
+                if ( M_minCalciumLikeVariable > M_gammaf -> minValue() )
+                    M_minCalciumLikeVariable = M_gammaf -> minValue();
+
+                Real beta = -0.3;
+                HeartUtility::rescaleVector ( *M_gammaf, M_minCalciumLikeVariable, M_maxCalciumLikeVariable, beta);
+                break;
+            }
+            case SimpleODE:
+            {
+                // More prolonged activation model (\gammaf' = a*Ca2 + b*\gammaf)
+                *M_gammaf += 1000 * timeStep * ( -0.02 * *( M_monodomain -> globalSolution().at(3) ) - 0.04 * (*M_gammaf));
+                break;
+            }
+            case StretchDependentODE:
+            {
+                ASSERT(false, "ERROR: Stretch-dependent activation is not yet implemented.");
+            }
         }
-        if ( M_minCalciumLikeVariable > M_gammaf -> minValue() )
-        {
-            M_minCalciumLikeVariable = M_gammaf -> minValue();
-        }
-        Real beta = -0.3;
-        HeartUtility::rescaleVector ( *M_gammaf, M_minCalciumLikeVariable, M_maxCalciumLikeVariable, beta);
-
-
-        // More prolonged activation model (\gammaf = ...)
-        /*
-        #define Ca2    ( value( M_monodomain -> ETFESpacePtr(), *( M_monodomain -> globalSolution().at(3)  ) ) )
-        #define Gammaf ( value( M_monodomain -> ETFESpacePtr(), *M_gammaf ) )
-        #define activationEquation value(-0.02) * Ca2 + value(-0.04) * Gammaf
-
-                        vectorPtr_Type rhsActivation( new vector_Type( *M_gammaf ) );
-                        *rhsActivation *= 0;
-
-                        // Assembling requires a repeated vector
-                        vectorPtr_Type tmpRhsActivation( new vector_Type ( M_gammaf -> map(), Repeated ) );
-                        *tmpRhsActivation *= 0;
-
-                        {
-                            using namespace ExpressionAssembly;
-
-                            integrate ( elements ( M_monodomain -> localMeshPtr() ),
-                                    M_monodomain -> feSpacePtr() -> qr() ,
-                                    M_monodomain -> ETFESpacePtr(),
-                                    activationEquation * phi_i
-                            ) >> tmpRhsActivation;
-
-                        }
-                        *rhsActivation *= 0;
-                        *rhsActivation = ( *(M_monodomain -> massMatrixPtr() ) * ( *M_gammaf ) );
-                        *rhsActivation += ( M_monodomain -> timeStep() * *tmpRhsActivation );
-
-                        M_activationSolver->setRightHandSide(rhsActivation);
-                        M_activationSolver->solve(M_gammaf);
-        */
 
         // Transfer gammaf to solid mesh
         if ( M_usingDifferentMeshes )

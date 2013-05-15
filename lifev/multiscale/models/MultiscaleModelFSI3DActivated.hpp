@@ -102,7 +102,16 @@ public:
     typedef LifeV::PreconditionerIfpack prec_Type;
     typedef boost::shared_ptr<prec_Type> precPtr_Type;
 
-   //@}
+    /*! @enum FSI3DActivated_ActivationModelType
+     */
+    enum FSI3DActivated_ActivationModelType
+    {
+        Algebraic,
+        SimpleODE,
+        StretchDependentODE
+    };
+
+    //@}
 
 
     //! @name Constructor & Destructor
@@ -234,6 +243,7 @@ private:
     Real									M_maxCalciumLikeVariable;
 
     boost::shared_ptr<LinearSolver>         M_activationSolver;
+    FSI3DActivated_ActivationModelType      M_activationModelType;
 
 };
 
