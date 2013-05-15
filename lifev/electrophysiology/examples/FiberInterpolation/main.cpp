@@ -186,8 +186,10 @@ Int main ( Int argc, char** argv )
     std::string fibersFile = list1.get ("fiber_file", "fibers.dat" );
 
     int format = list1.get ("format", 0 );
-
-    HeartUtility::importFibersFromTextFile(fiber1,fibersFile, fibersDirectory, format );
+    std::string fiberFileType = list1.get ("fiber_file_type", "hdf5" );
+    if( fiberFileType == "hdf5" )
+    	HeartUtility::importFibers(fiber1, fibersFile, mesh1 );
+    else HeartUtility::importFibersFromTextFile(fiber1,fibersFile, fibersDirectory, format );
 
     //********************************************//
     // Create the new fiber direction in the finer//
@@ -213,9 +215,10 @@ Int main ( Int argc, char** argv )
 
 		interpolationPtr_Type RBFinterpolant;
 
-	    int method = list1.get ("interpolation_method", 0 );
-		if( method == 0 ) RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFrescaledVectorial" ) );
-		if( method == 1 ) RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFLlocallyRescaledescaledVectorial" ) );
+	        std::string method = list1.get ("interpolation_method", "RBFrescaledVectorial" );
+//		if( method == 0 ) RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFrescaledVectorial" ) );
+//		if( method == 1 ) RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( "RBFlocallyRescaledVectorial" ) );
+		RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( method ) );
 
 		RBFinterpolant->setup( fullMesh1, mesh1, fullMesh2, mesh2, flags);
 		if ( comm->MyPID() == 0 )
