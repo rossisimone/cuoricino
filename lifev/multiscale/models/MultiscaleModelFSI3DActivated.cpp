@@ -76,8 +76,8 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_maxCalciumLikeVariable       (0.85),
  //   M_activationSolver             (),
     M_coarseToFineInterpolant		(),
-    M_fineToCoarseInterpolant		()
-//	M_rescalingVector				()
+    M_fineToCoarseInterpolant		(),
+	M_rescalingVector				()
 {
 }
 
@@ -197,7 +197,6 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("disp_interpolation_type","RBFrescaledVectorial" ) ) );
     M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("gammaf_interpolation_type","RBFrescaledScalar" ) ) );
 
-//    M_rescalingVector.reset(new vector_Type( M_monodomain -> potentialPtr() -> map() ) );
 }
 
 
@@ -243,8 +242,23 @@ MultiscaleModelFSI3DActivated::setupModel()
     }
     setupInterpolant();
 
+    //SETUP RESCALING VECTOR
 
-
+    GetPot dataFile ( M_dataFileName );
+    std::string xmlpath = dataFile ("electrophysiology/monodomain_xml_path", "./");
+    std::string xmlfile = dataFile ("electrophysiology/monodomain_xml_file", "MonodomainSolverParamList.xml");
+    Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( xmlpath + xmlfile ) );
+    std::string filename = list.get ("filename", "");
+    if(filename == "" )
+    {
+    	M_rescalingVector.reset();
+    }
+    else
+    {
+        M_rescalingVector.reset(new vector_Type( M_gammafSolid -> map() ) );
+		std::string fieldname = list.get ("fieldname", "");
+		HeartUtility::importScalarField(M_rescalingVector, filename, fieldname, super::solver() -> solidLocalMeshPtr() );
+    }
 
 //    *M_activationSolver = *M_monodomain -> linearSolverPtr();
     //setting up activation solver
@@ -351,10 +365,17 @@ MultiscaleModelFSI3DActivated::solveModel()
         }
         else
         {
+
             *M_gammafSolid = *M_gammaf;
         }
 
+
         *M_gammafSolid *= ( M_gammafSolid -> operator <= (0.0) );
+        if(M_rescalingVector)
+        {
+        	*M_gammafSolid /= 0.3;
+        	*M_gammafSolid *= *M_rescalingVector;
+        }
 
         super::solver() -> solid().material() -> setGammaf ( *M_gammafSolid );
 

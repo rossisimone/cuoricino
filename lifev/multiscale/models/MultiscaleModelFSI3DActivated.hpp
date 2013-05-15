@@ -246,7 +246,7 @@ private:
 
     FSI3DActivated_ActivationModelType      M_activationModelType;
 
-//    vectorPtr_Type							M_rescalingVector;
+    vectorPtr_Type							M_rescalingVector;
 //    boost::shared_ptr<LinearSolver>         M_activationSolver;
 
 
