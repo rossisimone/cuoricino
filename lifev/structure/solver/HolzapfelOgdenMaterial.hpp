@@ -632,7 +632,7 @@ void HolzapfelOgdenMaterial<MeshType>::setDefaultParams()
     M_kappa = 350.0; // in [kPa]
     // Scalar parameters used in the model (default value, from G\"oktepe, 2011)
     M_aiso = 0.496; M_af = 15.193; M_as =  3.283; M_afs = 0.662; // in [kPa]
-    M_biso = 7.209; M_bf = 20.417; M_as = 11.176; M_bfs = 9.466; // adimensional
+    M_biso = 7.209; M_bf = 20.417; M_bs = 11.176; M_bfs = 9.466; // adimensional
 }
 
 template <typename MeshType>
