@@ -8,8 +8,8 @@
     <Parameter name="longitudinalDiffusion" type="double" value="0.10"  />
     <Parameter name="transversalDiffusion" type="double" value="0.010"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="solid_mesh_name" type="string" value="SuperCoarseSymmCube.mesh"  />
-    <Parameter name="solid_mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/idealized/"  />
+    <Parameter name="solid_mesh_name" type="string" value="SuperCoarseSymmCubeMod.mesh"  />
+    <Parameter name="solid_mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
     <Parameter name="solid_fiber_file" type="string" value="idealHeart_structure_fiber"  />
     <Parameter name="mesh_name" type="string" value="CoarseSymmCube.mesh"  />
     <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/idealized/"  />

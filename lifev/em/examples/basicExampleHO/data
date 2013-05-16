@@ -34,16 +34,25 @@ bulk		= 2.46e+4 #1.3333e+8
 alpha 		= 2.684564e+6
 gamma		= 1.0
 gammaf		= 0.0
+a			= 49600
+af			= 1519300
+as			= 0 #328300
+afs			= 0 #66200
+b			= 7.209
+bf			= 20.417
+bs			= 11.176
+bfs			= 9.466
+bulk		= 350e+5
 solidType 	= HolzapfelOgden #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
 lawType     = nonlinear
 
    [../boundary_conditions]
-    list = 'Top Bottom Front Back Left Right'
-#    list = 'Top InnerRing Epicardium'
+    list = 'Epi Endo1 Endo2'
 
-        [./Top]
-        type       = Natural
-        flag       = 300
+
+        [./Epi]
+        type       = EssentailVertices
+        flag       = 20000
         mode       = Full
         component  = 3
 	function  = '[0.0, 0.0, 0.0]'
@@ -57,12 +66,12 @@ lawType     = nonlinear
 
             [../]
 
-        [../Bottom]
+        [../Endo1]
         type       = Essential
-        flag       = 500
+        flag       = 10000
         mode       = Component
         component  = 1
-	function  = '0.0'
+		function  = '0.0'
   #      functionSD = RobinWall
 
             [./RobinAlpha]
@@ -73,60 +82,12 @@ lawType     = nonlinear
 
             [../]
         
-	[../Front]
-        type       = Natural
-        flag       = 200
-        mode       = Full
-        component  = 3
-	function  = '[0.0, 0.0, 0.0]'
- #       functionSD = RobinWall
-
-            [./RobinAlpha]
-            function = ' 5.00 * 1000' # D
-
-            [../RobinBeta]
-            function = ' 5.00 * 1000' # D
-
-            [../]
-
-        [../Back]
-        type       = Essential
-        flag       = 400
+        [../Endo2]
+        type       = EssentialVertices
+        flag       = 10000
         mode       = Component
         component  = 2
-	function  = '0.0'
- #       functionSD = RobinWall
-
-            [./RobinAlpha]
-            function = ' 5.00 * 1000' # D
-
-            [../RobinBeta]
-            function = ' 5.00 * 1000' # D
-
-            [../]
-
-        [../Left]
-        type       = Natural
-        flag       = 100
-        mode       = Full
-        component  = 3
-	function  = '[0.0, 0.0, 0.0]'
-    #    functionSD = RobinWall
-
-            [./RobinAlpha]
-            function = ' 5.00 * 1000' # D
-
-            [../RobinBeta]
-            function = ' 5.00 * 1000' # D
-
-            [../]
-
-        [../Right]
-        type       = Essential
-        flag       = 600
-        mode       = Component
-        component  = 0
-	function  = '0.0'
+		function  = '0.0'
  #       functionSD = RobinWall
 
             [./RobinAlpha]

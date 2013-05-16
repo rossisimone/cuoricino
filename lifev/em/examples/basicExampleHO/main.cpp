@@ -300,13 +300,13 @@ int main (int argc, char** argv)
         std::cout << "\nparameters" << std::endl;
     }
 
-    Real rho, poisson, young, bulk, alpha, gamma, mu;
+    Real rho, poisson, young, bulk, alpha, gammai, mu;
     rho     = dataFile ( "solid/physics/density", 1. );
     young   = dataFile ( "solid/physics/young",   1. );
     poisson = dataFile ( "solid/physics/poisson", 1. );
     bulk    = dataFile ( "solid/physics/bulk",    1. );
     alpha   = dataFile ( "solid/physics/alpha",   1. );
-    gamma   = dataFile ( "solid/physics/gamma",   1. );
+    gammai   = dataFile ( "solid/physics/gamma",   1. );
     mu   = dataFile ( "solid/physics/mu",   1. );
   //  M_gammaf  = dataFile ( "solid/physics/gammaf",  0. );
 
@@ -317,7 +317,7 @@ int main (int argc, char** argv)
               << "poisson = " << poisson << std::endl
               << "bulk    = " << bulk    << std::endl
               << "alpha   = " << alpha   << std::endl
-              << "gamma   = " << gamma   << std::endl;
+              << "gamma   = " << gammai   << std::endl;
         }
 
 
@@ -788,27 +788,83 @@ int main (int argc, char** argv)
    	boost::shared_ptr<FLRelationship> fl (new FLRelationship);
 
    	boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
-    #define deformationGradientTensor ( grad( electrodETFESpace, *emDisp, 0) + value( solid.material()-> identity() ) )
-    #define RIGHTCAUCHYGREEN transpose(deformationGradientTensor) * deformationGradientTensor
-    #define firstInvariantC trace( RIGHTCAUCHYGREEN )
-    #define fiber0       ( value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) )
-    #define fiber        ( deformationGradientTensor * fiber0 )
-    #define I4f				dot( fiber, fiber)
-    #define Ca    ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
-    #define Ca2         (  Ca * Ca )
-	#define dCa         ( Ca + value(-0.02155) )
-#define Gammaf 			( value( aETFESpace, *gammaf ) )
-   	#define Pa         ( value(-2.5) * eval(H, dCa ) * eval(H, dCa )/*eval( fl,  I4f) */ * eval( flg,  Gammaf) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) )
-//   	#define Pa			  beta * eval( fl,  I4f)
 
-#define GammaPlusOne ( Gammaf + value(1.0) )
-//#define dW1		( ( I4f - value(1.0) ) )
-#define dW1		( ( Gammaf * Gammaf + 2.0 * Gammaf ) )
-#define dW		( ( ( dW1 ) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) ) )
+   	boost::shared_ptr<Exp> EXP(new Exp);
+   	boost::shared_ptr<Exp2> EXP2(new Exp2);
+   	boost::shared_ptr<Psi4f> psi4f (new Psi4f);
+
+    MatrixSmall<3,3> Id;
+    Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
+    Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
+    Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
+    BOOST_AUTO_TPL(I,      value(Id) );
+    BOOST_AUTO_TPL(Grad_u, grad( electrodETFESpace, *emDisp, 0) );
+    BOOST_AUTO_TPL(F,      Grad_u + I );
+    //BOOST_AUTO_TPL(FmT,    minusT(F) );
+    BOOST_AUTO_TPL(J,      det(F) );
+    BOOST_AUTO_TPL(Jm23,    pow(J, -2./3));
+    BOOST_AUTO_TPL(I1,     dot(F, F));
+    BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
+    // Fibres
+    BOOST_AUTO_TPL(f0,     value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) );
+    BOOST_AUTO_TPL(f,      F * f0 );
+    BOOST_AUTO_TPL(I4f,    dot(f, f) );
+    BOOST_AUTO_TPL(I4fiso,  Jm23 * I4f);
+
+    // Generalised invariants
+    BOOST_AUTO_TPL(gamma,  value(1.0) + value( aETFESpace, *gammaf ) );
+    BOOST_AUTO_TPL(gammac, pow(gamma, -2) - gamma);
+    BOOST_AUTO_TPL(I1eiso,   gamma * I1iso + gammac * I4fiso);
+    BOOST_AUTO_TPL(I4feiso,  pow(gamma, -2) * I4fiso);
+
+    Real A = dataFile( "solid/physics/a", 4960 );
+    Real B = dataFile( "solid/physics/b", 0. );
+    Real Af = dataFile( "solid/physics/af", 0. );
+    Real Bf = dataFile( "solid/physics/bf", 0. );
+    cout << "\n\nparameters: a: " << A << ", af: " << Af << ", b: " << B << ", bf: " << Bf << "\n\n";
+    BOOST_AUTO_TPL(a, value( A ) );
+    BOOST_AUTO_TPL(b, value(  B ) );
+    BOOST_AUTO_TPL(af, value( Af ) );
+    BOOST_AUTO_TPL(bf, value(  Bf ) );
+    BOOST_AUTO_TPL(psi_iso_e, a * pow( eval(EXP, ( I1eiso + value(-3.0) ) ), B ) );
+    BOOST_AUTO_TPL(psi_f_e,  value(2.0) * af * ( I4feiso + value(-1.0) )  * pow( eval(EXP2, ( I4feiso + value(-1.0) ) ), Bf ) );
+
+    BOOST_AUTO_TPL(dW0, a);
+    BOOST_AUTO_TPL(dW, ( psi_iso_e + psi_f_e ) * I4fiso * pow(gamma, -3) );
+
+
+    BOOST_AUTO_TPL(Ca,    value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) );
+    BOOST_AUTO_TPL(Ca2, Ca * Ca );
+    BOOST_AUTO_TPL(dCa, Ca + value(-0.02155) );
+//    Real alpha1 = -2.5;
+    BOOST_AUTO_TPL(Pa, value(-2.5) * a * eval(H, dCa) * eval(H, dCa) * eval(fl, I4f) + dW0 );
+  //  Real delta = 0.001;
+    BOOST_AUTO_TPL(beta, value(0.001 / A ) );
+
+    BOOST_AUTO_TPL(dWs, a * pow(gamma, -1) );
+    BOOST_AUTO_TPL(gamma_dot, beta / ( Ca2 ) * ( Pa - dWs )  );
+
+    //    #define deformationGradientTensor ( grad( electrodETFESpace, *emDisp, 0) + value( solid.material()-> identity() ) )
+//    #define RIGHTCAUCHYGREEN transpose(deformationGradientTensor) * deformationGradientTensor
+//    #define firstInvariantC trace( RIGHTCAUCHYGREEN )
+//    #define fiber0       ( value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) )
+//    #define fiber        ( deformationGradientTensor * fiber0 )
+//    #define I4f				dot( fiber, fiber)
+//    #define Ca    ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
+//    #define Ca2         (  Ca * Ca )
+//	#define dCa         ( Ca + value(-0.02155) )
+//#define Gammaf 			( value( aETFESpace, *gammaf ) )
+//   	#define Pa         ( value(-2.5) * eval(H, dCa ) * eval(H, dCa ) * eval( flg,  I4f) + value(1.0) )
+////   	#define Pa			  beta * eval( fl,  I4f)
+//
+//#define GammaPlusOne ( Gammaf + value(1.0) )
+////#define dW1		( ( I4f - value(1.0) ) )
+//#define dW1		(  )
+//#define dW		( ( ( dW1 ) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) ) )
 
    //	#define dgGammaf ( value(-1.0) + value(-2.0) / ( GammaPlusOne ) + value(2.0) * Gammaf * ( Gammaf + value(2.0)  )* pow( GammaPlusOne, -3 ) )
    //	#define activationEquation value(-1.0) * ( Pa  -  ( value(2.0) * GammaPlusOne * firstInvariantC + dgGammaf * I4f )  * value( mu / 2.0 ) ) / beta
-#define activationEquation value(0.0005) * (Pa - dW) / ( Ca2 )
+//#define activationEquation value(0.0005) * (Pa - dW) / ( Ca2 )
 
    	vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
 
@@ -835,15 +891,29 @@ int main (int argc, char** argv)
         int saveIter((saveStep / monodomain -> timeStep()));
 
 
-
+        Real dt_min = 0.01;
   	bool twoWayCoupling = parameterList.get("two_way", false);
      for( Real t(0.0); t< monodomain -> endTime(); )
 	 {
 		  t = t + monodomain -> timeStep();
 		  k++;
 
-		  monodomain -> solveOneSplittingStep();
 
+		    if ( comm->MyPID() == 0 )
+		    {
+		        std::cout << "\nSolve REACTION step with ROS3P\n!" << std::endl;
+		    }
+		  //monodomain -> solveOneSplittingStep();
+		  monodomain -> solveOneReactionStepROS3P(dt_min);
+	      (*monodomain -> rhsPtrUnique()) *= 0.0;
+          monodomain -> updateRhs();
+
+		if ( comm->MyPID() == 0 )
+		{
+			std::cout << "\nSolve DIFFUSION step with BE\n!" << std::endl;
+		}
+
+          monodomain -> solveOneDiffusionStepBE();
 
 //		  *gammaf = *( monodomain -> globalSolution().at(3) );
 //		  Real min =  0.2;
@@ -870,7 +940,13 @@ int main (int argc, char** argv)
 //
 //		  }
 		  *tmpRhsActivation *= 0;
-		  	{
+			if ( comm->MyPID() == 0 )
+			{
+				std::cout << "\nASSEMBLING ACTIVATION EQUATION\n!" << std::endl;
+			}
+
+
+		  {
 		  		using namespace ExpressionAssembly;
 
 
@@ -879,7 +955,7 @@ int main (int argc, char** argv)
 				integrate ( elements ( monodomain -> localMeshPtr() ),
 						monodomain -> feSpacePtr() -> qr() ,
 						monodomain -> ETFESpacePtr(),
-						activationEquation  * phi_i
+						gamma_dot  * phi_i
 				) >> tmpRhsActivation;
 
 		  	}
@@ -888,6 +964,13 @@ int main (int argc, char** argv)
 		  	*rhsActivation += ( ( monodomain -> timeStep() * *tmpRhsActivation ) );
 
 			linearSolver.setRightHandSide(rhsActivation);
+
+			if ( comm->MyPID() == 0 )
+			{
+				std::cout << "\nSOLVING ACTIVATION EQUATION\n!" << std::endl;
+			}
+
+
 			linearSolver.solve(gammaf);
 
 		  if ( k % iter == 0){
@@ -897,12 +980,22 @@ int main (int argc, char** argv)
 
 			  	if(usingDifferentMeshes)
 			  	{
+					if ( comm->MyPID() == 0 )
+					{
+						std::cout << "\nINTERPOLATING FROM FINE TO COARSE\n!" << std::endl;
+					}
+
 			  		F2C -> updateRhs( gammaf );
 			  		F2C -> interpolate();
 			  		F2C -> solution( solidGammaf );
 			  	}
 
 			  solid.material() -> setGammaf( *solidGammaf );
+				if ( comm->MyPID() == 0 )
+				{
+					std::cout << "\nSOLVING STATIC MECHANICS\n!" << std::endl;
+				}
+
 			  solid.iterate ( solidBC -> handler() );
 
 			//        timeAdvance->shiftRight ( solid.displacement() );
@@ -912,6 +1005,11 @@ int main (int argc, char** argv)
 
 			  	if(usingDifferentMeshes)
 			  	{
+					if ( comm->MyPID() == 0 )
+					{
+						std::cout << "\nINTERPOLATING FROM COARSE TO FINE\n!" << std::endl;
+					}
+
 			  		C2F -> updateRhs( solid.displacementPtr() );
 			  		C2F -> interpolate();
 			  		C2F -> solution( emDisp );
@@ -921,6 +1019,11 @@ int main (int argc, char** argv)
 
 				  if(twoWayCoupling)
 				  {
+						if ( comm->MyPID() == 0 )
+						{
+							std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING\n!" << std::endl;
+						}
+
 					     monodomain -> setupStiffnessMatrix();
 					     monodomain -> setupGlobalMatrix();
 
@@ -946,23 +1049,23 @@ int main (int argc, char** argv)
         std::cout << "Active strain example: Passed!" << std::endl;
     }
 
-#undef Gammaf
-#undef deformationGradientTensor
-#undef RIGHTCAUCHYGREEN
-#undef firstInvariantC
-#undef fiber0
-#undef fiber
-#undef Pa
-#undef I4f
-#undef beta
-#undef GammaPlusOne
-#undef dgGammaf
-#undef activationEquation
-#undef Ca
-#undef Ca2
-#undef dCa
-#undef dW1
-#undef dW
+//#undef Gammaf
+//#undef deformationGradientTensor
+//#undef RIGHTCAUCHYGREEN
+//#undef firstInvariantC
+//#undef fiber0
+//#undef fiber
+//#undef Pa
+//#undef I4f
+//#undef beta
+//#undef GammaPlusOne
+//#undef dgGammaf
+//#undef activationEquation
+//#undef Ca
+//#undef Ca2
+//#undef dCa
+//#undef dW1
+//#undef dW
 
 
 
