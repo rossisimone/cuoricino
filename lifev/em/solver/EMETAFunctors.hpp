@@ -187,6 +187,58 @@ public:
     ~HeavisideFct() {}
 };
 
+//==================================================================
+// Holzapfel Ogden
+//==================================================================
+class Exp
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator() (const Real& a)
+    {
+    	return std::exp( a );
+    }
+
+
+
+    Exp() {}
+    Exp (const Exp&) {}
+    ~Exp() {}
+};
+
+class Exp2
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator() (const Real& a)
+    {
+    	return std::exp( a * a );
+    }
+
+
+
+    Exp2() {}
+    Exp2 (const Exp2&) {}
+    ~Exp2() {}
+};
+
+class Psi4f
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator() (const Real& af, const Real& bf, const Real& I4f)
+    {
+    	return ( 2.0 * af * std::exp( bf * (I4f - 1.0 ) * (I4f - 1.0 ) ) );
+    }
+
+    Psi4f() {}
+    Psi4f (const Psi4f&) {}
+    ~Psi4f() {}
+};
+
 
 
 }
