@@ -1248,12 +1248,6 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalMatrix() {
 	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
 	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * (1.0 / M_timeStep));
 }
-template<typename Mesh, typename IonicModel>
-void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalMatrix(Real a, Real b) {
-    (*M_globalMatrixPtr) *= 0;
-    (*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr)*b;
-    (*M_globalMatrixPtr) += ((*M_massMatrixPtr) * (a / M_timeStep));
-}
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLinearSolver(
