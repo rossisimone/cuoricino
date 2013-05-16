@@ -215,7 +215,12 @@ int main (int argc, char** argv)
     //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
 //    function_Type Vlid = &initialVlid;
 //    monodomain -> setPotentialFromFunction( Vlid );
-    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 21 );
+
+// Human biventricular
+//    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 21 ); 
+
+// Canine ventricular
+   HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 53 ); 
 
     for(int i(0); i < ionicModel -> Size(); i++ )
     {

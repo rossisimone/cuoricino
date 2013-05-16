@@ -103,14 +103,21 @@ Int main ( Int argc, char** argv )
         std::cout << " Done!" << endl;
     }
 
-     
+    if ( comm->MyPID() == 0 )
+      {
+        std::cout << "Mesh Loading...";
+      }
+
     std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = monodomainList.get ("mesh_path", "./");
-    meshPtr_Type mesh ( new mesh_Type ( comm ) );
 
     GetPot command_line (argc, argv);
     const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
     GetPot dataFile (data_file_name);
+    if ( comm->MyPID() == 0 )
+      {
+	std::cout << " Done!" << endl;
+      }
 
 
 
@@ -151,18 +158,27 @@ Int main ( Int argc, char** argv )
         cout << "\nInitializing potential:  " ;
     }
 
-    function_Type f = &Stimulus2;
-    monodomain -> setPotentialFromFunction ( f );
-  
-    //setting up initial conditions
-    //  * ( monodomain -> globalSolution().at (1) ) = 1.0;
-    //  * ( monodomain -> globalSolution().at (2) ) = 1.0;
-    //  * ( monodomain -> globalSolution().at (3) ) = 0.021553043080281;
-    //  * ( monodomain -> globalSolution().at (4) ) = 0.0;
+    //setting up initial conditions for TenTusscher
+      * ( monodomain -> globalSolution().at (1) ) = 0.0;
+      * ( monodomain -> globalSolution().at (2) ) = 0.75;
+      * ( monodomain -> globalSolution().at (3) ) = 0.75;
+      * ( monodomain -> globalSolution().at (4) ) = 0.0;
+      * ( monodomain -> globalSolution().at (5) ) = 1.0;
+      * ( monodomain -> globalSolution().at (6) ) = 0.0;
+      * ( monodomain -> globalSolution().at (7) ) = 0.0;
+      * ( monodomain -> globalSolution().at (8) ) = 1.0;
+      * ( monodomain -> globalSolution().at (9) ) = 1.0;
+      * ( monodomain -> globalSolution().at (10) ) = 0.0;
+      * ( monodomain -> globalSolution().at (11) ) = 1.0;
+      * ( monodomain -> globalSolution().at (12) ) = 1.0;
+      * ( monodomain -> globalSolution().at (13) ) = 2e-4;
+      * ( monodomain -> globalSolution().at (14) ) = 0.2;
+      * ( monodomain -> globalSolution().at (15) ) = 11.6;
+      * ( monodomain -> globalSolution().at (16) ) = 138.3;
 
-    //! Or simply 
-    monodomain -> setInitialConditions();
-    //monodomain -> setPotentialFromFunction( Vlid );
+    //monodomain -> setInitialConditions();
+    function_Type Stim = &Stimulus2;
+    monodomain -> setPotentialFromFunction( Stim );
     //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
 
 
@@ -197,12 +213,10 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterMonodomain;
 
-    string filenameSplitting =  monodomainList.get ("OutputFile", "TenTusscher" );
-    filenameSplitting += "Monodomain";
-    monodomain -> setupExporter ( exporterSplitting, filenameSplitting );
-    monodomain -> exportSolution ( exporterSplitting, 0.0);
+    monodomain -> setupExporter ( exporterMonodomain, monodomainList.get ("OutputFile", "TenTussch" ));
+    monodomain -> exportSolution ( exporterMonodomain, 0.0);
 
     //********************************************//
     // Solving the system                         //
@@ -213,8 +227,8 @@ Int main ( Int argc, char** argv )
     }
 
     Real Savedt = monodomainList.get ("saveStep", 0.1);
-    monodomain   -> solveSplitting ( exporterSplitting, Savedt );
-    exporterSplitting.closeFile();
+    monodomain   -> solveSplitting ( exporterMonodomain, Savedt );
+    exporterMonodomain.closeFile();
 
     if ( comm->MyPID() == 0 )
     {
