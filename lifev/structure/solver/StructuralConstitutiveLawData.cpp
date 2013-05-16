@@ -220,7 +220,7 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
             M_alpha[material] = dataFile ( ( section + "/physics/alpha"       ).data(), 3e6, i );
             M_gamma[material] = dataFile ( ( section + "/physics/gamma"       ).data(), 0.8, i );
 
-            M_a[material]  = dataFile ( ( section + "/physics/a"    ).data(), 49600, i );
+            M_a[material]  = dataFile ( ( section + "/physics/a"    ).data(), 4960, i );
             M_af[material] = dataFile ( ( section + "/physics/af"   ).data(), 0.   , i );
             M_as[material] = dataFile ( ( section + "/physics/as"   ).data(), 0.   , i );
             M_afs[material]= dataFile ( ( section + "/physics/afs"  ).data(), 0.   , i );

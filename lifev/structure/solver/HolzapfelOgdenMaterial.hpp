@@ -597,8 +597,8 @@ HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
     //    std::cout<<"I am setting up the Material"<<std::endl;
 
 //    M_stiff.
-    this->M_dispFESpace                     = dFESpace;
-    this->M_dispETFESpace                     = dETFESpace;
+    this->M_dispFESpace                 = dFESpace;
+    this->M_dispETFESpace               = dETFESpace;
     this->M_localMap                    = monolithicMap;
     this->M_offset                      = offset;
     this->M_dataMaterial                = dataMaterial;
@@ -730,16 +730,17 @@ HolzapfelOgdenMaterial<MeshType>::setupVectorsParameters ( void )
 
         ( (* (this->M_vectorsParameters) ) [0]) [ i ] = mu;
         ( (* (this->M_vectorsParameters) ) [1]) [ i ] = bulk;
+
+        M_aiso  = this->M_dataMaterial->A( markerID );
+        M_af    = this->M_dataMaterial->Af( markerID );
+        M_as    = this->M_dataMaterial->As( markerID );
+        M_afs   = this->M_dataMaterial->Afs( markerID );
+        M_biso  = this->M_dataMaterial->B( markerID );
+        M_bf    = this->M_dataMaterial->Bf( markerID );
+        M_as    = this->M_dataMaterial->Bs( markerID );
+        M_bfs   = this->M_dataMaterial->Bfs( markerID );
+        M_kappa = this->M_dataMaterial->bulk( markerID );
     }
-    M_aiso = this->M_dataMaterial->A();
-    M_af =this->M_dataMaterial->Af();
-    M_as =  this->M_dataMaterial->As();
-    M_afs = this->M_dataMaterial->Afs(); // in [kPa]
-    M_biso = this->M_dataMaterial->B();
-    M_bf = this->M_dataMaterial->Bf();
-    M_as = this->M_dataMaterial->Bs();
-    M_bfs = this->M_dataMaterial->Bfs(); // adimensional
-    M_kappa = this->M_dataMaterial->bulk ();
 }
 
 

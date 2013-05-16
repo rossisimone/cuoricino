@@ -211,6 +211,7 @@ MultiscaleModelFSI3DActivated::setupModel()
 {
 
     super::setupModel();
+
     boost::shared_ptr<mesh_Type> solidLocalMeshPtr ( new super::mesh_Type ( super::solver() -> solidLocalMesh() ) );
 
     M_activationSpacePtr.reset ( new FESpace<mesh_Type, MapEpetra> ( solidLocalMeshPtr, "P1", 1,  M_comm ) );
@@ -317,7 +318,7 @@ MultiscaleModelFSI3DActivated::solveModel()
 
         M_monodomain -> setInitialTime ( 1000.0 * tn );
         M_monodomain -> setEndTime ( 1000.0 * (tn + timeStep) );
-        M_monodomain ->solveSplitting();
+        M_monodomain -> solveSplitting();
 
         switch (M_activationModelType)
         {
@@ -338,6 +339,7 @@ MultiscaleModelFSI3DActivated::solveModel()
             {
                 // More prolonged activation model (\gammaf' = a*Ca2 + b*\gammaf)
                 *M_gammaf += 1000 * timeStep * ( -0.02 * *( M_monodomain -> globalSolution().at(3) ) - 0.04 * (*M_gammaf));
+                *M_gammaf *= (0.3 / 0.3717);
                 break;
             }
             case StretchDependentODE:
