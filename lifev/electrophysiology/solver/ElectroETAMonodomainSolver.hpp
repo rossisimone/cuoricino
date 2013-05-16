@@ -220,6 +220,18 @@ public:
 			GetPot& dataFile, ionicModelPtr_Type model);
 
 	//! Constructor
+    /*!
+     * @param string file name of the mesh
+     * @param string path to the mesh
+     * @param GetPot datafile (for preconditioner)
+     * @param boost::shared_ptr<IonicModel> chosen ionic model pointer
+     * @param vectorPtr_Type potential at the previous time step
+     */
+
+    ElectroETAMonodomainSolver(std::string meshName, std::string meshPath,
+            GetPot& dataFile, ionicModelPtr_Type model, vectorPtr_Type previousPotentialPtr);
+
+	//! Constructor
 	/*!
 	 * @param string file name of the mesh
 	 * @param string path to the mesh
@@ -695,7 +707,7 @@ public:
 	 * \mathbf{V}^* = \mathbf{V}^n + \Delta t I_{ion}(\mathbf{V}^n).
 	 * \f]
 	 */
-	void solveOneReactionStepFE();
+	void solveOneReactionStepFE(int subiterations = 1);
 
 	//! Solves one reaction step using the Rosenbrock  method
 	/*!
@@ -716,6 +728,15 @@ public:
 		(*M_rhsPtrUnique) += (*M_massMatrixPtr) * (*M_potentialPtr)
 				* (1.0 / M_timeStep);
 	}
+
+	//! Solves one diffusion step using the BDF2 scheme
+    /*!
+     * \f[
+     * ( \frac{3}{\Delta t}M + A ) V^{n+1} = \frac{1}{\Delta t}M(4 V^n -V^{n-1})
+     * \f]
+     */
+	void solveOneDiffusionStepBDF2(vectorPtr_Type previousPotentialPtr);
+
 	//! Solves one diffusion step using the backward Euler scheme
 	/*!
 	 * \f[
@@ -886,8 +907,10 @@ private:
 
 	vectorPtr_Type M_displacementPtr;
 
-    //Create the indentity for F
-    matrixSmall_Type                      M_identity;
+    //Create the identity for F
+    matrixSmall_Type M_identity;
+
+//    vectorPtr_Type M_previousPotential;
 
 };
 // class MonodomainSolver
@@ -943,6 +966,16 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 
 template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
+            std::string meshName, std::string meshPath,GetPot& dataFile,
+            ionicModelPtr_Type model, vectorPtr_Type previousPotentialPtr){
+    setParameters();
+    init(model);
+    setup(meshName, meshPath, dataFile, M_ionicModelPtr->Size());
+}
+
+
+template<typename Mesh, typename IonicModel>
+ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 		std::string meshName, std::string meshPath, GetPot& dataFile,
 		ionicModelPtr_Type model, commPtr_Type comm) :
 		M_ionicModelPtr(model) {
@@ -978,8 +1011,9 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 				new vector_Type(solver.M_ETFESpacePtr->map())), M_appliedCurrentPtr(
 				new vector_Type(*(solver.M_appliedCurrentPtr))), M_linearSolverPtr(
 				new LinearSolver(*(solver.M_linearSolverPtr))), M_elementsOrder(
-				solver.M_elementsOrder), M_fiberPtr(
-				new vector_Type(*(solver.M_fiberPtr))) {
+				solver.M_elementsOrder), M_fiberPtr( new vector_Type(*(solver.M_fiberPtr))
+//				,M_previousPotential( new vectorPtr_Type(*(solver.M_previousPotential)))
+				){
 
 	setupGlobalSolution(M_ionicModelPtr->Size());
 	copyGlobalSolution(solver.M_globalSolution);
@@ -1015,6 +1049,8 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>& ElectroETAMonodomainSolver<Mesh,
 	copyGlobalRhs(solver.M_globalRhs);
 	M_elementsOrder = solver.M_elementsOrder;
 	setFiber( * ( solver.M_fiberPtr ) );
+
+//	M_previousPotential = solver.M_previousPotential;
 
 	return *this;
 }
@@ -1212,6 +1248,12 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalMatrix() {
 	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
 	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * (1.0 / M_timeStep));
 }
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalMatrix(Real a, Real b) {
+    (*M_globalMatrixPtr) *= 0;
+    (*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr)*b;
+    (*M_globalMatrixPtr) += ((*M_massMatrixPtr) * (a / M_timeStep));
+}
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLinearSolver(
@@ -1322,13 +1364,13 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupExporter(
 
 /********* SOLVING METHODS */    ////////////////////////
 template<typename Mesh, typename IonicModel>
-void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE() {
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(int subiterations) {
 	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution,
 			*M_appliedCurrentPtr, M_globalRhs);
 
 	for (UInt i = 0; i < M_ionicModelPtr->Size(); i++) {
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
-				+ M_timeStep * (*(M_globalRhs.at(i)));
+				+ ( M_timeStep / subiterations ) * (*(M_globalRhs.at(i)));
 	}
 
 }
@@ -1379,6 +1421,23 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P() {
 		for (int i = 0; i < M_ionicModelPtr->Size(); i++)
 			(*(M_globalSolution.at(i)))[j] = localVec[i];
 	}
+}
+
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBDF2(vectorPtr_Type previousPotentialPtr) {
+    matrixPtr_Type OperatorBDF2( new matrix_Type ( M_feSpacePtr->map() ) );
+    vectorPtr_Type rhsBDF2( new vector_Type ( M_feSpacePtr->map() ) );
+    (*OperatorBDF2) *= 0;
+    (*OperatorBDF2) = (*M_stiffnessMatrixPtr);
+    (*OperatorBDF2) += (*M_stiffnessMatrixPtr);
+    (*OperatorBDF2) += ((*M_massMatrixPtr) * (3.0 / M_timeStep));
+    (*rhsBDF2) *= 0;
+    (*rhsBDF2) = 4.0* (*M_rhsPtrUnique);
+    (*rhsBDF2) -= (*M_massMatrixPtr) * (*previousPotentialPtr) * (1.0 / M_timeStep);
+    if(M_displacementPtr) M_linearSolverPtr ->setOperator(M_globalMatrixPtr);
+    M_linearSolverPtr->setOperator(OperatorBDF2);
+    M_linearSolverPtr->setRightHandSide(rhsBDF2);
+    M_linearSolverPtr->solve(M_potentialPtr);
 }
 
 template<typename Mesh, typename IonicModel>

@@ -312,50 +312,41 @@ Int main ( Int argc, char** argv )
     }
 
     Real Savedt = monodomainList.get ("saveStep", 0.1);
-//    Real timeStep = monodomainList.get ("timeStep", 0.01);
-//    Real endTime = monodomainList.get ("endTime", 10.);
-//    Real initialTime = monodomainList.get ("initialTime", 0.);
-//
-//    vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
-//    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
-//    vectorPtr_Type previousPotential1Ptr( new vector_Type ( FESpacePtr->map() ) );
-//    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
-//
-//    int iter((Savedt / timeStep)+ 1e-9);
-//    int nbTimeStep (1);
-//    int k(0);
-//    if (endTime > timeStep) {
-//        for (Real t = initialTime; t < endTime;) {
-//            t += timeStep;
-//            k++;
-//            if (nbTimeStep==1) {
-//                    splitting->solveOneReactionStepFE();
-//                    (*(splitting->rhsPtrUnique())) *= 0;
-//                    splitting->updateRhs();
-//                    splitting->solveOneDiffusionStepBE();
-//                    splitting->exportSolution(exporterSplitting, t);
-//            }else{
-//                *(previousPotential1Ptr) = *(previousPotential0Ptr);
-//                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
-//                if (k % iter == 0){
-//                    splitting->solveOneReactionStepFE();
-//                    (*(splitting->rhsPtrUnique())) *= 0;
-//                    splitting->updateRhs();
-//                    splitting->solveOneDiffusionStepBDF2(previousPotential1Ptr);
-//                    splitting->exportSolution(exporterSplitting, t);
-//                }else{
-////                    splitting->solveOneSplittingStep();
-//                    splitting->solveOneReactionStepFE();
-//                    (*(splitting->rhsPtrUnique())) *= 0;
-//                    splitting->updateRhs();
-//                    splitting->solveOneDiffusionStepBDF2(previousPotential1Ptr);
-//                }
-//            }
-//            nbTimeStep++;
-//        }
-//    }
+    Real timeStep = monodomainList.get ("timeStep", 0.01);
+    Real endTime = monodomainList.get ("endTime", 10.);
+    Real initialTime = monodomainList.get ("initialTime", 0.);
 
-    splitting   -> solveSplitting ( exporterSplitting, Savedt );
+    vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
+    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+
+    int iter((Savedt / timeStep)+ 1e-9);
+    int nbTimeStep (1);
+    int k(0);
+    if (endTime > timeStep) {
+        for (Real t = initialTime; t < endTime;) {
+            t += timeStep;
+            k++;
+            if (nbTimeStep==1) {
+                    splitting->solveOneReactionStepFE();
+                    (*(splitting->rhsPtrUnique())) *= 0;
+                    splitting->updateRhs();
+                    splitting->solveOneDiffusionStepBE();
+                    splitting->exportSolution(exporterSplitting, t);
+            }else{
+                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+                splitting->solveOneReactionStepFE(2);
+                (*(splitting->rhsPtrUnique())) *= 0;
+                splitting->updateRhs();
+//                splitting->solveOneDiffusionStepBE();
+                splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
+                splitting->solveOneReactionStepFE(2);
+                if (k % iter == 0) splitting->exportSolution(exporterSplitting, t);
+            }
+            nbTimeStep++;
+        }
+    }
+
+//    splitting   -> solveSplitting ( exporterSplitting, Savedt );
     exporterSplitting.closeFile();
 
 //    ICI         -> solveICI ( exporterICI, Savedt );
