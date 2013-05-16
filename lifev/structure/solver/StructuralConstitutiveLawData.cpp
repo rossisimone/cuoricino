@@ -66,7 +66,15 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData() :
     M_order                            ( ),
     M_fileFiberDirections              ( ),
     M_verbose                          ( ),
-    M_vectorMaterialFlags              ( )
+    M_vectorMaterialFlags              ( ),
+    M_a								   ( ),
+    M_af							   ( ),
+    M_as							   ( ),
+    M_afs							   ( ),
+    M_b								   ( ),
+    M_bf							   ( ),
+    M_bs							   ( ),
+    M_bfs							   ( )
 {
 }
 
@@ -85,7 +93,15 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData ( const StructuralC
     M_order                            ( structuralConstitutiveLawData.M_order ),
     M_fileFiberDirections              ( structuralConstitutiveLawData.M_fileFiberDirections ),
     M_verbose                          ( structuralConstitutiveLawData.M_verbose ),
-    M_vectorMaterialFlags              ( structuralConstitutiveLawData.M_vectorMaterialFlags )
+    M_vectorMaterialFlags              ( structuralConstitutiveLawData.M_vectorMaterialFlags ),
+    M_a								   ( structuralConstitutiveLawData.M_a ),
+    M_af							   ( structuralConstitutiveLawData.M_af ),
+    M_as							   ( structuralConstitutiveLawData.M_as ),
+    M_afs							   ( structuralConstitutiveLawData.M_afs ),
+    M_b								   ( structuralConstitutiveLawData.M_b ),
+    M_bf							   ( structuralConstitutiveLawData.M_bf ),
+    M_bs							   ( structuralConstitutiveLawData.M_bs ),
+    M_bfs							   ( structuralConstitutiveLawData.M_bfs )
 {
 }
 
@@ -112,6 +128,14 @@ StructuralConstitutiveLawData::operator= ( const StructuralConstitutiveLawData& 
         M_fileFiberDirections              = structuralConstitutiveLawData.M_fileFiberDirections;
         M_verbose                          = structuralConstitutiveLawData.M_verbose;
         M_vectorMaterialFlags              = structuralConstitutiveLawData.M_vectorMaterialFlags;
+        M_a								   = structuralConstitutiveLawData.M_a ;
+        M_af							   = structuralConstitutiveLawData.M_af ;
+        M_as							   = structuralConstitutiveLawData.M_as ;
+        M_afs							   = structuralConstitutiveLawData.M_afs ;
+        M_b								   = structuralConstitutiveLawData.M_b ;
+        M_bf							   = structuralConstitutiveLawData.M_bf ;
+        M_bs							   = structuralConstitutiveLawData.M_bs ;
+        M_bfs							   = structuralConstitutiveLawData.M_bfs ;
     }
 
     return *this;
@@ -163,6 +187,15 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
         M_bulk[1] = dataFile ( ( section + "/physics/bulk"   ).data(), 1e9 );
         M_alpha[1] = dataFile ( ( section + "/physics/alpha" ).data(), 3e6 );
         M_gamma[1] = dataFile ( ( section + "/physics/gamma" ).data(), 0.8 );
+
+        M_a[1]  = dataFile ( ( section + "/physics/a"    ).data(), 49600 );
+        M_af[1] = dataFile ( ( section + "/physics/af"   ).data(), 0. );
+        M_as[1] = dataFile ( ( section + "/physics/as"   ).data(), 0. );
+        M_afs[1]= dataFile ( ( section + "/physics/afs"  ).data(), 0. );
+        M_b[1]  = dataFile ( ( section + "/physics/b"    ).data(), 0. );
+        M_bf[1] = dataFile ( ( section + "/physics/bf"   ).data(), 0. );
+        M_bs[1] = dataFile ( ( section + "/physics/bs"   ).data(), 0. );
+        M_bfs[1]= dataFile ( ( section + "/physics/bfs"  ).data(), 0. );
     }
     else
     {
@@ -186,6 +219,15 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
             M_bulk[material] = dataFile ( ( section + "/physics/bulk"         ).data(), 1e9, i );
             M_alpha[material] = dataFile ( ( section + "/physics/alpha"       ).data(), 3e6, i );
             M_gamma[material] = dataFile ( ( section + "/physics/gamma"       ).data(), 0.8, i );
+
+            M_a[material]  = dataFile ( ( section + "/physics/a"    ).data(), 49600, i );
+            M_af[material] = dataFile ( ( section + "/physics/af"   ).data(), 0.   , i );
+            M_as[material] = dataFile ( ( section + "/physics/as"   ).data(), 0.   , i );
+            M_afs[material]= dataFile ( ( section + "/physics/afs"  ).data(), 0.   , i );
+            M_b[material]  = dataFile ( ( section + "/physics/b"    ).data(), 0.   , i );
+            M_bf[material] = dataFile ( ( section + "/physics/bf"   ).data(), 0.   , i );
+            M_bs[material] = dataFile ( ( section + "/physics/bs"   ).data(), 0.   , i );
+            M_bfs[material]= dataFile ( ( section + "/physics/bfs"  ).data(), 0.   , i );
         }
     }
 
@@ -238,6 +280,39 @@ StructuralConstitutiveLawData::showMe ( std::ostream& output ) const
         output << "Lame - mu[" << i->first << "]                     = " << mu ( i->first ) << std::endl;
     }
 
+    for ( materialContainerIterator_Type i = M_a.begin() ; i != M_a.end() ; ++i )
+    {
+        output << "Holzapfel-Ogden Material: parameter a: [" << i->first << "]                 = " << i -> second << std::endl;
+    }
+    for ( materialContainerIterator_Type i = M_af.begin() ; i != M_af.end() ; ++i )
+    {
+        output << "Holzapfel-Ogden Material: parameter af: [" << i->first << "]                 = " << i -> second << std::endl;
+    }
+    for ( materialContainerIterator_Type i = M_as.begin() ; i != M_as.end() ; ++i )
+    {
+        output << "Holzapfel-Ogden Material: parameter as: [" << i->first << "]                 = " << i -> second << std::endl;
+    }
+    for ( materialContainerIterator_Type i = M_afs.begin() ; i != M_afs.end() ; ++i )
+    {
+        output << "Holzapfel-Ogden Material: parameter afs: [" << i->first << "]                 = " << i -> second << std::endl;
+    }
+    for ( materialContainerIterator_Type i = M_b.begin() ; i != M_b.end() ; ++i )
+    {
+        output << "Holzapfel-Ogden Material: parameter a: [" << i->first << "]                 = " << i -> second << std::endl;
+    }
+    for ( materialContainerIterator_Type i = M_bf.begin() ; i != M_bf.end() ; ++i )
+    {
+        output << "Holzapfel-Ogden Material: parameter af: [" << i->first << "]                 = " << i -> second << std::endl;
+    }
+    for ( materialContainerIterator_Type i = M_bs.begin() ; i != M_bs.end() ; ++i )
+    {
+        output << "Holzapfel-Ogden Material: parameter as: [" << i->first << "]                 = " << i -> second << std::endl;
+    }
+    for ( materialContainerIterator_Type i = M_bfs.begin() ; i != M_bfs.end() ; ++i )
+    {
+        output << "Holzapfel-Ogden Material: parameter afs: [" << i->first << "]                 = " << i -> second << std::endl;
+    }
+
     for ( UInt i (0); i < M_vectorMaterialFlags.size(); i++ )
     {
         output << "Position:" << i << " -> Material Flag:            = " << M_vectorMaterialFlags[i] << std::endl;
@@ -280,6 +355,206 @@ StructuralConstitutiveLawData::poisson ( const UInt& material ) const
     else
     {
         std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        return 0;
+    }
+}
+
+Real
+StructuralConstitutiveLawData::A ( const UInt& material ) const
+{
+    materialContainer_Type::const_iterator IT;
+
+    if ( M_materialsFlagSet )
+    {
+        IT = M_a.find ( material );
+    }
+    else
+    {
+        IT = M_a.find ( 1 );
+    }
+
+    if ( IT != M_a.end() )
+    {
+        return IT->second;
+    }
+    else
+    {
+//        std::cout << " !!! Warning: the modulus has not been set !!!" << std::endl;
+        return 0;
+    }
+}
+
+Real
+StructuralConstitutiveLawData::Af ( const UInt& material ) const
+{
+    materialContainer_Type::const_iterator IT;
+
+    if ( M_materialsFlagSet )
+    {
+        IT = M_af.find ( material );
+    }
+    else
+    {
+        IT = M_af.find ( 1 );
+    }
+
+    if ( IT != M_af.end() )
+    {
+        return IT->second;
+    }
+    else
+    {
+//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        return 0;
+    }
+}
+
+Real
+StructuralConstitutiveLawData::As ( const UInt& material ) const
+{
+    materialContainer_Type::const_iterator IT;
+
+    if ( M_materialsFlagSet )
+    {
+        IT = M_as.find ( material );
+    }
+    else
+    {
+        IT = M_as.find ( 1 );
+    }
+
+    if ( IT != M_as.end() )
+    {
+        return IT->second;
+    }
+    else
+    {
+//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        return 0;
+    }
+}
+
+Real
+StructuralConstitutiveLawData::Afs ( const UInt& material ) const
+{
+    materialContainer_Type::const_iterator IT;
+
+    if ( M_materialsFlagSet )
+    {
+        IT = M_afs.find ( material );
+    }
+    else
+    {
+        IT = M_afs.find ( 1 );
+    }
+
+    if ( IT != M_afs.end() )
+    {
+        return IT->second;
+    }
+    else
+    {
+//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        return 0;
+    }
+}
+
+Real
+StructuralConstitutiveLawData::B ( const UInt& material ) const
+{
+    materialContainer_Type::const_iterator IT;
+
+    if ( M_materialsFlagSet )
+    {
+        IT = M_b.find ( material );
+    }
+    else
+    {
+        IT = M_b.find ( 1 );
+    }
+
+    if ( IT != M_b.end() )
+    {
+        return IT->second;
+    }
+    else
+    {
+//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        return 0;
+    }
+}
+
+Real
+StructuralConstitutiveLawData::Bf ( const UInt& material ) const
+{
+    materialContainer_Type::const_iterator IT;
+
+    if ( M_materialsFlagSet )
+    {
+        IT = M_bf.find ( material );
+    }
+    else
+    {
+        IT = M_bf.find ( 1 );
+    }
+
+    if ( IT != M_bf.end() )
+    {
+        return IT->second;
+    }
+    else
+    {
+//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        return 0;
+    }
+}
+
+Real
+StructuralConstitutiveLawData::Bs ( const UInt& material ) const
+{
+    materialContainer_Type::const_iterator IT;
+
+    if ( M_materialsFlagSet )
+    {
+        IT = M_bs.find ( material );
+    }
+    else
+    {
+        IT = M_bs.find ( 1 );
+    }
+
+    if ( IT != M_bs.end() )
+    {
+        return IT->second;
+    }
+    else
+    {
+//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        return 0;
+    }
+}
+
+Real
+StructuralConstitutiveLawData::Bfs ( const UInt& material ) const
+{
+    materialContainer_Type::const_iterator IT;
+
+    if ( M_materialsFlagSet )
+    {
+        IT = M_bfs.find ( material );
+    }
+    else
+    {
+        IT = M_bfs.find ( 1 );
+    }
+
+    if ( IT != M_bfs.end() )
+    {
+        return IT->second;
+    }
+    else
+    {
+ //       std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
         return 0;
     }
 }

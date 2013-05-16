@@ -614,7 +614,7 @@ HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
 
 
 
-    this->setDefaultParams();
+ //   this->setDefaultParams();
 
     // The 2 is because the law uses three parameters (mu, bulk).
     // another way would be to set up the number of constitutive parameters of the law
@@ -663,7 +663,7 @@ HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                
     M_Gammaf.reset 					( new vector_Type ( M_activationSpace -> map() ) );
 
 
-    this->setDefaultParams();
+//    this->setDefaultParams();
 
     // This parameters are not used, but we are keeping them to avoid
     // inconsistencies among different materials
@@ -731,6 +731,15 @@ HolzapfelOgdenMaterial<MeshType>::setupVectorsParameters ( void )
         ( (* (this->M_vectorsParameters) ) [0]) [ i ] = mu;
         ( (* (this->M_vectorsParameters) ) [1]) [ i ] = bulk;
     }
+    M_aiso = this->M_dataMaterial->A();
+    M_af =this->M_dataMaterial->Af();
+    M_as =  this->M_dataMaterial->As();
+    M_afs = this->M_dataMaterial->Afs(); // in [kPa]
+    M_biso = this->M_dataMaterial->B();
+    M_bf = this->M_dataMaterial->Bf();
+    M_as = this->M_dataMaterial->Bs();
+    M_bfs = this->M_dataMaterial->Bfs(); // adimensional
+    M_kappa = this->M_dataMaterial->bulk ();
 }
 
 
@@ -891,9 +900,38 @@ void HolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
                 this->M_dispETFESpace,
-                dot(dPiso_1 + dPiso_4f + dPiso_4s + dPiso_8fs + dPvol, grad(phi_i))
+                dot(dPiso_1 + dPvol, grad(phi_i))
               ) >> jacobian;
-        }
+    if(M_af > 0)
+    {
+		integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+					this->M_dispFESpace->qr(),
+					this->M_dispETFESpace,
+					this->M_dispETFESpace,
+					dot( dPiso_4f , grad(phi_i))
+				  ) >> jacobian;
+    }
+    if(M_as > 0)
+    {
+		integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                dot( dPiso_4s, grad(phi_i))
+              ) >> jacobian;
+    }
+    if(M_afs > 0)
+    {
+    	integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                this->M_dispETFESpace,
+                dot( dPiso_8fs, grad(phi_i))
+              ) >> jacobian;
+    }
+
+	}
+
 
     jacobian->globalAssemble();
 }
@@ -1042,9 +1080,36 @@ void HolzapfelOgdenMaterial<MeshType>::computeStiffness ( const vector_Type&    
     integrate ( elements ( this->M_dispETFESpace->mesh() ),
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
-                dot(Piso_1 + Piso_4f + Piso_4s + Piso_8fs + Pvol, grad(phi_i))
+                dot(Piso_1 + Pvol, grad(phi_i))
               ) >> M_stiff;
+    // Assemble residual
+    if(M_af > 0)
+    {
+    	integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                dot( Piso_4f , grad(phi_i))
+              ) >> M_stiff;
+    }
+    // Assemble residual
+    if(M_as > 0)
+    {
 
+    integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                dot( Piso_4s , grad(phi_i))
+              ) >> M_stiff;
+    }
+    // Assemble residual
+    if(M_afs > 0)
+    {
+    integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                this->M_dispFESpace->qr(),
+                this->M_dispETFESpace,
+                dot( Piso_8fs, grad(phi_i))
+              ) >> M_stiff;
+    }
     this->M_stiff->globalAssemble();
 }
 

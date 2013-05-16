@@ -224,6 +224,47 @@ public:
         M_gamma[material] = gamma;
     }
 
+    void setA ( const Real& a, const UInt& material )
+    {
+        M_materialsFlagSet = true;
+        M_a[material] = a;
+    }
+    void setAf ( const Real& af, const UInt& material )
+    {
+        M_materialsFlagSet = true;
+        M_af[material] = af;
+    }
+    void setAs ( const Real& as, const UInt& material )
+    {
+        M_materialsFlagSet = true;
+        M_as[material] = as;
+    }
+    void setAfs ( const Real& afs, const UInt& material )
+    {
+        M_materialsFlagSet = true;
+        M_afs[material] = afs;
+    }
+    void setB ( const Real& b, const UInt& material )
+    {
+        M_materialsFlagSet = true;
+        M_b[material] = b;
+    }
+    void setBf ( const Real& bf, const UInt& material )
+    {
+        M_materialsFlagSet = true;
+        M_bf[material] = bf;
+    }
+    void setBs ( const Real& bs, const UInt& material )
+    {
+        M_materialsFlagSet = true;
+        M_bs[material] = bs;
+    }
+    void setBfs ( const Real& bfs, const UInt& material )
+    {
+        M_materialsFlagSet = true;
+        M_bfs[material] = bfs;
+    }
+
     //@}
 
 
@@ -323,6 +364,16 @@ public:
      * @return gamma parameter (nearly incompressible materials)
      */
     Real gamma ( const UInt& material = 1 ) const;
+
+    //////////////////
+    Real A ( const UInt& material = 1 ) const;
+    Real Af ( const UInt& material = 1 ) const;
+    Real As ( const UInt& material = 1 ) const;
+    Real Afs ( const UInt& material = 1 ) const;
+    Real B ( const UInt& material = 1 ) const;
+    Real Bf ( const UInt& material = 1 ) const;
+    Real Bs ( const UInt& material = 1 ) const;
+    Real Bfs ( const UInt& material = 1 ) const;
 
     //! Get FE order
     /*!
@@ -424,6 +475,16 @@ private:
     bool                   M_useExactJacobian;
 
     vectorFlags_Type       M_vectorMaterialFlags;
+
+    //Holzapfel - Ogden parameters
+    materialContainer_Type M_a;
+    materialContainer_Type M_af;
+    materialContainer_Type M_as;
+    materialContainer_Type M_afs;
+    materialContainer_Type M_b;
+    materialContainer_Type M_bf;
+    materialContainer_Type M_bs;
+    materialContainer_Type M_bfs;
 };
 
 } // end namespace LifeV
