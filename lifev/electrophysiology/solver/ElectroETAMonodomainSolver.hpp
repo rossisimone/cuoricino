@@ -715,8 +715,8 @@ public:
 	 * \left( \frac{I}{dt \gamma}-J(y_n)\right) U_i = f(y_n+\sum_{j=1}{i-1} a_{i j} U_j) + \sum_{j=1}{i-1}\frac{c_{i j}}{dt} U_j
 	 * \f]
 	 */
-	void solveOneReactionStepROS3P(vectorPtr_Type dtVec, Real dt_min);
-	void solveOneReactionStepROS3P();
+	void solveOneReactionStepROS3P(vectorPtr_Type dtVec, Real dt_min = 0.0001 );
+	void solveOneReactionStepROS3P(Real dt_min =  0.0001 );
 
 	//! Update the rhs
 	/*!
@@ -1395,7 +1395,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P(
 }
 
 template<typename Mesh, typename IonicModel>
-void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P() {
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P(Real dt_min) {
 	ROS3P ros;
 	VectorStandard localVec(M_ionicModelPtr->Size(), 0.0);
 	Real dt;
@@ -1409,7 +1409,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P() {
 		for (int i = 0; i < M_ionicModelPtr->Size(); i++)
 			localVec[i] = (*(M_globalSolution.at(i)))[j];
 
-		dt = M_timeStep / 50.0;
+		dt = dt_min;
 		ros.solve<IonicModel>(M_ionicModelPtr, localVec, 0.0, M_timeStep, dt);
 
 		for (int i = 0; i < M_ionicModelPtr->Size(); i++)
