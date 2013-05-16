@@ -102,7 +102,16 @@ public:
     typedef LifeV::PreconditionerIfpack prec_Type;
     typedef boost::shared_ptr<prec_Type> precPtr_Type;
 
-   //@}
+    /*! @enum FSI3DActivated_ActivationModelType
+     */
+    enum FSI3DActivated_ActivationModelType
+    {
+        Algebraic,
+        SimpleODE,
+        StretchDependentODE
+    };
+
+    //@}
 
 
     //! @name Constructor & Destructor
@@ -222,7 +231,8 @@ private:
     std::vector<Real>                       M_activationCenter;
     Real                                    M_activationRadius;
     UInt                                    M_activationMarker;
-
+ //   UInt                                    M_endocardiumMarker;
+ //   UInt                                    M_epicardiumMarker;
     std::string								M_dataFileName;
 
     vectorPtr_Type							M_displacementMonodomain;
@@ -233,7 +243,14 @@ private:
     Real									M_minCalciumLikeVariable;
     Real									M_maxCalciumLikeVariable;
 
-    boost::shared_ptr<LinearSolver>         M_activationSolver;
+
+    FSI3DActivated_ActivationModelType      M_activationModelType;
+
+    vectorPtr_Type							M_rescalingVector;
+//    boost::shared_ptr<LinearSolver>         M_activationSolver;
+
+
+    std::string                             M_interpolationType;
 
 };
 

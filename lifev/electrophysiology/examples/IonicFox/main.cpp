@@ -110,7 +110,7 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if ( x<= 0.05 )
         return -14.7;
@@ -334,10 +334,10 @@ Int main ( Int argc, char** argv )
     splitting   -> solveSplitting ( exporterSplitting, Savedt );
     exporterSplitting.closeFile();
 
-    ICI         -> solveICI ( exporterICI, Savedt );
+//    ICI         -> solveICI ( exporterICI, Savedt );
     exporterICI.closeFile();
 
-    SVI         -> solveSVI ( exporterSVI, Savedt );
+//    SVI         -> solveSVI ( exporterSVI, Savedt );
     exporterSVI.closeFile();
 //
 //    for ( Real t = 0.0; t < TF; )
@@ -364,7 +364,6 @@ Int main ( Int argc, char** argv )
 //
 //    }
 //
-    exporterSplitting.closeFile();
 //
 //
     //********************************************//

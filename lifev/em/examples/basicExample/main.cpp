@@ -47,6 +47,12 @@ Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Rea
 	else return  0.;
 }
 
+Real initialV0left(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& /*Z*/, const ID& /*i*/)
+{
+	if( X == 0 ) return 1.0;
+	else return  0.;
+}
+
 Real fiberRotation(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& i)
 {
 	Real R = std::sqrt( X * X + Y * Y);
@@ -214,10 +220,10 @@ int main (int argc, char** argv)
     }
 
     //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
-//    function_Type Vlid = &initialVlid;
-//    monodomain -> setPotentialFromFunction( Vlid );
-    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 21 );
-    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 22 );
+    function_Type Vlid = &initialVlid;
+    monodomain -> setPotentialFromFunction( Vlid );
+ //   HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 100 );
+//    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 22 );
 
     for(int i(0); i < ionicModel -> Size(); i++ )
     {
@@ -428,7 +434,13 @@ int main (int argc, char** argv)
          std::cout << "\nread fibers" << std::endl;
      }
 
-     HeartUtility::importFibers(solidFibers, parameterList.get ("solid_fiber_file", ""), localSolidMesh );
+//     HeartUtility::importFibers(solidFibers, parameterList.get ("solid_fiber_file", ""), localSolidMesh );
+
+     std::vector<Real> fvec(3, 0.0);
+     fvec.at(0)  = parameterList.get ("fiber_X", 1.0);
+     fvec.at(1)  = parameterList.get ("fiber_Y", 0.0);
+     fvec.at(2)  = parameterList.get ("fiber_Z", 0.0);
+     HeartUtility::setupFibers(*solidFibers, fvec);
 
      if ( comm->MyPID() == 0 )
      {
@@ -453,7 +465,8 @@ int main (int argc, char** argv)
     	 electrodETFESpace.reset ( new solidETFESpace_Type (monodomain -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
 
          vectorPtr_Type electroFibers( new vector_Type( electroFiberFESpace -> map() ) );
-         HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
+         HeartUtility::setupFibers(*electroFibers, fvec);
+//         HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
          monodomain -> setFiberPtr( electroFibers );
     	 emDisp.reset(  new vector_Type( electroFibers -> map() ) );
     	 solidGammaf.reset( new vector_Type( solidaFESpace -> map() ) );
@@ -894,6 +907,7 @@ int main (int argc, char** argv)
 		  }
 		  //*solidVel  = timeAdvance->firstDerivative();
 		  //*solidAcc  = timeAdvance->secondDerivative();
+		  cout << "\n\n save every " << saveIter << "iteration\n";
 		  if ( k % saveIter == 0){
 
 		  monodomain -> exportSolution(exp, t);

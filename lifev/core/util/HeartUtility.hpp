@@ -81,6 +81,30 @@ template<typename Mesh> inline void importFibers(  boost::shared_ptr<VectorEpetr
 
 }
 
+template<typename Mesh> inline void importScalarField(  boost::shared_ptr<VectorEpetra> vector, const std::string& fileName, const std::string& fieldName, boost::shared_ptr< Mesh > localMesh  )
+{
+    typedef Mesh                         mesh_Type;
+    typedef ExporterData<mesh_Type> 						   exporterData_Type;
+    typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > > filterPtr_Type;
+    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >  hdf5Filter_Type;
+    typedef boost::shared_ptr<hdf5Filter_Type>                  hdf5FilterPtr_Type;
+
+
+    boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > feSpace( new FESpace< mesh_Type, MapEpetra > ( localMesh, "P1", 1, comm ) );
+
+    exporterData_Type impData (exporterData_Type::ScalarField, fieldName+".00000", feSpace,
+                               vector, UInt (0), exporterData_Type::UnsteadyRegime);
+
+    //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
+    filterPtr_Type importer ( new hdf5Filter_Type() );
+    importer -> setMeshProcId ( localMesh, comm -> MyPID() );
+    importer-> setPrefix (fileName);
+    importer -> readVariable (impData);
+    importer -> closeFile();
+
+}
+
 //format 0: fibers saved as  (fx, fy, fz) in each row
 //format 1: fibers saved as fx in each row for all the mesh
 //							fy in each row for all the mesh
@@ -114,7 +138,7 @@ inline void importFibersFromTextFile( boost::shared_ptr<VectorEpetra> fiberVecto
 	int offset = (*fiberVector).size() / 3;
 	//std::cout << "\nAssigning fibers to the vector epetra...";
 
-    for (UInt l = 0; l < d; ++l)
+    for (int l = 0; l < d; ++l)
 	{
 		i = (*fiberVector).blockMap().GID (l);
 		j = (*fiberVector).blockMap().GID (l + d);
@@ -206,7 +230,7 @@ inline void setupFibers ( VectorEpetra& vec, Real fx, Real fy, Real fz)
 inline void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, std::vector<UInt> flags)
 {
 
-	for( UInt j (0); j < vec.epetraVector().MyLength() ; ++j )
+	for( int j (0); j < vec.epetraVector().MyLength() ; ++j )
 	{
 		for ( UInt k(0); k < flags.size(); k++ )
 		{
@@ -224,7 +248,7 @@ inline void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMes
 inline void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, UInt flag)
 {
 
-	for( UInt j (0); j < vec.epetraVector().MyLength() ; ++j )
+	for( Int j (0); j < vec.epetraVector().MyLength() ; ++j )
 	{
 		if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flag )
 		{
@@ -253,7 +277,7 @@ inline void rescaleVector( VectorEpetra& vec, Real scaleFactor = 1.0 )
 
 inline void rescaleVectorOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, UInt flag, Real scaleFactor = 1.0 )
 {
-	for( UInt j (0); j < vec.epetraVector().MyLength() ; ++j )
+	for( Int j (0); j < vec.epetraVector().MyLength() ; ++j )
 	{
 		if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flag )
 		{

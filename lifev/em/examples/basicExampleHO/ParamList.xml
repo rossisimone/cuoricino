@@ -1,27 +1,28 @@
 <ParameterList>
 	<!-- LinearSolver parameters -->
-    <Parameter name="surfaceVolumeRatio" type="double" value="1000.0"/>
-    <Parameter name="membraneCapacitance" type="double" value="1.0"/>
-    <Parameter name="k" type="double" value="8.0"  />
-    <Parameter name="a" type="double" value="0.1"  />
-    <Parameter name="epsilon" type="double" value="0.01"  />
     <Parameter name="timeStep" type="double" value="0.02"  />
     <Parameter name="endTime" type="double" value="0.06"  />
     <Parameter name="saveStep" type="double" value="1.0"  />
-    <Parameter name="meth" type="int" value="1"  />
+    <Parameter name="meth" type="double" value="1.0"  />
+    <Parameter name="emdt" type="double" value="0.1"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.10"  />
     <Parameter name="transversalDiffusion" type="double" value="0.010"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="biventricle5.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
-    <Parameter name="fiber_file" type="string" value="CoarseFiberDirection"  />
-    <Parameter name="fiber_path" type="string" value="/usr/scratch/srossi/meshes/"  />
+    <Parameter name="solid_mesh_name" type="string" value="SuperCoarseSymmCube.mesh"  />
+    <Parameter name="solid_mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/idealized/"  />
+    <Parameter name="solid_fiber_file" type="string" value="idealHeart_structure_fiber"  />
+    <Parameter name="mesh_name" type="string" value="CoarseSymmCube.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/idealized/"  />
+    <Parameter name="fiber_file" type="string" value="idealHeart_electro_fiber"  />
+    <Parameter name="fiber_X" type="double" value="0.707106781187"  />
+    <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
+    <Parameter name="fiber_Z" type="double" value="0.0"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
-	<Parameter name="OutputFile" type="string" value="Splitting1"/>
+	<Parameter name="OutputFile" type="string" value="output"/>
 	<Parameter name="OutputTimeSteps" type="string" value="TimeSteps1"/>
 	
 	<!-- Operator specific parameters (AztecOO) -->

@@ -111,7 +111,7 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if ( x<= 0.05 )
         return 1.0;
@@ -307,9 +307,29 @@ Int main ( Int argc, char** argv )
     }
 
     Real Savedt = monodomainList.get ("saveStep", 0.1);
-//    Real TF = monodomainList.get ("endTime", 150.0);
+    Real timeStep = monodomainList.get ("timeStep", 0.01);
+    Real endTime = monodomainList.get ("endTime", 10.);
+    Real initialTime = monodomainList.get ("initialTime", 0.);
 
-    splitting   -> solveSplitting ( exporterSplitting, Savedt );
+    int iter((Savedt / timeStep)+ 1e-9);
+    int k(0);
+    if (endTime > timeStep) {
+        for (Real t = initialTime; t < endTime;) {
+            t += timeStep;
+            k++;
+            if (k % iter == 0){
+                splitting->solveOneReactionStepROS3P();
+                (*(splitting->rhsPtrUnique())) *= 0;
+                splitting->updateRhs();
+                splitting->solveOneDiffusionStepBE();
+                splitting->exportSolution(exporterSplitting, t);
+            }else{
+                splitting->solveOneSplittingStep();
+            }
+        }
+    }
+
+//    splitting   -> solveSplitting ( exporterSplitting, Savedt );
     exporterSplitting.closeFile();
 
 //    ICI         -> solveICI ( exporterICI, Savedt );

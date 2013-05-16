@@ -7,6 +7,7 @@
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
+#include <lifev/structure/solver/HolzapfelOgdenMaterial.hpp>
 #include <lifev/em/solver/EMETAFunctors.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
@@ -47,7 +48,13 @@ Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Rea
 	else return  0.;
 }
 
-Real fiberRotation(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& i)
+Real initialV0left(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& /*Z*/, const ID& /*i*/)
+{
+	if( X == 0 ) return 1.0;
+	else return  0.;
+}
+
+Real fiberRotationRing(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& i)
 {
 	Real R = std::sqrt( X * X + Y * Y);
 	//Real teta = std::atan( Y / X );
@@ -81,6 +88,18 @@ Real fiberRotation(const Real& /*t*/, const Real&  X, const Real& Y, const Real&
             break;
     }
 
+}
+
+static Real f0fun(const Real&, const Real& x, const Real&, const Real& , const ID& comp)
+{
+    Real alpha = - M_PI/3. * x + M_PI/3. * (1-x);
+
+    if (comp == 0)
+        return 0.0;
+    else if (comp == 1)
+        return std::cos(alpha);
+    else
+        return std::sin(alpha);
 }
 
 int main (int argc, char** argv)
@@ -214,10 +233,10 @@ int main (int argc, char** argv)
     }
 
     //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
-//    function_Type Vlid = &initialVlid;
-//    monodomain -> setPotentialFromFunction( Vlid );
-    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 21 );
-    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 22 );
+    function_Type Vlid = &initialVlid;
+    monodomain -> setPotentialFromFunction( Vlid );
+ //   HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 100 );
+//    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 22 );
 
     for(int i(0); i < ionicModel -> Size(); i++ )
     {
@@ -411,9 +430,9 @@ int main (int argc, char** argv)
 
      solid.setDataFromGetPot (dataFile);
 
- //    function_Type fibersDirection = &fiberRotation;
-   //  vectorPtr_Type fibersRotated( new vector_Type( dFESpace -> map() ) );
-    // dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *fibersRotated , 0);
+     function_Type fibersDirection = &f0fun;
+     vectorPtr_Type solidFibers( new vector_Type( dFESpace -> map() ) );
+     dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *solidFibers , 0);
 
    	//===========================================================
    	//===========================================================
@@ -421,14 +440,24 @@ int main (int argc, char** argv)
    	//===========================================================
    	//===========================================================
 
-     vectorPtr_Type solidFibers( new vector_Type( dFESpace -> map() ) );
+
 
      if ( comm->MyPID() == 0 )
      {
          std::cout << "\nread fibers" << std::endl;
      }
 
-     HeartUtility::importFibers(solidFibers, parameterList.get ("solid_fiber_file", ""), localSolidMesh );
+//     HeartUtility::importFibers(solidFibers, parameterList.get ("solid_fiber_file", ""), localSolidMesh );
+
+//     std::vector<Real> fvec(3, 0.0);
+//     fvec.at(0)  = parameterList.get ("fiber_X", 1.0);
+//     fvec.at(1)  = parameterList.get ("fiber_Y", 0.0);
+//     fvec.at(2)  = parameterList.get ("fiber_Z", 0.0);
+//     HeartUtility::setupFibers(*solidFibers, fvec);
+
+
+     Real sx = 1.0, sy = 0.0, sz = 0.0;
+     solid.material()->setupSheetVector(sx, sy, sz);
 
      if ( comm->MyPID() == 0 )
      {
@@ -453,7 +482,12 @@ int main (int argc, char** argv)
     	 electrodETFESpace.reset ( new solidETFESpace_Type (monodomain -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
 
          vectorPtr_Type electroFibers( new vector_Type( electroFiberFESpace -> map() ) );
-         HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
+//       HeartUtility::setupFibers(*electroFibers, fvec);
+//       vectorPtr_Type fibersRotated( new vector_Type( monodomain -> feSpacePtr() -> map() ) );
+
+         electroFiberFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *electroFibers , 0);
+
+//       HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
          monodomain -> setFiberPtr( electroFibers );
     	 emDisp.reset(  new vector_Type( electroFibers -> map() ) );
     	 solidGammaf.reset( new vector_Type( solidaFESpace -> map() ) );
@@ -894,6 +928,7 @@ int main (int argc, char** argv)
 		  }
 		  //*solidVel  = timeAdvance->firstDerivative();
 		  //*solidAcc  = timeAdvance->secondDerivative();
+		  cout << "\n\n save every " << saveIter << "iteration\n";
 		  if ( k % saveIter == 0){
 
 		  monodomain -> exportSolution(exp, t);

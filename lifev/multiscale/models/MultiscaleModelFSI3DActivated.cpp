@@ -46,6 +46,7 @@
 
 namespace LifeV
 {
+
 namespace Multiscale
 {
 
@@ -65,15 +66,18 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_activationCenter             (3),
     M_activationRadius             (),
     M_activationMarker             (),
+//    M_endocardiumMarker				(),
+//    M_epicardiumMarker				(),
     M_dataFileName                 (),
     M_gammafSolid                  (),
     M_displacementMonodomain       (),
     M_activationSpacePtr           (),
     M_minCalciumLikeVariable       (0.21),
     M_maxCalciumLikeVariable       (0.85),
-    M_activationSolver             (),
+ //   M_activationSolver             (),
     M_coarseToFineInterpolant		(),
-    M_fineToCoarseInterpolant		()
+    M_fineToCoarseInterpolant		(),
+	M_rescalingVector				()
 {
 }
 
@@ -104,7 +108,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 
     // Activation solver
 
-    M_activationSolver.reset ( new LinearSolver( ) );
+  //  M_activationSolver.reset ( new LinearSolver( ) );
 
     xmlpath = dataFile ("electrophysiology/activation_solver_data_path", "./");
     xmlfile = dataFile ("electrophysiology/activation_solver_data_file", "Activation_solver");
@@ -121,6 +125,13 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     xmlfile = dataFile ("electrophysiology/monodomain_xml_file", "MonodomainSolverParamList.xml");
 
     solverParamList = Teuchos::getParametersFromXmlFile (xmlpath + xmlfile);
+
+    std::map< std::string, FSI3DActivated_ActivationModelType > activationModelTypeMap;
+    activationModelTypeMap["Algebraic"]           = Algebraic;
+    activationModelTypeMap["SimpleODE"]           = SimpleODE;
+    activationModelTypeMap["StretchDependentODE"] = StretchDependentODE;
+
+    M_activationModelType = activationModelTypeMap[dataFile ( "electrophysiology/activation_model", "SimpleODE" )];
 
     /*
     M_activationSolver->setCommunicator ( comm );
@@ -151,6 +162,9 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_activationCenter[2] = monodomainList.get ("activation_center_Z", 0.);
     M_activationRadius = monodomainList.get ("activation_radius", 1.);
     M_activationMarker = monodomainList.get ("activation_marker", 0);
+//    M_endocardiumMarker = monodomainList.get ("endocardium_marker", 0);
+//    M_epicardiumMarker = monodomainList.get ("epicardium_marker", 0);
+
 
     M_usingDifferentMeshes = monodomainList.get ("using_different_meshes", false);
     M_oneWayCoupling       = monodomainList.get ("one_way_coupling", true);
@@ -228,6 +242,25 @@ MultiscaleModelFSI3DActivated::setupModel()
     }
     setupInterpolant();
 
+    //SETUP RESCALING VECTOR
+
+    GetPot dataFile ( M_dataFileName );
+    std::string xmlpath = dataFile ("electrophysiology/monodomain_xml_path", "./");
+    std::string xmlfile = dataFile ("electrophysiology/monodomain_xml_file", "MonodomainSolverParamList.xml");
+    Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( xmlpath + xmlfile ) );
+    std::string filename = list.get ("filename", "");
+    if(filename == "" )
+    {
+    	M_rescalingVector.reset();
+    }
+    else
+    {
+        M_rescalingVector.reset(new vector_Type( M_gammafSolid -> map() ) );
+		std::string fieldname = list.get ("fieldname", "");
+		HeartUtility::importScalarField(M_rescalingVector, filename, fieldname, super::solver() -> solidLocalMeshPtr() );
+    }
+
+//    *M_activationSolver = *M_monodomain -> linearSolverPtr();
     //setting up activation solver
 
 }
@@ -246,6 +279,7 @@ MultiscaleModelFSI3DActivated::buildModel()
     M_monodomain -> setupStiffnessMatrix();
     M_monodomain -> setupGlobalMatrix();
 
+ //   M_activationSolver -> setOperator(M_monodomain -> massMatrixPtr());
 }
 
 void
@@ -285,52 +319,42 @@ MultiscaleModelFSI3DActivated::solveModel()
         M_monodomain -> setEndTime ( 1000.0 * (tn + timeStep) );
         M_monodomain ->solveSplitting();
 
-        // Simplistic activation model (\gammaf = -C*Ca2)
-
-
-        *M_gammaf = * ( M_monodomain -> globalSolution().at (3) );
-        if ( M_maxCalciumLikeVariable < M_gammaf -> maxValue() )
+        switch (M_activationModelType)
         {
-            M_maxCalciumLikeVariable = M_gammaf -> maxValue();
-        }
-        if ( M_minCalciumLikeVariable > M_gammaf -> minValue() )
-        {
-            M_minCalciumLikeVariable = M_gammaf -> minValue();
-        }
-        Real beta = -0.3;
-        HeartUtility::rescaleVector ( *M_gammaf, M_minCalciumLikeVariable, M_maxCalciumLikeVariable, beta);
+            case Algebraic:
+            {
+                // Simplistic activation model (\gammaf = -C*Ca2)
+                *M_gammaf = * ( M_monodomain -> globalSolution().at (3) );
+                if ( M_maxCalciumLikeVariable < M_gammaf -> maxValue() )
+                    M_maxCalciumLikeVariable = M_gammaf -> maxValue();
+                if ( M_minCalciumLikeVariable > M_gammaf -> minValue() )
+                    M_minCalciumLikeVariable = M_gammaf -> minValue();
 
-
-        // More prolonged activation model (\gammaf = ...)
+                Real beta = -0.3;
+                HeartUtility::rescaleVector ( *M_gammaf, M_minCalciumLikeVariable, M_maxCalciumLikeVariable, beta);
+                break;
+            }
+            case SimpleODE:
+            {
+                // More prolonged activation model (\gammaf' = a*Ca2 + b*\gammaf)
+                *M_gammaf += 1000 * timeStep * ( -0.02 * *( M_monodomain -> globalSolution().at(3) ) - 0.04 * (*M_gammaf));
+                break;
+            }
+            case StretchDependentODE:
+            {
+                ASSERT(false, "ERROR: Stretch-dependent activation is not yet implemented.");
+            }
+        }
+/*
+        vectorPtr_Type rescaledGammaf(new vector_Type( *M_gammaf ) );
+        HeartUtility::rescaleVector(*rescaledGammaf, 1.0/0.3 );
+        HeartUtility::rescaleVectorOnBoundary(*rescaledGammaf, M_monodomain -> fullMeshPtr(), M_activationMarker, 0.2 );
+*/
         /*
-        #define Ca2    ( value( M_monodomain -> ETFESpacePtr(), *( M_monodomain -> globalSolution().at(3)  ) ) )
-        #define Gammaf ( value( M_monodomain -> ETFESpacePtr(), *M_gammaf ) )
-        #define activationEquation value(-0.02) * Ca2 + value(-0.04) * Gammaf
 
-                        vectorPtr_Type rhsActivation( new vector_Type( *M_gammaf ) );
-                        *rhsActivation *= 0;
 
-                        // Assembling requires a repeated vector
-                        vectorPtr_Type tmpRhsActivation( new vector_Type ( M_gammaf -> map(), Repeated ) );
-                        *tmpRhsActivation *= 0;
 
-                        {
-                            using namespace ExpressionAssembly;
-
-                            integrate ( elements ( M_monodomain -> localMeshPtr() ),
-                                    M_monodomain -> feSpacePtr() -> qr() ,
-                                    M_monodomain -> ETFESpacePtr(),
-                                    activationEquation * phi_i
-                            ) >> tmpRhsActivation;
-
-                        }
-                        *rhsActivation *= 0;
-                        *rhsActivation = ( *(M_monodomain -> massMatrixPtr() ) * ( *M_gammaf ) );
-                        *rhsActivation += ( M_monodomain -> timeStep() * *tmpRhsActivation );
-
-                        M_activationSolver->setRightHandSide(rhsActivation);
-                        M_activationSolver->solve(M_gammaf);
-        */
+          */
 
         // Transfer gammaf to solid mesh
         if ( M_usingDifferentMeshes )
@@ -341,10 +365,17 @@ MultiscaleModelFSI3DActivated::solveModel()
         }
         else
         {
+
             *M_gammafSolid = *M_gammaf;
         }
 
+
         *M_gammafSolid *= ( M_gammafSolid -> operator <= (0.0) );
+        if(M_rescalingVector)
+        {
+        	*M_gammafSolid /= 0.3;
+        	*M_gammafSolid *= *M_rescalingVector;
+        }
 
         super::solver() -> solid().material() -> setGammaf ( *M_gammafSolid );
 
@@ -455,6 +486,8 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
         }
     }
 }
+
+
 
 } // Namespace multiscale
 } // Namespace LifeV
