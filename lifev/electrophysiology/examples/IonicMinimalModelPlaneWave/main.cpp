@@ -140,6 +140,8 @@ Int main ( Int argc, char** argv )
     //  chronoinitialsettings.start();
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
+    typedef FESpace< mesh_Type, MapEpetra >    feSpace_Type;
+    typedef boost::shared_ptr<feSpace_Type>    feSpacePtr_Type;
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
@@ -148,6 +150,8 @@ Int main ( Int argc, char** argv )
 
     typedef ElectroETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
+    typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
+    typedef VectorEpetra                        vector_Type;
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -210,6 +214,7 @@ Int main ( Int argc, char** argv )
     }
 
     monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    const feSpacePtr_Type FESpacePtr =  splitting->feSpacePtr(); //FE Space
     monodomainSolverPtr_Type ICI ( new monodomainSolver_Type ( dataFile, model, splitting ->  localMeshPtr() ) );
 
     if ( Comm->MyPID() == 0 )
@@ -307,29 +312,50 @@ Int main ( Int argc, char** argv )
     }
 
     Real Savedt = monodomainList.get ("saveStep", 0.1);
-    Real timeStep = monodomainList.get ("timeStep", 0.01);
-    Real endTime = monodomainList.get ("endTime", 10.);
-    Real initialTime = monodomainList.get ("initialTime", 0.);
+//    Real timeStep = monodomainList.get ("timeStep", 0.01);
+//    Real endTime = monodomainList.get ("endTime", 10.);
+//    Real initialTime = monodomainList.get ("initialTime", 0.);
+//
+//    vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
+//    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+//    vectorPtr_Type previousPotential1Ptr( new vector_Type ( FESpacePtr->map() ) );
+//    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+//
+//    int iter((Savedt / timeStep)+ 1e-9);
+//    int nbTimeStep (1);
+//    int k(0);
+//    if (endTime > timeStep) {
+//        for (Real t = initialTime; t < endTime;) {
+//            t += timeStep;
+//            k++;
+//            if (nbTimeStep==1) {
+//                    splitting->solveOneReactionStepFE();
+//                    (*(splitting->rhsPtrUnique())) *= 0;
+//                    splitting->updateRhs();
+//                    splitting->solveOneDiffusionStepBE();
+//                    splitting->exportSolution(exporterSplitting, t);
+//            }else{
+//                *(previousPotential1Ptr) = *(previousPotential0Ptr);
+//                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+//                if (k % iter == 0){
+//                    splitting->solveOneReactionStepFE();
+//                    (*(splitting->rhsPtrUnique())) *= 0;
+//                    splitting->updateRhs();
+//                    splitting->solveOneDiffusionStepBDF2(previousPotential1Ptr);
+//                    splitting->exportSolution(exporterSplitting, t);
+//                }else{
+////                    splitting->solveOneSplittingStep();
+//                    splitting->solveOneReactionStepFE();
+//                    (*(splitting->rhsPtrUnique())) *= 0;
+//                    splitting->updateRhs();
+//                    splitting->solveOneDiffusionStepBDF2(previousPotential1Ptr);
+//                }
+//            }
+//            nbTimeStep++;
+//        }
+//    }
 
-    int iter((Savedt / timeStep)+ 1e-9);
-    int k(0);
-    if (endTime > timeStep) {
-        for (Real t = initialTime; t < endTime;) {
-            t += timeStep;
-            k++;
-            if (k % iter == 0){
-                splitting->solveOneReactionStepROS3P();
-                (*(splitting->rhsPtrUnique())) *= 0;
-                splitting->updateRhs();
-                splitting->solveOneDiffusionStepBE();
-                splitting->exportSolution(exporterSplitting, t);
-            }else{
-                splitting->solveOneSplittingStep();
-            }
-        }
-    }
-
-//    splitting   -> solveSplitting ( exporterSplitting, Savedt );
+    splitting   -> solveSplitting ( exporterSplitting, Savedt );
     exporterSplitting.closeFile();
 
 //    ICI         -> solveICI ( exporterICI, Savedt );
