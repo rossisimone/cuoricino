@@ -324,7 +324,7 @@ MultiscaleModelFSI3DActivated::solveModel()
         {
             case Algebraic:
             {
-                // Simplistic activation model (\gammaf = -C*Ca2)
+                // Simplistic activation model (\gammaf = a * Ca2)
                 *M_gammaf = * ( M_monodomain -> globalSolution().at (3) );
                 if ( M_maxCalciumLikeVariable < M_gammaf -> maxValue() )
                     M_maxCalciumLikeVariable = M_gammaf -> maxValue();
@@ -337,9 +337,9 @@ MultiscaleModelFSI3DActivated::solveModel()
             }
             case SimpleODE:
             {
-                // More prolonged activation model (\gammaf' = a*Ca2 + b*\gammaf)
+                // More prolonged activation model (\gammaf' = a * Ca2 + b * \gammaf)
                 *M_gammaf += 1000 * timeStep * ( -0.02 * *( M_monodomain -> globalSolution().at(3) ) - 0.04 * (*M_gammaf));
-                *M_gammaf *= (0.3 / 0.3717);
+                *M_gammaf *= (0.3 / 0.415);
                 break;
             }
             case StretchDependentODE:
@@ -347,16 +347,6 @@ MultiscaleModelFSI3DActivated::solveModel()
                 ASSERT(false, "ERROR: Stretch-dependent activation is not yet implemented.");
             }
         }
-/*
-        vectorPtr_Type rescaledGammaf(new vector_Type( *M_gammaf ) );
-        HeartUtility::rescaleVector(*rescaledGammaf, 1.0/0.3 );
-        HeartUtility::rescaleVectorOnBoundary(*rescaledGammaf, M_monodomain -> fullMeshPtr(), M_activationMarker, 0.2 );
-*/
-        /*
-
-
-
-          */
 
         // Transfer gammaf to solid mesh
         if ( M_usingDifferentMeshes )
