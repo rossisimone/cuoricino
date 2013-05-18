@@ -289,6 +289,38 @@ inline void rescaleVectorOnBoundary( VectorEpetra& vec, boost::shared_ptr<  Regi
     }
 }
 
+inline void normalize( VectorEpetra& vec )
+{
+    int n1 = vec.epetraVector().MyLength();
+    int d1 = n1 / 3;
+    int i (0);
+    int j (0);
+    int k (0);
+
+    for ( int l (0); l < d1; l++)
+    {
+        i = vec.blockMap().GID (l);
+        j = vec.blockMap().GID (l + d1);
+        k = vec.blockMap().GID (l + 2 * d1);
+		Real norm = std::sqrt( vec[i] * vec[i] + vec[j] * vec[j] + vec[k] * vec[k] );
+		if( norm != 0 )
+		{
+			(vec) [i] = (vec) [i] / norm;
+			(vec) [j] = (vec) [j] / norm;
+			(vec) [k] = (vec) [k] / norm;
+		}
+		else
+		{
+			std::cout << "\n\nThe fiber vector in the node: " << i << " has component:";
+			std::cout << "\nx: " <<  vec[i];
+			std::cout << "\ny: " <<  vec[j];
+			std::cout << "\nz: " <<  vec[k];
+			std::cout << "\nI will put it to: (v_x, v_y, v_z) = (1, 0, 0)\n\n";
+		}
+
+    }
+}
+
 } // namespace HeartUtility
 
 } // namespace LifeV
