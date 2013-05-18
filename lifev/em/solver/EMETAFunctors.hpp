@@ -224,6 +224,40 @@ public:
     ~Exp2() {}
 };
 
+class ShowValue
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator() (const Real& a)
+    {
+    	std::cout << "value is: " << a <<" \n";
+    	return 1.0;
+    }
+
+    return_Type operator() (const VectorSmall<3>& a)
+    {
+    	std::cout << "value is: " << a[0]  <<" \n" << a[1]  <<" \n" << a[2]  <<" \n";
+    	return 1.0;
+    }
+
+    return_Type operator() (const MatrixSmall<3,3>& a)
+    {
+    	std::cout << "value is\n";
+    	std::cout << a[0][0]  <<" \t" << a[0][1]  <<" \t" << a[0][2]  <<" \n";
+    	std::cout << a[1][0]  <<" \t" << a[1][1]  <<" \t" << a[1][2]  <<" \n";
+    	std::cout << a[2][0]  <<" \t" << a[2][1]  <<" \t" << a[2][2]  <<" \n";
+
+    	return 1.0;
+    }
+
+
+
+    ShowValue() {}
+    ShowValue (const ShowValue&) {}
+    ~ShowValue() {}
+};
+
 class Psi4f
 {
 public:
