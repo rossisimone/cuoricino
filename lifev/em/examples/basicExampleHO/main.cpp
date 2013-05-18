@@ -262,7 +262,7 @@ int main (int argc, char** argv)
         cout << "\nExporter setup:  " ;
     }
     }
-    monodomain -> setupExporter ( exp, parameterList.get ("OutputFile", "output") );
+    monodomain -> setupExporter ( exp, parameterList.get ("ElectroOutputFile", "ElectroOutput") );
 
     if ( comm->MyPID() == 0 )
     {
@@ -674,7 +674,7 @@ int main (int argc, char** argv)
      }
 
       boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporter;
-      exporter.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, "structure" ) );
+      exporter.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, parameterList.get ("StructureOutputFile", "StructureOutput") ) );
 
       exporter->setPostDir ( "./" );
       exporter->setMeshProcId ( localSolidMesh, comm->MyPID() );
@@ -695,7 +695,7 @@ int main (int argc, char** argv)
       //================================================================//
       ExporterHDF5< RegionMesh <LinearTetra> > expGammaf;
 	expGammaf.setMeshProcId(monodomain -> localMeshPtr(), comm->MyPID());
-	expGammaf.setPrefix("gammaf");
+	expGammaf.setPrefix(parameterList.get ("ActivationOutputFile", "ActivationOutput"));
 
 
 //  	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
