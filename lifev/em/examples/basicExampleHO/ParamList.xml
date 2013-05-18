@@ -1,18 +1,18 @@
 <ParameterList>
 	<!-- LinearSolver parameters -->
-    <Parameter name="timeStep" type="double" value="0.02"  />
-    <Parameter name="endTime" type="double" value="0.06"  />
-    <Parameter name="saveStep" type="double" value="1.0"  />
+    <Parameter name="timeStep" type="double" value="1.0"  />
+    <Parameter name="endTime" type="double" value="1000.00"  />
+    <Parameter name="save_step" type="double" value="1.0"  />
     <Parameter name="meth" type="double" value="1.0"  />
-    <Parameter name="emdt" type="double" value="0.1"  />
-    <Parameter name="longitudinalDiffusion" type="double" value="0.10"  />
-    <Parameter name="transversalDiffusion" type="double" value="0.010"  />
+    <Parameter name="emdt" type="double" value="1.0"  />
+    <Parameter name="longitudinalDiffusion" type="double" value="0.0010"  />
+    <Parameter name="transversalDiffusion" type="double" value="0.00010"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="solid_mesh_name" type="string" value="SuperCoarseSymmCubeMod.mesh"  />
+    <Parameter name="solid_mesh_name" type="string" value="CoarseSymmCube_refined.mesh"  />
     <Parameter name="solid_mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
     <Parameter name="solid_fiber_file" type="string" value="idealHeart_structure_fiber"  />
-    <Parameter name="mesh_name" type="string" value="CoarseSymmCube.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/idealized/"  />
+    <Parameter name="mesh_name" type="string" value="SymmCube2.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
     <Parameter name="fiber_file" type="string" value="idealHeart_electro_fiber"  />
     <Parameter name="fiber_X" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Y" type="double" value="0.707106781187"  />

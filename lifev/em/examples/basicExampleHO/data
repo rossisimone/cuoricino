@@ -30,25 +30,26 @@ density   	= 1.2
 material_flag   = 1000 #101 #1000
 young     	= 1478.08
 poisson   	= 0.49
-bulk		= 2.46e+4 #1.3333e+8
+#bulk		= 2.46e+4 #1.3333e+8
 alpha 		= 2.684564e+6
 gamma		= 1.0
 gammaf		= 0.0
-a			= 49600
-af			= 1519300
+a			= 4960
+af			= 151930
 as			= 0 #328300
 afs			= 0 #66200
 b			= 7.209
 bf			= 20.417
 bs			= 11.176
 bfs			= 9.466
-bulk		= 350e+5
+bulk		= 3500000
 solidType 	= HolzapfelOgden #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
 lawType     = nonlinear
 
    [../boundary_conditions]
-    list = 'Epi Endo1 Endo2'
-
+#    list = 'Epi Endo1 Endo2'
+#	list = 'fixed'
+	list = 'symm0 symm1 symm2'
 
         [./Epi]
         type       = EssentailVertices
@@ -66,21 +67,41 @@ lawType     = nonlinear
 
             [../]
 
-        [../Endo1]
+        [../fixed]
         type       = Essential
+        flag       = 600
+        mode       = Full
+        component  = 3
+	function  = '[0.0, 0.0, 0.0]'
+
+        [../symm0]
+        type       = Essential
+        flag       = 600
+        mode       = Component
+        component  = 0
+	function  = '0.0'
+
+
+        [../symm1]
+        type       = Essential
+        flag       = 500
+        mode       = Component
+        component  = 1
+	function  = '0.0'
+
+        [../symm2]
+        type       = Essential
+        flag       = 400
+        mode       = Component
+        component  = 2
+	function  = '0.0'
+
+        [../Endo1]
+        type       = EssentialVertices
         flag       = 10000
         mode       = Component
         component  = 1
 		function  = '0.0'
-  #      functionSD = RobinWall
-
-            [./RobinAlpha]
-            function = ' 5.00 * 1000' # D
-
-            [../RobinBeta]
-            function = ' 5.00 * 1000' # D
-
-            [../]
         
         [../Endo2]
         type       = EssentialVertices
@@ -88,15 +109,6 @@ lawType     = nonlinear
         mode       = Component
         component  = 2
 		function  = '0.0'
- #       functionSD = RobinWall
-
-            [./RobinAlpha]
-            function = ' 5.00 * 1000' # D
-
-            [../RobinBeta]
-            function = ' 5.00 * 1000' # D
-
-            [../]
 
         [../]
 

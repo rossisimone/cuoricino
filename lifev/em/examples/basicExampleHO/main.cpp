@@ -92,14 +92,22 @@ Real fiberRotationRing(const Real& /*t*/, const Real&  X, const Real& Y, const R
 
 static Real f0fun(const Real&, const Real& x, const Real&, const Real& , const ID& comp)
 {
-    Real alpha = - M_PI/3. * x + M_PI/3. * (1-x);
+	Real p = 3.14159265358979;
+    Real alpha = -2.0 * p/3. * x + p/3.;
 
+    Real compx = 0.0;
+    Real compy = std::cos(alpha);
+    Real compz = std::sin(alpha);
+
+    compx = 1.0;
+    compy = 0.0;
+    compz = 0.0;
     if (comp == 0)
-        return 0.0;
+        return compx;
     else if (comp == 1)
-        return std::cos(alpha);
+        return compy;
     else
-        return std::sin(alpha);
+        return compz;
 }
 
 int main (int argc, char** argv)
@@ -238,10 +246,9 @@ int main (int argc, char** argv)
  //   HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 100 );
 //    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 22 );
 
-    for(int i(0); i < ionicModel -> Size(); i++ )
-    {
-    std::cout << "Norm Inf variable " << i  << " = " <<  (  *( monodomain -> globalSolution().at(i) ) ).normInf() << std::endl;
-    }
+
+    std::cout << "Norm Inf potential = " <<  (  *( monodomain -> globalSolution().at(0) ) ).normInf() << std::endl;
+
     monodomain -> setParameters ( parameterList );
 
     //********************************************//
@@ -249,11 +256,12 @@ int main (int argc, char** argv)
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exp;
 
-    if ( comm->MyPID() == 0 )
+    for(int pid(0); pid < 4 ; pid ++){
+    if ( comm->MyPID() == pid )
     {
         cout << "\nExporter setup:  " ;
     }
-
+    }
     monodomain -> setupExporter ( exp, parameterList.get ("OutputFile", "output") );
 
     if ( comm->MyPID() == 0 )
@@ -294,12 +302,12 @@ int main (int argc, char** argv)
     }
 
 
-
-    if ( comm->MyPID() == 0 )
+    for(int pid(0); pid < 4 ; pid ++){
+    if ( comm->MyPID() == pid )
     {
         std::cout << "\nparameters" << std::endl;
     }
-
+    }
     Real rho, poisson, young, bulk, alpha, gammai, mu;
     rho     = dataFile ( "solid/physics/density", 1. );
     young   = dataFile ( "solid/physics/young",   1. );
@@ -320,12 +328,12 @@ int main (int argc, char** argv)
               << "gamma   = " << gammai   << std::endl;
         }
 
-
-    if ( comm->MyPID() == 0 )
+    for(int pid(0); pid < 4 ; pid ++){
+    if ( comm->MyPID() == pid )
     {
         std::cout << "\ninitialization constitutive law" << std::endl;
     }
-
+    }
     boost::shared_ptr<StructuralConstitutiveLawData> dataStructure (new StructuralConstitutiveLawData( ) );
     dataStructure->setup (dataFile);
 
@@ -370,51 +378,22 @@ int main (int argc, char** argv)
     scalarETFESpacePtr_Type aETFESpace ( new scalarETFESpace_Type (monodomain -> localMeshPtr(), & (aFESpace->refFE() ), & (aFESpace->fe().geoMap() ), comm) );
     solidFESpacePtr_Type solidaFESpace ( new solidFESpace_Type (localSolidMesh, "P1", 1, comm) );
 
-
-    if ( comm->MyPID() == 0 )
+    for(int pid(0); pid < 4 ; pid ++){
+    if ( comm->MyPID() == pid )
     {
         std::cout << "\nsetup boundary conditions" << std::endl;
     }
-
-    //! #################################################################################
-    //! BOUNDARY CONDITIONS
-    //! #################################################################################
-    vector <ID> compx (1), compy (1), compz (1), compxy (2), compxz (2), compyz (2);
-    compx[0] = 0;
-    compy[0] = 1, compz[0] = 2;
-    compxy[0] = 0;
-    compxy[1] = 1;
-    compxz[0] = 0;
-    compxz[1] = 2;
-    compyz[0] = 1;
-    compyz[1] = 2;
-
-//   boost::shared_ptr<BCHandler> BCh ( new BCHandler() );
-//
-//    BCFunctionBase zero (bcZero);
-//    BCFunctionBase load (Private::boundaryLoad);
-//
-//
-//    //! =================================================================================
-//    //! BC for quarter ring
-//    //! =================================================================================
-////    BCh->addBC ("EdgesIn",      29,  Essential, Component, zero,    compz);
-////    BCh->addBC ("EdgesIn",      31,  Essential, Component, zero,    compy);
-////    BCh->addBC ("EdgesIn",      32,  Essential, Component, zero,    compx);
-//    //! =================================================================================
-//    //! BC for idealHeart
-//    //! =================================================================================
-//    BCh->addBC ("EdgesIn",      40,  Essential, Full, zero,    3);
-    //! =================================================================================
+    }
     bcInterfacePtr_Type                     solidBC( new bcInterface_Type() );
     solidBC->createHandler();
     solidBC->fillHandler ( data_file_name, "solid" );
 
     //M_FSIoperator->setSolidBC ( M_solidBC->handler() );
-
-    if ( comm->MyPID() == 0 )
+    for(int pid(0); pid < 4 ; pid ++){
+    if ( comm->MyPID() == pid )
     {
         std::cout << "\nsetup structural operator" << std::endl;
+    }
     }
     //! 1. Constructor of the structuralSolver
      StructuralOperator< RegionMesh<LinearTetra> > solid;
@@ -423,22 +402,57 @@ int main (int argc, char** argv)
                   dETFESpace,
                   solidBC -> handler(),
                   comm);
-     if ( comm->MyPID() == 0 )
+     for(int pid(0); pid < 4 ; pid ++){
+     if ( comm->MyPID() == pid )
      {
          std::cout << "\ninitial guess" << std::endl;
      }
-
+     }
      solid.setDataFromGetPot (dataFile);
+
+    	//===========================================================
+    	//===========================================================
+    	//				FIBERS
+    	//===========================================================
+    	//===========================================================
+     for(int pid(0); pid < 4 ; pid ++){
+     if ( comm->MyPID() == pid )
+     {
+         std::cout << "\nreading fibers ... " << std::endl;
+     }
+     }
+
 
      function_Type fibersDirection = &f0fun;
      vectorPtr_Type solidFibers( new vector_Type( dFESpace -> map() ) );
+     MPI_Barrier(MPI_COMM_WORLD);
      dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *solidFibers , 0);
+//     if ( comm->MyPID() == 0 )
+//     {
+//         std::cout << "\nnorm Inf of the fibers after interpolation: " << solidFibers -> normInf() << std::endl;
+//     }
 
-   	//===========================================================
-   	//===========================================================
-   	//				FIBERS
-   	//===========================================================
-   	//===========================================================
+     HeartUtility::normalize(*solidFibers);
+     MPI_Barrier(MPI_COMM_WORLD);
+
+//     if ( comm->MyPID() == 0 )
+     {
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+         std::cout << "\nnorm Inf of the fibers after normalization: " << solidFibers -> normInf() << std::endl;
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+         std::cout << "\n************************************************* ";
+
+     }
+
 
 
 
@@ -486,7 +500,7 @@ int main (int argc, char** argv)
 //       vectorPtr_Type fibersRotated( new vector_Type( monodomain -> feSpacePtr() -> map() ) );
 
          electroFiberFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *electroFibers , 0);
-
+         HeartUtility::normalize(*electroFibers);
 //       HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
          monodomain -> setFiberPtr( electroFibers );
     	 emDisp.reset(  new vector_Type( electroFibers -> map() ) );
@@ -792,57 +806,13 @@ int main (int argc, char** argv)
    	boost::shared_ptr<Exp> EXP(new Exp);
    	boost::shared_ptr<Exp2> EXP2(new Exp2);
    	boost::shared_ptr<Psi4f> psi4f (new Psi4f);
+   	boost::shared_ptr<ShowValue> sv(new ShowValue);
 
     MatrixSmall<3,3> Id;
     Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
     Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
     Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
-    BOOST_AUTO_TPL(I,      value(Id) );
-    BOOST_AUTO_TPL(Grad_u, grad( electrodETFESpace, *emDisp, 0) );
-    BOOST_AUTO_TPL(F,      Grad_u + I );
-    //BOOST_AUTO_TPL(FmT,    minusT(F) );
-    BOOST_AUTO_TPL(J,      det(F) );
-    BOOST_AUTO_TPL(Jm23,    pow(J, -2./3));
-    BOOST_AUTO_TPL(I1,     dot(F, F));
-    BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
-    // Fibres
-    BOOST_AUTO_TPL(f0,     value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) );
-    BOOST_AUTO_TPL(f,      F * f0 );
-    BOOST_AUTO_TPL(I4f,    dot(f, f) );
-    BOOST_AUTO_TPL(I4fiso,  Jm23 * I4f);
 
-    // Generalised invariants
-    BOOST_AUTO_TPL(gamma,  value(1.0) + value( aETFESpace, *gammaf ) );
-    BOOST_AUTO_TPL(gammac, pow(gamma, -2) - gamma);
-    BOOST_AUTO_TPL(I1eiso,   gamma * I1iso + gammac * I4fiso);
-    BOOST_AUTO_TPL(I4feiso,  pow(gamma, -2) * I4fiso);
-
-    Real A = dataFile( "solid/physics/a", 4960 );
-    Real B = dataFile( "solid/physics/b", 0. );
-    Real Af = dataFile( "solid/physics/af", 0. );
-    Real Bf = dataFile( "solid/physics/bf", 0. );
-    cout << "\n\nparameters: a: " << A << ", af: " << Af << ", b: " << B << ", bf: " << Bf << "\n\n";
-    BOOST_AUTO_TPL(a, value( A ) );
-    BOOST_AUTO_TPL(b, value(  B ) );
-    BOOST_AUTO_TPL(af, value( Af ) );
-    BOOST_AUTO_TPL(bf, value(  Bf ) );
-    BOOST_AUTO_TPL(psi_iso_e, a * pow( eval(EXP, ( I1eiso + value(-3.0) ) ), B ) );
-    BOOST_AUTO_TPL(psi_f_e,  value(2.0) * af * ( I4feiso + value(-1.0) )  * pow( eval(EXP2, ( I4feiso + value(-1.0) ) ), Bf ) );
-
-    BOOST_AUTO_TPL(dW0, a);
-    BOOST_AUTO_TPL(dW, ( psi_iso_e + psi_f_e ) * I4fiso * pow(gamma, -3) );
-
-
-    BOOST_AUTO_TPL(Ca,    value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) );
-    BOOST_AUTO_TPL(Ca2, Ca * Ca );
-    BOOST_AUTO_TPL(dCa, Ca + value(-0.02155) );
-//    Real alpha1 = -2.5;
-    BOOST_AUTO_TPL(Pa, value(-2.5) * a * eval(H, dCa) * eval(H, dCa) * eval(fl, I4f) + dW0 );
-  //  Real delta = 0.001;
-    BOOST_AUTO_TPL(beta, value(0.001 / A ) );
-
-    BOOST_AUTO_TPL(dWs, a * pow(gamma, -1) );
-    BOOST_AUTO_TPL(gamma_dot, beta / ( Ca2 ) * ( Pa - dWs )  );
 
     //    #define deformationGradientTensor ( grad( electrodETFESpace, *emDisp, 0) + value( solid.material()-> identity() ) )
 //    #define RIGHTCAUCHYGREEN transpose(deformationGradientTensor) * deformationGradientTensor
@@ -946,91 +916,169 @@ int main (int argc, char** argv)
 			}
 
 
-		  {
-		  		using namespace ExpressionAssembly;
+			  if( monodomain -> globalSolution().at(3) -> normInf() >= 0.02155)
+			  {
 
-
-
-
-				integrate ( elements ( monodomain -> localMeshPtr() ),
-						monodomain -> feSpacePtr() -> qr() ,
-						monodomain -> ETFESpacePtr(),
-						gamma_dot  * phi_i
-				) >> tmpRhsActivation;
-
-		  	}
-		  	*rhsActivation *= 0;
-		  	*rhsActivation = ( *(mass) * ( *gammaf ) );
-		  	*rhsActivation += ( ( monodomain -> timeStep() * *tmpRhsActivation ) );
-
-			linearSolver.setRightHandSide(rhsActivation);
-
-			if ( comm->MyPID() == 0 )
-			{
-				std::cout << "\nSOLVING ACTIVATION EQUATION\n!" << std::endl;
-			}
-
-
-			linearSolver.solve(gammaf);
-
-		  if ( k % iter == 0){
-
-
-
-
-			  	if(usingDifferentMeshes)
-			  	{
 					if ( comm->MyPID() == 0 )
 					{
-						std::cout << "\nINTERPOLATING FROM FINE TO COARSE\n!" << std::endl;
+						std::cout << "\nI SHALL SOLVE THE ACTIVATION EQUATION\n!" << std::endl;
 					}
 
-			  		F2C -> updateRhs( gammaf );
-			  		F2C -> interpolate();
-			  		F2C -> solution( solidGammaf );
-			  	}
-
-			  solid.material() -> setGammaf( *solidGammaf );
-				if ( comm->MyPID() == 0 )
-				{
-					std::cout << "\nSOLVING STATIC MECHANICS\n!" << std::endl;
-				}
-
-			  solid.iterate ( solidBC -> handler() );
-
-			//        timeAdvance->shiftRight ( solid.displacement() );
-
-			  *solidDisp = solid.displacement();
+					{
+						using namespace ExpressionAssembly;
 
 
-			  	if(usingDifferentMeshes)
-			  	{
+						BOOST_AUTO_TPL(I,      value(Id) );
+						BOOST_AUTO_TPL(Grad_u, grad( electrodETFESpace, *emDisp, 0) );
+						BOOST_AUTO_TPL(F,      ( Grad_u + I ) );
+						//BOOST_AUTO_TPL(FmT,    minusT(F) );
+						BOOST_AUTO_TPL(J,       det(F) );
+						BOOST_AUTO_TPL(Jm23,    pow(J, -2./3));
+						BOOST_AUTO_TPL(I1,     dot(F, F));
+						BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
+						// Fibres
+						BOOST_AUTO_TPL(f0,     value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) );
+						BOOST_AUTO_TPL(f,      F * f0 );
+						BOOST_AUTO_TPL(I4f,    dot(f, f) );
+						BOOST_AUTO_TPL(I4fiso,  Jm23 * I4f);
+
+						// Generalised invariants
+						BOOST_AUTO_TPL(gamma,  value(1.0) + value( aETFESpace, *gammaf ) );
+						BOOST_AUTO_TPL(gammac, pow(gamma, -2) - gamma);
+						BOOST_AUTO_TPL(I1eiso,   gamma * I1iso + gammac * I4fiso);
+						BOOST_AUTO_TPL(I4feiso,  pow(gamma, -2) * I4fiso);
+						BOOST_AUTO_TPL(I4feisom1, ( I4feiso - value(1.0) ) );
+
+						Real A = dataFile( "solid/physics/a", 4960 );
+						Real B = dataFile( "solid/physics/b", 0. );
+						Real Af = dataFile( "solid/physics/af", 0. );
+						Real Bf = dataFile( "solid/physics/bf", 0. );
+						cout << "\n\nparameters: a: " << A << ", af: " << Af << ", b: " << B << ", bf: " << Bf << "\n\n";
+						BOOST_AUTO_TPL(a, value( A ) );
+						BOOST_AUTO_TPL(b, value(  B ) );
+						BOOST_AUTO_TPL(af, value( Af ) );
+						BOOST_AUTO_TPL(bf, value(  Bf ) );
+						BOOST_AUTO_TPL(psi_iso_e, a * pow( eval(EXP, ( I1eiso + value(-3.0) ) ), B ) );
+						BOOST_AUTO_TPL(psi_f_e,  value(2.0) * af * eval( H, I4feisom1 ) * ( I4feiso + value(-1.0) )  * pow( eval(EXP2, ( I4feiso + value(-1.0) ) ), Bf ) );
+
+						BOOST_AUTO_TPL(dW0, value(-1.0) * a + eval( H, I4feisom1 ) *  value(-2.0) * af * ( I4feiso + value(-1.0) )  ) ;
+						BOOST_AUTO_TPL(dW, value(-1.0) * ( psi_iso_e + psi_f_e ) * I4fiso * pow(gamma, -3) );
+
+
+						BOOST_AUTO_TPL(Ca,    value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) );
+						BOOST_AUTO_TPL(Ca2, Ca * Ca );
+						BOOST_AUTO_TPL(dCa, Ca + value(-0.02155) );
+					//    Real alpha1 = -2.5;
+						BOOST_AUTO_TPL(Pa, value(-2.0) * a * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) + dW0 );
+						BOOST_AUTO_TPL(Pag, value(-2.5) * a * eval(H, dCa) * eval(H, dCa) * eval(flg, value( aETFESpace, *gammaf ) ) + dW0 );
+					  //  Real delta = 0.001;
+						BOOST_AUTO_TPL(beta, value(0.0005 / A ) );
+
+						BOOST_AUTO_TPL(dWs, a * pow(gamma, -1) );
+						BOOST_AUTO_TPL(gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );
+
+
+
+						integrate ( elements ( monodomain -> localMeshPtr() ),
+								monodomain -> feSpacePtr() -> qr() ,
+								monodomain -> ETFESpacePtr(),
+								gamma_dot  * phi_i
+						) >> tmpRhsActivation;
+
+					}
+
+
+					*rhsActivation *= 0;
+					*rhsActivation = ( *(mass) * ( *gammaf ) );
+					*rhsActivation += ( ( monodomain -> timeStep() * *tmpRhsActivation ) );
+
+					linearSolver.setRightHandSide(rhsActivation);
+
+
+
 					if ( comm->MyPID() == 0 )
 					{
-						std::cout << "\nINTERPOLATING FROM COARSE TO FINE\n!" << std::endl;
+						std::cout << "\nSOLVING ACTIVATION EQUATION\n!" << std::endl;
 					}
 
-			  		C2F -> updateRhs( solid.displacementPtr() );
-			  		C2F -> interpolate();
-			  		C2F -> solution( emDisp );
-			  	}
+
+					linearSolver.solve(gammaf);
+			  }
+			  else *gammaf *= 0.0;
 
 
-
-				  if(twoWayCoupling)
-				  {
-						if ( comm->MyPID() == 0 )
+			  if ( k % iter == 0)
+			  {
+					if(usingDifferentMeshes)
+					{
+						if(gammaf -> normInf() > 0)
 						{
-							std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING\n!" << std::endl;
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout << "\nINTERPOLATING FROM FINE TO COARSE\n!" << std::endl;
+							}
+
+							F2C -> updateRhs( gammaf );
+							F2C -> interpolate();
+							F2C -> solution( solidGammaf );
+
 						}
+						else *solidGammaf *= 0.0;
+					}
 
-					     monodomain -> setupStiffnessMatrix();
-					     monodomain -> setupGlobalMatrix();
 
-				  }
-		  }
-		  //*solidVel  = timeAdvance->firstDerivative();
-		  //*solidAcc  = timeAdvance->secondDerivative();
+					solid.material() -> setGammaf( *solidGammaf );
+					if ( comm->MyPID() == 0 )
+					{
+						std::cout << "\nSOLVING STATIC MECHANICS\n!" << std::endl;
+					}
+
+					if ( comm->MyPID() == 0 )
+					{
+						std::cout << "\n*****************************************************";
+						std::cout << "\nWE ARE AT TIME: "<< t;
+						std::cout << "\n*****************************************************";
+
+					}
+
+					solid.iterate ( solidBC -> handler() );
+
+					//        timeAdvance->shiftRight ( solid.displacement() );
+
+					*solidDisp = solid.displacement();
+
+
+					if(usingDifferentMeshes)
+					{
+						if(solid.displacementPtr() -> normInf() > 0)
+						{
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout << "\nINTERPOLATING FROM COARSE TO FINE\n!" << std::endl;
+							}
+
+							C2F -> updateRhs( solid.displacementPtr() );
+							C2F -> interpolate();
+							C2F -> solution( emDisp );
+						}
+						else *emDisp *= 0.0;
+					}
+
+
+
+					  if(twoWayCoupling)
+					  {
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING\n!" << std::endl;
+							}
+
+							 monodomain -> setupStiffnessMatrix();
+							 monodomain -> setupGlobalMatrix();
+
+					  }
+			  }
+
 		  cout << "\n\n save every " << saveIter << "iteration\n";
 		  if ( k % saveIter == 0){
 
@@ -1039,6 +1087,7 @@ int main (int argc, char** argv)
 
 		  exporter->postProcess ( t );
 		  }
+
       }
       exp.closeFile();
       expGammaf.closeFile();
@@ -1049,23 +1098,6 @@ int main (int argc, char** argv)
         std::cout << "Active strain example: Passed!" << std::endl;
     }
 
-//#undef Gammaf
-//#undef deformationGradientTensor
-//#undef RIGHTCAUCHYGREEN
-//#undef firstInvariantC
-//#undef fiber0
-//#undef fiber
-//#undef Pa
-//#undef I4f
-//#undef beta
-//#undef GammaPlusOne
-//#undef dgGammaf
-//#undef activationEquation
-//#undef Ca
-//#undef Ca2
-//#undef dCa
-//#undef dW1
-//#undef dW
 
 
 
