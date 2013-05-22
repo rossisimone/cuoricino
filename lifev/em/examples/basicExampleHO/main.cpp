@@ -469,11 +469,11 @@ int main (int argc, char** argv)
 
 //     HeartUtility::importFibers(solidFibers, parameterList.get ("solid_fiber_file", ""), localSolidMesh );
 
-//     std::vector<Real> fvec(3, 0.0);
-//     fvec.at(0)  = parameterList.get ("fiber_X", 1.0);
-//     fvec.at(1)  = parameterList.get ("fiber_Y", 0.0);
-//     fvec.at(2)  = parameterList.get ("fiber_Z", 0.0);
-//     HeartUtility::setupFibers(*solidFibers, fvec);
+     std::vector<Real> fvec(3, 0.0);
+     fvec.at(0)  = parameterList.get ("fiber_X", 1.0);
+     fvec.at(1)  = parameterList.get ("fiber_Y", 0.0);
+     fvec.at(2)  = parameterList.get ("fiber_Z", 0.0);
+     HeartUtility::setupFibers(*solidFibers, fvec);
 
 
      Real sx = 1.0, sy = 0.0, sz = 0.0;
@@ -502,11 +502,11 @@ int main (int argc, char** argv)
     	 electrodETFESpace.reset ( new solidETFESpace_Type (monodomain -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
 
          vectorPtr_Type electroFibers( new vector_Type( electroFiberFESpace -> map() ) );
-//       HeartUtility::setupFibers(*electroFibers, fvec);
+       HeartUtility::setupFibers(*electroFibers, fvec);
 //       vectorPtr_Type fibersRotated( new vector_Type( monodomain -> feSpacePtr() -> map() ) );
 
-         electroFiberFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *electroFibers , 0);
-         HeartUtility::normalize(*electroFibers);
+//         electroFiberFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *electroFibers , 0);
+//         HeartUtility::normalize(*electroFibers);
 //       HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
          monodomain -> setFiberPtr( electroFibers );
     	 emDisp.reset(  new vector_Type( electroFibers -> map() ) );
@@ -872,12 +872,11 @@ int main (int argc, char** argv)
   	//===========================================================
       Real emdt = parameterList.get("emdt",1.0);
       int iter((emdt / monodomain -> timeStep()));
-      	int k(0);
-        Real saveStep = parameterList.get("save_step",1.0);
-        int saveIter((saveStep / monodomain -> timeStep()));
-        Real meth = parameterList.get("meth",1.0);
-
-		  C2F -> spyInterpolationOperator("IntepolationOperator");
+      int k(0);
+      Real saveStep = parameterList.get("save_step",1.0);
+      int saveIter((saveStep / monodomain -> timeStep()));
+      Real meth = parameterList.get("meth",1.0);
+      int subiter = parameterList.get("subiter",100);
 
         Real dt_min = 0.01;
   	bool twoWayCoupling = parameterList.get("two_way", false);
@@ -896,7 +895,7 @@ int main (int argc, char** argv)
 		    if(meth == 1.0) monodomain -> solveOneReactionStepROS3P(dt_min);
 		    else
 		    	{
-		    	 for(int j(0); j<100; j++) monodomain -> solveOneReactionStepFE(100);
+		    	 for(int j(0); j<subiter; j++) monodomain -> solveOneReactionStepFE(subiter);
 		    	}
 
           timer.stop();
