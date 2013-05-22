@@ -637,7 +637,7 @@
 		Real potK1      = ( M_R * M_T / M_F ) * log( cKo / cKi );
 		Real maxCondK1  = 7.5e-3 * sqrt( cKo / 5.4 );
 		Real alphaK1    = 1.02 / ( 1.0 + exp( 0.2385 * ( V - potK1 - 59.215 ) ) );
-		Real betaK1     =  0.4912 * exp( 0.08032 * ( V - potK1 + 5.476 ) ) + exp( 0.06175 * ( V - potK1 - 594.31 ) ) / ( 1.0 + exp( -0.5143 * (V - potK1 + 4.753 ) ) );
+		Real betaK1     = ( 0.4912 * exp( 0.08032 * ( V - potK1 + 5.476 ) ) + exp( 0.06175 * ( V - potK1 - 594.31 ) ) ) / ( 1.0 + exp( -0.5143 * (V - potK1 + 4.753 ) ) );
 		Real constK1inf = alphaK1 / ( alphaK1 + betaK1 );
 
 		return  maxCondK1 * constK1inf * ( V - potK1 );
@@ -910,7 +910,7 @@
 
 			potK1       = ( M_R * M_T / M_F ) * log( cKo / cKi );
 			alphaK1     = 1.02 / ( 1.0 + exp( 0.2385 * ( V - potK1 - 59.215 ) ) );
-			betaK1      =  0.4912 * exp( 0.08032 * ( V - potK1 + 5.476 ) ) + exp( 0.06175 * ( V - potK1 - 594.31 ) ) / ( 1.0 + exp( -0.5143 * (V - potK1 + 4.753 ) ) );
+			betaK1      = ( 0.4912 * exp( 0.08032 * ( V - potK1 + 5.476 ) ) + exp( 0.06175 * ( V - potK1 - 594.31 ) ) ) / ( 1.0 + exp( -0.5143 * (V - potK1 + 4.753 ) ) );
 			constK1inf  = alphaK1 / ( alphaK1 + betaK1 );
 			IK1         = maxCondK1 * constK1inf * ( V - potK1 );
             dalphaK1    = 1.02 / ( ( 1.0 + exp( 0.2385 * ( V - potK1 - 59.215 ) ) ) * ( 1.0 + exp( 0.2385 * ( V - potK1 - 59.215 ) ) ) )
@@ -1026,7 +1026,7 @@
             dmaxCondK1  = 7.5e-3 * sqrt( 1.0 / ( 5.4 * cKo ) ) / 2;
 			potK1       = ( M_R * M_T / M_F ) * log( cKo / cKi );
 			alphaK1     = 1.02 / ( 1.0 + exp( 0.2385 * ( V - potK1 - 59.215 ) ) );
-			betaK1      =  0.4912 * exp( 0.08032 * ( V - potK1 + 5.476 ) ) + exp( 0.06175 * ( V - potK1 - 594.31 ) ) / ( 1.0 + exp( -0.5143 * (V - potK1 + 4.753 ) ) );
+			betaK1      = ( 0.4912 * exp( 0.08032 * ( V - potK1 + 5.476 ) ) + exp( 0.06175 * ( V - potK1 - 594.31 ) ) ) / ( 1.0 + exp( -0.5143 * (V - potK1 + 4.753 ) ) );
 			constK1inf  = alphaK1 / ( alphaK1 + betaK1 );
 			IK1         = maxCondK1 * constK1inf * ( V - potK1 );
             dalphaK1    = - 1.02 / ( ( 1.0 + exp( 0.2385 * ( V - potK1 - 59.215 ) ) ) * ( 1.0 + exp( 0.2385 * ( V - potK1 - 59.215 ) ) ) )
