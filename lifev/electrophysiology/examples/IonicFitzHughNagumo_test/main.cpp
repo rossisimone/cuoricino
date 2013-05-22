@@ -121,18 +121,27 @@ Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z
 }
 
 // Choice of the fibers direction : ||.||=1
-Real Fibers (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& i)
+Real Fibers (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
 {
-    Real N = std::sqrt((x-1.5)*(x-1.5) + (y+0.5)*(y+0.5));//std::sqrt(x*x + y*y);
-    Real x_fib = (y+0.5)/N;
-    Real y_fib = -(x-1.5)/N;
+    Real zmin = 0.0;
+    Real zmax = 0.5;
+    Real L = zmax - zmin;
+    Real thetamin = M_PI /3.;
+    Real thetamax = -M_PI /3.;
+
+    Real ztheta = (L-z)/L;
+    Real theta = (thetamax - thetamin) * ztheta + thetamin;
+
+//    Real N = std::sqrt((x-1.5)*(x-1.5) + (y+0.5)*(y+0.5));//std::sqrt(x*x + y*y);
+//    Real x_fib = (y+0.5)/N;
+//    Real y_fib = -(x-1.5)/N;
 
         switch(i){
             case 0:
-                return  x_fib; //y/N; //std::sqrt (2.0) / 2.0; //
+                return  std::cos(theta); // x_fib; //y/N; //std::sqrt (2.0) / 2.0; //
                 break;
             case 1:
-                return  y_fib; //-x/N; //std::sqrt (2.0) / 2.0; //
+                return  std::sin(theta); // y_fib; //-x/N; //std::sqrt (2.0) / 2.0; //
                 break;
             case 2:
                 return 0.0;
@@ -281,56 +290,56 @@ Int main ( Int argc, char** argv )
     // Create a fiber direction                   //
     //********************************************//
     VectorSmall<3> fibers;
-    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2.0) / 2.0 );
-    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2.0) / 2.0 );
-    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+//    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2.0) / 2.0 );
+//    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2.0) / 2.0 );
+//    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
 
-    splitting->setupFibers(fibers);
-    ICI->setupFibers(fibers);
+//    splitting->setupFibers(fibers);
+//    ICI->setupFibers(fibers);
 //    SVI->setupFibers(fibers);
 //
-//    function_Type Fiber_fct;
-//    Fiber_fct = &Fibers;
-//    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-//    ( new FESpace< mesh_Type, MapEpetra > ( splitting->localMeshPtr(), "P1", 3, Comm) );
-//    vectorPtr_Type fibers_vect(new vector_Type( Space3D->map() ));
-//    Space3D -> interpolate(static_cast< FESpace < RegionMesh<LinearTetra >, MapEpetra >::function_Type>(Fiber_fct), *fibers_vect,0. );
-//
-//    splitting ->setFiberPtr(fibers_vect);
+    function_Type Fiber_fct;
+    Fiber_fct = &Fibers;
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+    ( new FESpace< mesh_Type, MapEpetra > ( splitting->localMeshPtr(), "P1", 3, Comm) );
+    vectorPtr_Type fibers_vect(new vector_Type( Space3D->map() ));
+    Space3D -> interpolate(static_cast< FESpace < RegionMesh<LinearTetra >, MapEpetra >::function_Type>(Fiber_fct), *fibers_vect,0. );
+
+    splitting ->setFiberPtr(fibers_vect);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
-    splitting -> setupLumpedMassMatrix();
-    splitting -> setupStiffnessMatrix();
-    splitting -> setupGlobalMatrix();
-
-    ICI -> setupLumpedMassMatrix();
-    ICI -> setupStiffnessMatrix();
-    ICI -> setupGlobalMatrix();
-
-    monodomainSolverPtr_Type SVI ( new monodomainSolver_Type ( *ICI ) );
-    //********************************************//
-    // Creating exporters to save the solution    //
-    //********************************************//
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
-
-    string filenameSplitting =  monodomainList.get ("OutputFile", "FHN" );
-    filenameSplitting += "Splitting";
-    string filenameICI =  monodomainList.get ("OutputFile", "FHN");
-    filenameICI += "ICI";
-    string filenameSVI =  monodomainList.get ("OutputFile", "FHN" );
-    filenameSVI += "SVI";
-
-    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
-    ICI -> setupExporter ( exporterICI, filenameICI );
-    SVI -> setupExporter ( exporterSVI, filenameSVI );
-
-    splitting -> exportSolution ( exporterSplitting, 0);
-    ICI -> exportSolution ( exporterICI, 0);
-    SVI -> exportSolution ( exporterSVI, 0);
+//    splitting -> setupLumpedMassMatrix();
+//    splitting -> setupStiffnessMatrix();
+//    splitting -> setupGlobalMatrix();
+//
+//    ICI -> setupLumpedMassMatrix();
+//    ICI -> setupStiffnessMatrix();
+//    ICI -> setupGlobalMatrix();
+//
+//    monodomainSolverPtr_Type SVI ( new monodomainSolver_Type ( *ICI ) );
+//    //********************************************//
+//    // Creating exporters to save the solution    //
+//    //********************************************//
+//    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+//    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
+//    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
+//
+//    string filenameSplitting =  monodomainList.get ("OutputFile", "FHN" );
+//    filenameSplitting += "Splitting";
+//    string filenameICI =  monodomainList.get ("OutputFile", "FHN");
+//    filenameICI += "ICI";
+//    string filenameSVI =  monodomainList.get ("OutputFile", "FHN" );
+//    filenameSVI += "SVI";
+//
+//    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
+//    ICI -> setupExporter ( exporterICI, filenameICI );
+//    SVI -> setupExporter ( exporterSVI, filenameSVI );
+//
+//    splitting -> exportSolution ( exporterSplitting, 0);
+//    ICI -> exportSolution ( exporterICI, 0);
+//    SVI -> exportSolution ( exporterSVI, 0);
 
     //********************************************//
     // Solving the system                         //
@@ -343,14 +352,14 @@ Int main ( Int argc, char** argv )
     Real Savedt = monodomainList.get ("saveStep", 0.1);
 //    Real TF = monodomainList.get ("endTime", 150.0);
 
-    splitting   -> solveSplitting ( exporterSplitting, Savedt );
-    exporterSplitting.closeFile();
-
-    ICI         -> solveICI ( exporterICI, Savedt );
-    exporterICI.closeFile();
-
-    SVI         -> solveSVI ( exporterSVI, Savedt );
-    exporterSVI.closeFile();
+//    splitting   -> solveSplitting ( exporterSplitting, Savedt );
+//    exporterSplitting.closeFile();
+//
+//    ICI         -> solveICI ( exporterICI, Savedt );
+//    exporterICI.closeFile();
+//
+//    SVI         -> solveSVI ( exporterSVI, Savedt );
+//    exporterSVI.closeFile();
 
 //    for ( Real t = 0.0; t < TF; )
 //    {
