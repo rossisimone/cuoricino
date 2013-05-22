@@ -76,7 +76,8 @@
 			M_repeatSt           ( 10 ),
 			M_pacingProtocol     ( "FCL" ) ,
 			M_pacingProtocolType ( "" ),
-			M_Istim              ( 0.0 )
+			M_Istim              ( 0.0 ),
+			M_StimDuration       ( 1.0 )
 		{}
 
 		StimulationProtocol::StimulationProtocol( Teuchos::ParameterList& parameterList )
@@ -94,6 +95,7 @@
 			M_pacingProtocol     = parameterList.get ( "pacPro", "FCL" );
 			M_pacingProtocolType = parameterList.get ( "pacProType", "" );
 			M_Istim              = parameterList.get ( "iStim", 0.0 );
+			M_StimDuration       = parameterList.get ( "stimDur", 1.0);
 		}
 
 		StimulationProtocol::StimulationProtocol ( const StimulationProtocol& protocol )
@@ -111,6 +113,7 @@
 			M_pacingProtocol     = protocol.M_pacingProtocol;
 			M_pacingProtocolType = protocol.M_pacingProtocolType;
 			M_Istim              = protocol.M_Istim;
+			M_StimDuration       = protocol.M_StimDuration;
 		}
 
 		// ===================================================
@@ -132,6 +135,7 @@
 			M_pacingProtocol     = protocol.M_pacingProtocol;
 			M_pacingProtocolType = protocol.M_pacingProtocolType;
 			M_Istim              = protocol.M_Istim;
+			M_StimDuration       = protocol.M_StimDuration;
 
 			return *this;
 		}
@@ -169,10 +173,10 @@
 		{
 			if ( NbStimulus < M_nbStimMax )
 			{
-				if ( t >= M_timeSt && t <= M_timeSt + 1.0 )
+				if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
 				{
 					Iapp = M_Istim;
-					if ( t >= M_timeSt + 1.0 - dt && t <= M_timeSt + 1.0 )
+					if ( t >= M_timeSt + M_StimDuration - dt && t <= M_timeSt + M_StimDuration )
 					{
 						NbStimulus++;
 						M_timeSt = M_timeSt + M_stInt;
@@ -189,11 +193,11 @@
 		{
 			if ( NbStimulus < M_nbStimMax )
 			{
-				if ( t >= M_timeSt && t <= M_timeSt + 1.0 )
+				if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
 				{
 					Iapp = M_Istim;
 
-					if ( t >= M_timeSt + 1.0 - dt && t <= M_timeSt + 1.0 )
+					if ( t >= M_timeSt + M_StimDuration - dt && t <= M_timeSt + M_StimDuration )
 					{
 						if ( NbStimulus < M_repeatSt )
 						{
@@ -254,11 +258,11 @@
 		{
 			if ( t < M_nbStimMax * M_stInt )
 			{
-				if ( t >= M_timeSt && t <= M_timeSt + 1.0 )
+				if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
 				{
 					Iapp = M_Istim;
 
-					if ( t >= M_timeSt + 1.0 - dt && t <= M_timeSt + 1.0 )
+					if ( t >= M_timeSt + M_StimDuration - dt && t <= M_timeSt + M_StimDuration )
 					{
 						M_timeSt = M_timeSt + M_stInt;
 						
@@ -276,11 +280,11 @@
 			{
 				if ( M_stIntS1S2 >= M_stIntS1S2Min )
 				{
-					if ( t >= M_timeSt && t <= M_timeSt + 1.0 )
+					if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration)
 					{
 						Iapp = M_Istim;
 
-						if ( t >= M_timeSt + 1.0 - dt && t <= M_timeSt + 1.0 )
+						if ( t >= M_timeSt + M_StimDuration - dt && t <= M_timeSt + M_StimDuration )
 						{
 							NbStimulus++;
 
@@ -321,11 +325,11 @@
 		{
 			if ( M_stInt >= M_stIntMin )
 			{
-				if ( t >= M_timeSt && t <= M_timeSt + 1.0 )
+				if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
 				{
 					Iapp = M_Istim;
 
-					if ( t >= M_timeSt + 1.0 - dt && t <= M_timeSt + 1.0 )
+					if ( t >= M_timeSt + M_StimDuration - dt && t <= M_timeSt + M_StimDuration )
 					{
 						NbStimulus++;
 						M_timeSt = M_timeSt + M_stInt;
@@ -369,6 +373,7 @@
 			std::cout << "\n\t\tList of parameters:\n\n";
 
 			std::cout << "Istim: " << this->currStim() << std::endl;
+			std::cout << "StimDuration: " << this->stimDuration() << std::endl;
 			std::cout << "1st stimuli time: " << this->timeSt() << std::endl;
 			std::cout << "Pacing protocol: " << this->pacPro() << std::endl;
 

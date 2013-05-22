@@ -218,6 +218,14 @@
 				this->M_Istim = currStim;
 			}
 
+			inline const Real& stimDuration() const
+			{
+				return M_StimDuration;
+			}
+			inline void setStimDuration(const Real& stimDur)
+			{
+				this->M_StimDuration = stimDur;
+			}
 
 			//@}
 
@@ -255,6 +263,7 @@
 
 			// Value of the current stimulation
 			Real M_Istim;
+			Real M_StimDuration;
 
 			// Protocol methods
 
