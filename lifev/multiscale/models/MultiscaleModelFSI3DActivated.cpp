@@ -339,7 +339,6 @@ MultiscaleModelFSI3DActivated::solveModel()
             {
                 // More prolonged activation model (\gammaf' = a * Ca2 + b * \gammaf)
                 *M_gammaf += 1000 * timeStep * ( -0.02 * *( M_monodomain -> globalSolution().at(3) ) - 0.04 * (*M_gammaf));
-                *M_gammaf *= (0.3 / 0.415);
                 break;
             }
             case StretchDependentODE:
@@ -361,6 +360,8 @@ MultiscaleModelFSI3DActivated::solveModel()
             *M_gammafSolid = *M_gammaf;
         }
 
+        if ( M_activationModelType == SimpleODE)
+            *M_gammafSolid *= 0.3 / 0.415;
 
         *M_gammafSolid *= ( M_gammafSolid -> operator <= (0.0) );
         if(M_rescalingVector)
