@@ -52,11 +52,11 @@
 		M_R        ( 8314.472 ),
 		M_T        ( 310.0 ),
 		M_F        ( 96485.3415 ),
-		M_Cm       ( 0.185 ),
+		M_Cm       ( 5e3 ),
 		M_S        ( 0.2 ),
 		M_rho      ( 162.0 ),
-		M_VCyt     ( 0.016404 ),
-		M_VSr      ( 0.001094 ),
+		M_VCyt     ( 16404.0 ),
+		M_VSr      ( 1094.0 ),
 		M_KO       ( 5.4 ),
 		M_NaO      ( 140.0 ),
 		M_CaO      ( 2.0 ),
@@ -65,31 +65,31 @@
 		M_GToEpiM  ( 0.294 ),
 		M_GToEndo  ( 0.073 ),
 		M_GKr      ( 0.096 ),
-		M_GKs      ( 0.245 ),
-		M_GKsM     ( 0.062 ),
-		M_pKNa     ( 0.03 ),
-		M_GCaL     ( 0.000175 ),
+		M_GKs      ( 0.322 ),
+		M_GKsM     ( 0.098 ),
+		M_pKNa     ( 0.01833 ),
+		M_GCaL     ( 9.25e-5 ),
 		M_kNaCa    ( 1000 ),
 		M_gamma    ( 0.35 ),
 		M_KmCa     ( 1.38 ),
 		M_KmNai    ( 87.5 ),
 		M_kSat     ( 0.1 ),
 		M_alpha    ( 2.5 ),
-		M_PNaK     ( 1.362 ),
-		M_KmK      ( 1.0 ),
-		M_KmNa     ( 40.0 ),
-		M_GKp      ( 0.0146 ),
-		M_GCap     ( 0.825 ),
+		M_PNaK     ( 2.724 ),
+		M_KmK      ( 1.5 ),
+		M_KmNa     ( 10.0 ),
+		M_GKp      ( 0.00828 ),
+		M_GCap     ( 0.1238 ),
 		M_KpCa     ( 0.0005 ),
-		M_GNab     ( 0.00029 ),
-		M_GCab     ( 0.000592 ),
-		M_VMaxUp   ( 0.000425 ),
+		M_GNab     ( 0.00141 ),
+		M_GCab     ( 0.003016 ),
+		M_VMaxUp   ( 0.006375 ),
 		M_Kup      ( 0.00025 ),
 		M_aRel     ( 0.016464 ),
 		M_bRel     ( 0.25 ),
 		M_cRel     ( 0.008232 ),
-		M_VLeak    ( 0.00008 ),
-		M_Buffc    ( 0.15 ),
+		M_VLeak    ( 0.00036 ),
+		M_Buffc    ( 0.2 ),
 		M_KBuffc   ( 0.001 ),
 		M_BuffSR   ( 10.0 ),
 		M_KBuffSR  ( 0.3 ),
@@ -102,11 +102,11 @@
 		M_R        = parameterList.get ( "gasConst", 8314.472 );
 		M_T        = parameterList.get ( "temp", 310.0 );
 		M_F        = parameterList.get ( "farad", 96485.3415 );
-		M_Cm       = parameterList.get ( "capMem", 0.185 );
+		M_Cm       = parameterList.get ( "capMem", 5e3 );
 		M_S        = parameterList.get ( "svRatio", 0.2 );
 		M_rho      = parameterList.get ( "resCell", 162.0 );
-		M_VCyt     = parameterList.get ( "volCyt", 0.016404 );
-		M_VSr      = parameterList.get ( "volSR", 0.001094  );
+		M_VCyt     = parameterList.get ( "volCyt", 16404.0 );
+		M_VSr      = parameterList.get ( "volSR", 1094.0 );
 		M_KO       = parameterList.get ( "concKO", 5.4  );
 		M_NaO      = parameterList.get ( "concNaO", 140.0 );
 		M_CaO      = parameterList.get ( "concCaO", 2.0 );
@@ -115,30 +115,30 @@
 		M_GToEpiM  = parameterList.get ( "maxCondToEpiM", 0.294 );
 		M_GToEndo  = parameterList.get ( "maxCondToEndo", 0.073 );
 		M_GKr      = parameterList.get ( "maxCondKr", 0.096 );
-		M_GKs      = parameterList.get ( "maxCondKs", 0.245 );
-		M_GKsM      = parameterList.get ( "maxCondKsM", 0.062 );
-		M_pKNa     = parameterList.get ( "relPermKNa", 0.03 );
-		M_GCaL     = parameterList.get ( "maxCondCaL", 0.000175 );
+		M_GKs      = parameterList.get ( "maxCondKs", 0.322 );
+		M_GKsM     = parameterList.get ( "maxCondKsM", 0.098 );
+		M_pKNa     = parameterList.get ( "relPermKNa", 0.01833 );
+		M_GCaL     = parameterList.get ( "maxCondCaL", 9.25e-5 );
 		M_kNaCa    = parameterList.get ( "maxCourNaCa", 1000.0 );
 		M_gamma    = parameterList.get ( "gamma", 0.35 );
 		M_KmCa     = parameterList.get ( "constmCa", 1.38 );
 		M_KmNai    = parameterList.get ( "constmNai", 87.5 );
 		M_kSat     = parameterList.get ( "kSat", 0.1 );
 		M_alpha    = parameterList.get ( "alpha", 2.5 );
-		M_PNaK     = parameterList.get ( "permNaK", 1.362 );
-		M_KmK      = parameterList.get ( "constmK", 1.0 );
-		M_KmNa     = parameterList.get ( "constmNa", 40.0 );
-		M_GKp      = parameterList.get ( "maxCondKp", 0.0146 );
-		M_GCap     = parameterList.get ( "maxCondCap", 0.825 );
+		M_PNaK     = parameterList.get ( "permNaK", 2.724 );
+		M_KmK      = parameterList.get ( "constmK", 1.5 );
+		M_KmNa     = parameterList.get ( "constmNa", 10.0 );
+		M_GKp      = parameterList.get ( "maxCondKp", 0.00828 );
+		M_GCap     = parameterList.get ( "maxCondCap", 0.1238 );
 		M_KpCa     = parameterList.get ( "constpCa", 0.0005 );
-		M_GNab     = parameterList.get ( "maxCondNab", 0.00029 );
-		M_GCab     = parameterList.get ( "maxCondCab", 0.000592 );
-		M_VMaxUp   = parameterList.get ( "maxCourUp", 0.000425 );
+		M_GNab     = parameterList.get ( "maxCondNab", 0.00141 );
+		M_GCab     = parameterList.get ( "maxCondCab", 0.003016 );
+		M_VMaxUp   = parameterList.get ( "maxCourUp", 0.006375 );
 		M_Kup      = parameterList.get ( "constUp", 0.00025 );
 		M_aRel     = parameterList.get ( "aRel", 0.016464 );
 		M_bRel     = parameterList.get ( "bRel", 0.25 );
 		M_cRel     = parameterList.get ( "cRel", 0.008232 );
-		M_VLeak    = parameterList.get ( "maxCourLeak", 0.00008 );
+		M_VLeak    = parameterList.get ( "maxCourLeak", 0.00036 );
 		M_Buffc    = parameterList.get ( "buffCyt", 0.15 );
 		M_KBuffc   = parameterList.get ( "constBuffc", 0.001 );
 		M_BuffSR   = parameterList.get ( "buffSR", 10.0 );

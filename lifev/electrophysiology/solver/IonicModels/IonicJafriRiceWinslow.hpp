@@ -720,8 +720,8 @@
 		Real computeNewtonCaJSR( const std::vector<Real>& v, const Real& dt, const int& nitermax );
 
 		//! For resolution with Rush and Larsen numerical integrator
-		std::vector<Real> gateInf( const std::vector<Real>& v );
-		std::vector<Real> otherVarInf( const std::vector<Real>& v );
+//		std::vector<Real> gateInf( const std::vector<Real>& v );
+//		std::vector<Real> otherVarInf( const std::vector<Real>& v );
 
 		//! Display information about the model
 		void showMe();
