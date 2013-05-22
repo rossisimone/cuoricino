@@ -469,6 +469,7 @@ int main ( int argc, char** argv )
       Real p8 =5.9999955063690678e+00;
 
       vector_Type tmp(solution -> map() );
+      exporter.postProcess ( 0 );
       tmp *= 0.0;
       tmp += p0;
       tmp += ( p1 * *solution);
@@ -481,7 +482,7 @@ int main ( int argc, char** argv )
       tmp += ( p8 * *solution * *solution * *solution * *solution * *solution * *solution * *solution * *solution);
 
       *solution = tmp;
-      exporter.postProcess ( 0 );
+      exporter.postProcess ( 1 );
       exporter.closeFile();
 
       vectorPtr_Type importedSolution( new vector_Type( solution -> map() ) );
@@ -492,8 +493,8 @@ int main ( int argc, char** argv )
 
       ExporterHDF5< RegionMesh <LinearTetra> > exporter2;
         exporter2.setMeshProcId ( meshPart, Comm->MyPID() );
-        exporter2.setPrefix ("rescalingGammaf");
-        exporter2.addVariable ( ExporterData<mesh_Type>::ScalarField,  "rescalingGammaf", uFESpace,
+        exporter2.setPrefix ("rescaledGammaf");
+        exporter2.addVariable ( ExporterData<mesh_Type>::ScalarField,  "rescaledGammaf", uFESpace,
                                importedSolution, UInt (0) );
         exporter2.postProcess ( 0 );
         exporter2.closeFile();
