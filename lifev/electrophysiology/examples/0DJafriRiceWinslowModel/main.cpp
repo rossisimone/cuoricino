@@ -119,37 +119,37 @@ Int main ( Int argc, char** argv )
 
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
-    unknowns[0] = - 84.1638;
-    unknowns[1] = 0.0328302;
-    unknowns[2] = 0.988354;
-    unknowns[3] = 0.992540;
-    unknowns[4] = 0.000928836;
-    unknowns[5] = 10.2042;
-    unknowns[6] = 143.727;
-    unknowns[7] = 5.4;
-    unknowns[8] = 9.94893e-5;
-    unknowns[9] = 1.243891;
-    unknowns[10] = 1.36058e-4;
-    unknowns[11] = 1.17504;
-    unknowns[12] = 0.762527;
-    unknowns[13] = 1.19168e-3;
-    unknowns[14] = 6.30613e-9;
-    unknowns[15] = 0.236283;
-    unknowns[16] = 0.997208;
-    unknowns[17] = 6.38897e-5;
-    unknowns[18] = 1.535e-9;
-    unknowns[19] = 1.63909e-14;
-    unknowns[20] = 6.56337e-20;
-    unknowns[21] = 9.84546e-21;
-    unknowns[22] = 2.72826e-3;
-    unknowns[23] = 6.99215e-7;
-    unknowns[24] = 6.71989e-11;
-    unknowns[25] = 2.87031e-15;
-    unknowns[26] = 4.59752e-20;
+    unknowns[0]  = -80.578;
+    unknowns[1]  = 0.0326174;
+    unknowns[2]  = 0.962369;
+    unknowns[3]  = 0.975658;
+    unknowns[4]  = 3.37175e-4;
+    unknowns[5]  = 9.07131;
+    unknowns[6]  = 120.204;
+    unknowns[7]  = 5.4;
+    unknowns[8]  = 0.061639e-3;
+    unknowns[9]  = 0.228497;
+    unknowns[10] = 0.0814869e-3;
+    unknowns[11] = 0.228427;
+    unknowns[12] = 0.637931;
+    unknowns[13] = 0.428917e-3;
+    unknowns[14] = 0.487455e-9;
+    unknowns[15] = 0.361643;
+    unknowns[16] = 0.998666;
+    unknowns[17] = 1.63594e-4;
+    unknowns[18] = 1.00495e-8;
+    unknowns[19] = 2.74371e-13;
+    unknowns[20] = 2.80908e-18;
+    unknowns[21] = 4.21370e-19;
+    unknowns[22] = 1.17155e-3;
+    unknowns[23] = 7.67674e-7;
+    unknowns[24] = 1.88635e-10;
+    unknowns[25] = 2.06007e-14;
+    unknowns[26] = 8.43672e-19;
     unknowns[27] = 0.0;
-    unknowns[28] = 0.998983;
-    unknowns[29] = 0.00635;
-    unknowns[30] = 0.13598;
+    unknowns[28] = 0.862010;
+    unknowns[29] = 0.4068232e-3;
+    unknowns[30] = 0.132944;
     cout << " Done!" << endl;
 
 
@@ -213,7 +213,7 @@ Int main ( Int argc, char** argv )
 
     	if ( t >= timeSt && t <= timeSt + 0.5 )
     	{
-    		Iapp = 0.516289;
+    		Iapp = - 0.516289;
     	  	if ( t >= timeSt + 0.5 - dt && t <= timeSt + 0.5 )
 
     			timeSt = timeSt + stInt;
@@ -267,7 +267,7 @@ Int main ( Int argc, char** argv )
 
         for(int j(0); j <= 30; ++j)
         {
-    		if ( ( j <= 4 ) || ( j >= 12 ) )
+//    		if ( ( j <= 4 ) || ( j >= 12 ) )
     			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
 
 //    		if( j == 0 || j >= 12 )

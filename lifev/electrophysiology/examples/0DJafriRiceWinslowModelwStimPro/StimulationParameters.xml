@@ -1,14 +1,15 @@
 <!-- Stimulation Parameters -->
 	<ParameterList name="Stimulation protocol : Parameter list">
-	<Parameter name="stimuliTime" type="double" value="20.0"/>
-	<Parameter name="stInt" type="double" value="1000.0"/>
+	<Parameter name="stimuliTime" type="double" value="0.0"/>
+	<Parameter name="tShortS1S1" type="double" value="30e3"/>
+	<Parameter name="stInt" type="double" value="700.0"/>
 	<Parameter name="stIntS1S2" type="double" value="350.0"/>
 	<Parameter name="stIntS2S3" type="double" value="250.0"/>
 	<Parameter name="stIntS3S4" type="double" value="150.0"/>
-	<Parameter name="nbStimMax" type="int" value="182"/>
+	<Parameter name="nbStimMax" type="int" value="140"/>
+	<Parameter name="repeatSt" type="int" value="10"/>
 	<Parameter name="pacPro" type="string" value="FCL"/>
 	<Parameter name="pacProType" type="string" value=""/>
-	<Parameter name="iStim" type="double" value="0.516289"/>
+	<Parameter name="iStim" type="double" value="-0.516289"/>
+	<Parameter name="stimDur" type="double" value="0.5"/>
 </ParameterList>
-
-	

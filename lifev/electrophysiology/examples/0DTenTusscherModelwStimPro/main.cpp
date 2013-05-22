@@ -184,11 +184,11 @@ Int main ( Int argc, char** argv )
     // solution.                                  //
     //********************************************//
 
-    string filename             = "outputEpi.txt";
-    string filenameStimPro      = "outputStimProEpi.txt";
+    string filename             = "output.txt";
+    string filenameStimPro      = "outputStimPro.txt";
 
-    std::ofstream output        ("outputEpi.txt");
-    std::ofstream outputStimPro ("outputStimProEpi.txt");
+    std::ofstream output        ("output.txt");
+    std::ofstream outputStimPro ("outputStimPro.txt");
 
     //********************************************//
     // Time loop starts.                          //
@@ -269,7 +269,7 @@ Int main ( Int argc, char** argv )
        }
 
     cout << "\n...Time loop ends.\n";
-    cout << "Solution written on file: " << filename << "\n";
+    cout << "Solution written on file: " << filename << " and " << filenameStimPro << "\n";
 
     //********************************************//
     // Close exported file.                       //

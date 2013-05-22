@@ -1,6 +1,6 @@
 <!-- Model Parameters -->
 <ParameterList name="Jafri Rice Winslow: Parameter list">
-	<Parameter name="endTime" type="double" value="30000.0"/>
+	<Parameter name="endTime" type="double" value="2000.0"/>
 	<Parameter name="timeStep" type="double" value="1e-3"/>
 	<Parameter name="savedt" type="double" value="0.1"/>
 	<Parameter name="areaCap" type="double" value="546.69"/>
@@ -66,5 +66,3 @@
 	<Parameter name="permK" type="double" value="1.0e-9"/>
 	<Parameter name="courCaHalf" type="double" value="-4.58e-3"/>
 </ParameterList>
-
-	
