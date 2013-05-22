@@ -130,6 +130,8 @@ public:
 
     virtual void buildUnknownVectorialInterfaceMap(){};
 
+    virtual inline void spyInterpolationOperator(std::string filename){ };
+
 private:
 
 };

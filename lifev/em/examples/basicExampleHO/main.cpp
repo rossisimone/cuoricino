@@ -26,7 +26,8 @@
 #include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
 #include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
 #include <lifev/core/interpolation/RBFrescaledScalar.hpp>
-
+//#include <lifev/core/interpolation/RBFscalar.hpp>
+#include <lifev/core/interpolation/RBFvectorial.hpp>
 
 #include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 
@@ -42,7 +43,7 @@ Real d0(const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real& /*
     return  0.;
 }
 
-Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& /*Z*/, const ID& /*i*/)
+Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& Z, const ID& /*i*/)
 {
 	if( X < 0.1 ) return 1.0;
 	else return  0.;
@@ -99,9 +100,9 @@ static Real f0fun(const Real&, const Real& x, const Real&, const Real& , const I
     Real compy = std::cos(alpha);
     Real compz = std::sin(alpha);
 
-    compx = 1.0;
+    compx = 0.0;
     compy = 0.0;
-    compz = 0.0;
+    compz = 1.0;
     if (comp == 0)
         return compx;
     else if (comp == 1)
@@ -232,20 +233,39 @@ int main (int argc, char** argv)
         std::cout << " Splitting solver done... ";
     }
 
+    bool load4restart = parameterList.get("load4restart", false);
 //    ionicModel -> initialize( monodomain -> globalSolution() );
-    monodomain -> setInitialConditions();
 
-    for(int i(0); i < ionicModel -> Size(); i++ )
+    if(load4restart)
     {
-    std::cout << "Norm Inf variable " << i  << " = " <<  (  *( monodomain -> globalSolution().at(i) ) ).normInf() << std::endl;
+    	std::string V0filename = parameterList.get("V0filename", "V0");
+    	std::string V0fieldname = parameterList.get("V0fieldname", "V0");
+    	HeartUtility::importScalarField(monodomain -> globalSolution().at(0),V0filename,V0fieldname,monodomain -> localMeshPtr() );
+    	std::string V1filename = parameterList.get("V1filename", "V1");
+    	std::string V1fieldname = parameterList.get("V1fieldname", "V1");
+    	HeartUtility::importScalarField(monodomain -> globalSolution().at(1),V1filename,V1fieldname,monodomain -> localMeshPtr() );
+    	std::string V2filename = parameterList.get("V2filename", "V2");
+    	std::string V2fieldname = parameterList.get("V2fieldname", "V2");
+    	HeartUtility::importScalarField(monodomain -> globalSolution().at(2),V2filename,V2fieldname,monodomain -> localMeshPtr() );
+    	std::string V3filename = parameterList.get("V3filename", "V3");
+    	std::string V3fieldname = parameterList.get("V3fieldname", "V3");
+    	HeartUtility::importScalarField(monodomain -> globalSolution().at(3),V3filename,V3fieldname,monodomain -> localMeshPtr() );
     }
+    else{
 
-    //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
-    function_Type Vlid = &initialVlid;
-    monodomain -> setPotentialFromFunction( Vlid );
- //   HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 100 );
-//    HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 22 );
+		monodomain -> setInitialConditions();
 
+//		for(int i(0); i < ionicModel -> Size(); i++ )
+//		{
+//		std::cout << "Norm Inf variable " << i  << " = " <<  (  *( monodomain -> globalSolution().at(i) ) ).normInf() << std::endl;
+//		}
+
+
+		//HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
+		function_Type Vlid = &initialVlid;
+		monodomain -> setPotentialFromFunction( Vlid );
+
+    }
 
     std::cout << "Norm Inf potential = " <<  (  *( monodomain -> globalSolution().at(0) ) ).normInf() << std::endl;
 
@@ -410,6 +430,12 @@ int main (int argc, char** argv)
      }
      solid.setDataFromGetPot (dataFile);
 
+     if(load4restart)
+     {
+     	std::string Dfilename = parameterList.get("Gfilename", "G");
+     	std::string Dfieldname = parameterList.get("Gfieldname", "G");
+     	HeartUtility::importVectorField( solid.displacementPtr(), Dfilename, Dfieldname,  localSolidMesh );
+     }
     	//===========================================================
     	//===========================================================
     	//				FIBERS
@@ -434,26 +460,6 @@ int main (int argc, char** argv)
 
      HeartUtility::normalize(*solidFibers);
      MPI_Barrier(MPI_COMM_WORLD);
-
-//     if ( comm->MyPID() == 0 )
-     {
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-         std::cout << "\nnorm Inf of the fibers after normalization: " << solidFibers -> normInf() << std::endl;
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-         std::cout << "\n************************************************* ";
-
-     }
-
-
 
 
      if ( comm->MyPID() == 0 )
@@ -543,8 +549,16 @@ int main (int argc, char** argv)
      //==================================================================//
 
      //   vectorPtr_Type gammaf( new vector_Type( monodomain -> globalSolution().at(3) -> map() ) );
-        *gammaf *= 0;
+
+     if(load4restart)
+     {
+     	std::string Gfilename = parameterList.get("Gfilename", "G");
+     	std::string Gfieldname = parameterList.get("Gfieldname", "G");
+     	HeartUtility::importScalarField(gammaf,Gfilename,Gfieldname,monodomain -> localMeshPtr() );
+     }
+     else *gammaf *= 0;
         *solidGammaf *= 0;
+
 
      if ( comm->MyPID() == 0 )
      {
@@ -601,7 +615,8 @@ int main (int argc, char** argv)
 		         std::cout << "\nC2F: set Radius, ..." << std::endl;
 		     }
 
-			C2F->setRadius( (double) MeshUtility::MeshStatistics::computeSize (* (fullSolidMesh) ).maxH );
+			C2F->setRadius( 2.0 * (double) MeshUtility::MeshStatistics::computeSize (* (fullSolidMesh) ).maxH );
+		     //C2F->setRadius( ( (double) MeshUtility::MeshStatistics::computeSize (* (monodomain -> fullMeshPtr())  ).maxH ) );
 
 		     if ( comm->MyPID() == 0 )
 		     {
@@ -613,6 +628,7 @@ int main (int argc, char** argv)
 		     {
 		         std::cout << "\nC2F: Build operator..." << std::endl;
 		     }
+		     if(c2f == "RBFvectorial") C2F->setBasis("TPS");
 			C2F->buildOperators();
 
 		     if ( comm->MyPID() == 0 )
@@ -837,11 +853,11 @@ int main (int argc, char** argv)
 //#define activationEquation value(0.0005) * (Pa - dW) / ( Ca2 )
 
    	vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
-
+    solidFESpacePtr_Type emDispFESpace ( new solidFESpace_Type ( monodomain -> localMeshPtr(), "P1", 3, comm) );
   	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
   			monodomain -> feSpacePtr(), gammaf, UInt(0));
   	expGammaf.addVariable(ExporterData<mesh_Type>::VectorField, "interpolated displacement",
-  	  			monodomain -> feSpacePtr(), emDisp, UInt(0));
+  			emDispFESpace, emDisp, UInt(0));
   	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "rhs",
   			monodomain -> feSpacePtr(), rhsActivation, UInt(0));
 
@@ -859,7 +875,9 @@ int main (int argc, char** argv)
       	int k(0);
         Real saveStep = parameterList.get("save_step",1.0);
         int saveIter((saveStep / monodomain -> timeStep()));
+        Real meth = parameterList.get("meth",1.0);
 
+		  C2F -> spyInterpolationOperator("IntepolationOperator");
 
         Real dt_min = 0.01;
   	bool twoWayCoupling = parameterList.get("two_way", false);
@@ -871,19 +889,44 @@ int main (int argc, char** argv)
 
 		    if ( comm->MyPID() == 0 )
 		    {
-		        std::cout << "\nSolve REACTION step with ROS3P\n!" << std::endl;
+		        std::cout << "\nSolve REACTION step with ROS3P!\n" << std::endl;
 		    }
-		  //monodomain -> solveOneSplittingStep();
-		  monodomain -> solveOneReactionStepROS3P(dt_min);
-	      (*monodomain -> rhsPtrUnique()) *= 0.0;
-          monodomain -> updateRhs();
+		    LifeChrono timer;
+		    timer.start();
+		    if(meth == 1.0) monodomain -> solveOneReactionStepROS3P(dt_min);
+		    else
+		    	{
+		    	 for(int j(0); j<100; j++) monodomain -> solveOneReactionStepFE(100);
+		    	}
+
+          timer.stop();
+          for(int pid(0); pid < 4; pid++)
+          {
+				if ( comm->MyPID() == pid )
+				{
+						std::cout << "\nDone in " << timer.diff() << std::endl;
+				}
+          }
 
 		if ( comm->MyPID() == 0 )
 		{
-			std::cout << "\nSolve DIFFUSION step with BE\n!" << std::endl;
+			std::cout << "\nSolve DIFFUSION step with BE!\n" << std::endl;
 		}
+		timer.reset();
+		timer.start();
 
+	    (*monodomain -> rhsPtrUnique()) *= 0.0;
+	      monodomain -> updateRhs();
           monodomain -> solveOneDiffusionStepBE();
+  		timer.stop();
+        for(int pid(0); pid < 4; pid++)
+        {
+				if ( comm->MyPID() == pid )
+				{
+						std::cout << "\nDone in " << timer.diff() << std::endl;
+				}
+        }
+		timer.reset();
 
 //		  *gammaf = *( monodomain -> globalSolution().at(3) );
 //		  Real min =  0.2;
@@ -1080,26 +1123,86 @@ int main (int argc, char** argv)
 			  }
 
 		  cout << "\n\n save every " << saveIter << "iteration\n";
-		  if ( k % saveIter == 0){
-
-		  monodomain -> exportSolution(exp, t);
-		  expGammaf.postProcess(t);
-
-		  exporter->postProcess ( t );
+		  if ( k % saveIter == 0)
+		  {
+			  monodomain -> exportSolution(exp, t);
+			  expGammaf.postProcess(t);
+			  exporter->postProcess ( t );
 		  }
 
+		  emDisp -> spy("interpolatedDisplacement");
+		  solid.displacementPtr() -> spy("displacement");
+
+//	      if ( comm->MyPID() == 0 )
+//	      {
+//	    	  std::cout << "\n===================="
+//	    	  std::cout << "\nWE ARE AT TIME: " << t ;
+//	    	  std::cout << "\n===================="
+//
+//	      }
+
+
       }
+
+
       exp.closeFile();
       expGammaf.closeFile();
 
       exporter -> closeFile();
+
+
+
     if ( comm->MyPID() == 0 )
     {
-        std::cout << "Active strain example: Passed!" << std::endl;
+        std::cout << "\nActive strain example: Passed!" << std::endl;
     }
 
 
+    bool save4restart = parameterList.get("save4restart", true);
+    if(save4restart)
+    {
+		ExporterHDF5< RegionMesh <LinearTetra> > restartV0;
+		ExporterHDF5< RegionMesh <LinearTetra> > restartV1;
+		ExporterHDF5< RegionMesh <LinearTetra> > restartV2;
+		ExporterHDF5< RegionMesh <LinearTetra> > restartV3;
+		ExporterHDF5< RegionMesh <LinearTetra> > restartG;
+		ExporterHDF5< RegionMesh <LinearTetra> > restartD;
 
+		restartV0.setMeshProcId(monodomain -> localMeshPtr(), comm->MyPID());
+		restartV1.setMeshProcId(monodomain -> localMeshPtr(), comm->MyPID());
+		restartV2.setMeshProcId(monodomain -> localMeshPtr(), comm->MyPID());
+		restartV3.setMeshProcId(monodomain -> localMeshPtr(), comm->MyPID());
+		restartG.setMeshProcId(monodomain -> localMeshPtr(), comm->MyPID());
+		restartD.setMeshProcId(localSolidMesh, comm->MyPID());
+
+		restartV0.setPrefix(parameterList.get ("variable0", "V0"));
+		restartV1.setPrefix(parameterList.get ("variable1", "V1"));
+		restartV2.setPrefix(parameterList.get ("variable2", "V2"));
+		restartV3.setPrefix(parameterList.get ("variable3", "V3"));
+		restartG.setPrefix(parameterList.get ("gamma_exporter", "A"));
+		restartD.setPrefix(parameterList.get ("displacement_exporter", "D"));
+
+		restartV0.setPostDir ( "./save_restart/" );
+		restartV1.setPostDir ( "./save_restart/" );
+		restartV2.setPostDir ( "./save_restart/" );
+		restartV3.setPostDir ( "./save_restart/" );
+		restartG.setPostDir ( "./save_restart/" );
+		restartD.setPostDir ( "./save_restart/" );
+
+		restartV0.addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "V0", monodomain -> feSpacePtr(), monodomain -> globalSolution().at(0), UInt (0) );
+		restartV1.addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "V1", monodomain -> feSpacePtr(), monodomain -> globalSolution().at(1), UInt (0) );
+		restartV2.addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "V2", monodomain -> feSpacePtr(), monodomain -> globalSolution().at(2), UInt (0) );
+		restartV3.addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "V3", monodomain -> feSpacePtr(), monodomain -> globalSolution().at(3), UInt (0) );
+		restartG.addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "G", monodomain -> feSpacePtr(), gammaf, UInt (0) );
+		restartD.addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "D", dFESpace, solidDisp, UInt (0) );
+
+		restartV0.closeFile();
+		restartV1.closeFile();
+		restartV2.closeFile();
+		restartV3.closeFile();
+		restartG.closeFile();
+		restartD.closeFile();
+    }
 
 #ifdef HAVE_MPI
     MPI_Finalize();
