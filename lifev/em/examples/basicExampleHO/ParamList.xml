@@ -1,9 +1,9 @@
 <ParameterList>
 	<!-- LinearSolver parameters -->
-    <Parameter name="timeStep" type="double" value="1.0"  />
-    <Parameter name="endTime" type="double" value="800.00"  />
+    <Parameter name="timeStep" type="double" value="0.02"  />
+    <Parameter name="endTime" type="double" value="500.00"  />
     <Parameter name="save_step" type="double" value="1.0"  />
-    <Parameter name="meth" type="double" value="1.0"  />
+    <Parameter name="meth" type="double" value="0.0"  />
     <Parameter name="emdt" type="double" value="1.0"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0010"  />
     <Parameter name="transversalDiffusion" type="double" value="0.00010"  />
@@ -13,10 +13,11 @@
     <Parameter name="solid_fiber_file" type="string" value="idealHeart_structure_fiber"  />
     <Parameter name="c2f" type="string" value="RBFhtpVectorial"  />
     <Parameter name="f2c" type="string" value="RBFhtp"  />
-    <Parameter name="mesh_name" type="string" value="cubeHO_electro.mesh"  />
+    <Parameter name="mesh_name" type="string" value="cubeHO_solid.mesh"  />
     <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/"  />
     <Parameter name="fiber_file" type="string" value="idealHeart_electro_fiber"  />
-    <Parameter name="subiter" type="int" value="100"  />
+    <Parameter name="two_way" type="bool" value="true"/>
+    <Parameter name="subiter" type="int" value="1"  />
     <Parameter name="fiber_X" type="double" value="1.0"  />
     <Parameter name="fiber_Y" type="double" value="0.0"  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />
@@ -49,4 +50,3 @@
     	</ParameterList>
     </ParameterList>
 </ParameterList>
-

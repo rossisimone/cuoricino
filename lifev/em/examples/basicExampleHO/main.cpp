@@ -1001,20 +1001,24 @@ int main (int argc, char** argv)
 						BOOST_AUTO_TPL(af, value( Af ) );
 						BOOST_AUTO_TPL(bf, value(  Bf ) );
 						BOOST_AUTO_TPL(psi_iso_e, a * pow( eval(EXP, ( I1eiso + value(-3.0) ) ), B ) );
-						BOOST_AUTO_TPL(psi_f_e,  value(2.0) * af * eval( H, I4feisom1 ) * ( I4feiso + value(-1.0) )  * pow( eval(EXP2, ( I4feiso + value(-1.0) ) ), Bf ) );
+						BOOST_AUTO_TPL(psi_f_e,  value(2.0) * af * eval( H, I4feisom1 ) /* ( I4feiso + value(-1.0) )*/  * pow( eval(EXP2, ( I4feiso + value(-1.0) ) ), Bf ) );
 
-						BOOST_AUTO_TPL(dW0, value(-1.0) * a + eval( H, I4feisom1 ) *  value(-2.0) * af * ( I4feiso + value(-1.0) )  ) ;
+						BOOST_AUTO_TPL(dW0, value(-1.0) * a + eval( H, I4feisom1 ) *  value(-2.0) * af /* ( I4feiso + value(-1.0) ) */ ) ;
 						BOOST_AUTO_TPL(dW, value(-1.0) * ( psi_iso_e + psi_f_e ) * I4fiso * pow(gamma, -3) );
 
 
 						BOOST_AUTO_TPL(Ca,    value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) );
 						BOOST_AUTO_TPL(Ca2, Ca * Ca );
-						BOOST_AUTO_TPL(dCa, Ca + value(-0.02155) );
+
+						Real Ca_diastolic = dataFile( "solid/physics/Ca_diastolic", -0.02155 );
+						BOOST_AUTO_TPL(dCa, Ca + value(Ca_diastolic) );
 					//    Real alpha1 = -2.5;
-						BOOST_AUTO_TPL(Pa, value(-2.0) * a * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) + dW0 );
-						BOOST_AUTO_TPL(Pag, value(-2.5) * a * eval(H, dCa) * eval(H, dCa) * eval(flg, value( aETFESpace, *gammaf ) ) + dW0 );
+						Real active_coefficient = dataFile( "solid/physics/active_coefficient", -2.5 );
+						BOOST_AUTO_TPL(Pa, value(active_coefficient) * a * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) + dW0 );
+						BOOST_AUTO_TPL(Pag, value(active_coefficient) * a * eval(H, dCa) * eval(H, dCa) * eval(flg, value( aETFESpace, *gammaf ) ) + dW0 );
 					  //  Real delta = 0.001;
-						BOOST_AUTO_TPL(beta, value(0.0005 / A ) );
+						Real viscosity = dataFile( "solid/physics/viscosity", 0.0005 );
+						BOOST_AUTO_TPL(beta, value(viscosity / A ) );
 
 						BOOST_AUTO_TPL(dWs, a * pow(gamma, -1) );
 						BOOST_AUTO_TPL(gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );

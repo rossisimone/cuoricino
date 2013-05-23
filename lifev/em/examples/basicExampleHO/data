@@ -45,11 +45,16 @@ bfs			= 9.466
 bulk		= 3500000
 solidType 	= HolzapfelOgden #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
 lawType     = nonlinear
+viscosity = 0.0005;
+active_coefficient = -2.0;
+Ca_diastolic = -0.02155;
+
 
    [../boundary_conditions]
 #    list = 'Epi Endo1 Endo2'
 #	list = 'fixed'
 	list = 'symm0 symm1 symm2'
+#	list = 'cyl0 cyl1 cyl2 cyl3 cyl4'
 
         [./Epi]
         type       = EssentailVertices
@@ -73,6 +78,37 @@ lawType     = nonlinear
         mode       = Full
         component  = 3
 	function  = '[0.0, 0.0, 0.0]'
+
+        [../cyl0]
+        type       = EssentailVertices
+        flag       = 3000
+        mode       = Full
+        component  = 3
+	function  = '[0.0, 0.0, 0.0]'
+        [../cyl1]
+        type       = EssentailVertices
+        flag       = 200
+        mode       = Component
+        component  = 0
+	function  = '0.0'
+        [../cyl2]
+        type       = EssentailVertices
+        flag       = 200
+        mode       = Component
+        component  = 2
+	function  = '0.0'
+        [../cyl1]
+        type       = EssentailVertices
+        flag       = 2000
+        mode       = Component
+        component  = 1
+	function  = '0.0'
+        [../cyl2]
+        type       = EssentailVertices
+        flag       = 2000
+        mode       = Component
+        component  = 2
+	function  = '0.0'
 
         [../symm0]
         type       = Essential
