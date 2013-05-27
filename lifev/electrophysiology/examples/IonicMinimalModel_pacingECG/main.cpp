@@ -388,12 +388,6 @@ Int main ( Int argc, char** argv )
     splitting -> setupLumpedMassMatrix();
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
-//
-//    ICI -> setupLumpedMassMatrix();
-//    ICI -> setupStiffnessMatrix();
-//    ICI -> setupGlobalMatrix();
-//
-//    monodomainSolverPtr_Type SVI ( new monodomainSolver_Type ( *ICI ) );
 
     //********************************************//
     // Creating exporters to save the solution    //
@@ -401,7 +395,7 @@ Int main ( Int argc, char** argv )
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
     string filenameSplitting =  monodomainList.get ("OutputFile", "MinMod" );
     filenameSplitting += "Splitting";
-    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
+    splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
 //    splitting -> exportSolution ( exporterSplitting, 0);
 
     vectorPtr_Type APDptr ( new vector_Type (apd, Repeated ) );
@@ -416,20 +410,6 @@ Int main ( Int argc, char** argv )
     *DELTA_APDptr = delta_apd;
 
     std::ofstream output  ("ecg_output.txt");
-
-
-//    string filenameICI =  monodomainList.get ("OutputFile", "MinMod");
-//    filenameICI += "ICI";
-//    string filenameSVI =  monodomainList.get ("OutputFile", "MinMod" );
-//    filenameSVI += "SVI";
-
-
-//    ICI -> setupExporter ( exporterICI, filenameICI );
-//    SVI -> setupExporter ( exporterSVI, filenameSVI );
-
-//    splitting -> exportSolution ( exporterSplitting, 0);
-//    ICI -> exportSolution ( exporterICI, 0);
-//    SVI -> exportSolution ( exporterSVI, 0);
 
     //********************************************//
     // Solver initialization for the discrete Laplacian //

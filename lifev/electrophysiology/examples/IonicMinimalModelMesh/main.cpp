@@ -26,13 +26,13 @@
 
 /*!
     @file
-    @brief 3D test with the Fox model 2002.
+    @brief 0D test with the Negroni Lascano model of 1996.
 
-    @date 04−2013
-    @author Marie Dupraz <dupraz.marie@gmail.com>
+    @date 01−2013
+    @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
-    @mantainer Marie Dupraz <dupraz.marie@gmail.com>
+    @mantainer Simone Rossi <simone.rossi@epfl.ch>
  */
 
 // Tell the compiler to ignore specific kind of warnings:
@@ -78,7 +78,8 @@
 #endif
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
-#include <lifev/electrophysiology/solver/IonicModels/IonicFox.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicAlievPanfilov.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -110,15 +111,51 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if ( x<= 0.05 )
-        return -14.7;
+        return 1.0;
     else if( x<= 0.1)
-        return -14.7*( 0.1 - x )/(0.05);
+        return 1.0*( 0.1 - x )/(0.05);
     else
-        return -94.7;
+        return 0.0;
 }
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
+{
+    if ( sqrt( x*x + y*y + z*z ) <= 0.1 )
+        return 1.0;
+    else
+        return 0.0;
+}
+
+// Choice of the fibers direction : ||.||=1
+Real Fibers (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
+{
+    Real zmin = 0.0;
+    Real zmax = 0.5;
+    Real L = zmax - zmin;
+    Real thetamin = M_PI /3.;
+    Real thetamax = -M_PI /3.;
+
+    Real ztheta = (L-z)/L;
+    Real theta = (thetamax - thetamin) * ztheta + thetamin;
+
+        switch(i){
+            case 0:
+                return  std::cos(theta); // x_fib; //y/N; //std::sqrt (2.0) / 2.0; //
+                break;
+            case 1:
+                return  std::sin(theta); // y_fib; //-x/N; //std::sqrt (2.0) / 2.0; //
+                break;
+            case 2:
+                return 0.0;
+                break;
+            default:
+                return 0.0;
+                break;
+    }
+}
+
 
 Int main ( Int argc, char** argv )
 {
@@ -134,22 +171,23 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Starts the chronometer.                    //
     //********************************************//
-    LifeChrono chronoinitialsettings;
-    chronoinitialsettings.start();
+    //  LifeChrono chronoinitialsettings;
+    //  chronoinitialsettings.start();
 
-    typedef RegionMesh<LinearTetra> mesh_Type;
-    typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
-    typedef FESpace< mesh_Type, MapEpetra >    feSpace_Type;
-    typedef boost::shared_ptr<feSpace_Type>    feSpacePtr_Type;
+    typedef RegionMesh<LinearTetra>             mesh_Type;
+    typedef boost::shared_ptr<mesh_Type>        meshPtr_Type;
+    typedef FESpace< mesh_Type, MapEpetra >     feSpace_Type;
+    typedef boost::shared_ptr<feSpace_Type>     feSpacePtr_Type;
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
-                                    const Real& /*z*/,
-                                    const ID&   /*i*/ ) > function_Type;
+                                    const Real& z,
+                                    const ID&   /*i*/ ) >   function_Type;
 
-    typedef ElectroETAMonodomainSolver< mesh_Type, IonicFox >   monodomainSolver_Type;
-    typedef boost::shared_ptr< monodomainSolver_Type >          monodomainSolverPtr_Type;
-    typedef VectorEpetra                                        vector_Type;
+    typedef ElectroETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
+    typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
+    typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
+    typedef VectorEpetra                        vector_Type;
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -161,7 +199,7 @@ Int main ( Int argc, char** argv )
     {
         std::cout << "Importing parameters list...";
     }
-    Teuchos::ParameterList FoxParameterList = * ( Teuchos::getParametersFromXmlFile ( "FoxParameters.xml" ) );
+    //   Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
     if ( Comm->MyPID() == 0 )
     {
@@ -170,15 +208,15 @@ Int main ( Int argc, char** argv )
 
     //********************************************//
     // Creates a new model object representing the//
-    // model from Fitz-Hugh Nagumo.  The          //
+    // model from Aliev and Panfilov 1996.  The   //
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << "Building Constructor for Fox Model with default parameters ... ";
+        std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
     }
-    boost::shared_ptr<IonicFox>  model ( new IonicFox ( ) );
+    boost::shared_ptr<IonicMinimalModel>  model ( new IonicMinimalModel() );
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
@@ -200,6 +238,49 @@ Int main ( Int argc, char** argv )
     const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
     GetPot dataFile (data_file_name);
 
+    // +-----------------------------------------------+
+    // |               Loading the mesh                |
+    // +-----------------------------------------------+
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << std::endl << "[Loading the mesh]" << std::endl;
+    }
+
+    meshPtr_Type fullMeshPtr ( new mesh_Type ( Comm ) );
+
+    VectorSmall<3> meshDim;
+    meshDim[0] =  monodomainList.get ("meshDim_X", 10 );
+    meshDim[1] =  monodomainList.get ("meshDim_Y", 10 );
+    meshDim[2] =  monodomainList.get ("meshDim_Z", 10 );
+    VectorSmall<3> domain;
+    domain[0] =  monodomainList.get ("domain_X", 1. );
+    domain[1] =  monodomainList.get ("domain_Y", 1. );
+    domain[2] =  monodomainList.get ("domain_Z", 1. );
+
+    // Building the mesh from the source
+
+    regularMesh3D ( *fullMeshPtr,
+                    1,
+                    meshDim[0], meshDim[1], meshDim[2],
+                    false,
+                    domain[0], domain[1], domain[2],
+                    0.0, 0.0, 0.0 );
+
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Mesh size  : " << MeshUtility::MeshStatistics::computeSize ( *fullMeshPtr ).maxH << std::endl;
+    }
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Partitioning the mesh ... " << std::endl;
+    }
+    meshPtr_Type meshPtr;
+    {
+        MeshPartitioner< mesh_Type > meshPart ( fullMeshPtr, Comm );
+        meshPtr = meshPart.meshPartition();
+    }
+    fullMeshPtr.reset(); //Freeing the global mesh to save memory
+
     //********************************************//
     // We create three solvers to solve with:     //
     // 1) Operator Splitting method               //
@@ -211,7 +292,8 @@ Int main ( Int argc, char** argv )
         std::cout << "Building Monodomain Solvers... ";
     }
 
-    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
+
     const feSpacePtr_Type FESpacePtr =  splitting->feSpacePtr(); //FE Space
 
     if ( Comm->MyPID() == 0 )
@@ -229,39 +311,14 @@ Int main ( Int argc, char** argv )
         cout << "\nInitializing potential:  " ;
     }
 
-    //Compute the potential at t0
+//    function_Type f = &Stimulus;
     function_Type f = &Stimulus2;
-    splitting -> setPotentialFromFunction ( f ); //initialize potential
-//    ICI -> setPotentialFromFunction ( f ); //initialize potential
-//    splitting -> initializePotential( -94.7 );
+    splitting -> setPotentialFromFunction ( f );
 
     //setting up initial conditions
-//    * ( splitting -> globalSolution().at (0) ) = FoxParameterList.get ("InitialPotential", -94.7);
-    * ( splitting -> globalSolution().at (1) ) = FoxParameterList.get ("gatingM",2.4676e-4);
-    * ( splitting -> globalSolution().at (2) ) = FoxParameterList.get ("gatingH", 0.99869);
-    * ( splitting -> globalSolution().at (3) ) = FoxParameterList.get ("gatingJ", 0.99887);
-    * ( splitting -> globalSolution().at (4) ) = FoxParameterList.get ("gatingXKR", 0.229);
-    * ( splitting -> globalSolution().at (5) ) = FoxParameterList.get ("gatingXKS", 0.0001);
-    * ( splitting -> globalSolution().at (6) ) = FoxParameterList.get ("gatingXT0", 3.742e-5);
-    * ( splitting -> globalSolution().at (7) ) = FoxParameterList.get ("gatingYT0", 1.0);
-    * ( splitting -> globalSolution().at (8) ) = FoxParameterList.get ("gatingF", 0.983);
-    * ( splitting -> globalSolution().at (9) ) = FoxParameterList.get ("gatingD", 0.0001);
-    * ( splitting -> globalSolution().at (10) ) = FoxParameterList.get ("gatingFCA", 0.942);
-    * ( splitting -> globalSolution().at (11) ) = FoxParameterList.get ("concentrationCAIN", 0.0472);
-    * ( splitting -> globalSolution().at (12) ) = FoxParameterList.get ("concentrationCASR", 320.0);
-
-//    * ( ICI -> globalSolution().at (1) ) = FoxParameterList.get ("gatingM",2.4676e-4);
-//    * ( ICI -> globalSolution().at (2) ) = FoxParameterList.get ("gatingH", 0.99869);
-//    * ( ICI -> globalSolution().at (3) ) = FoxParameterList.get ("gatingJ", 0.99887);
-//    * ( ICI -> globalSolution().at (4) ) = FoxParameterList.get ("gatingXKR", 0.229);
-//    * ( ICI -> globalSolution().at (5) ) = FoxParameterList.get ("gatingXKS", 0.0001);
-//    * ( ICI -> globalSolution().at (6) ) = FoxParameterList.get ("gatingXT0", 3.742e-5);
-//    * ( ICI -> globalSolution().at (7) ) = FoxParameterList.get ("gatingYT0", 1.0);
-//    * ( ICI -> globalSolution().at (8) ) = FoxParameterList.get ("gatingF", 0.983);
-//    * ( ICI -> globalSolution().at (9) ) = FoxParameterList.get ("gatingD", 0.0001);
-//    * ( ICI -> globalSolution().at (10) ) = FoxParameterList.get ("gatingFCA", 0.942);
-//    * ( ICI -> globalSolution().at (11) ) = FoxParameterList.get ("concentrationCAIN", 0.0472);
-//    * ( ICI -> globalSolution().at (12) ) = FoxParameterList.get ("concentrationCASR", 320.0);
+    * ( splitting -> globalSolution().at (1) ) = 1.0;
+    * ( splitting -> globalSolution().at (2) ) = 1.0;
+    * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
 
     if ( Comm->MyPID() == 0 )
     {
@@ -276,12 +333,21 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
-    VectorSmall<3> fibers;
-    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2.0) / 2.0 );
-    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2.0) / 2.0 );
-    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+//    VectorSmall<3> fibers;
+//    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2) / 2.0 );
+//    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2) / 2.0 );
+//    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+//
+//    splitting ->setupFibers (fibers);
 
-    splitting ->setupFibers (fibers);
+    function_Type Fiber_fct;
+    Fiber_fct = &Fibers;
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+    ( new FESpace< mesh_Type, MapEpetra > ( splitting->localMeshPtr(), "P1", 3, Comm) );
+    vectorPtr_Type fibers_vect(new vector_Type( Space3D->map() ));
+    Space3D -> interpolate(static_cast< FESpace < RegionMesh<LinearTetra >, MapEpetra >::function_Type>(Fiber_fct), *fibers_vect,0. );
+
+    splitting ->setFiberPtr(fibers_vect);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
@@ -290,12 +356,15 @@ Int main ( Int argc, char** argv )
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
 
+
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
 
-    string filenameSplitting =  monodomainList.get ("OutputFile", "Fox" );
+    string filenameSplitting =  monodomainList.get ("OutputFile", "MinMod" );
     filenameSplitting += "Splitting";
 
     splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
@@ -310,83 +379,50 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-//    Real dt = monodomainList.get ("timeStep", 0.1);
-//    Real TF = monodomainList.get ("endTime", 150.0);
-//    Real Savedt = monodomainList.get ("saveStep", 1.0);
-//
-//    splitting   -> solveSplitting ( exporterSplitting, Savedt );
-
     Real Savedt = monodomainList.get ("saveStep", 0.1);
-    Real timeStep = monodomainList.get ("timeStep", 0.01);
-    Real endTime = monodomainList.get ("endTime", 10.);
-    Real initialTime = monodomainList.get ("initialTime", 0.);
+//    Real timeStep = monodomainList.get ("timeStep", 0.01);
+//    Real endTime = monodomainList.get ("endTime", 10.);
+//    Real initialTime = monodomainList.get ("initialTime", 0.);
 
-    vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
-    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+//    vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
+//    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+//
+//    int iter((Savedt / timeStep)+ 1e-9);
+//    int nbTimeStep (1);
+//    int k(0);
+//    if (endTime > timeStep) {
+//        for (Real t = initialTime; t < endTime;) {
+//            t += timeStep;
+//            k++;
+//            if (nbTimeStep==1) {
+//                    splitting->solveOneReactionStepFE();
+//                    (*(splitting->rhsPtrUnique())) *= 0;
+//                    splitting->updateRhs();
+//                    splitting->solveOneDiffusionStepBE();
+//                    splitting->exportSolution(exporterSplitting, t);
+//            }else{
+//                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+//                splitting->solveOneReactionStepFE(2);
+//                (*(splitting->rhsPtrUnique())) *= 0;
+//                splitting->updateRhs();
+////                splitting->solveOneDiffusionStepBE();
+//                splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
+//                splitting->solveOneReactionStepFE(2);
+//                if (k % iter == 0) splitting->exportSolution(exporterSplitting, t);
+//            }
+//            nbTimeStep++;
+//        }
+//    }
 
-    int iter((Savedt / timeStep)+ 1e-9);
-    int nbTimeStep (1);
-    int k(0);
-    if (endTime > timeStep) {
-        for (Real t = initialTime; t < endTime;) {
-            t += timeStep;
-            k++;
-            if (nbTimeStep==1) {
-                    splitting->solveOneReactionStepFE();
-                    (*(splitting->rhsPtrUnique())) *= 0;
-                    splitting->updateRhs();
-                    splitting->solveOneDiffusionStepBE();
-                    splitting->exportSolution(exporterSplitting, t);
-            }else{
-                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
-                splitting->solveOneReactionStepFE(2);
-                (*(splitting->rhsPtrUnique())) *= 0;
-                splitting->updateRhs();
-//                splitting->solveOneDiffusionStepBE();
-                splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
-                splitting->solveOneReactionStepFE(2);
-                if (k % iter == 0) splitting->exportSolution(exporterSplitting, t);
-            }
-            nbTimeStep++;
-        }
-    }
-
+    splitting   -> solveSplitting ( exporterSplitting, Savedt );
     exporterSplitting.closeFile();
 
-//
-//    for ( Real t = 0.0; t < TF; )
-//    {
-//        t = t + dt;
-//        splitting -> solveOneSplittingStep (exporterSplitting, t);
-////
-////        //~ if( t >= TCut1 && t<=TCut2)
-////        //~ {
-////        	//~ //cout<<"Defining variables"<<endl;
-////        	//~ function_Type g = &Cut;
-////        	//~ vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
-////        	//~ const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
-////        	//~ feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
-////        	//~ //cout<<"Interpolating"<<endl;
-////        	//~ (*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
-////        	//~ //cout<<"Multiplying"<<endl;
-////        	//~ *(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
-////        	//~ *(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
-////        	//~ //cout<<"End"<<endl;
-////         }
-////
-//        //std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
-//
-//    }
-//
-//
-//
+
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
     splitting -> exportFiberDirection();
 
-    chronoinitialsettings.stop();
-    std::cout << "\n\n\nElapsed time : " << chronoinitialsettings.diff() << std::endl;
 
     if ( Comm->MyPID() == 0 )
     {

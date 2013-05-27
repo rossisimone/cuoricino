@@ -132,10 +132,6 @@ Real Fibers (const Real& /*t*/, const Real& x, const Real& y, const Real& z, con
     Real ztheta = (L-z)/L;
     Real theta = (thetamax - thetamin) * ztheta + thetamin;
 
-//    Real N = std::sqrt((x-1.5)*(x-1.5) + (y+0.5)*(y+0.5));//std::sqrt(x*x + y*y);
-//    Real x_fib = (y+0.5)/N;
-//    Real y_fib = -(x-1.5)/N;
-
         switch(i){
             case 0:
                 return  std::cos(theta); // x_fib; //y/N; //std::sqrt (2.0) / 2.0; //

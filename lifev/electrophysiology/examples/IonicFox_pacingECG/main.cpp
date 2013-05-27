@@ -430,7 +430,7 @@ Int main ( Int argc, char** argv )
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
     string filenameSplitting =  monodomainList.get ("OutputFile", "Fox" );
     filenameSplitting += "Splitting";
-    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
+    splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
 //    splitting -> exportSolution ( exporterSplitting, 0);
 
     vectorPtr_Type APDptr ( new vector_Type (apd, Repeated ) );

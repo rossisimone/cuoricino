@@ -14,6 +14,7 @@ ADD_SUBDIRECTORIES(
   0DNegroniLascanoModelTenTusscher
   0DNegroniLascanoModelJafriRiceWinslow
   0DFitzHughNagumoModel
+  0DFoxModel
 #  CreateFiberEllipsoid
   FiberInterpolation
 #  ActiveStrainODE
@@ -27,7 +28,8 @@ ADD_SUBDIRECTORIES(
   IonicRogersMcCulloch
   IonicMinimalModel
   IonicMinimalModelPlaneWave
-  IonicMinimalModelNOlumping
+  IonicMinimalModelMesh
+ # IonicMinimalModelNOlumping
   IonicMinimalModel_pacingECG
   IonicFox
   IonicFox_pacingECG

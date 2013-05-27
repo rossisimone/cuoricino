@@ -294,9 +294,9 @@ Int main ( Int argc, char** argv )
     string filenameSVI =  monodomainList.get ("OutputFile", "MinMod" );
     filenameSVI += "SVI";
 
-    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
-    ICI -> setupExporter ( exporterICI, filenameICI );
-    SVI -> setupExporter ( exporterSVI, filenameSVI );
+    splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
+    ICI -> setupPotentialExporter ( exporterICI, filenameICI );
+    SVI -> setupPotentialExporter ( exporterSVI, filenameSVI );
 
     splitting -> exportSolution ( exporterSplitting, 0);
     ICI -> exportSolution ( exporterICI, 0);

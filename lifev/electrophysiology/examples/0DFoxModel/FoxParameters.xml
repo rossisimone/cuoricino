@@ -3,7 +3,7 @@
 	<Parameter name="endTime" type="double" value="1000.0"/>
 	<Parameter name="timeStep" type="double" value="0.0025"/>
 	<Parameter name="stimuliTime" type="double" value="10.0"/>
-	<Parameter name="stimuliInterval" type="double" value="500.0"/>
+	<Parameter name="stimuliInterval" type="double" value="1000.0"/>
 	<Parameter name="savedt" type="double" value="0.01"/>
 	<Parameter name="areaCap" type="double" value="546.69"/>
 	<Parameter name="volMyo" type="double" value="0.92"/>

@@ -153,7 +153,7 @@ Int main ( Int argc, char** argv )
     Real TF     = parameterList.get( "endTime", 5.0 );
     Real dt     = parameterList.get( "timeStep", 0.005 );
     Real timeSt = parameterList.get( "stimuliTime", 1.0 );
-    Real stInt  = parameterList.get( "stimuliInterval", 400.0 );
+    Real stInt  = parameterList.get( "stimuliInterval", 1000.0 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
