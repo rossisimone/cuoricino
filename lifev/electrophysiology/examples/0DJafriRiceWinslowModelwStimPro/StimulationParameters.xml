@@ -11,5 +11,5 @@
 	<Parameter name="pacPro" type="string" value="FCL"/>
 	<Parameter name="pacProType" type="string" value=""/>
 	<Parameter name="iStim" type="double" value="-0.516289"/>
-	<Parameter name="stimDur" type="double" value="0.5"/>
+	<Parameter name="stimDur" type="double" value="1.0"/>
 </ParameterList>

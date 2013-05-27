@@ -132,10 +132,10 @@ Int main ( Int argc, char** argv )
     unknowns[5]  = 9.07131;
     unknowns[6]  = 120.204;
     unknowns[7]  = 5.4;
-    unknowns[8]  = 0.061639e-3;
-    unknowns[9]  = 0.228497;
-    unknowns[10] = 0.0814869e-3;
-    unknowns[11] = 0.228427;
+    unknowns[8]  = 1.2e-4;
+    unknowns[9]  = 1.24891;
+    unknowns[10] = 1.36058e-4;
+    unknowns[11] = 1.17504;
     unknowns[12] = 0.637931;
     unknowns[13] = 0.428917e-3;
     unknowns[14] = 0.487455e-9;
@@ -153,7 +153,7 @@ Int main ( Int argc, char** argv )
     unknowns[26] = 8.43672e-19;
     unknowns[27] = 0.0;
     unknowns[28] = 0.862010;
-    unknowns[29] = 0.4068232e-3;
+    unknowns[29] = 4.068232e-3;
     unknowns[30] = 0.132944;
     cout << " Done!" << endl;
 
@@ -193,11 +193,11 @@ Int main ( Int argc, char** argv )
     // solution.                                  //
     //********************************************//
 
-    string filename             = "output.txt";
-    string filenameStimPro      = "outputStimPro.txt";
+    string filename             = "outputT.txt";
+    string filenameStimPro      = "outputStimProT.txt";
 
-    std::ofstream output        ("output.txt");
-    std::ofstream outputStimPro ("outputStimPro.txt");
+    std::ofstream output        ("outputT.txt");
+    std::ofstream outputStimPro ("outputStimProT.txt");
 
     //********************************************//
     // Time loop starts.                          //
@@ -275,7 +275,7 @@ Int main ( Int argc, char** argv )
         for(int j(0); j <= 30; ++j)
         {
 //    		if ( ( j <= 4 ) || ( j >= 12 ) )
-    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+    			unknowns.at (j) = unknowns.at (j) + dt * rhs.at (j);
 
 //    		if( j == 0 || j >= 12 )
 //    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);

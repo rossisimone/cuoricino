@@ -47,5 +47,3 @@
 	<Parameter name="constBuffSR" type="double" value="0.3"/>
 	<Parameter name="typeCell" type="string" value="epicardial"/>
 </ParameterList>
-
-	

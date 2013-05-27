@@ -58,7 +58,7 @@
 
 #include <lifev/core/array/MatrixEpetra.hpp>
 
-#include <lifev/electrophysiology/solver/XbModels/XbNegroniLascano96.hpp>
+#include <lifev/electrophysiology/solver/XbModels/XbNegroniLascano96TTJRW.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
 
@@ -104,7 +104,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
 	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
-    XbNegroniLascano96  xb ( nlParameterList );
+    XbNegroniLascano96TTJRW  xb ( nlParameterList );
     IonicJafriRiceWinslow ionicModel ( ionicParameterList );
     StimulationProtocol   stimulation ( pacingPParameterList );
     std::cout << " Done!" << endl;
@@ -187,6 +187,7 @@ Int main ( Int argc, char** argv )
     Real Ca   ( 0.0 );
     Real Iapp ( 0.0 );
     Real X    ( 1.05 );
+    Real L    = nlParameterList.get("inLength", 1.05);
 
     //********************************************//
     // Simulation starts on t=0 and ends on t=TF. //
@@ -196,15 +197,20 @@ Int main ( Int argc, char** argv )
     Real TF     = nlParameterList.get( "endTime", 5.0 );
     Real dt     = nlParameterList.get( "timeStep", 5.77e-5 );
 
+    Real tStim  ( 0 );
+
     //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
 
-	string filename = "output.txt";
-    std::ofstream output ("output.txt");
-    string XbFilename = "XbOutput.txt";
-    std::ofstream XbOutput ("XbOutput.txt");
+    string filename        = "output.txt";
+    string filenameStimPro = "outputStimPro.txt";
+    string XbFilename      = "XbOutput.txt";
+
+    std::ofstream output        ("output.txt");
+    std::ofstream outputStimPro ("outputStimPro.txt");
+    std::ofstream XbOutput      ("XbOutput.txt");
 
 
     //********************************************//
@@ -224,15 +230,15 @@ Int main ( Int argc, char** argv )
     	// The list of protocols are described in the StimulationProtocol.hpp
 
 
-		// Velocity of motion
+    	// Velocity of motion
 
-        xb.computeVelocity( dt, X, vel );
+    	xb.computeX( dt, L, X );
+    	xb.computeVelocity( X, L, vel );
 
-
-        //********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
-        //********************************************//
+    	//********************************************//
+    	// Compute Calcium concentration. Here it is  //
+    	// given as a function of time.               //
+    	//********************************************//
 
     	Ca = states.at(8)*1000;
     	// Because the concentration is in mM in the ionic model
@@ -244,9 +250,8 @@ Int main ( Int argc, char** argv )
         // Compute the rhs using the model equations  //
         //********************************************//
         
-		xb.computeRhs             ( XbStates, Ca, vel, XbRhs );
+        xb.computeRhs             ( XbStates, Ca, L, vel, XbRhs );
         ionicModel.computeRhs     ( states, Iapp, rhs );
-        std::vector<Real> gateInf ( ionicModel.gateInf( states ) );
 
 
         //********************************************//
@@ -259,9 +264,10 @@ Int main ( Int argc, char** argv )
         
 		for(int j(0); j <= 30; ++j)
         {
-    		if ( ( j <= 4 ) || ( j >= 12 ) )
+//    		if ( ( j <= 4 ) || ( j >= 12 ) )
     			states.at (j) = states.at (j)  + dt * rhs.at (j);
         }
+
 		states.at (5)  = ionicModel.computeNewtonNa    (states, dt, 10);
 		states.at (6)  = ionicModel.computeNewtonKi    (states, dt, 10);
 		states.at (7)  = ionicModel.computeNewtonKo    (states, dt, 10);
@@ -272,13 +278,12 @@ Int main ( Int argc, char** argv )
 		
         XbStates.at (0) = XbStates.at (0)  + dt * XbRhs.at (0);
         XbStates.at (1) = XbStates.at (1)  + dt * XbRhs.at (1);
-//        XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
+        XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
 
 		// Implicit method
-        std::vector<Real> BErhs   ( xb.computeBackwardEuler( XbStates, Ca, vel, dt ) );
-//        XbStates.at (0) = BErhs.at (0);
-//        XbStates.at (1) = BErhs.at (1);
-        XbStates.at (2) = BErhs.at (2);
+        xb.computeX( dt, L, X );
+        xb.computeVelocity( X, L, vel );
+        xb.computeBackwardEuler( XbStates, Ca, vel, dt );
 
         //********************************************//
         // Writes solution on file.                   //
@@ -296,6 +301,11 @@ Int main ( Int argc, char** argv )
         	XbOutput << t << ", " << X << ", " << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
         }
 
+        tStim = stimulation.timeSt();
+
+        if ( t >= tStim && t <= tStim + dt )
+        	outputStimPro << t << "," << states.at(0) << "," << NbStimulus << "\n";
+
         //********************************************//
         // Update the time.                           //
         //********************************************//
@@ -311,6 +321,7 @@ Int main ( Int argc, char** argv )
 
     XbOutput.close();
     output.close();
+    outputStimPro.close();
 
     //! Finalizing Epetra communicator
     MPI_Finalize();

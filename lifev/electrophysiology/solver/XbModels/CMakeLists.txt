@@ -1,6 +1,7 @@
 SET( solver_XbModels_HEADERS
   solver/XbModels/ElectroXbModel.hpp
   solver/XbModels/XbNegroniLascano96.hpp
+  solver/XbModels/XbNegroniLascano96TTJRW.hpp
 CACHE INTERNAL "")
 
 
