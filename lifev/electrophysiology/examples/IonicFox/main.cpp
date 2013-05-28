@@ -112,10 +112,12 @@ using namespace LifeV;
 
 Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( x<= 0.05 )
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    Real x_length = monodomainList.get ("domain_X", 1. );
+    if ( x<= x_length/20 )
         return -14.7;
-    else if( x<= 0.1)
-        return -14.7*( 0.1 - x )/(0.05);
+    else if( x<= x_length/10 )
+        return -14.7*( x_length/10 - x )/(x_length/20);
     else
         return -94.7;
 }
@@ -137,7 +139,8 @@ Int main ( Int argc, char** argv )
     LifeChrono chronoinitialsettings;
     chronoinitialsettings.start();
 
-    typedef RegionMesh<LinearTetra> mesh_Type;
+    typedef RegionMesh<LinearTetra>            mesh_Type;
+    typedef boost::shared_ptr<mesh_Type>       meshPtr_Type;
     typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
     typedef FESpace< mesh_Type, MapEpetra >    feSpace_Type;
     typedef boost::shared_ptr<feSpace_Type>    feSpacePtr_Type;
@@ -145,7 +148,7 @@ Int main ( Int argc, char** argv )
                                     const Real &   x,
                                     const Real &   y,
                                     const Real& /*z*/,
-                                    const ID&   /*i*/ ) > function_Type;
+                                    const ID&   /*i*/ ) >       function_Type;
 
     typedef ElectroETAMonodomainSolver< mesh_Type, IonicFox >   monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >          monodomainSolverPtr_Type;
@@ -184,13 +187,54 @@ Int main ( Int argc, char** argv )
         std::cout << " Done!" << endl;
     }
 
+    // +-----------------------------------------------+
+    // |               Loading the mesh                |
+    // +-----------------------------------------------+
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << std::endl << "[Loading the mesh]" << std::endl;
+    }
+
+    meshPtr_Type fullMeshPtr ( new mesh_Type ( Comm ) );
+
+    VectorSmall<3> meshDim;
+    meshDim[0] =  monodomainList.get ("meshDim_X", 10 );
+    meshDim[1] =  monodomainList.get ("meshDim_Y", 10 );
+    meshDim[2] =  monodomainList.get ("meshDim_Z", 10 );
+    VectorSmall<3> domain;
+    domain[0] =  monodomainList.get ("domain_X", 1. );
+    domain[1] =  monodomainList.get ("domain_Y", 1. );
+    domain[2] =  monodomainList.get ("domain_Z", 1. );
+
+    // Building the mesh from the source
+    regularMesh3D ( *fullMeshPtr,
+                    1,
+                    meshDim[0], meshDim[1], meshDim[2],
+                    false,
+                    domain[0], domain[1], domain[2],
+                    0.0, 0.0, 0.0 );
+
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Mesh size  : " << MeshUtility::MeshStatistics::computeSize ( *fullMeshPtr ).maxH << std::endl;
+    }
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Partitioning the mesh ... " << std::endl;
+    }
+    meshPtr_Type meshPtr;
+    {
+        MeshPartitioner< mesh_Type > meshPart ( fullMeshPtr, Comm );
+        meshPtr = meshPart.meshPartition();
+    }
+    fullMeshPtr.reset(); //Freeing the global mesh to save memory
 
     //********************************************//
     // In the parameter list we need to specify   //
     // the mesh name and the mesh path.           //
     //********************************************//
-    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
-    std::string meshPath = monodomainList.get ("mesh_path", "./");
+//    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
+//    std::string meshPath = monodomainList.get ("mesh_path", "./");
 
     //********************************************//
     // We need the GetPot datafile for to setup   //
@@ -211,14 +255,13 @@ Int main ( Int argc, char** argv )
         std::cout << "Building Monodomain Solvers... ";
     }
 
-    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
     const feSpacePtr_Type FESpacePtr =  splitting->feSpacePtr(); //FE Space
 
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Splitting solver done... ";
     }
-
 
     //********************************************//
     // Setting up the initial condition form      //
@@ -232,11 +275,7 @@ Int main ( Int argc, char** argv )
     //Compute the potential at t0
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
-//    ICI -> setPotentialFromFunction ( f ); //initialize potential
-//    splitting -> initializePotential( -94.7 );
 
-    //setting up initial conditions
-//    * ( splitting -> globalSolution().at (0) ) = FoxParameterList.get ("InitialPotential", -94.7);
     * ( splitting -> globalSolution().at (1) ) = FoxParameterList.get ("gatingM",2.4676e-4);
     * ( splitting -> globalSolution().at (2) ) = FoxParameterList.get ("gatingH", 0.99869);
     * ( splitting -> globalSolution().at (3) ) = FoxParameterList.get ("gatingJ", 0.99887);
@@ -249,19 +288,6 @@ Int main ( Int argc, char** argv )
     * ( splitting -> globalSolution().at (10) ) = FoxParameterList.get ("gatingFCA", 0.942);
     * ( splitting -> globalSolution().at (11) ) = FoxParameterList.get ("concentrationCAIN", 0.0472);
     * ( splitting -> globalSolution().at (12) ) = FoxParameterList.get ("concentrationCASR", 320.0);
-
-//    * ( ICI -> globalSolution().at (1) ) = FoxParameterList.get ("gatingM",2.4676e-4);
-//    * ( ICI -> globalSolution().at (2) ) = FoxParameterList.get ("gatingH", 0.99869);
-//    * ( ICI -> globalSolution().at (3) ) = FoxParameterList.get ("gatingJ", 0.99887);
-//    * ( ICI -> globalSolution().at (4) ) = FoxParameterList.get ("gatingXKR", 0.229);
-//    * ( ICI -> globalSolution().at (5) ) = FoxParameterList.get ("gatingXKS", 0.0001);
-//    * ( ICI -> globalSolution().at (6) ) = FoxParameterList.get ("gatingXT0", 3.742e-5);
-//    * ( ICI -> globalSolution().at (7) ) = FoxParameterList.get ("gatingYT0", 1.0);
-//    * ( ICI -> globalSolution().at (8) ) = FoxParameterList.get ("gatingF", 0.983);
-//    * ( ICI -> globalSolution().at (9) ) = FoxParameterList.get ("gatingD", 0.0001);
-//    * ( ICI -> globalSolution().at (10) ) = FoxParameterList.get ("gatingFCA", 0.942);
-//    * ( ICI -> globalSolution().at (11) ) = FoxParameterList.get ("concentrationCAIN", 0.0472);
-//    * ( ICI -> globalSolution().at (12) ) = FoxParameterList.get ("concentrationCASR", 320.0);
 
     if ( Comm->MyPID() == 0 )
     {
@@ -295,8 +321,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
 
-    string filenameSplitting =  monodomainList.get ("OutputFile", "Fox" );
-    filenameSplitting += "Splitting";
+    string filenameSplitting =  monodomainList.get ("OutputFile", "MeshSz" );
+    filenameSplitting += "Fox";
 
     splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
 
@@ -309,12 +335,6 @@ Int main ( Int argc, char** argv )
     {
         cout << "\nstart solving:  " ;
     }
-
-//    Real dt = monodomainList.get ("timeStep", 0.1);
-//    Real TF = monodomainList.get ("endTime", 150.0);
-//    Real Savedt = monodomainList.get ("saveStep", 1.0);
-//
-//    splitting   -> solveSplitting ( exporterSplitting, Savedt );
 
     Real Savedt = monodomainList.get ("saveStep", 0.1);
     Real timeStep = monodomainList.get ("timeStep", 0.01);
@@ -353,33 +373,6 @@ Int main ( Int argc, char** argv )
 
     exporterSplitting.closeFile();
 
-//
-//    for ( Real t = 0.0; t < TF; )
-//    {
-//        t = t + dt;
-//        splitting -> solveOneSplittingStep (exporterSplitting, t);
-////
-////        //~ if( t >= TCut1 && t<=TCut2)
-////        //~ {
-////        	//~ //cout<<"Defining variables"<<endl;
-////        	//~ function_Type g = &Cut;
-////        	//~ vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
-////        	//~ const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
-////        	//~ feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
-////        	//~ //cout<<"Interpolating"<<endl;
-////        	//~ (*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
-////        	//~ //cout<<"Multiplying"<<endl;
-////        	//~ *(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
-////        	//~ *(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
-////        	//~ //cout<<"End"<<endl;
-////         }
-////
-//        //std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
-//
-//    }
-//
-//
-//
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//

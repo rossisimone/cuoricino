@@ -22,6 +22,16 @@
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
+	<Parameter name="OutputFile" type="string" value="Mesh05"/>
+	
+	<!-- Mesh parameters -->
+	<Parameter name="meshDim_X" type="int" value="50"  />
+	<Parameter name="meshDim_Y" type="int" value="50"  />
+	<Parameter name="meshDim_Z" type="int" value="4"  />
+	
+	<Parameter name="domain_X" type="double" value="0.5"  />
+	<Parameter name="domain_Y" type="double" value="0.5"  />
+	<Parameter name="domain_Z" type="double" value="0.0625"  />
 	
 	<!-- Operator specific parameters (AztecOO) -->
 	<ParameterList name="Solver: Operator List">

@@ -171,7 +171,7 @@ Int main ( Int argc, char** argv )
     //  LifeChrono chronoinitialsettings;
     //  chronoinitialsettings.start();
 
-    typedef RegionMesh<LinearTetra>                         mesh_Type;
+    typedef RegionMesh<LinearTetra>            mesh_Type;
     typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
     typedef FESpace< mesh_Type, MapEpetra >    feSpace_Type;
     typedef boost::shared_ptr<feSpace_Type>    feSpacePtr_Type;
