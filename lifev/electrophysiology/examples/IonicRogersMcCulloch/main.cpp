@@ -464,7 +464,6 @@ Int main ( Int argc, char** argv )
             splitting -> solveOneSplittingStep(exporterSplitting, t);
         else
             splitting -> solveOneSplittingStep();
-//		splitting -> solveOneSplittingStep (exporterSplitting, t);
 
 		// ECG : discrete laplacian of the solution
 		(*rhs_Laplacian) = (*systemMatrixL) * (*(splitting->globalSolution().at(0)));

@@ -258,7 +258,6 @@ Int main ( Int argc, char** argv )
         std::cout << " Splitting solver done... ";
     }
 
-
     //********************************************//
     // Setting up the initial condition form      //
     // a given function.                          //
@@ -282,16 +281,11 @@ Int main ( Int argc, char** argv )
     vector_Type apd = tact;
     vector_Type delta_apd = tact;
     vector_Type previouspotential = (*(splitting->globalSolution().at(0)));
-//    ICI -> setPotentialFromFunction ( f ); //initialize potential
 
     //setting up initial conditions
     * ( splitting -> globalSolution().at (1) ) = 1.0;
     * ( splitting -> globalSolution().at (2) ) = 1.0;
     * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
-
-//    * ( ICI -> globalSolution().at (1) ) = 1.0;
-//    * ( ICI -> globalSolution().at (2) ) = 1.0;
-//    * ( ICI -> globalSolution().at (3) ) = 0.021553043080281;
 
     if ( Comm->MyPID() == 0 )
     {
@@ -369,7 +363,6 @@ Int main ( Int argc, char** argv )
     // Setting up the time data                   //
     //********************************************//
     splitting -> setParameters ( monodomainList );
-//    ICI -> setParameters ( monodomainList );
 
     //********************************************//
     // Create a fiber direction                   //
@@ -380,7 +373,6 @@ Int main ( Int argc, char** argv )
     fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
 
     splitting ->setupFibers (fibers);
-//    ICI->setupFibers(fibers);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
@@ -394,9 +386,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
     string filenameSplitting =  monodomainList.get ("OutputFile", "MinMod" );
-    filenameSplitting += "Splitting";
+    filenameSplitting += "MinModpacingECG";
     splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
-//    splitting -> exportSolution ( exporterSplitting, 0);
 
     vectorPtr_Type APDptr ( new vector_Type (apd, Repeated ) );
     exporterSplitting.addVariable ( ExporterData<mesh_Type>::ScalarField,  "apd", FESpacePtr,
@@ -447,15 +438,6 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-//    splitting   -> solveSplitting ( exporterSplitting );
-//    exporterSplitting.closeFile();
-
-//    ICI         -> solveICI ( exporterICI );
-//    exporterICI.closeFile();
-//
-//    SVI         -> solveSVI ( exporterSVI );
-//    exporterSVI.closeFile();
-
     Real dt = monodomainList.get ("timeStep", 0.1);
    Real deltat = monodomainList.get ("SaveStep", 1.0);
    Real TF = monodomainList.get ("endTime", 150.0);
@@ -496,7 +478,6 @@ Int main ( Int argc, char** argv )
            splitting -> solveOneSplittingStep(exporterSplitting, t);
        else
            splitting -> solveOneSplittingStep();
-//      splitting -> solveOneSplittingStep (exporterSplitting, t);
 
        // ECG : discrete laplacian of the solution
        (*rhs_Laplacian) = (*systemMatrixL) * (*(splitting->globalSolution().at(0)));

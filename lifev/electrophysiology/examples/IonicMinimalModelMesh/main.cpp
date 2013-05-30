@@ -117,24 +117,6 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
-
-//Real Stimulus (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
-//{
-//    if ( x<= 0.05 )
-//        return 1.0;
-//    else if( x<= 0.1)
-//        return 1.0*( 0.1 - x )/(0.05);
-//    else
-//        return 0.0;
-//}
-//Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
-//{
-//    if ( sqrt( x*x + y*y + z*z ) <= 0.1 )
-//        return 1.0;
-//    else
-//        return 0.0;
-//}
-
 // Choice of the fibers direction : ||.||=1
 Real Fibers (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& z, const ID& i)
 {
@@ -163,12 +145,29 @@ Real Fibers (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real
                 break;
     }
 }
+
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
+{
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    Real pacingSite_X = monodomainList.get ("pacingSite_X", 0.);
+    Real pacingSite_Y = monodomainList.get ("pacingSite_Y", 0.);
+    Real pacingSite_Z = monodomainList.get ("domain_Z", 1. );
+    Real stimulusRadius = 0.1; // monodomainList.get ("stimulusRadius", 0.1);
+
+    if (  ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
+                    <= ( stimulusRadius * stimulusRadius ) )
+        return 1.0;
+    else
+        return 0.0;
+}
+
+
 Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
 {
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
     Real pacingSite_X = monodomainList.get ("pacingSite_X", 0.);
     Real pacingSite_Y = monodomainList.get ("pacingSite_Y", 0.);
-    Real pacingSite_Z = monodomainList.get ("pacingSite_Z", 0.);
+    Real pacingSite_Z = monodomainList.get ("pacingSite_Z", 1.);
     Real stimulusRadius = monodomainList.get ("stimulusRadius", 0.1);
     Real stimulusValue = monodomainList.get ("stimulusValue", 1.);
 
@@ -179,8 +178,8 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
     std::vector<double> returnPeriods;
     std::vector<double> returnStimulusTime;
 
-    if ( ( ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
-        <= ( stimulusRadius * stimulusRadius ) ) ){
+    if (  ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
+        <= ( stimulusRadius * stimulusRadius ) ){
         returnValue1 = stimulusValue;
     }else{
         returnValue1 = 0.;
@@ -193,9 +192,9 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
 
 Int main ( Int argc, char** argv )
 {
-
     //! Initializing Epetra communicator
     MPI_Init (&argc, &argv);
+    {
     boost::shared_ptr<Epetra_Comm>  Comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
     if ( Comm->MyPID() == 0 )
     {
@@ -237,7 +236,6 @@ Int main ( Int argc, char** argv )
     {
         std::cout << "Importing parameters list...";
     }
-    //   Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
     if ( Comm->MyPID() == 0 )
     {
@@ -259,7 +257,6 @@ Int main ( Int argc, char** argv )
     {
         std::cout << " Done!" << endl;
     }
-
 
     //********************************************//
     // In the parameter list we need to specify   //
@@ -296,7 +293,6 @@ Int main ( Int argc, char** argv )
     domain[2] =  monodomainList.get ("domain_Z", 1. );
 
     // Building the mesh from the source
-
     regularMesh3D ( *fullMeshPtr,
                     1,
                     meshDim[0], meshDim[1], meshDim[2],
@@ -320,10 +316,8 @@ Int main ( Int argc, char** argv )
     fullMeshPtr.reset(); //Freeing the global mesh to save memory
 
     //********************************************//
-    // We create three solvers to solve with:     //
-    // 1) Operator Splitting method               //
-    // 2) Ionic Current Interpolation             //
-    // 3) State Variable Interpolation            //
+    // We create the solvers to solve with:     //
+    // Operator Splitting method               //
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
@@ -338,7 +332,6 @@ Int main ( Int argc, char** argv )
         std::cout << " Splitting solver done... ";
     }
 
-
     //********************************************//
     // Setting up the initial condition form      //
     // a given function.                          //
@@ -347,10 +340,12 @@ Int main ( Int argc, char** argv )
     {
         cout << "\nInitializing potential:  " ;
     }
-
     //Compute the potential at t0
     function_Type pacing = &PacingProtocol;
-    splitting -> initializePotential();
+    function_Type f = &Stimulus2;
+
+    splitting -> setPotentialFromFunction ( f );
+//    splitting -> initializePotential();
 
     // APD calculation variables
     Int sz = 0;
@@ -376,29 +371,50 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Setting up the pacing protocol             //
     //********************************************//
-    Real pacingPeriod = monodomainList.get ("pacingPeriod", 500.);
-    Real pacingPeriodMin = monodomainList.get ("pacingPeriodMin", 400.);
-    Real pacingDelta = monodomainList.get ("pacingDelta", 0.);
+    bool PacingProtocol = monodomainList.get ("pacingProtocol", false);
+    std::vector<double> returnStimulusTime;
+    std::vector<double> returnPeriods;
+
     Real stimulusStart = monodomainList.get ("stimulusStart", 0.);
     Real stimulusStop = monodomainList.get ("stimulusStop", 0.05);
-    Real stimulusNumber = monodomainList.get ("stimulusNumber", 1);
+    Int stimulusNumber;
+    Int NumberPacingPeriods;
 
-    std::vector<double> returnPeriods;
-    std::vector<double> returnStimulusTime;
     int i(0);
-    int control(0);
 
-    Real NumberPacingPeriods ( (pacingPeriod-pacingPeriodMin)/pacingDelta );
-    //--- Pacing method
-    if ( pacingDelta >0 ){    // IF pacing
-        for(int k=0; k <= NumberPacingPeriods-1; k++ ){
-            for(i = stimulusNumber * k; i <= stimulusNumber * (k+1)-1; i++){
-                returnPeriods.push_back ( pacingPeriod - k * pacingDelta );
-                if ( i==0 ){
-                    returnStimulusTime.push_back( returnPeriods[0] );
-                }else{
-                    returnStimulusTime.push_back ( returnStimulusTime[i-1]+returnPeriods[i] );
+    if (PacingProtocol){
+        Real pacingPeriod = monodomainList.get ("pacingPeriod", 500.);
+        Real pacingPeriodMin = monodomainList.get ("pacingPeriodMin", 400.);
+        Real pacingDelta = monodomainList.get ("pacingDelta", 0.);
+        stimulusNumber = monodomainList.get ("stimulusNumber", 1);
+        NumberPacingPeriods = (pacingPeriod-pacingPeriodMin)/pacingDelta;
+        //--- Pacing method
+        if ( pacingDelta >0 ){    // IF pacing
+            for(int k=0; k <= NumberPacingPeriods-1; k++ ){
+                for(i = stimulusNumber * k; i <= stimulusNumber * (k+1)-1; i++){
+                    returnPeriods.push_back ( pacingPeriod - k * pacingDelta );
+                    if ( i==0 ){
+                        returnStimulusTime.push_back( returnPeriods[0] );
+                    }else{
+                        returnStimulusTime.push_back ( returnStimulusTime[i-1]+returnPeriods[i] );
+                    }
                 }
+            }
+        }
+    }else{
+        returnPeriods.push_back( monodomainList.get ("stimulus0", 300.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus1", 250.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus2", 200.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus3", 175.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus4", 150.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus5", 125.) );
+        NumberPacingPeriods = 6;
+        stimulusNumber = 1;
+        for(int k=0; k <= NumberPacingPeriods-1; k++ ){
+            if (k==0) {
+                returnStimulusTime.push_back( returnPeriods[0] );
+            }else{
+                returnStimulusTime.push_back ( returnStimulusTime[k-1]+returnPeriods[k] );
             }
         }
     }
@@ -448,12 +464,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
-//    VectorSmall<3> fibers;
-//    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2) / 2.0 );
-//    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2) / 2.0 );
-//    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
-//
-//    splitting ->setupFibers (fibers);
 
     function_Type Fiber_fct;
     Fiber_fct = &Fibers;
@@ -476,7 +486,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
     string filenameSplitting =  monodomainList.get ("OutputFile", "MinMod" );
-    filenameSplitting += "Splitting";
+    filenameSplitting += "MinModpacingECG";
     splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
 //    splitting -> exportSolution ( exporterSplitting, 0);
 
@@ -493,9 +503,9 @@ Int main ( Int argc, char** argv )
 
     std::ofstream output  ("ecg_output.txt");
 
-    //********************************************//
+    //**************************************************//
     // Solver initialization for the discrete Laplacian //
-    //********************************************//
+    //**************************************************//
     if (  Comm->MyPID() == 0 )
     {
        std::cout << std::endl << "[Solvers initialization]" << std::endl;
@@ -536,7 +546,7 @@ Int main ( Int argc, char** argv )
 
     vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
     *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
-
+    int control = 0;
     int iter((Savedt / timeStep)+ 1e-9);
     int nbTimeStep (1);
     int k(0);
@@ -555,20 +565,19 @@ Int main ( Int argc, char** argv )
             control = 0;
 
             t += timeStep;
-            if( pacingDelta > 0 ){
                for(i = 0; i<= NumberPacingPeriods * stimulusNumber - 1; i++){
                    if ( control < 1 ){
-                       if ( ( t >=stimulusStart &&   t <=  stimulusStop + timeStep) ||
-                           (t >= (returnStimulusTime[i] + stimulusStart) && t <= (returnStimulusTime[i] + stimulusStop + timeStep)) ){
+                       if ( (t >= (returnStimulusTime[i] + stimulusStart) && t <= (returnStimulusTime[i] + stimulusStop + timeStep)) ){
                            splitting -> setAppliedCurrentFromFunction ( pacing );
+                           std::cout << "stim_time " << t << std::endl;
                            control = control + 1;
                        }else{
                            splitting -> initializeAppliedCurrent();
                        }
                    }
                }
-            }
             k++;
+
             if (nbTimeStep==1) {
                     splitting->solveOneReactionStepFE();
                     (*(splitting->rhsPtrUnique())) *= 0;
@@ -586,6 +595,7 @@ Int main ( Int argc, char** argv )
                 if (k % iter == 0) splitting->exportSolution(exporterSplitting, t);
             }
             nbTimeStep++;
+
             // ECG : discrete laplacian of the solution
            (*rhs_Laplacian) = (*systemMatrixL) * (*(splitting->globalSolution().at(0)));
 
@@ -618,21 +628,19 @@ Int main ( Int argc, char** argv )
         }
     }
 
-//    splitting   -> solveSplitting ( exporterSplitting, Savedt );
     exporterSplitting.closeFile();
-
 
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
     splitting -> exportFiberDirection();
 
-
     if ( Comm->MyPID() == 0 )
     {
         cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
     MPI_Barrier (MPI_COMM_WORLD);
+    }
     MPI_Finalize();
     return ( EXIT_SUCCESS );
 }
