@@ -148,7 +148,7 @@ Int main ( Int argc, char** argv )
     unknowns[26] = 8.43672e-19;
     unknowns[27] = 0.0;
     unknowns[28] = 0.862010;
-    unknowns[29] = 0.4068232e-3;
+    unknowns[29] = 4.068232e-3;
     unknowns[30] = 0.132944;
     cout << " Done!" << endl;
 

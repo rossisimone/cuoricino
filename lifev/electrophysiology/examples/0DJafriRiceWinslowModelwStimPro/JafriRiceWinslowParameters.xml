@@ -1,6 +1,6 @@
 <!-- Model Parameters -->
 <ParameterList name="Jafri Rice Winslow: Parameter list">
-	<Parameter name="endTime" type="double" value="3000.0"/>
+	<Parameter name="endTime" type="double" value="6100.0"/>
 	<Parameter name="timeStep" type="double" value="1e-3"/>
 	<Parameter name="savedt" type="double" value="0.1"/>
 	<Parameter name="areaCap" type="double" value="1.5343e-2"/>
@@ -39,14 +39,14 @@
 	<Parameter name="constmNsCa" type="double" value="1.2e-3"/>
 	<Parameter name="courpCa" type="double" value="1.15e-2"/>
 	<Parameter name="constmpCa" type="double" value="0.5e-3"/>
-	<Parameter name="maxCondCab" type="double" value="6.032e-5"/>
+	<Parameter name="maxCondCab" type="double" value="3.016e-5"/>
 	<Parameter name="maxCondNab" type="double" value="1.41e-5"/>
-	<Parameter name="maxRyRPerm" type="double" value="1.8"/>
-	<Parameter name="leakRateConst" type="double" value="0.0012"/>
-	<Parameter name="pumpRateATPase" type="double" value="1.8e-3"/>
-	<Parameter name="constmUp" type="double" value="0.5e-3"/>
-	<Parameter name="timeConstNsrJsr" type="double" value="34.48"/>
-	<Parameter name="timeConstSubMyo" type="double" value="3.125"/>
+	<Parameter name="maxRyRPerm" type="double" value="3.6"/>
+	<Parameter name="leakRateConst" type="double" value="3.6e-4"/>
+	<Parameter name="pumpRateATPase" type="double" value="6.375e-3"/>
+	<Parameter name="constmUp" type="double" value="0.25e-3"/>
+	<Parameter name="timeConstNsrJsr" type="double" value="180.0"/>
+	<Parameter name="timeConstSubMyo" type="double" value="2.125"/>
 	<Parameter name="kAPlus" type="double" value="1.215e10"/>
 	<Parameter name="kANeg" type="double" value="0.1425"/>
 	<Parameter name="kBPlus" type="double" value="4.05e7"/>
@@ -63,6 +63,6 @@
 	<Parameter name="modeTParamB" type="double" value="2.0"/>
 	<Parameter name="modeTParamO" type="double" value="0.01"/>
 	<Parameter name="permCa" type="double" value="33.75e-6"/>
-	<Parameter name="permK" type="double" value="1.0e-9"/>
+	<Parameter name="permK" type="double" value="62.5e-9"/>
 	<Parameter name="courCaHalf" type="double" value="-0.458e-2"/>
 </ParameterList>

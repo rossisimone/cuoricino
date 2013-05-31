@@ -123,7 +123,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Initializing solution vector...";
-    std::vector<Real> unknowns (model.Size(), 0 );
+    std::vector<Real> unknowns  (model.Size(), 0 );
+//    std::vector<Real> unknowns0 (model.Size(), 0 );
     unknowns[0]  = -80.578;
     unknowns[1]  = 0.0326174;
     unknowns[2]  = 0.962369;
@@ -132,10 +133,10 @@ Int main ( Int argc, char** argv )
     unknowns[5]  = 9.07131;
     unknowns[6]  = 120.204;
     unknowns[7]  = 5.4;
-    unknowns[8]  = 1.2e-4;
-    unknowns[9]  = 1.24891;
-    unknowns[10] = 1.36058e-4;
-    unknowns[11] = 1.17504;
+    unknowns[8]  = 0.061639e-3;
+    unknowns[9]  = 0.228497;
+    unknowns[10] = 0.0814869e-3;
+    unknowns[11] = 0.228427;
     unknowns[12] = 0.637931;
     unknowns[13] = 0.428917e-3;
     unknowns[14] = 0.487455e-9;
@@ -167,7 +168,11 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     cout << "Initializing rhs..." ;
-    std::vector<Real> rhs (model.Size(), 0);
+    std::vector<Real> rhs  (model.Size(), 0);
+//    std::vector<Real> rhs1 (model.Size(), 0);
+//    std::vector<Real> rhs2 (model.Size(), 0);
+//    std::vector<Real> rhs3 (model.Size(), 0);
+//    std::vector<Real> rhs4 (model.Size(), 0);
     cout << " Done! "  << endl;
 
 
@@ -193,18 +198,17 @@ Int main ( Int argc, char** argv )
     // solution.                                  //
     //********************************************//
 
-    string filename             = "outputT.txt";
-    string filenameStimPro      = "outputStimProT.txt";
+    string filename             = "output.txt";
+    string filenameStimPro      = "outputStimPro.txt";
 
-    std::ofstream output        ("outputT.txt");
-    std::ofstream outputStimPro ("outputStimProT.txt");
+    std::ofstream output        ("output.txt");
+    std::ofstream outputStimPro ("outputStimPro.txt");
 
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
 
     cout << "Time loop starts...\n";
-
 
     int iter(0);
     int savedt( ionicMParameterList.get( "savedt", 1.0) / dt );
@@ -274,17 +278,17 @@ Int main ( Int argc, char** argv )
 
         for(int j(0); j <= 30; ++j)
         {
-//    		if ( ( j <= 4 ) || ( j >= 12 ) )
+////    		if ( ( j <= 4 ) || ( j >= 12 ) )
     			unknowns.at (j) = unknowns.at (j) + dt * rhs.at (j);
-
-//    		if( j == 0 || j >= 12 )
-//    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-//    		else if ( ( j <= 4 ) && ( j != 0 ) )
-//    			unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
-//			else if ( j >= 12 )
-//				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
+//
+////    		if( j == 0 || j >= 12 )
+////    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+////    		else if ( ( j <= 4 ) && ( j != 0 ) )
+////    			unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
+////			else if ( j >= 12 )
+////				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
          }
-
+//
         unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
         unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
         unknowns.at (7)  = model.computeNewtonKo    (unknowns, dt, 10);
@@ -292,6 +296,52 @@ Int main ( Int argc, char** argv )
         unknowns.at (9)  = model.computeNewtonCaNSR (unknowns, dt, 10);
         unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
         unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
+
+
+//        unknowns0 = unknowns;
+//
+//        for(int step(1); step <= 4; ++step)
+//        {
+//        	for(int j(0); j <= 30; ++j)
+//        	{
+//        		if ( step != 4 )
+//        			unknowns.at (j) = unknowns0.at (j) + 0.5 * dt * rhs.at (j);
+//        		else
+//        			unknowns.at (j) = unknowns0.at (j) + dt * rhs.at (j);
+//        	}
+//
+//        	model.computeRhs ( unknowns, Iapp, rhs );
+//
+//        	switch (step)
+//        	{
+//        		case 1:
+//        		{
+//        			rhs1 = rhs;
+//        			break;
+//        		}
+//        		case 2:
+//        		{
+//        			rhs2 = rhs;
+//        			break;
+//        		}
+//        		case 3:
+//        		{
+//        			rhs3 = rhs;
+//        			break;
+//        		}
+//        		case 4:
+//        		{
+//        			rhs4 = rhs;
+//        			break;
+//        		}
+//        	}
+//        }
+//
+//        for(int j(0); j <= 30; ++j)
+//        {
+//        	unknowns.at (j) = unknowns0.at (j) + 0.1666666667 * dt * ( rhs1.at (j) +  2 * rhs2.at (j) + 2 * rhs3.at (j) + rhs4.at (j) );
+//        }
+
 
     	 //********************************************//
          // Update the time.                           //

@@ -303,7 +303,7 @@
 									M_stIntS1S2 = M_stIntS1S2 - 1000;
 
 								else if ( M_stIntS1S2 <= 1000 && M_stIntS1S2 > 300 )
-									M_stIntS1S2 = M_stIntS1S2 - 100;
+									M_stIntS1S2 = M_stIntS1S2 - 50;
 
 								else if (  M_stIntS1S2 <= 300 &&  M_stIntS1S2 > 200 )
 									M_stIntS1S2 = M_stIntS1S2 - 10;
@@ -343,22 +343,22 @@
 					if ( M_stInt > 1000 )
 					{
 						M_stInt      = M_stInt - 1000;
-						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 50;
+						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 20;
 					}
 					else if ( M_stInt <= 1000 && M_stInt > 300 )
 					{
-						M_stInt      = M_stInt - 100 ;
-						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 50;
+						M_stInt      = M_stInt - 50;
+						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 20;
 					}
 					else if (  M_stInt <= 300 &&  M_stInt > 200 )
 					{
-						M_stInt      = M_stInt - 50;
-						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 50;
+						M_stInt      = M_stInt - 10;
+						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 20;
 					}
 					else if ( M_stInt <= 200 )
 					{
 						M_stInt      = M_stInt - 5;
-						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 50;
+						M_tShortS1S1 = M_tShortS1S1 + M_stInt * 20;
 					}
 				}
 			}

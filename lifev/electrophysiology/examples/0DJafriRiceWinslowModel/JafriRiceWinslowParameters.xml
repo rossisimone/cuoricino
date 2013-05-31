@@ -5,11 +5,11 @@
 	<Parameter name="stimuliTime" type="double" value="1.0"/>
 	<Parameter name="stimuliInterval" type="double" value="600.0"/>
 	<Parameter name="savedt" type="double" value="0.1"/>
-	<Parameter name="areaCap" type="double" value="546.69"/>
-	<Parameter name="volMyo" type="double" value="0.92"/>
-	<Parameter name="volJSR" type="double" value="0.0042688"/>
-	<Parameter name="volNSR" type="double" value="0.07452"/>
-	<Parameter name="volSS" type="double" value="0.000053618"/>
+	<Parameter name="areaCap" type="double" value="1.5343e-2"/>
+	<Parameter name="volMyo" type="double" value="25.84e-6"/>
+	<Parameter name="volJSR" type="double" value="0.12e-6"/>
+	<Parameter name="volNSR" type="double" value="2.098e-6"/>
+	<Parameter name="volSS" type="double" value="1.485e-9"/>
 	<Parameter name="concNa0" type="double" value="140.0"/>
 	<Parameter name="concCa0" type="double" value="1.8"/>
 	<Parameter name="lTrpnTot" type="double" value="0.07"/>
@@ -18,7 +18,7 @@
 	<Parameter name="knHtrpn" type="double" value="0.066e-3"/>
 	<Parameter name="kpLtrpn" type="double" value="40.0"/>
 	<Parameter name="knLtrpn" type="double" value="0.04"/>
-	<Parameter name="cmdnTot" type="double" value="0.05"/>
+	<Parameter name="cmdnTot" type="double" value="0.09"/>
 	<Parameter name="csqnTot" type="double" value="15.0"/>
 	<Parameter name="constmCmdn" type="double" value="2.38e-3"/>
 	<Parameter name="constmCsqn" type="double" value="0.8"/>
@@ -37,18 +37,18 @@
 	<Parameter name="courNaK" type="double" value="0.013"/>
 	<Parameter name="constmNai" type="double" value="10.0"/>
 	<Parameter name="constmK0" type="double" value="1.5"/>
-	<Parameter name="permNsCa" type="double" value="1.75e-9"/>
+	<Parameter name="permNsCa" type="double" value="1.79e-9"/>
 	<Parameter name="constmNsCa" type="double" value="1.2e-3"/>
 	<Parameter name="courpCa" type="double" value="1.15e-2"/>
 	<Parameter name="constmpCa" type="double" value="0.5e-3"/>
-	<Parameter name="maxCondCab" type="double" value="6.032e-5"/>
+	<Parameter name="maxCondCab" type="double" value="3.016e-5"/>
 	<Parameter name="maxCondNab" type="double" value="1.41e-5"/>
-	<Parameter name="maxRyRPerm" type="double" value="1.8"/>
-	<Parameter name="leakRateConst" type="double" value="5.8e-5"/>
-	<Parameter name="pumpRateATPase" type="double" value="1.8e-3"/>
-	<Parameter name="constmUp" type="double" value="0.5e-3"/>
-	<Parameter name="timeConstNsrJsr" type="double" value="34.48"/>
-	<Parameter name="timeConstSubMyo" type="double" value="3.125"/>
+	<Parameter name="maxRyRPerm" type="double" value="3.6"/>
+	<Parameter name="leakRateConst" type="double" value="3.6e-4"/>
+	<Parameter name="pumpRateATPase" type="double" value="6.375e-3"/>
+	<Parameter name="constmUp" type="double" value="0.25e-3"/>
+	<Parameter name="timeConstNsrJsr" type="double" value="180.0"/>
+	<Parameter name="timeConstSubMyo" type="double" value="2.125"/>
 	<Parameter name="kAPlus" type="double" value="1.215e10"/>
 	<Parameter name="kANeg" type="double" value="0.1425"/>
 	<Parameter name="kBPlus" type="double" value="4.05e7"/>
@@ -59,12 +59,12 @@
 	<Parameter name="coopParamM" type="double" value="3.0"/>
 	<Parameter name="intoOpenSt" type="double" value="0.3"/>
 	<Parameter name="outOpenSt" type="double" value="2.0"/>
-	<Parameter name="intoOpenStCa" type="double" value="0.0"/>
-	<Parameter name="outOpenSt2" type="double" value="0.0"/>
+	<Parameter name="intoOpenStCa" type="double" value="6e-4"/>
+	<Parameter name="outOpenSt2" type="double" value="7.0"/>
 	<Parameter name="modeTParamA" type="double" value="2.0"/>
 	<Parameter name="modeTParamB" type="double" value="2.0"/>
 	<Parameter name="modeTParamO" type="double" value="0.01"/>
 	<Parameter name="permCa" type="double" value="33.75e-6"/>
-	<Parameter name="permK" type="double" value="1.0e-9"/>
-	<Parameter name="courCaHalf" type="double" value="-4.58e-3"/>
+	<Parameter name="permK" type="double" value="62.5e-9"/>
+	<Parameter name="courCaHalf" type="double" value="-0.458e-2"/>
 </ParameterList>
