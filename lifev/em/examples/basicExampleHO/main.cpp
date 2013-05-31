@@ -30,6 +30,7 @@
 #include <lifev/core/interpolation/RBFvectorial.hpp>
 
 #include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
+#include <sys/stat.h>
 
 using namespace LifeV;
 
@@ -45,7 +46,7 @@ Real d0(const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real& /*
 
 Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& Z, const ID& /*i*/)
 {
-	if( X < 0.1 ) return 1.0;
+	if( X < 0.05 ) return 1.0;
 	else return  0.;
 }
 
@@ -55,7 +56,7 @@ Real initialV0left(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const R
 	else return  0.;
 }
 
-Real fiberRotationRing(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& i)
+Real fiberRotationRing(const Real& /*t*/, const Real&  X, const Real& Y, const Real&/*Z*/, const ID& i)
 {
 	Real R = std::sqrt( X * X + Y * Y);
 	//Real teta = std::atan( Y / X );
@@ -100,15 +101,25 @@ static Real f0fun(const Real&, const Real& x, const Real&, const Real& , const I
     Real compy = std::cos(alpha);
     Real compz = std::sin(alpha);
 
-    compx = 0.0;
-    compy = 0.0;
-    compz = 1.0;
+//    compx = 0.0;
+//    compy = 0.0;
+//    compz = 1.0;
     if (comp == 0)
         return compx;
     else if (comp == 1)
         return compy;
     else
         return compz;
+}
+
+Real rescalingGamma(const Real&, const Real& x, const Real&, const Real& , const ID& /*comp*/)
+{
+	Real r = (1-x);
+	Real p = 3.14159265358979;
+	Real alpha = -2.0 * p/3. * x + p/3.;
+	Real circumferentialShortening = (0.05-0.2) * r +0.2;
+	Real max_gamma =  circumferentialShortening / std::cos(alpha);
+	return max_gamma;
 }
 
 int main (int argc, char** argv)
@@ -144,7 +155,22 @@ int main (int argc, char** argv)
     MPI_Init ( &argc, &argv );
 #endif
 
+    boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+    //*********************************************//
+    // creating output folder
+    //*********************************************//
+    GetPot commandLine ( argc, argv );
+    std::string problemFolder = commandLine.follow ( "Output", 2, "-o", "--output" );
+    // Create the problem folder
+    if ( problemFolder.compare ("./") )
+    {
+        problemFolder += "/";
 
+        if ( comm->MyPID() == 0 )
+        {
+            mkdir ( problemFolder.c_str(), 0777 );
+        }
+    }
 
   	//===========================================================
   	//===========================================================
@@ -152,7 +178,6 @@ int main (int argc, char** argv)
   	//===========================================================
   	//===========================================================
 
-    boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
     if ( comm->MyPID() == 0 )
     {
         cout << "% using MPI" << endl;
@@ -283,7 +308,7 @@ int main (int argc, char** argv)
     }
     }
     monodomain -> setupExporter ( exp, parameterList.get ("ElectroOutputFile", "ElectroOutput") );
-
+    exp.setPostDir ( problemFolder );
     if ( comm->MyPID() == 0 )
     {
         cout << "\nExport at 0:  " ;
@@ -452,13 +477,13 @@ int main (int argc, char** argv)
      function_Type fibersDirection = &f0fun;
      vectorPtr_Type solidFibers( new vector_Type( dFESpace -> map() ) );
      MPI_Barrier(MPI_COMM_WORLD);
-     dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *solidFibers , 0);
+//     dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *solidFibers , 0);
 //     if ( comm->MyPID() == 0 )
 //     {
 //         std::cout << "\nnorm Inf of the fibers after interpolation: " << solidFibers -> normInf() << std::endl;
 //     }
 
-     HeartUtility::normalize(*solidFibers);
+//     HeartUtility::normalize(*solidFibers);
      MPI_Barrier(MPI_COMM_WORLD);
 
 
@@ -507,7 +532,7 @@ int main (int argc, char** argv)
 
 //         electroFiberFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *electroFibers , 0);
 //         HeartUtility::normalize(*electroFibers);
-//       HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
+//     HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
          monodomain -> setFiberPtr( electroFibers );
     	 emDisp.reset(  new vector_Type( electroFibers -> map() ) );
     	 solidGammaf.reset( new vector_Type( solidaFESpace -> map() ) );
@@ -692,13 +717,14 @@ int main (int argc, char** argv)
       boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporter;
       exporter.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, parameterList.get ("StructureOutputFile", "StructureOutput") ) );
 
-      exporter->setPostDir ( "./" );
+      //      exporter->setPostDir ( "./" );
+            exporter -> setPostDir ( problemFolder );
       exporter->setMeshProcId ( localSolidMesh, comm->MyPID() );
 
       vectorPtr_Type solidDisp ( new vector_Type (solid.displacement(), exporter->mapType() ) );
       exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "displacement", dFESpace, solidDisp, UInt (0) );
       exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "solid_gammaf", solidaFESpace, solidGammaf, UInt (0) );
-      exporter->postProcess ( 0 );
+
 
 
 
@@ -712,7 +738,7 @@ int main (int argc, char** argv)
       ExporterHDF5< RegionMesh <LinearTetra> > expGammaf;
 	expGammaf.setMeshProcId(monodomain -> localMeshPtr(), comm->MyPID());
 	expGammaf.setPrefix(parameterList.get ("ActivationOutputFile", "ActivationOutput"));
-
+	expGammaf.setPostDir ( problemFolder );
 
 //  	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
 //  			monodomain -> feSpacePtr(), gammaf, UInt(0));
@@ -829,29 +855,6 @@ int main (int argc, char** argv)
     Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
     Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
 
-
-    //    #define deformationGradientTensor ( grad( electrodETFESpace, *emDisp, 0) + value( solid.material()-> identity() ) )
-//    #define RIGHTCAUCHYGREEN transpose(deformationGradientTensor) * deformationGradientTensor
-//    #define firstInvariantC trace( RIGHTCAUCHYGREEN )
-//    #define fiber0       ( value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) )
-//    #define fiber        ( deformationGradientTensor * fiber0 )
-//    #define I4f				dot( fiber, fiber)
-//    #define Ca    ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
-//    #define Ca2         (  Ca * Ca )
-//	#define dCa         ( Ca + value(-0.02155) )
-//#define Gammaf 			( value( aETFESpace, *gammaf ) )
-//   	#define Pa         ( value(-2.5) * eval(H, dCa ) * eval(H, dCa ) * eval( flg,  I4f) + value(1.0) )
-////   	#define Pa			  beta * eval( fl,  I4f)
-//
-//#define GammaPlusOne ( Gammaf + value(1.0) )
-////#define dW1		( ( I4f - value(1.0) ) )
-//#define dW1		(  )
-//#define dW		( ( ( dW1 ) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) ) )
-
-   //	#define dgGammaf ( value(-1.0) + value(-2.0) / ( GammaPlusOne ) + value(2.0) * Gammaf * ( Gammaf + value(2.0)  )* pow( GammaPlusOne, -3 ) )
-   //	#define activationEquation value(-1.0) * ( Pa  -  ( value(2.0) * GammaPlusOne * firstInvariantC + dgGammaf * I4f )  * value( mu / 2.0 ) ) / beta
-//#define activationEquation value(0.0005) * (Pa - dW) / ( Ca2 )
-
    	vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
     solidFESpacePtr_Type emDispFESpace ( new solidFESpace_Type ( monodomain -> localMeshPtr(), "P1", 3, comm) );
   	expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
@@ -864,8 +867,79 @@ int main (int argc, char** argv)
 
   	expGammaf.postProcess(0.0);
 
+    //================================================================//
+    //================================================================//
+    //					SETUP gamma rescaling						  //
+    //																  //
+    //================================================================//
+    //================================================================//
+  	vectorPtr_Type rescaling(new vector_Type( solidGammaf -> map() ) );
+  	function_Type resc = &rescalingGamma;
+    solidaFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( resc ), *rescaling , 0);
+  //  vectorPtr_Type emDisp0(new vector_Type( emDisp -> map() ) );
+
+
 
 	//===========================================================
+  	//===========================================================
+  	//				Initializing solid
+  	//===========================================================
+  	//===========================================================
+    if(parameterList.get("pressure_ramp", false) == true){
+		if ( comm->MyPID() == 0 )
+		{
+			std::cout << "\nSTARTING PRESSURE RAMP!\n" << std::endl;
+		}
+    	Real ramp_dt = parameterList.get("ramp_timestep", 0.1);
+    	for(Real pseudot(0); pseudot < 1; ){
+    		pseudot += ramp_dt;
+    		if ( comm->MyPID() == 0 )
+    		{
+    			std::cout << "\nPRESSURE RAMP: " << pseudot;
+    		}
+    		solid.data() -> dataTime() -> setTime(pseudot);
+    		solidBC -> handler() -> showMe();
+    		solid.iterate ( solidBC -> handler() );
+		}
+    }
+    *solidDisp = solid.displacement();
+    exporter->postProcess ( 0 );
+
+
+	if(usingDifferentMeshes)
+	{
+		if(solid.displacementPtr() -> normInf() > 0)
+		{
+			if ( comm->MyPID() == 0 )
+			{
+				std::cout << "\nINTERPOLATING FROM COARSE TO FINE!\n" << std::endl;
+			}
+
+			C2F -> updateRhs( solid.displacementPtr() );
+			C2F -> interpolate();
+			C2F -> solution( emDisp );
+		}
+		else *emDisp *= 0.0;
+	}
+    vectorPtr_Type emDisp0(new vector_Type( emDisp -> map() ) );
+    *emDisp0 = *emDisp;
+    cout << "\n\naddress emDisp: " << emDisp << ", emDisp0: " << emDisp0 << "\n\n";
+    //return 0.0;
+
+  	bool twoWayCoupling = parameterList.get("two_way", false);
+
+	  if(twoWayCoupling)
+	  {
+			if ( comm->MyPID() == 0 )
+			{
+				std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING!\n" << std::endl;
+			}
+
+			 monodomain -> setupStiffnessMatrix();
+			 monodomain -> setupGlobalMatrix();
+	  }
+
+    //===========================================================
   	//===========================================================
   	//				TIME LOOP
   	//===========================================================
@@ -879,7 +953,9 @@ int main (int argc, char** argv)
       int subiter = parameterList.get("subiter",100);
 
         Real dt_min = 0.01;
-  	bool twoWayCoupling = parameterList.get("two_way", false);
+
+
+
      for( Real t(0.0); t< monodomain -> endTime(); )
 	 {
 		  t = t + monodomain -> timeStep();
@@ -927,43 +1003,19 @@ int main (int argc, char** argv)
         }
 		timer.reset();
 
-//		  *gammaf = *( monodomain -> globalSolution().at(3) );
-//		  Real min =  0.2;
-//		  Real max =  0.85;
-//
-//		  Real beta = -0.3;
-
-//		  HeartUtility::rescaleVector(*gammaf, min, max, beta);
-
-	//	  if(finiteElement)
-	//	  {
-
-	//	  }
-//		  else
-//		  {
-//
-//			  int size = gammaf -> epetraVector().MyLength();
-//			  int i = 0;
-//			  for( int j(0); j< size; j++)
-//			  {
-//				  i = gammaf -> blockMap().GID(j);
-//				  gammaf(i) = gammaf(i) + monodomain -> timeStep() *
-//			  }
-//
-//		  }
 		  *tmpRhsActivation *= 0;
 			if ( comm->MyPID() == 0 )
 			{
-				std::cout << "\nASSEMBLING ACTIVATION EQUATION\n!" << std::endl;
+				std::cout << "\nASSEMBLING ACTIVATION EQUATION!\n" << std::endl;
 			}
 
 
-			  if( monodomain -> globalSolution().at(3) -> normInf() >= 0.02155)
+			  if( monodomain -> globalSolution().at(3) -> normInf() >= 0.0216)
 			  {
 
 					if ( comm->MyPID() == 0 )
 					{
-						std::cout << "\nI SHALL SOLVE THE ACTIVATION EQUATION\n!" << std::endl;
+						std::cout << "\nI SHALL SOLVE THE ACTIVATION EQUATION!\n" << std::endl;
 					}
 
 					{
@@ -1003,7 +1055,25 @@ int main (int argc, char** argv)
 						BOOST_AUTO_TPL(psi_iso_e, a * pow( eval(EXP, ( I1eiso + value(-3.0) ) ), B ) );
 						BOOST_AUTO_TPL(psi_f_e,  value(2.0) * af * eval( H, I4feisom1 ) /* ( I4feiso + value(-1.0) )*/  * pow( eval(EXP2, ( I4feiso + value(-1.0) ) ), Bf ) );
 
-						BOOST_AUTO_TPL(dW0, value(-1.0) * a + eval( H, I4feisom1 ) *  value(-2.0) * af /* ( I4feiso + value(-1.0) ) */ ) ;
+						//initial
+						BOOST_AUTO_TPL(Grad_u_i, grad( electrodETFESpace, *emDisp0, 0) );
+						BOOST_AUTO_TPL(F_i,      ( Grad_u_i + I ) );
+						BOOST_AUTO_TPL(J_i,       det(F_i) );
+						BOOST_AUTO_TPL(Jm23_i,    pow(J_i, -2./3));
+						BOOST_AUTO_TPL(I1_i,     dot(F_i, F_i));
+						BOOST_AUTO_TPL(I1iso_i,   Jm23_i * I1_i);
+						// Fibres
+						BOOST_AUTO_TPL(f_i,      F_i * f0 );
+						BOOST_AUTO_TPL(I4f_i,    dot(f_i, f_i) );
+						BOOST_AUTO_TPL(I4fiso_i,  Jm23_i * I4f_i);
+						BOOST_AUTO_TPL(I1eiso_i,   I1iso_i );
+						BOOST_AUTO_TPL(I4feiso_i,  I4fiso_i);
+						BOOST_AUTO_TPL(I4feisom1_i, ( I4feiso_i - value(1.0) ) );
+						BOOST_AUTO_TPL(psi_iso_e_i, a * pow( eval(EXP, ( I1eiso_i + value(-3.0) ) ), B ) );
+						BOOST_AUTO_TPL(psi_f_e_i,  value(2.0) * af * eval( H, I4feisom1_i ) /* ( I4feiso + value(-1.0) )*/  * pow( eval(EXP2, ( I4feiso_i + value(-1.0) ) ), Bf ) );
+
+						BOOST_AUTO_TPL(dW01, value(-1.0) * a + eval( H, I4feisom1_i ) *  value(-2.0) * af * ( I4feiso + value(-1.0) ) ) ;
+						BOOST_AUTO_TPL(dW0, value(-1.0) * ( psi_iso_e_i + psi_f_e_i ) * I4fiso_i ) ;
 						BOOST_AUTO_TPL(dW, value(-1.0) * ( psi_iso_e + psi_f_e ) * I4fiso * pow(gamma, -3) );
 
 
@@ -1014,17 +1084,18 @@ int main (int argc, char** argv)
 						BOOST_AUTO_TPL(dCa, Ca + value(Ca_diastolic) );
 					//    Real alpha1 = -2.5;
 						Real active_coefficient = dataFile( "solid/physics/active_coefficient", -2.5 );
-						BOOST_AUTO_TPL(Pa, value(active_coefficient) * a * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) + dW0 );
-						BOOST_AUTO_TPL(Pag, value(active_coefficient) * a * eval(H, dCa) * eval(H, dCa) * eval(flg, value( aETFESpace, *gammaf ) ) + dW0 );
+						BOOST_AUTO_TPL(coeff, a /*+ value(2.0) * af * eval( H, I4feisom1)*/ );
+						BOOST_AUTO_TPL(Pa, value(active_coefficient) * coeff * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) + dW0 );
+						//BOOST_AUTO_TPL(Pag, value(active_coefficient) * a * eval(H, dCa) * eval(H, dCa) * eval(flg, value( aETFESpace, *gammaf ) ) + dW0 );
 					  //  Real delta = 0.001;
 						Real viscosity = dataFile( "solid/physics/viscosity", 0.0005 );
-						BOOST_AUTO_TPL(beta, value(viscosity / A ) );
+						BOOST_AUTO_TPL(beta, value(viscosity )/ coeff );
 
 						BOOST_AUTO_TPL(dWs, a * pow(gamma, -1) );
 						BOOST_AUTO_TPL(gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );
 
 
-
+						timer.start();
 						integrate ( elements ( monodomain -> localMeshPtr() ),
 								monodomain -> feSpacePtr() -> qr() ,
 								monodomain -> ETFESpacePtr(),
@@ -1032,7 +1103,15 @@ int main (int argc, char** argv)
 						) >> tmpRhsActivation;
 
 					}
-
+					timer.stop();
+			        for(int pid(0); pid < 4; pid++)
+			        {
+							if ( comm->MyPID() == pid )
+							{
+									std::cout << "\nDone in " << timer.diff() << std::endl;
+							}
+			        }
+					timer.reset();
 
 					*rhsActivation *= 0;
 					*rhsActivation = ( *(mass) * ( *gammaf ) );
@@ -1044,13 +1123,37 @@ int main (int argc, char** argv)
 
 					if ( comm->MyPID() == 0 )
 					{
-						std::cout << "\nSOLVING ACTIVATION EQUATION\n!" << std::endl;
+						std::cout << "\nSOLVING ACTIVATION EQUATION!\n" << std::endl;
 					}
 
 
 					linearSolver.solve(gammaf);
 			  }
 			  else *gammaf *= 0.0;
+
+				if( gammaf -> maxValue() > 0.0)
+				{
+					int d = gammaf -> epetraVector().MyLength();
+					int size =  gammaf -> size();
+					for(int l(0); l < d; l++)
+					{
+						if ( comm->MyPID() == 0 )
+						{
+							std::cout << "\n*****************************************************";
+							std::cout << "\nChanging the gamma back to zero: " ;
+							std::cout << "\n*****************************************************";
+
+						}
+						int m1 = gammaf -> blockMap().GID(l);
+						//cout << m1 << "\t" << size << "\n";
+						if( (*gammaf)[m1] > 0)
+						{
+							(*gammaf)[m1] = 0.0;
+						}
+						std::cout << "\n";
+
+					}
+				}
 
 
 			  if ( k % iter == 0)
@@ -1061,7 +1164,7 @@ int main (int argc, char** argv)
 						{
 							if ( comm->MyPID() == 0 )
 							{
-								std::cout << "\nINTERPOLATING FROM FINE TO COARSE\n!" << std::endl;
+								std::cout << "\nINTERPOLATING FROM FINE TO COARSE!\n" << std::endl;
 							}
 
 							F2C -> updateRhs( gammaf );
@@ -1076,7 +1179,7 @@ int main (int argc, char** argv)
 					solid.material() -> setGammaf( *solidGammaf );
 					if ( comm->MyPID() == 0 )
 					{
-						std::cout << "\nSOLVING STATIC MECHANICS\n!" << std::endl;
+						std::cout << "\nSOLVING STATIC MECHANICS!\n" << std::endl;
 					}
 
 					if ( comm->MyPID() == 0 )
@@ -1092,15 +1195,46 @@ int main (int argc, char** argv)
 					//        timeAdvance->shiftRight ( solid.displacement() );
 
 					*solidDisp = solid.displacement();
+					if(parameterList.get("time_prestretch",false))
+					{
+						if( monodomain -> globalSolution().at(3)-> minValue() < 0.0216)
+						{
+							int d = monodomain -> globalSolution().at(3) -> epetraVector().MyLength();
+							int size =  monodomain -> globalSolution().at(3) -> size();
+							for(int l(0); l < d; l++)
+							{
+								if ( comm->MyPID() == 0 )
+								{
+									std::cout << "\n*****************************************************";
+									std::cout << "\nChanging the initial displacement: " ;
+									std::cout << "\n*****************************************************";
 
+								}
+								int m1 = monodomain -> globalSolution().at(3) -> blockMap().GID(l);
+								//cout << m1 << "\t" << size << "\n";
+								if( (*(monodomain -> globalSolution().at(3)))[m1] <= 0.0216)
+								{
+									std::cout << "\nchanging at: " << m1 ;
+									int m2 = solid.displacementPtr() -> blockMap().GID(l + size);
+									int m3 = solid.displacementPtr() -> blockMap().GID(l + 2 * size);
+									std::cout << "\n" << (*emDisp0)[m1] << " has become: ";
+									(*emDisp0)[m1] = (*emDisp)[m1];
+									std::cout << (*emDisp0)[m1] << "\n";
+									(*emDisp0)[m2] = (*emDisp)[m2];
+									(*emDisp0)[m3] = (*emDisp)[m3];
+								}
+								std::cout << "\n";
 
+							}
+						}
+					}
 					if(usingDifferentMeshes)
 					{
 						if(solid.displacementPtr() -> normInf() > 0)
 						{
 							if ( comm->MyPID() == 0 )
 							{
-								std::cout << "\nINTERPOLATING FROM COARSE TO FINE\n!" << std::endl;
+								std::cout << "\nINTERPOLATING FROM COARSE TO FINE!\n" << std::endl;
 							}
 
 							C2F -> updateRhs( solid.displacementPtr() );
@@ -1116,7 +1250,7 @@ int main (int argc, char** argv)
 					  {
 							if ( comm->MyPID() == 0 )
 							{
-								std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING\n!" << std::endl;
+								std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING!\n" << std::endl;
 							}
 
 							 monodomain -> setupStiffnessMatrix();
