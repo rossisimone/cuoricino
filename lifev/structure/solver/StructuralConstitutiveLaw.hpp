@@ -207,7 +207,7 @@ public:
        \param fileNameStiff the filename where to apply the spy method for the Stiffness matrix
     */
     virtual void showMe ( std::string const& fileNameStiff, std::string const& fileNameJacobian ) = 0;
-
+   // virtual void showMyParameters ();
 
     //! Compute the First Piola Kirchhoff Tensor
     /*!
@@ -283,6 +283,8 @@ public:
     inline virtual void setSheetVector( const vector_Type& /*sheetVector*/) {  }
 
     inline virtual void setGammaf(const vector_Type& /*gammaf*/){}
+    inline virtual void setGammas(const vector_Type& /*gammas*/){}
+    inline virtual void setGamman(const vector_Type& /*gamman*/){}
 
     inline virtual vectorPtr_Type gammaf()
     {
@@ -290,6 +292,19 @@ public:
     	k.reset( new vector_Type( M_dispFESpace -> map() ) );
     	return k;
     }
+    inline virtual vectorPtr_Type gammas()
+    {
+    	vectorPtr_Type k;
+    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
+    	return k;
+    }
+    inline virtual vectorPtr_Type gamman()
+    {
+    	vectorPtr_Type k;
+    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
+    	return k;
+    }
+
 
     inline virtual void setupFiberVector( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
 
