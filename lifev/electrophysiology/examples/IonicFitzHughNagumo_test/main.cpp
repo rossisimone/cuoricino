@@ -360,24 +360,24 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
-
-    string filenameSplitting =  monodomainList.get ("OutputFile", "FHN" );
-    filenameSplitting += "Splitting";
-    string filenameICI =  monodomainList.get ("OutputFile", "FHN");
-    filenameICI += "ICI";
-    string filenameSVI =  monodomainList.get ("OutputFile", "FHN" );
-    filenameSVI += "SVI";
-
-    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
-    ICI -> setupExporter ( exporterICI, filenameICI );
-    SVI -> setupExporter ( exporterSVI, filenameSVI );
-
-    splitting -> exportSolution ( exporterSplitting, 0);
-    ICI -> exportSolution ( exporterICI, 0);
-    SVI -> exportSolution ( exporterSVI, 0);
+//    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+//    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
+//    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
+//
+//    string filenameSplitting =  monodomainList.get ("OutputFile", "FHN" );
+//    filenameSplitting += "Splitting";
+//    string filenameICI =  monodomainList.get ("OutputFile", "FHN");
+//    filenameICI += "ICI";
+//    string filenameSVI =  monodomainList.get ("OutputFile", "FHN" );
+//    filenameSVI += "SVI";
+//
+//    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
+//    ICI -> setupExporter ( exporterICI, filenameICI );
+//    SVI -> setupExporter ( exporterSVI, filenameSVI );
+//
+//    splitting -> exportSolution ( exporterSplitting, 0);
+//    ICI -> exportSolution ( exporterICI, 0);
+//    SVI -> exportSolution ( exporterSVI, 0);
 
     //********************************************//
     // Solving the system                         //
@@ -387,7 +387,7 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-    Real Savedt = monodomainList.get ("saveStep", 0.1);
+//    Real Savedt = monodomainList.get ("saveStep", 0.1);
 //    Real TF = 2.0; //monodomainList.get ("endTime", 150.0);
 
     Real timesolvesplitting (0.);
@@ -395,22 +395,22 @@ Int main ( Int argc, char** argv )
     Real timesolveSVI (0.);
 
     chrono.start();
-    splitting   -> solveSplitting ( exporterSplitting, Savedt );
+    splitting   -> solveSplitting (  );
     chrono.stop();
     timesolvesplitting = chrono.globalDiff(*Comm);
-    exporterSplitting.closeFile();
+//    exporterSplitting.closeFile();
 
     chrono.start();
-    ICI         -> solveICI ( exporterICI, Savedt );
+    ICI         -> solveICI (  );
     chrono.stop();
     timesolveICI = chrono.globalDiff(*Comm);
-    exporterICI.closeFile();
+//    exporterICI.closeFile();
 
     chrono.start();
-    SVI         -> solveSVI ( exporterSVI, Savedt );
+    SVI         -> solveSVI ( );
     chrono.stop();
     timesolveSVI = chrono.globalDiff(*Comm);
-    exporterSVI.closeFile();
+//    exporterSVI.closeFile();
 
 
     //********************************************//
