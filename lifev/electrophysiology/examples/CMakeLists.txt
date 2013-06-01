@@ -29,10 +29,11 @@ ADD_SUBDIRECTORIES(
   IonicMinimalModel
   IonicMinimalModelPlaneWave
   IonicMinimalModelMesh
- # IonicMinimalModelNOlumping
-  IonicMinimalModel_pacingECG
+  IonicMinimalModelSpiral
+ # IonicMinimalModel_pacingECG
   IonicFox
-  IonicFox_pacingECG
+  IonicFoxSpiral
+ # IonicFox_pacingECG
   IonicTenTusscherModel
   Restart
   RosenbrockTest

@@ -26,15 +26,13 @@
 
 /*!
     @file
-    @brief 3D test with the Rogers-McCulloch model.
+    @brief 3D test with the Fox model 2002.
 
-    @date 01−2013
-    @author Simone Rossi <simone.rossi@epfl.ch>
+    @date 04−2013
+    @author Marie Dupraz <dupraz.marie@gmail.com>
 
-    @contributor Marie Dupraz <dupraz.marie@gmail.com>
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
-
-    Use to run some test : choice of the fibers direction, right mesh size, ...
+    @contributor
+    @mantainer Marie Dupraz <dupraz.marie@gmail.com>
  */
 
 // Tell the compiler to ignore specific kind of warnings:
@@ -80,12 +78,21 @@
 #endif
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
-#include <lifev/electrophysiology/solver/IonicModels/IonicFitzHughNagumo.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicFox.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
+
+//--------------------------------------------------------
+// For the pseudo- ECG
+//--------------------------------------------------------
+#include <lifev/core/function/Norm.hpp>
+#include <lifev/core/solver/ADRAssembler.hpp>
+#include <lifev/core/algorithm/LinearSolver.hpp>
+#include <lifev/core/algorithm/PreconditionerML.hpp>
+
 // ---------------------------------------------------------------
 // In order to use the ETA framework, a special version of the
 // FESpace structure must be used. It is called ETFESpace and
@@ -112,42 +119,62 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+// Choice of the fibers direction : ||.||=1
+Real Fibers (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& z, const ID& i)
 {
-    if ( sqrt( x*x + y*y ) <= 0.1 )
-    	return 80.0;
-    else
-    	return 0.0;
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    Real zmin = 0.0;
+    Real zmax = monodomainList.get ("domain_Z", 1. ); // 1.0;
+    Real L = zmax - zmin;
+    Real thetamin = M_PI /3.;
+    Real thetamax = -M_PI /3.;
+
+    Real ztheta = (L-z)/L;
+    Real theta = (thetamax - thetamin) * ztheta + thetamin;
+
+        switch(i){
+            case 0:
+                return  std::cos(theta); // x_fib; //y/N; //std::sqrt (2.0) / 2.0; //
+                break;
+            case 1:
+                return  std::sin(theta); // y_fib; //-x/N; //std::sqrt (2.0) / 2.0; //
+                break;
+            case 2:
+                return 0.0;
+                break;
+            default:
+                return 0.0;
+                break;
+    }
 }
 
-//// Choice of the fibers direction : ||.||=1
-//Real Fibers (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
+{
+    if ( x<= 0.05 )
+        return -14.7;
+    else if( x<= 0.1)
+        return 80.0*( 0.1 - x )/(0.05) - 94.7;
+    else
+        return -94.7;
+}
+Real Cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
+{
+    if ( y<= 0.5 )
+        return 80.0;
+    else if( y<= 0.55)
+        return 80.0*( 0.55 - y )/(0.1);
+    else
+        return 0.0;
+}
+//Real Cut2 (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
 //{
-//    Real zmin = 0.0;
-//    Real zmax = 0.5;
-//    Real L = zmax - zmin;
-//    Real thetamin = M_PI /3.;
-//    Real thetamax = -M_PI /3.;
-//
-//    Real ztheta = (L-z)/L;
-//    Real theta = (thetamax - thetamin) * ztheta + thetamin;
-//
-//        switch(i){
-//            case 0:
-//                return  std::cos(theta); // x_fib; //y/N; //std::sqrt (2.0) / 2.0; //
-//                break;
-//            case 1:
-//                return  std::sin(theta); // y_fib; //-x/N; //std::sqrt (2.0) / 2.0; //
-//                break;
-//            case 2:
-//                return 0.0;
-//                break;
-//            default:
-//                return 0.0;
-//                break;
-//    }
+//    if ( y<= 0.45 )
+//        return 0.0;
+////    else if( y<= 0.55)
+////        return -94.7*( 0.55 - y )/(0.1);
+//    else
+//        return -94.7;
 //}
-
 
 Int main ( Int argc, char** argv )
 {
@@ -164,13 +191,10 @@ Int main ( Int argc, char** argv )
     // Starts the chronometer.                    //
     //********************************************//
     LifeChrono chronoinitialsettings;
-    LifeChrono chrono;
-
     chronoinitialsettings.start();
 
     typedef RegionMesh<LinearTetra>            mesh_Type;
-    typedef boost::shared_ptr<mesh_Type>       meshPtr_Type;
-    typedef VectorEpetra vector_Type;
+    typedef boost::shared_ptr<mesh_Type>      meshPtr_Type;
     typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
     typedef FESpace< mesh_Type, MapEpetra >    feSpace_Type;
     typedef boost::shared_ptr<feSpace_Type>    feSpacePtr_Type;
@@ -178,9 +202,14 @@ Int main ( Int argc, char** argv )
                                     const Real &   x,
                                     const Real &   y,
                                     const Real& /*z*/,
-                                    const ID&   /*i*/ ) > function_Type;
-
-    typedef ElectroETAMonodomainSolver< mesh_Type, IonicFitzHughNagumo > monodomainSolver_Type;
+                                    const ID&   /*i*/ ) >   function_Type;
+    typedef VectorEpetra                        vector_Type;
+    typedef MatrixEpetra<Real>                  matrix_Type;
+    typedef LifeV::Preconditioner               basePrec_Type;
+    typedef boost::shared_ptr<basePrec_Type>    basePrecPtr_Type;
+    typedef LifeV::PreconditionerML             prec_Type;
+    typedef boost::shared_ptr<prec_Type>        precPtr_Type;
+    typedef ElectroETAMonodomainSolver< mesh_Type, IonicFox >        monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
 
     //********************************************//
@@ -193,7 +222,7 @@ Int main ( Int argc, char** argv )
     {
         std::cout << "Importing parameters list...";
     }
-    Teuchos::ParameterList FHNParameterList = * ( Teuchos::getParametersFromXmlFile ( "FitzHughNagumoParameters.xml" ) );
+    Teuchos::ParameterList FoxParameterList = * ( Teuchos::getParametersFromXmlFile ( "FoxParameters.xml" ) );
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
     if ( Comm->MyPID() == 0 )
     {
@@ -208,14 +237,13 @@ Int main ( Int argc, char** argv )
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << "Building Constructor for Fitz-Hugh Nagumo Model with parameters ... ";
+        std::cout << "Building Constructor for Fox Model with default parameters ... ";
     }
-    boost::shared_ptr<IonicFitzHughNagumo>  model ( new IonicFitzHughNagumo (FHNParameterList) );
+    boost::shared_ptr<IonicFox>  model ( new IonicFox ( ) );
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
     }
-
 
     // +-----------------------------------------------+
     // |               Loading the mesh                |
@@ -228,13 +256,13 @@ Int main ( Int argc, char** argv )
     meshPtr_Type fullMeshPtr ( new mesh_Type ( Comm ) );
 
     VectorSmall<3> meshDim;
-    meshDim[0] =  monodomainList.get ("meshDim_X", 32 );
-    meshDim[1] =  monodomainList.get ("meshDim_Y", 32 );
-    meshDim[2] =  monodomainList.get ("meshDim_Z", 2 );
+    meshDim[0] =  monodomainList.get ("meshDim_X", 10 );
+    meshDim[1] =  monodomainList.get ("meshDim_Y", 10 );
+    meshDim[2] =  monodomainList.get ("meshDim_Z", 10 );
     VectorSmall<3> domain;
     domain[0] =  monodomainList.get ("domain_X", 1. );
     domain[1] =  monodomainList.get ("domain_Y", 1. );
-    domain[2] =  monodomainList.get ("domain_Z", 0.0625 );
+    domain[2] =  monodomainList.get ("domain_Z", 1. );
 
     // Building the mesh from the source
     regularMesh3D ( *fullMeshPtr,
@@ -260,6 +288,13 @@ Int main ( Int argc, char** argv )
     fullMeshPtr.reset(); //Freeing the global mesh to save memory
 
     //********************************************//
+    // In the parameter list we need to specify   //
+    // the mesh name and the mesh path.           //
+    //********************************************//
+//    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
+//    std::string meshPath = monodomainList.get ("mesh_path", "./");
+
+    //********************************************//
     // We need the GetPot datafile for to setup   //
     // the preconditioner.                        //
     //********************************************//
@@ -279,13 +314,12 @@ Int main ( Int argc, char** argv )
     }
 
     monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
-    monodomainSolverPtr_Type ICI ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
+    const feSpacePtr_Type FESpacePtr =  splitting->feSpacePtr(); //FE Space
 
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Splitting solver done... ";
     }
-
 
     //********************************************//
     // Setting up the initial condition form      //
@@ -299,11 +333,19 @@ Int main ( Int argc, char** argv )
     //Compute the potential at t0
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
-    ICI -> setPotentialFromFunction ( f ); //initialize potential
 
-    //setting up initial conditions
-    * ( splitting -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
-    * ( ICI -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
+    * ( splitting -> globalSolution().at (1) ) = FoxParameterList.get ("gatingM",2.4676e-4);
+    * ( splitting -> globalSolution().at (2) ) = FoxParameterList.get ("gatingH", 0.99869);
+    * ( splitting -> globalSolution().at (3) ) = FoxParameterList.get ("gatingJ", 0.99887);
+    * ( splitting -> globalSolution().at (4) ) = FoxParameterList.get ("gatingXKR", 0.229);
+    * ( splitting -> globalSolution().at (5) ) = FoxParameterList.get ("gatingXKS", 0.0001);
+    * ( splitting -> globalSolution().at (6) ) = FoxParameterList.get ("gatingXT0", 3.742e-5);
+    * ( splitting -> globalSolution().at (7) ) = FoxParameterList.get ("gatingYT0", 1.0);
+    * ( splitting -> globalSolution().at (8) ) = FoxParameterList.get ("gatingF", 0.983);
+    * ( splitting -> globalSolution().at (9) ) = FoxParameterList.get ("gatingD", 0.0001);
+    * ( splitting -> globalSolution().at (10) ) = FoxParameterList.get ("gatingFCA", 0.942);
+    * ( splitting -> globalSolution().at (11) ) = FoxParameterList.get ("concentrationCAIN", 0.0472);
+    * ( splitting -> globalSolution().at (12) ) = FoxParameterList.get ("concentrationCASR", 320.0);
 
     if ( Comm->MyPID() == 0 )
     {
@@ -314,70 +356,37 @@ Int main ( Int argc, char** argv )
     // Setting up the time data                   //
     //********************************************//
     splitting -> setParameters ( monodomainList );
-    ICI -> setParameters ( monodomainList );
 
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
-    VectorSmall<3> fibers;
-    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2.0) / 2.0 );
-    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2.0) / 2.0 );
-    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+    function_Type Fiber_fct;
+    Fiber_fct = &Fibers;
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+    ( new FESpace< mesh_Type, MapEpetra > ( splitting->localMeshPtr(), "P1", 3, Comm) );
+    vectorPtr_Type fibers_vect(new vector_Type( Space3D->map() ));
+    Space3D -> interpolate(static_cast< FESpace < RegionMesh<LinearTetra >, MapEpetra >::function_Type>(Fiber_fct), *fibers_vect,0. );
 
-    splitting->setupFibers(fibers);
-    ICI->setupFibers(fibers);
-//
-//    function_Type Fiber_fct;
-//    Fiber_fct = &Fibers;
-//    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-//    ( new FESpace< mesh_Type, MapEpetra > ( splitting->localMeshPtr(), "P1", 3, Comm) );
-//    vectorPtr_Type fibers_vect(new vector_Type( Space3D->map() ));
-//    Space3D -> interpolate(static_cast< FESpace < RegionMesh<LinearTetra >, MapEpetra >::function_Type>(Fiber_fct), *fibers_vect,0. );
-//
-//    splitting ->setFiberPtr(fibers_vect);
+    splitting ->setFiberPtr(fibers_vect);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
-    Real timematrixsplitting (0.);
-    Real timematrixICI (0.);
-
-    chrono.start();
     splitting -> setupLumpedMassMatrix();
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
-    chrono.stop();
-    timematrixsplitting = chrono.globalDiff(*Comm);
 
-    chrono.start();
-    ICI -> setupLumpedMassMatrix();
-    ICI -> setupStiffnessMatrix();
-    ICI -> setupGlobalMatrix();
-    chrono.stop();
-    timematrixICI = chrono.globalDiff(*Comm);
-
-    monodomainSolverPtr_Type SVI ( new monodomainSolver_Type ( *ICI ) );
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
 
-    string filenameSplitting =  monodomainList.get ("OutputFile", "FHN" );
-    filenameSplitting += "Splitting";
-    string filenameICI =  monodomainList.get ("OutputFile", "FHN");
-    filenameICI += "ICI";
-    string filenameSVI =  monodomainList.get ("OutputFile", "FHN" );
-    filenameSVI += "SVI";
+    string filenameSplitting =  monodomainList.get ("OutputFile", "Mesh" );
+    filenameSplitting += "FoxSpiral";
 
-    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
-    ICI -> setupExporter ( exporterICI, filenameICI );
-    SVI -> setupExporter ( exporterSVI, filenameSVI );
+    splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
 
     splitting -> exportSolution ( exporterSplitting, 0);
-    ICI -> exportSolution ( exporterICI, 0);
-    SVI -> exportSolution ( exporterSVI, 0);
 
     //********************************************//
     // Solving the system                         //
@@ -388,30 +397,53 @@ Int main ( Int argc, char** argv )
     }
 
     Real Savedt = monodomainList.get ("saveStep", 0.1);
-//    Real TF = 2.0; //monodomainList.get ("endTime", 150.0);
+    Real timeStep = monodomainList.get ("timeStep", 0.01);
+    Real endTime = monodomainList.get ("endTime", 10.);
+    Real initialTime = monodomainList.get ("initialTime", 0.);
 
-    Real timesolvesplitting (0.);
-    Real timesolveICI (0.);
-    Real timesolveSVI (0.);
+    Real TCut1 = monodomainList.get ("TCut", 35.0) - timeStep/2.0;
+    Real TCut2 = monodomainList.get ("TCut", 35.0) + timeStep/2.0;
+    function_Type g = &Cut;
+    vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
+//    function_Type g2 = &Cut2;
+//    vectorPtr_Type M_Cut2(new VectorEpetra( splitting->feSpacePtr()->map() ));
+    feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&FESpacePtr);
 
-    chrono.start();
-    splitting   -> solveSplitting ( exporterSplitting, Savedt );
-    chrono.stop();
-    timesolvesplitting = chrono.globalDiff(*Comm);
+    vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
+    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+
+    int iter((Savedt / timeStep)+ 1e-9);
+    int nbTimeStep (1);
+    int k(0);
+    if (endTime > timeStep) {
+        for (Real t = initialTime; t < endTime;) {
+            t += timeStep;
+            k++;
+            if (nbTimeStep==1) {
+                    splitting->solveOneReactionStepFE();
+                    (*(splitting->rhsPtrUnique())) *= 0;
+                    splitting->updateRhs();
+                    splitting->solveOneDiffusionStepBE();
+                    splitting->exportSolution(exporterSplitting, t);
+            }else{
+                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+                splitting->solveOneReactionStepFE(2);
+                (*(splitting->rhsPtrUnique())) *= 0;
+                splitting->updateRhs();
+//                splitting->solveOneDiffusionStepBE();
+                splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
+                splitting->solveOneReactionStepFE(2);
+                if (k % iter == 0) splitting->exportSolution(exporterSplitting, t);
+            }
+            nbTimeStep++;
+
+            if( t >= TCut1 && t<=TCut2){
+                splitting->setAppliedCurrentFromFunction(g);
+           }
+        }
+    }
+
     exporterSplitting.closeFile();
-
-    chrono.start();
-    ICI         -> solveICI ( exporterICI, Savedt );
-    chrono.stop();
-    timesolveICI = chrono.globalDiff(*Comm);
-    exporterICI.closeFile();
-
-    chrono.start();
-    SVI         -> solveSVI ( exporterSVI, Savedt );
-    chrono.stop();
-    timesolveSVI = chrono.globalDiff(*Comm);
-    exporterSVI.closeFile();
-
 
     //********************************************//
     // Saving Fiber direction to file             //
@@ -420,17 +452,6 @@ Int main ( Int argc, char** argv )
 
     chronoinitialsettings.stop();
     std::cout << "\n\n\nElapsed time : " << chronoinitialsettings.diff() << std::endl;
-
-
-    if ( Comm->MyPID() == 0 )
-    {
-        ofstream output_time(monodomainList.get ("OutputFile", "Times").c_str());
-        output_time << "Time matrix splitting : " << timematrixsplitting << std::endl;
-        output_time << "Time matrix ICI : " << timematrixICI << std::endl;
-        output_time << "Time solving splitting : " << timesolvesplitting << std::endl;
-        output_time << "Time solving ICI : " << timesolveICI << std::endl;
-        output_time << "Time solving SVI : "<<timesolveSVI<<std::endl;
-    }
 
     if ( Comm->MyPID() == 0 )
     {

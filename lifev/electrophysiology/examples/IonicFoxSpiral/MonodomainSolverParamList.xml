@@ -5,14 +5,12 @@
     <Parameter name="k" type="double" value="8.0"  />
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
-    <Parameter name="timeStep" type="double" value="0.1"  />
-    <Parameter name="endTime" type="double" value="10.0"  />
+    <Parameter name="timeStep" type="double" value="0.0025"  />
+    <Parameter name="endTime" type="double" value="3.0"  />
+    <Parameter name="saveStep" type="double" value="0.25"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0001"  />
     <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
-    <Parameter name="saveStep" type="double" value="1.0"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="lid25.mesh"  />
-    <Parameter name="mesh_path" type="string" value="../Meshes/"  />
     <Parameter name="fiber_X" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />
@@ -21,7 +19,10 @@
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
-	<Parameter name="OutputFile" type="string" value="FHN32"/>
+	<Parameter name="OutputFile" type="string" value="Mesh05"/>
+	
+	<!-- Mesh parameters -->
+	<Parameter name="TCut" type="double" value="1.5"  />
 	
 	<!-- Mesh parameters -->
 	<Parameter name="meshDim_X" type="int" value="32"  />

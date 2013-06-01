@@ -146,49 +146,24 @@ Real Fibers (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real
     }
 }
 
-Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
-    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
-    Real pacingSite_X = monodomainList.get ("pacingSite_X", 0.);
-    Real pacingSite_Y = monodomainList.get ("pacingSite_Y", 0.);
-    Real pacingSite_Z = monodomainList.get ("domain_Z", 1. );
-    Real stimulusRadius = 0.1; // monodomainList.get ("stimulusRadius", 0.1);
-
-    if (  ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
-                    <= ( stimulusRadius * stimulusRadius ) )
+    if ( x<= 0.05 )
         return 1.0;
+    else if( x<= 0.1)
+        return 1.0*( 0.1 - x )/(0.05);
     else
         return 0.0;
 }
-
-
-Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+Real Cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
-    Real pacingSite_X = monodomainList.get ("pacingSite_X", 0.);
-    Real pacingSite_Y = monodomainList.get ("pacingSite_Y", 0.);
-    Real pacingSite_Z = monodomainList.get ("pacingSite_Z", 1.);
-    Real stimulusRadius = monodomainList.get ("stimulusRadius", 0.1);
-    Real stimulusValue = monodomainList.get ("stimulusValue", 1.);
-
-    Real returnValue1;
-
-    // --- Pacing protocol parameters -----------------------------------
-
-    std::vector<double> returnPeriods;
-    std::vector<double> returnStimulusTime;
-
-    if (  ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
-        <= ( stimulusRadius * stimulusRadius ) ){
-        returnValue1 = stimulusValue;
-    }else{
-        returnValue1 = 0.;
-    }
-
-    Real returnValue = returnValue1;
-    return returnValue;
+    if ( y<= 0.45 )
+        return 1.0;
+    else if( y<= 0.55)
+        return ( 0.55 - y )/(0.1);
+    else
+        return 0.0;
 }
-
 
 Int main ( Int argc, char** argv )
 {
@@ -341,11 +316,8 @@ Int main ( Int argc, char** argv )
         cout << "\nInitializing potential:  " ;
     }
     //Compute the potential at t0
-    function_Type pacing = &PacingProtocol;
     function_Type f = &Stimulus2;
-
     splitting -> setPotentialFromFunction ( f );
-//    splitting -> initializePotential();
 
     // APD calculation variables
     Int sz = 0;
@@ -368,56 +340,6 @@ Int main ( Int argc, char** argv )
         cout << "Done! \n" ;
     }
 
-    //********************************************//
-    // Setting up the pacing protocol             //
-    //********************************************//
-    bool PacingProtocol = monodomainList.get ("pacingProtocol", false);
-    std::vector<double> returnStimulusTime;
-    std::vector<double> returnPeriods;
-
-    Real stimulusStart = monodomainList.get ("stimulusStart", 0.);
-    Real stimulusStop = monodomainList.get ("stimulusStop", 0.05);
-    Int stimulusNumber;
-    Int NumberPacingPeriods;
-
-    int i(0);
-
-    if (PacingProtocol){
-        Real pacingPeriod = monodomainList.get ("pacingPeriod", 500.);
-        Real pacingPeriodMin = monodomainList.get ("pacingPeriodMin", 400.);
-        Real pacingDelta = monodomainList.get ("pacingDelta", 0.);
-        stimulusNumber = monodomainList.get ("stimulusNumber", 1);
-        NumberPacingPeriods = (pacingPeriod-pacingPeriodMin)/pacingDelta;
-        //--- Pacing method
-        if ( pacingDelta >0 ){    // IF pacing
-            for(int k=0; k <= NumberPacingPeriods-1; k++ ){
-                for(i = stimulusNumber * k; i <= stimulusNumber * (k+1)-1; i++){
-                    returnPeriods.push_back ( pacingPeriod - k * pacingDelta );
-                    if ( i==0 ){
-                        returnStimulusTime.push_back( returnPeriods[0] );
-                    }else{
-                        returnStimulusTime.push_back ( returnStimulusTime[i-1]+returnPeriods[i] );
-                    }
-                }
-            }
-        }
-    }else{
-        returnPeriods.push_back( monodomainList.get ("stimulus0", 300.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus1", 250.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus2", 200.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus3", 175.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus4", 150.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus5", 125.) );
-        NumberPacingPeriods = 6;
-        stimulusNumber = 1;
-        for(int k=0; k <= NumberPacingPeriods-1; k++ ){
-            if (k==0) {
-                returnStimulusTime.push_back( returnPeriods[0] );
-            }else{
-                returnStimulusTime.push_back ( returnStimulusTime[k-1]+returnPeriods[k] );
-            }
-        }
-    }
     //*******************************************//
     // Setting up the pseudo-ECG                 //
     //*******************************************//
@@ -543,6 +465,12 @@ Int main ( Int argc, char** argv )
     Real endTime = monodomainList.get ("endTime", 10.);
     Real initialTime = monodomainList.get ("initialTime", 0.);
 
+    Real TCut1 = monodomainList.get ("TCut", 35.0) - timeStep/2.0;
+    Real TCut2 = monodomainList.get ("TCut", 35.0) + timeStep/2.0;
+    function_Type g = &Cut;
+    vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
+    feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&FESpacePtr);
+
     vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
     *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
     int control = 0;
@@ -564,17 +492,6 @@ Int main ( Int argc, char** argv )
             control = 0;
 
             t += timeStep;
-               for(i = 0; i<= NumberPacingPeriods * stimulusNumber - 1; i++){
-                   if ( control < 1 ){
-                       if ( (t >= (returnStimulusTime[i] + stimulusStart) && t <= (returnStimulusTime[i] + stimulusStop + timeStep)) ){
-                           splitting -> setAppliedCurrentFromFunction ( pacing );
-                           std::cout << "stim_time " << t << std::endl;
-                           control = control + 1;
-                       }else{
-                           splitting -> initializeAppliedCurrent();
-                       }
-                   }
-               }
             k++;
 
             if (nbTimeStep==1) {
@@ -624,6 +541,13 @@ Int main ( Int argc, char** argv )
            *DELTA_APDptr = delta_apd;
 
            MPI_Allreduce(&pseudoEcgReal,&Global_pseudoEcgReal,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD); // rapporte a une variable connue de tous les procs
+           if( t >= TCut1 && t<=TCut2)
+           {
+               (*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
+               *(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
+               //*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
+           }
+
         }
     }
 
