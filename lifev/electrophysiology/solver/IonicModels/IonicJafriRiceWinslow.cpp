@@ -61,8 +61,8 @@
 		M_kNHtrpn   ( 0.066e-3 ),
 		M_kPLtrpn   ( 40.0 ),
 		M_kNLtrpn   ( 0.04 ),
-		M_CmdnTot   ( 0.09 ),
-		M_CsqnTot   ( 0.15 ),
+		M_CmdnTot   ( 0.05 ),
+		M_CsqnTot   ( 15.0 ),
 		M_KmCmdn    ( 2.38e-3 ),
 		M_KmCsqn    ( 0.8 ),
 		M_Cm   		( 0.01 ),
@@ -72,29 +72,29 @@
 		M_GNa       ( 0.128 ),
 		M_GKp       ( 8.28e-5 ),
 		M_PNaK      ( 0.01833 ),
-		M_kNaCa     ( 50.0 ),
+		M_kNaCa     ( 10.0 ),
 		M_KmNa      ( 87.5 ),
 		M_KmCa      ( 1.38 ),
 		M_kSat      ( 0.1 ),
 		M_eta       ( 0.35 ),
-		M_INaK      ( 0.013 ),
+		M_INaK      ( 2.724e-2 ),
 		M_KmNai     ( 10.0 ),
 		M_KmK0      ( 1.5 ),
 		M_PnsCa     ( 0.0 ),
 		M_KmNsCa    ( 1.2e-3 ),
 		M_IpCa      ( 1.15e-2 ),
 		M_KmPCa     ( 0.5e-3 ),
-		M_GCab      ( 3.016e-5 ),
+		M_GCab      ( 6.032e-5 ),
 		M_GNab      ( 1.41e-5 ),
-		M_v1       	( 3.6 ),
+		M_v1       	( 1.8 ),
 		M_v2        ( 3.6e-4 ),
 		M_v3        ( 6.375e-3 ),
-		M_KmUp      ( 0.25e-3 ),
-		M_tauTr     ( 180.0 ),
-		M_tauXFer   ( 2.125 ),
+		M_KmUp      ( 0.5e-3 ),
+		M_tauTr     ( 34.48 ),
+		M_tauXFer   ( 3.125 ),
 		M_kap       ( 1.215e10 ),
-		M_kan       ( 0.145 ),
-		M_kbp       ( 4.05e7 ),
+		M_kan       ( 0.1425 ),
+		M_kbp       ( 4.05e6 ),
 		M_kbn       ( 1.93 ),
 		M_kcp       ( 0.018 ),
 		M_kcn       ( 0.0008 ),
@@ -102,13 +102,13 @@
 		M_m         ( 3.0 ),
 		M_f         ( 0.3 ),
 		M_g         ( 2.0 ),
-		M_fprime    ( 6e-4 ),
-		M_gprime    ( 7.0 ),
+		M_fprime    ( 0.0 ),
+		M_gprime    ( 0.0 ),
 		M_a         ( 2.0 ),
 		M_b         ( 2.0 ),
 		M_omega     ( 0.01 ),
 		M_PCa       ( 33.75e-6 ),
-		M_PK        ( 62.5e-9 ),
+		M_PK        ( 1.0e-9 ),
 		M_ICaHalf   ( -4.58e-3 )
 	{}
 
@@ -129,8 +129,8 @@
 		M_kNHtrpn   = parameterList.get ( "knHtrpn", 0.066e-3 );
 		M_kPLtrpn   = parameterList.get ( "kpLtrpn", 40.0 );
 		M_kNLtrpn   = parameterList.get ( "knLtrpn", 0.04 );
-		M_CmdnTot   = parameterList.get ( "cmdnTot", 0.09 );
-		M_CsqnTot   = parameterList.get ( "csqnTot", 0.15 );
+		M_CmdnTot   = parameterList.get ( "cmdnTot", 0.05 );
+		M_CsqnTot   = parameterList.get ( "csqnTot", 15.0 );
 		M_KmCmdn    = parameterList.get ( "constmCmdn", 2.38e-3 );
 		M_KmCsqn    = parameterList.get ( "constmCsqn", 0.8 );
 		M_Cm		= parameterList.get ( "capMem", 0.01 );
@@ -140,29 +140,29 @@
 		M_GNa       = parameterList.get ( "maxCondNa", 0.128 );
 		M_GKp       = parameterList.get ( "maxCondKp", 8.28e-5 );
 		M_PNaK      = parameterList.get ( "permNaK", 0.01833 );
-		M_kNaCa     = parameterList.get ( "kNaCA", 50.0 );
+		M_kNaCa     = parameterList.get ( "kNaCA", 10.0 );
 		M_KmNa      = parameterList.get ( "constmNa", 87.5 );
 		M_KmCa      = parameterList.get ( "constmCa", 1.38 );
 		M_kSat      = parameterList.get ( "kSat", 0.1 );
 		M_eta       = parameterList.get ( "eta", 0.35 );
-		M_INaK      = parameterList.get ( "courNaK", 0.013 );
+		M_INaK      = parameterList.get ( "courNaK", 2.742e-2 );
 		M_KmNai     = parameterList.get ( "constmNai", 10.0 );
 		M_KmK0      = parameterList.get ( "constmK0", 1.5 );
 		M_PnsCa     = parameterList.get ( "permNsCa", 0.0 );
 		M_KmNsCa    = parameterList.get ( "constmNsCa", 1.2e-3 );
 		M_IpCa      = parameterList.get ( "courpCa", 1.15e-2 );
 		M_KmPCa     = parameterList.get ( "constmpCa", 0.5e-3 );
-		M_GCab      = parameterList.get ( "maxCondCab", 3.016e-5 );
+		M_GCab      = parameterList.get ( "maxCondCab", 6.032e-5 );
 		M_GNab      = parameterList.get ( "maxCondNab", 1.41e-5 );
-		M_v1       	= parameterList.get ( "maxRyRPerm", 3.6 );
+		M_v1       	= parameterList.get ( "maxRyRPerm", 1.8 );
 		M_v2        = parameterList.get ( "leakRateConst", 3.6e-4 );
 		M_v3        = parameterList.get ( "pumpRateATPase", 6.375e-3 );
-		M_KmUp      = parameterList.get ( "constmUp", 0.25e-3 );
-		M_tauTr     = parameterList.get ( "timeConstNsrJsr", 180.0 );
-		M_tauXFer   = parameterList.get ( "timeConstSubMyo", 2.125 );
+		M_KmUp      = parameterList.get ( "constmUp", 0.5e-3 );
+		M_tauTr     = parameterList.get ( "timeConstNsrJsr", 34.48 );
+		M_tauXFer   = parameterList.get ( "timeConstSubMyo", 3.125 );
 		M_kap       = parameterList.get ( "kAPlus", 1.215e10 );
 		M_kan       = parameterList.get ( "kANeg", 0.1425 );
-		M_kbp       = parameterList.get ( "kBPlus", 4.05e7 );
+		M_kbp       = parameterList.get ( "kBPlus", 4.05e6 );
 		M_kbn       = parameterList.get ( "kBNeg", 1.93 );
 		M_kcp       = parameterList.get ( "kCPlus", 0.018 );
 		M_kcn       = parameterList.get ( "kCNeg", 0.0008 );
@@ -170,13 +170,13 @@
 		M_m         = parameterList.get ( "coopParamM", 3.0 );
 		M_f         = parameterList.get ( "intoOpenSt", 0.3 );
 		M_g         = parameterList.get ( "outOpenSt", 2.0 );
-		M_fprime    = parameterList.get ( "intoOpenStCa", 6e-4 );
-		M_gprime    = parameterList.get ( "outOpenSt2", 7.0 );
+		M_fprime    = parameterList.get ( "intoOpenStCa", 0.0 );
+		M_gprime    = parameterList.get ( "outOpenSt2", 0.0 );
 		M_a         = parameterList.get ( "modeTParamA", 2.0 );
 		M_b         = parameterList.get ( "modeTParamB", 2.0 );
 		M_omega     = parameterList.get ( "modeTParamO", 0.01 );
 		M_PCa       = parameterList.get ( "permCa", 33.75e-6 );
-		M_PK        = parameterList.get ( "permK", 62.5e-9 );
+		M_PK        = parameterList.get ( "permK", 1.0e-9 );
 		M_ICaHalf   = parameterList.get ( "courCaHalf", -4.58e-3 );
 	}
 
@@ -489,8 +489,8 @@
 		Real betaprime  = beta / M_b;
 		Real gamma      = 0.1875 * cCaSS;
 
-		Real yinf   = 1 / ( 1 + std::exp( ( V + 55.0 ) / 7.5 ) ) + 0.1 / ( 1 + std::exp( -V + 21.0 ) / 6.0 );
-		Real tauY   = 20 + 600 / ( 1 + std::exp( V + 30 ) / 9.5 );
+		Real yinf   = 1 / ( 1 + std::exp( ( V + 55.0 ) / 7.5 ) ) + 0.1 / ( 1 + std::exp( ( -V + 21.0 ) / 6.0 ) );
+		Real tauY   = 20 + 600 / ( 1 + std::exp( ( V + 30 ) / 9.5 ) );
 		Real iCaMax = M_PCa * 4 * ( V * M_F * M_F ) / ( M_R * M_T ) * ( 0.001 * std::exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 0.341 * M_CaO )
 						/ ( std::exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 1.0 );
 		Real iCa    = y * ( o + oCa ) * iCaMax;
@@ -575,12 +575,12 @@
 			alpha_h = 0.0;
 			alpha_j = 0.0;
 			beta_h  = 1.0 / ( 0.13 * ( 1.0 + std::exp( ( V + 10.66 ) / -11.1 ) ) );
-			beta_j  = 0.3 * std::exp( -2.535e-7 * V) / ( 1.0 + std::exp( -0.1 * ( V + 32.0 ) ) );
+			beta_j  = 0.3 * std::exp( -2.535e-7 * V ) / ( 1.0 + std::exp( -0.1 * ( V + 32.0 ) ) );
 		}
 		else
 		{
 			alpha_h = 0.135 * std::exp( ( 80 + V ) / -6.8 );
-			alpha_j = ( -127140 * std::exp( 0.2444 * V) - 3.474e-5 * std::exp( -0.04391 * V ) ) * ( V + 37.78 ) / ( 1.0 + std::exp ( 0.311 * ( V + 79.23 ) ) );
+			alpha_j = ( -127140 * std::exp( 0.2444 * V ) - 3.474e-5 * std::exp( -0.04391 * V ) ) * ( V + 37.78 ) / ( 1.0 + std::exp ( 0.311 * ( V + 79.23 ) ) );
 			beta_h  = 3.56 * std::exp( 0.079 * V ) + 3.1e5 * std::exp( 0.35 * V ) ;
 			beta_j  = 0.1212 * std::exp( -0.01052 * V ) / ( 1.0 + std::exp( -0.1378 * ( V + 40.14 ) ) );
 		}
@@ -614,7 +614,7 @@
 
 
 		Real potK     = ( M_R * M_T / M_F ) * std::log( ( cKo + M_PNaK * M_NaO ) / ( cKi + M_PNaK * cNa ) );
-		Real maxCondK = 0.001128 * sqrt( cKo / 5.4 );
+		Real maxCondK = 0.1128e-2 * sqrt( cKo / 5.4 );
 		Real xi       = 1.0 / ( 1.0 + std::exp( ( V - 56.26 ) / 32.1 ) );
 
 		timeDK[0] = maxCondK * xi * x * x * ( V - potK );
@@ -635,9 +635,9 @@
 		Real cKo ( v[7] );
 
 		Real potK1      = ( M_R * M_T / M_F ) * std::log( cKo / cKi );
-		Real maxCondK1  = 7.5e-3 * sqrt( cKo / 5.4 );
+		Real maxCondK1  = 0.75e-2 * sqrt( cKo / 5.4 );
 		Real alphaK1    = 1.02 / ( 1.0 + std::exp( 0.2385 * ( V - potK1 - 59.215 ) ) );
-		Real betaK1     = ( 0.4912 * std::exp( 0.08032 * ( V - potK1 + 5.476 ) ) + std::exp( 0.06175 * ( V - potK1 - 594.31 ) ) ) / ( 1.0 + std::exp( -0.5143 * (V - potK1 + 4.753 ) ) );
+		Real betaK1     = ( 0.4912 * std::exp( 0.08032 * ( V - potK1 + 5.476 ) ) + std::exp( 0.06175 * ( V - potK1 - 594.31 ) ) ) / ( 1.0 + std::exp( -0.5143 * ( V - potK1 + 4.753 ) ) );
 		Real constK1inf = alphaK1 / ( alphaK1 + betaK1 );
 
 		return  maxCondK1 * constK1inf * ( V - potK1 );
@@ -664,9 +664,8 @@
 		Real cNa ( v[5] );
 		Real cCa ( v[8] );
 
-
 		 return M_kNaCa * ( 1.0 / ( std::pow(M_KmNa, 3) + std::pow(M_NaO, 3) ) ) * ( 1.0 / ( M_KmCa + M_CaO ) )
-				* (1.0 / ( 1.0 + M_kSat * std::exp( ( M_eta - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) )
+				* ( 1.0 / ( 1.0 + M_kSat * std::exp( ( M_eta - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) )
 				* ( std::exp( M_eta * ( V * M_F ) / ( M_R * M_T ) ) * std::pow(cNa, 3) * M_CaO -
 						std::exp( ( M_eta - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) * std::pow(M_NaO, 3) * cCa );
 	}
@@ -781,7 +780,7 @@
 		Real constINa   = M_GNa * std::pow(m, 3) * h * j;
 		Real constInsCa = 1.0 / ( 1.0 + std::pow(M_KmNsCa / cCa, 3) );
 		Real constINaCa = M_kNaCa * ( 1.0 / ( std::pow(M_KmNa, 3) + std::pow(M_NaO, 3) ) ) * ( 1.0 / ( M_KmCa + M_CaO ) )
-								* (1.0 / ( 1.0 + M_kSat * std::exp( ( M_eta - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) );
+								* ( 1.0 / ( 1.0 + M_kSat * std::exp( ( M_eta - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) );
 		Real sigma      = ( 1.0 / 7.0 ) * ( std::exp( M_NaO / 67.3 ) - 1.0 );
 		Real fNak       = 1.0 / ( 1.0 + 0.1245 * std::exp( -0.1 * ( V * M_F ) / ( M_R * M_T ) ) +
 								0.0365 * sigma * std::exp( -( V * M_F ) / ( M_R * M_T ) ) );
@@ -971,12 +970,12 @@
        	Real sigma     = ( 1.0 / 7.0 ) * ( std::exp( M_NaO / 67.3 ) - 1.0 );
 		Real fNak      = 1.0 / ( 1.0 + 0.1245 * std::exp( -0.1 * ( V * M_F ) / ( M_R * M_T ) ) + 0.0365 * sigma * std::exp( -( V * M_F ) / ( M_R * M_T ) ) );
         Real constINaK = M_INaK * fNak * ( 1.0 / ( 1.0 + std::pow( M_KmNai / cNa, 1.5) ) );
-        Real iCaMax    = M_PCa * 4 * (V * M_F * M_F ) / ( M_R * M_T ) * ( 0.001 * std::exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 0.341 * M_CaO )
+        Real iCaMax    = M_PCa * 4 * ( V * M_F * M_F ) / ( M_R * M_T ) * ( 0.001 * std::exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 0.341 * M_CaO )
                             / ( std::exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 1.0 );
 		Real iCa       = y * ( o + oCa ) * iCaMax;
 		Real constInsCa = 1.0 / ( 1.0 + std::pow(M_KmNsCa / cCa, 3) );
 		Real pK        = M_PK / ( 1.0 + iCaMax / M_ICaHalf );
-		Real constICaK = pK * y * ( o + oCa ) * (V * M_F * M_F ) / ( M_R * M_T );
+		Real constICaK = pK * y * ( o + oCa ) * ( V * M_F * M_F ) / ( M_R * M_T );
 
         Real cKo0        (cKo);
 
@@ -1087,7 +1086,7 @@
         Real djLeak     = - M_v2;
         Real djXFer     = - 1.0 / M_tauXFer;
         Real constINaCa = M_kNaCa * ( 1.0 / ( std::pow(M_KmNa, 3) + std::pow(M_NaO, 3) ) ) * ( 1.0 / ( M_KmCa + M_CaO ) )
-                            * (1.0 / ( 1.0 + M_kSat * std::exp( ( M_eta - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) );
+                            * ( 1.0 / ( 1.0 + M_kSat * std::exp( ( M_eta - 1.0 ) * ( V * M_F ) / ( M_R * M_T ) ) ) );
 
 		Real cCai0  ( cCa );
 
@@ -1123,8 +1122,8 @@
 						+ M_kPLtrpn * cCa * ( M_LtrpnTot - cLTrpnCa ) - M_kNLtrpn * cLTrpnCa;
             djTRPN = M_kPHtrpn * ( M_HtrpnTot - cHTrpnCa ) + M_kPLtrpn * ( M_LtrpnTot - cLTrpnCa );
 
-			bi     = 1 / ( 1 + M_CmdnTot * M_KmCmdn / ( ( M_KmCmdn + cCa ) * ( M_KmCmdn + cCa ) ) );
-			dbi    = 2 * std::pow (1 + M_CmdnTot * M_KmCmdn / ( ( M_KmCmdn + cCa ) * ( M_KmCmdn + cCa ) ), -2) * M_CmdnTot * M_KmCmdn / std::pow(M_KmCmdn + cCa, 3);
+			bi     = 1.0 / ( 1.0 + M_CmdnTot * M_KmCmdn / ( ( M_KmCmdn + cCa ) * ( M_KmCmdn + cCa ) ) );
+			dbi    = 2.0 * std::pow ( 1.0 + M_CmdnTot * M_KmCmdn / ( ( M_KmCmdn + cCa ) * ( M_KmCmdn + cCa ) ), -2) * M_CmdnTot * M_KmCmdn / std::pow(M_KmCmdn + cCa, 3);
 
             potCaN = ( ( M_R * M_T ) / ( 2 * M_F ) ) * std::log( M_CaO / cCa );
             ICab   = M_GCab * ( V - potCaN );
