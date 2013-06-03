@@ -398,23 +398,39 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-//    Real Savedt = monodomainList.get ("saveStep", 0.1);
-//    Real TF = 2.0; //monodomainList.get ("endTime", 150.0);
+    Real dt = monodomainList.get ("timeStep", 0.1);
+    Real TF = monodomainList.get ("endTime", 150.0);
 
-    Real timesolvesplitting (0.);
-    Real timesolvesplittingNOL (0.);
+    ofstream output("norm.txt");
 
-    chrono.start();
-    splitting   -> solveSplitting (  );
-    chrono.stop();
-    timesolvesplitting = chrono.globalDiff(*Comm);
-//    exporterSplitting.closeFile();
+    Real diff_norm (0.);
+    Real normS (0.);
+    Real normSNL (0.);
 
-    chrono.start();
-    SplittingNoLumping   -> solveSplitting();
-    chrono.stop();
-    timesolvesplittingNOL = chrono.globalDiff(*Comm);
-////    exporterICI.closeFile();
+    for ( Real t = 0.0; t < TF; ){
+        t = t + dt;
+        splitting   -> solveOneSplittingStep();
+        normS = (*(splitting->globalSolution().at(0))).norm2();
+        SplittingNoLumping -> solveOneSplittingStep();
+        normSNL = (*(SplittingNoLumping->globalSolution().at(0))).norm2();
+
+
+        diff_norm = (*(splitting->globalSolution().at(0))-*(SplittingNoLumping->globalSolution().at(0))).norm2();
+        output << normS << " " << normSNL << " " << diff_norm << " " << (diff_norm)/normS << std::endl;
+
+    }
+
+//    chrono.start();
+//    splitting   -> solveSplitting (  );
+//    chrono.stop();
+//    timesolvesplitting = chrono.globalDiff(*Comm);
+////    exporterSplitting.closeFile();
+//
+//    chrono.start();
+//    SplittingNoLumping   -> solveSplitting();
+//    chrono.stop();
+//    timesolvesplittingNOL = chrono.globalDiff(*Comm);
+//////    exporterICI.closeFile();
 
 
 
@@ -426,15 +442,15 @@ Int main ( Int argc, char** argv )
     chronoinitialsettings.stop();
     std::cout << "\n\n\nElapsed time : " << chronoinitialsettings.diff() << std::endl;
 
-
-    if ( Comm->MyPID() == 0 )
-    {
-        ofstream output_time(monodomainList.get ("OutputFile", "Times").c_str());
-        output_time << "Time matrix splitting : " << timematrixsplitting << std::endl;
-        output_time << "Time matrix ICI : " << timematrixICI << std::endl;
-        output_time << "Time solving splitting lumped : " << timesolvesplitting << std::endl;
-        output_time << "Time solving splitting NL: " << timesolvesplittingNOL << std::endl;
-    }
+//
+//    if ( Comm->MyPID() == 0 )
+//    {
+//        ofstream output_time(monodomainList.get ("OutputFile", "Times").c_str());
+//        output_time << "Time matrix splitting : " << timematrixsplitting << std::endl;
+//        output_time << "Time matrix ICI : " << timematrixICI << std::endl;
+//        output_time << "Time solving splitting lumped : " << timesolvesplitting << std::endl;
+//        output_time << "Time solving splitting NL: " << timesolvesplittingNOL << std::endl;
+//    }
 
     if ( Comm->MyPID() == 0 )
     {
