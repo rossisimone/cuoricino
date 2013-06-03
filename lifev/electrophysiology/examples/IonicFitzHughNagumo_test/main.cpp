@@ -279,7 +279,7 @@ Int main ( Int argc, char** argv )
     }
 
     monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
-    monodomainSolverPtr_Type ICI ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
+    monodomainSolverPtr_Type SplittingNoLumping ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
 
     if ( Comm->MyPID() == 0 )
     {
@@ -299,11 +299,13 @@ Int main ( Int argc, char** argv )
     //Compute the potential at t0
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
-    ICI -> setPotentialFromFunction ( f ); //initialize potential
+    SplittingNoLumping -> setPotentialFromFunction ( f ); //initialize potential
+//    ICI -> setPotentialFromFunction ( f ); //initialize potential
 
     //setting up initial conditions
     * ( splitting -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
-    * ( ICI -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
+    * ( SplittingNoLumping -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
+//    * ( ICI -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
 
     if ( Comm->MyPID() == 0 )
     {
@@ -314,7 +316,8 @@ Int main ( Int argc, char** argv )
     // Setting up the time data                   //
     //********************************************//
     splitting -> setParameters ( monodomainList );
-    ICI -> setParameters ( monodomainList );
+    SplittingNoLumping -> setParameters ( monodomainList );
+//    ICI -> setParameters ( monodomainList );
 
     //********************************************//
     // Create a fiber direction                   //
@@ -325,7 +328,8 @@ Int main ( Int argc, char** argv )
     fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
 
     splitting->setupFibers(fibers);
-    ICI->setupFibers(fibers);
+    SplittingNoLumping->setupFibers(fibers);
+//    ICI->setupFibers(fibers);
 //
 //    function_Type Fiber_fct;
 //    Fiber_fct = &Fibers;
@@ -350,13 +354,20 @@ Int main ( Int argc, char** argv )
     timematrixsplitting = chrono.globalDiff(*Comm);
 
     chrono.start();
-    ICI -> setupLumpedMassMatrix();
-    ICI -> setupStiffnessMatrix();
-    ICI -> setupGlobalMatrix();
+    SplittingNoLumping -> setupMassMatrix();
+    SplittingNoLumping -> setupStiffnessMatrix();
+    SplittingNoLumping -> setupGlobalMatrix();
     chrono.stop();
     timematrixICI = chrono.globalDiff(*Comm);
 
-    monodomainSolverPtr_Type SVI ( new monodomainSolver_Type ( *ICI ) );
+//    chrono.start();
+//    ICI -> setupLumpedMassMatrix();
+//    ICI -> setupStiffnessMatrix();
+//    ICI -> setupGlobalMatrix();
+//    chrono.stop();
+//    timematrixICI = chrono.globalDiff(*Comm);
+
+
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
@@ -391,8 +402,7 @@ Int main ( Int argc, char** argv )
 //    Real TF = 2.0; //monodomainList.get ("endTime", 150.0);
 
     Real timesolvesplitting (0.);
-    Real timesolveICI (0.);
-    Real timesolveSVI (0.);
+    Real timesolvesplittingNOL (0.);
 
     chrono.start();
     splitting   -> solveSplitting (  );
@@ -401,16 +411,11 @@ Int main ( Int argc, char** argv )
 //    exporterSplitting.closeFile();
 
     chrono.start();
-    ICI         -> solveICI (  );
+    SplittingNoLumping   -> solveSplitting();
     chrono.stop();
-    timesolveICI = chrono.globalDiff(*Comm);
-//    exporterICI.closeFile();
+    timesolvesplittingNOL = chrono.globalDiff(*Comm);
+////    exporterICI.closeFile();
 
-    chrono.start();
-    SVI         -> solveSVI ( );
-    chrono.stop();
-    timesolveSVI = chrono.globalDiff(*Comm);
-//    exporterSVI.closeFile();
 
 
     //********************************************//
@@ -427,9 +432,8 @@ Int main ( Int argc, char** argv )
         ofstream output_time(monodomainList.get ("OutputFile", "Times").c_str());
         output_time << "Time matrix splitting : " << timematrixsplitting << std::endl;
         output_time << "Time matrix ICI : " << timematrixICI << std::endl;
-        output_time << "Time solving splitting : " << timesolvesplitting << std::endl;
-        output_time << "Time solving ICI : " << timesolveICI << std::endl;
-        output_time << "Time solving SVI : "<<timesolveSVI<<std::endl;
+        output_time << "Time solving splitting lumped : " << timesolvesplitting << std::endl;
+        output_time << "Time solving splitting NL: " << timesolvesplittingNOL << std::endl;
     }
 
     if ( Comm->MyPID() == 0 )
