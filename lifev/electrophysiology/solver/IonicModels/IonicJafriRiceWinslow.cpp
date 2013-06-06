@@ -140,7 +140,7 @@
 		M_GNa       = parameterList.get ( "maxCondNa", 0.128 );
 		M_GKp       = parameterList.get ( "maxCondKp", 8.28e-5 );
 		M_PNaK      = parameterList.get ( "permNaK", 0.01833 );
-		M_kNaCa     = parameterList.get ( "kNaCA", 10.0 );
+		M_kNaCa     = parameterList.get ( "kNaCa", 10.0 );
 		M_KmNa      = parameterList.get ( "constmNa", 87.5 );
 		M_KmCa      = parameterList.get ( "constmCa", 1.38 );
 		M_kSat      = parameterList.get ( "kSat", 0.1 );
