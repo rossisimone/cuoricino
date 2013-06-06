@@ -8,9 +8,9 @@
 	<Parameter name="stIntS1S2Min" type="double" value="400.0"/>
 	<Parameter name="stIntS2S3" type="double" value="350.0"/>
 	<Parameter name="stIntS3S4" type="double" value="250.0"/>
-	<Parameter name="nbStimMax" type="int" value="50"/>
+	<Parameter name="nbStimMax" type="int" value="84"/>
 	<Parameter name="repeatSt" type="int" value="15"/>
-	<Parameter name="pacPro" type="string" value="DynPro"/>
+	<Parameter name="pacPro" type="string" value="FCL"/>
 	<Parameter name="pacProType" type="string" value=""/>
 	<Parameter name="iStim" type="double" value="-52.0"/>
 	<Parameter name="stimDur" type="double" value="1.0"/>
