@@ -198,10 +198,10 @@ Int main ( Int argc, char** argv )
     // solution.                                  //
     //********************************************//
 
-    string filename             = "output2.txt";
+    string filename             = "output.txt";
     string filenameStimPro      = "outputStimPro.txt";
 
-    std::ofstream output        ("output2.txt");
+    std::ofstream output        ("output.txt");
     std::ofstream outputStimPro ("outputStimPro.txt");
 
     //********************************************//
@@ -289,13 +289,13 @@ Int main ( Int argc, char** argv )
 ////				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
          }
 
-        unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
-        unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
-        unknowns.at (7)  = model.computeNewtonKo    (unknowns, dt, 10);
-        unknowns.at (8)  = model.computeNewtonCai   (unknowns, dt, 10);
-        unknowns.at (9)  = model.computeNewtonCaNSR (unknowns, dt, 10);
-        unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
-        unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
+//        unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
+//        unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
+//        unknowns.at (7)  = model.computeNewtonKo    (unknowns, dt, 10);
+//        unknowns.at (8)  = model.computeNewtonCai   (unknowns, dt, 10);
+//        unknowns.at (9)  = model.computeNewtonCaNSR (unknowns, dt, 10);
+//        unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
+//        unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
 
 
 //        unknowns0 = unknowns;
