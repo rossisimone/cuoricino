@@ -305,6 +305,19 @@ public:
     	return k;
     }
 
+    inline virtual vectorPtr_Type fiberVectorPtr()
+    {
+    	vectorPtr_Type k;
+    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
+    	return k;
+    }
+    inline virtual vectorPtr_Type sheetVectorPtr()
+    {
+    	vectorPtr_Type k;
+    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
+    	return k;
+    }
+
 
     inline virtual void setupFiberVector( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
 
