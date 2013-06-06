@@ -159,7 +159,7 @@ Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real&
 }
 Real Cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( y<= 0.5 )
+    if ( y<= 0.45 )
         return 80.0;
     else if( y<= 0.55)
         return 80.0*( 0.55 - y )/(0.1);
@@ -402,7 +402,7 @@ Int main ( Int argc, char** argv )
     Real initialTime = monodomainList.get ("initialTime", 0.);
 
     Real TCut1 = monodomainList.get ("TCut", 35.0) - timeStep/2.0;
-    Real TCut2 = monodomainList.get ("TCut", 35.0) + timeStep/2.0;
+//    Real TCut2 = monodomainList.get ("TCut", 35.0) + 2timeStep;
     function_Type g = &Cut;
     vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
 //    function_Type g2 = &Cut2;
@@ -419,27 +419,34 @@ Int main ( Int argc, char** argv )
         for (Real t = initialTime; t < endTime;) {
             t += timeStep;
             k++;
-            if (nbTimeStep==1) {
-                    splitting->solveOneReactionStepFE();
-                    (*(splitting->rhsPtrUnique())) *= 0;
-                    splitting->updateRhs();
-                    splitting->solveOneDiffusionStepBE();
-                    splitting->exportSolution(exporterSplitting, t);
-            }else{
-                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
-                splitting->solveOneReactionStepFE(2);
-                (*(splitting->rhsPtrUnique())) *= 0;
-                splitting->updateRhs();
-//                splitting->solveOneDiffusionStepBE();
-                splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
-                splitting->solveOneReactionStepFE(2);
-                if (k % iter == 0) splitting->exportSolution(exporterSplitting, t);
-            }
+            if (k % iter == 0)
+                splitting -> solveOneSplittingStep(exporterSplitting, t);
+            else
+                splitting -> solveOneSplittingStep();
+//            if (nbTimeStep==1) {
+//                    splitting->solveOneReactionStepFE();
+//                    (*(splitting->rhsPtrUnique())) *= 0;
+//                    splitting->updateRhs();
+//                    splitting->solveOneDiffusionStepBE();
+//                    splitting->exportSolution(exporterSplitting, t);
+//            }else{
+//                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+//                splitting->solveOneReactionStepFE(2);
+//                (*(splitting->rhsPtrUnique())) *= 0;
+//                splitting->updateRhs();
+////                splitting->solveOneDiffusionStepBE();
+//                splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
+//                splitting->solveOneReactionStepFE(2);
+//                if (k % iter == 0) splitting->exportSolution(exporterSplitting, t);
+//            }
             nbTimeStep++;
 
-            if( t >= TCut1 && t<=TCut2){
+            if( t >= TCut1 && t<=(TCut1+1)){
                 splitting->setAppliedCurrentFromFunction(g);
+           }else{
+               splitting->initializeAppliedCurrent();
            }
+
         }
     }
 

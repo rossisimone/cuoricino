@@ -624,6 +624,10 @@ Int main ( Int argc, char** argv )
            *DELTA_APDptr = delta_apd;
 
            MPI_Allreduce(&pseudoEcgReal,&Global_pseudoEcgReal,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD); // rapporte a une variable connue de tous les procs
+
+           if (  Comm->MyPID() == 0 ){
+                       output << Global_pseudoEcgReal << "\n";
+           }
         }
     }
 

@@ -136,7 +136,7 @@ Int main ( Int argc, char** argv )
     // the differential equation.                 //
     //********************************************//
     cout << "Initializing rhs..." ;
-    std::vector<Real> rhs (model.Size(), 0);
+    std::vector<Real> rhs (model.Size()+1, 0);
     cout << " Done! "  << endl;
 
     //********************************************//
@@ -171,6 +171,7 @@ Int main ( Int argc, char** argv )
 
     int iter(0);
     int savedt( parameterList.get( "savedt", 1.0) / dt );
+    Real ICa (0.);
 
     for ( Real t = 0; t < TF; )
     {
@@ -197,13 +198,15 @@ Int main ( Int argc, char** argv )
         //********************************************//
         model.computeRhs ( unknowns, Iapp, rhs );
 
+
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
 
         iter++;
         if( iter % savedt == 0){
-            output << t <<", "<< unknowns.at (0) <<"\n";
+            output << t <<", "<< unknowns.at (0) << " " << unknowns.at(10) << " " << unknowns.at(11)
+                            << " " << rhs.at(13) << "\n"; //
 //            for ( int j (0); j <= 2; j++)
 //            {
 //                output << unknowns.at (j) << ", ";

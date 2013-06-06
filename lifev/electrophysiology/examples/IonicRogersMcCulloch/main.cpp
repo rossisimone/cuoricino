@@ -155,6 +155,10 @@ Int main ( Int argc, char** argv )
     // Starts the chronometer.                    //
     //********************************************//
     LifeChrono chronoinitialsettings;
+
+    LifeChrono chrono;
+    Real timeECGsolve (0.);
+
     chronoinitialsettings.start();
 
     typedef RegionMesh<LinearTetra> mesh_Type;
@@ -468,9 +472,12 @@ Int main ( Int argc, char** argv )
 		// ECG : discrete laplacian of the solution
 		(*rhs_Laplacian) = (*systemMatrixL) * (*(splitting->globalSolution().at(0)));
 		
+		chrono.start();
 		linearSolver2.setOperator ( systemMatrixM );
         linearSolver2.setRightHandSide ( rhs_Laplacian );
         linearSolver2.solve ( pseudoEcgVec_ptr );
+        chrono.stop();
+        timeECGsolve += chrono.globalDiff(*Comm);
 
         pseudoEcgVec = (*pseudoEcgVec_ptr)/ecgDistance;
 
@@ -514,6 +521,11 @@ Int main ( Int argc, char** argv )
     {
         cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
+
+    if ( Comm->MyPID() == 0 )
+        {
+            cout << "\nTime ECG   " << timeECGsolve <<std::endl;
+        }
 
     MPI_Barrier (MPI_COMM_WORLD);
     }

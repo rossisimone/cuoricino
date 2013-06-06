@@ -284,8 +284,14 @@
 
         rhs[0] = computeLocalPotentialRhs(v, Iapp);
 
-        std::copy( gatingRhs.begin(), gatingRhs.end(), rhs.begin() + 1 );
-        std::copy( subSysCaRhs.begin(), subSysCaRhs.end() - 1, rhs.begin() + 1 + gatingRhs.size() );
+        if (rhs.size() > M_numberOfEquations){
+            std::copy( gatingRhs.begin(), gatingRhs.end(), rhs.begin() + 1 );
+            std::copy( subSysCaRhs.begin(), subSysCaRhs.end(), rhs.begin() + 1 + gatingRhs.size() );
+        }else{
+            std::copy( gatingRhs.begin(), gatingRhs.end(), rhs.begin() + 1 );
+            std::copy( subSysCaRhs.begin(), subSysCaRhs.end() - 1, rhs.begin() + 1 + gatingRhs.size() );
+        }
+
     }
 
     Real IonicFox::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp )

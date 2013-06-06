@@ -26,6 +26,7 @@ ADD_SUBDIRECTORIES(
   IonicFitzHughNagumo
   IonicFitzHughNagumo_test
   IonicRogersMcCulloch
+  IonicRogersMcCullochSpiral
   IonicMinimalModel
   IonicMinimalModelPlaneWave
   IonicMinimalModelMesh

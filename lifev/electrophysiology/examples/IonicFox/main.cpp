@@ -341,6 +341,9 @@ Int main ( Int argc, char** argv )
     Real endTime = monodomainList.get ("endTime", 10.);
     Real initialTime = monodomainList.get ("initialTime", 0.);
 
+
+    splitting   -> solveSplitting(exporterSplitting,Savedt);
+
     vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
     *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
 
