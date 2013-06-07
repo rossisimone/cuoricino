@@ -402,13 +402,21 @@ Int main ( Int argc, char** argv )
             }
         }
     }else{
-        returnPeriods.push_back( monodomainList.get ("stimulus0", 300.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus1", 250.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus2", 200.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus3", 175.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus4", 150.) );
-        returnPeriods.push_back( monodomainList.get ("stimulus5", 125.) );
-        NumberPacingPeriods = 6;
+        returnPeriods.push_back( monodomainList.get ("stimulus0", 500.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus1", 450.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus2", 425.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus3", 400.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus4", 375.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus5", 350.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus6", 325.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus7", 300.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus8", 275.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus9", 275.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus10", 275.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus11", 275.) );
+
+        NumberPacingPeriods = monodomainList.get ("NbStimulusPeriod", 12);
+
         stimulusNumber = 1;
         for(int k=0; k <= NumberPacingPeriods-1; k++ ){
             if (k==0) {
