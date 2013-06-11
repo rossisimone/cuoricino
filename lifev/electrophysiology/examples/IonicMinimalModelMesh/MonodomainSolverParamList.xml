@@ -21,7 +21,11 @@
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
-	<Parameter name="OutputFile" type="string" value="Mesh"/>
+	
+	<Parameter name="OutputFile" type="string" value="MM_restart_"/>
+	
+	<Parameter name="StartFile" type="string" value="MMStartSplitting"/>
+	<Parameter name="StartIteration" type="string" value="00050"/>
 
 	<!-- Pacing parameters-->
 	<Parameter name="pacingProtocol" type="bool" value="false"/>

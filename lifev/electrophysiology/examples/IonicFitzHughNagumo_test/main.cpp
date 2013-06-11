@@ -112,12 +112,19 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
 {
-    if ( sqrt( x*x + y*y ) <= 0.1 )
-    	return 80.0;
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    Real pacingSite_X = monodomainList.get ("pacingSite_X", 0.);
+    Real pacingSite_Y = monodomainList.get ("pacingSite_Y", 0.);
+    Real pacingSite_Z = monodomainList.get ("pacingSite_Z", 0. );
+    Real stimulusRadius = 0.1; // monodomainList.get ("stimulusRadius", 0.1);
+
+    if (  ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
+                    <= ( stimulusRadius * stimulusRadius ) )
+        return 80.0;
     else
-    	return 0.0;
+        return 0.0;
 }
 
 //// Choice of the fibers direction : ||.||=1
@@ -154,6 +161,7 @@ Int main ( Int argc, char** argv )
 
     //! Initializing Epetra communicator
     MPI_Init (&argc, &argv);
+    {
     boost::shared_ptr<Epetra_Comm>  Comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
     if ( Comm->MyPID() == 0 )
     {
@@ -182,6 +190,14 @@ Int main ( Int argc, char** argv )
 
     typedef ElectroETAMonodomainSolver< mesh_Type, IonicFitzHughNagumo > monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
+
+    typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > >    filterPtr_Type;
+    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >                                  hdf5Filter_Type;
+    typedef boost::shared_ptr<hdf5Filter_Type>                                              hdf5FilterPtr_Type;
+    typedef ExporterData<mesh_Type>                           exporterData_Type;
+    typedef Exporter< mesh_Type >                             IOFile_Type;
+    typedef boost::shared_ptr< IOFile_Type >                  IOFilePtr_Type;
+    typedef ExporterHDF5< mesh_Type >                         hdf5IOFile_Type;
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -279,13 +295,53 @@ Int main ( Int argc, char** argv )
     }
 
     monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
-    monodomainSolverPtr_Type SplittingNoLumping ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
 
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Splitting solver done... ";
     }
 
+//    //***********************************************//
+//    //              RESTART Protocol                 //
+//    //***********************************************//
+//
+//    string filenameStart =  monodomainList.get ("StartFile", "FHNStartSplitting" );
+//    std::string sol ( filenameStart ); // name of the file from which we want to restart
+//
+//    // Setting up the importer
+//    filterPtr_Type importer ( new hdf5Filter_Type( ) );
+//    importer->setMeshProcId ( splitting -> localMeshPtr(), Comm -> MyPID() );
+//    importer->setPrefix ( sol );
+//
+//    // Import the value of the potential and gating variable
+//    monodomainSolver_Type::vectorPtr_Type newSol;
+//    newSol.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
+//
+//    exporterData_Type ImportDataPotential (exporterData_Type::ScalarField, "Variable0.00030", splitting -> feSpacePtr(),
+//                                              newSol, UInt (0), exporterData_Type::UnsteadyRegime);
+//
+//    monodomainSolver_Type::vectorPtr_Type newGating;
+//    newGating.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
+//
+//    exporterData_Type ImportDataGating (exporterData_Type::ScalarField, "Variable1.00030", splitting -> feSpacePtr(),
+//                                                  newGating, UInt (0), exporterData_Type::UnsteadyRegime);
+//
+//    importer->readVariable ( ImportDataPotential );
+//    importer->readVariable( ImportDataGating );
+//
+//    //********************************************//
+//    // Setting up the initial condition form      //
+//    // a given function.                          //
+//    //********************************************//
+//    if ( Comm->MyPID() == 0 )
+//    {
+//        cout << "\nInitializing potential:  " ;
+//    }
+//
+//    splitting-> setPotentialPtr(newSol);
+//    * ( splitting -> globalSolution().at (1) ) = *newGating;
+
+    //****************************************************************************************//
 
     //********************************************//
     // Setting up the initial condition form      //
@@ -299,12 +355,10 @@ Int main ( Int argc, char** argv )
     //Compute the potential at t0
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
-    SplittingNoLumping -> setPotentialFromFunction ( f ); //initialize potential
 //    ICI -> setPotentialFromFunction ( f ); //initialize potential
 
     //setting up initial conditions
     * ( splitting -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
-    * ( SplittingNoLumping -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
 //    * ( ICI -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
 
     if ( Comm->MyPID() == 0 )
@@ -316,7 +370,6 @@ Int main ( Int argc, char** argv )
     // Setting up the time data                   //
     //********************************************//
     splitting -> setParameters ( monodomainList );
-    SplittingNoLumping -> setParameters ( monodomainList );
 //    ICI -> setParameters ( monodomainList );
 
     //********************************************//
@@ -328,7 +381,6 @@ Int main ( Int argc, char** argv )
     fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
 
     splitting->setupFibers(fibers);
-    SplittingNoLumping->setupFibers(fibers);
 //    ICI->setupFibers(fibers);
 //
 //    function_Type Fiber_fct;
@@ -343,22 +395,10 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
-    Real timematrixsplitting (0.);
-    Real timematrixICI (0.);
 
-    chrono.start();
     splitting -> setupLumpedMassMatrix();
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
-    chrono.stop();
-    timematrixsplitting = chrono.globalDiff(*Comm);
-
-    chrono.start();
-    SplittingNoLumping -> setupMassMatrix();
-    SplittingNoLumping -> setupStiffnessMatrix();
-    SplittingNoLumping -> setupGlobalMatrix();
-    chrono.stop();
-    timematrixICI = chrono.globalDiff(*Comm);
 
 //    chrono.start();
 //    ICI -> setupLumpedMassMatrix();
@@ -371,22 +411,22 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
-//    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
 //    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
 //    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
 //
-//    string filenameSplitting =  monodomainList.get ("OutputFile", "FHN" );
-//    filenameSplitting += "Splitting";
+    string filenameSplitting =  monodomainList.get ("OutputFile", "FHN" );
+    filenameSplitting += "Splitting";
 //    string filenameICI =  monodomainList.get ("OutputFile", "FHN");
 //    filenameICI += "ICI";
 //    string filenameSVI =  monodomainList.get ("OutputFile", "FHN" );
 //    filenameSVI += "SVI";
 //
-//    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
+    splitting -> setupExporter ( exporterSplitting, filenameSplitting );
 //    ICI -> setupExporter ( exporterICI, filenameICI );
 //    SVI -> setupExporter ( exporterSVI, filenameSVI );
 //
-//    splitting -> exportSolution ( exporterSplitting, 0);
+    splitting -> exportSolution ( exporterSplitting, 0);
 //    ICI -> exportSolution ( exporterICI, 0);
 //    SVI -> exportSolution ( exporterSVI, 0);
 
@@ -398,40 +438,10 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-    Real dt = monodomainList.get ("timeStep", 0.1);
-    Real TF = monodomainList.get ("endTime", 150.0);
+    Real Savedt = monodomainList.get ("saveStep", 0.1);
 
-    ofstream output("norm.txt");
-
-    Real diff_norm (0.);
-    Real normS (0.);
-    Real normSNL (0.);
-
-    for ( Real t = 0.0; t < TF; ){
-        t = t + dt;
-        splitting   -> solveOneSplittingStep();
-        normS = (*(splitting->globalSolution().at(0))).norm2();
-        SplittingNoLumping -> solveOneSplittingStep();
-        normSNL = (*(SplittingNoLumping->globalSolution().at(0))).norm2();
-
-
-        diff_norm = (*(splitting->globalSolution().at(0))-*(SplittingNoLumping->globalSolution().at(0))).norm2();
-        output << normS << " " << normSNL << " " << diff_norm << " " << (diff_norm)/normS << std::endl;
-
-    }
-
-//    chrono.start();
-//    splitting   -> solveSplitting (  );
-//    chrono.stop();
-//    timesolvesplitting = chrono.globalDiff(*Comm);
-////    exporterSplitting.closeFile();
-//
-//    chrono.start();
-//    SplittingNoLumping   -> solveSplitting();
-//    chrono.stop();
-//    timesolvesplittingNOL = chrono.globalDiff(*Comm);
-//////    exporterICI.closeFile();
-
+    splitting   -> solveSplitting (exporterSplitting, Savedt);
+    exporterSplitting.closeFile();
 
 
     //********************************************//
@@ -442,6 +452,34 @@ Int main ( Int argc, char** argv )
     chronoinitialsettings.stop();
     std::cout << "\n\n\nElapsed time : " << chronoinitialsettings.diff() << std::endl;
 
+
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+    }
+    MPI_Barrier (MPI_COMM_WORLD);
+    }
+    MPI_Finalize();
+    return ( EXIT_SUCCESS );
+}
+//    ofstream output("norm.txt");
+//
+//    Real diff_norm (0.);
+//    Real normS (0.);
+//    Real normSNL (0.);
+//
+//    for ( Real t = 0.0; t < TF; ){
+//        t = t + dt;
+//        splitting   -> solveOneSplittingStep();
+//        normS = (*(splitting->globalSolution().at(0))).norm2();
+//        SplittingNoLumping -> solveOneSplittingStep();
+//        normSNL = (*(SplittingNoLumping->globalSolution().at(0))).norm2();
+//
+//
+//        diff_norm = (*(splitting->globalSolution().at(0))-*(SplittingNoLumping->globalSolution().at(0))).norm2();
+//        output << normS << " " << normSNL << " " << diff_norm << " " << (diff_norm)/normS << std::endl;
+//
+//    }
 //
 //    if ( Comm->MyPID() == 0 )
 //    {
@@ -451,12 +489,25 @@ Int main ( Int argc, char** argv )
 //        output_time << "Time solving splitting lumped : " << timesolvesplitting << std::endl;
 //        output_time << "Time solving splitting NL: " << timesolvesplittingNOL << std::endl;
 //    }
-
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
-    }
-    MPI_Barrier (MPI_COMM_WORLD);
-    MPI_Finalize();
-    return ( EXIT_SUCCESS );
-}
+//
+//    vector_Type finalSolution (*(splitting->globalSolution().at(0)));
+//    vector_Type GlobalfinalSolution (finalSolution);
+//
+//    std::cout << finalSolution.size() << std::endl;
+//    std::cout << GlobalfinalSolution.size() << std::endl;
+//
+//    MPI_Allreduce(&finalSolution,&GlobalfinalSolution,3267,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD); // rapporte a une variable connue de tous les procs
+////
+////    if ( Comm->MyPID() == 0 ){
+////        for (int j=0; j<(*(splitting->globalSolution().at(0))).size(); j++){
+////            output_solution << GlobalfinalSolution[j] << " " << GlobalfinalSolution[j] <<"\n";
+////        }
+////    }
+//
+//    ofstream output_solution("output_solution.txt");
+//    for (int j=0; j<(*(splitting->globalSolution().at(0))).size(); j++){
+//        if( (*(splitting->globalSolution().at(0))).isGlobalIDPresent(j) ){
+//            output_solution << (*(splitting->globalSolution().at(0)))[j] << " "
+//                        << (*(splitting->globalSolution().at(1)))[j] <<"\n";
+//        }
+//    }

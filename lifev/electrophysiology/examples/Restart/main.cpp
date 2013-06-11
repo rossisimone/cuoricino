@@ -328,9 +328,9 @@ Int main ( Int argc, char** argv )
 //        cout << "\n Restarting ..." ;
 //    }
 //
-    typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > > filterPtr_Type;
-    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >  hdf5Filter_Type;
-    typedef boost::shared_ptr<hdf5Filter_Type>                  hdf5FilterPtr_Type;
+    typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > >    filterPtr_Type;
+    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >                                  hdf5Filter_Type;
+    typedef boost::shared_ptr<hdf5Filter_Type>                                              hdf5FilterPtr_Type;
 //
 //    //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
 //    filterPtr_Type importer ( new hdf5Filter_Type() );

@@ -6,22 +6,28 @@
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
     <Parameter name="timeStep" type="double" value="0.1"  />
-    <Parameter name="endTime" type="double" value="10.0"  />
+    <Parameter name="endTime" type="double" value="15.0"  />
+    <Parameter name="saveStep" type="double" value="0.5"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0001"  />
-    <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
-    <Parameter name="saveStep" type="double" value="1.0"  />
+    <Parameter name="transversalDiffusion" type="double" value="0.00002"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="lid32.mesh"  />
     <Parameter name="mesh_path" type="string" value="../Meshes/"  />
-    <Parameter name="fiber_X" type="double" value="0.707106781187"  />
-    <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
+    <Parameter name="fiber_X" type="double" value="0.5000"  />
+    <Parameter name="fiber_Y" type="double" value="0.866025403784439"  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
-	<Parameter name="OutputFile" type="string" value="FHN32"/>
+	<Parameter name="OutputFile" type="string" value="FHN_CVaniso_"/>
+	
+	<Parameter name="pacingSite_X" type="double" value="0."/>
+	<Parameter name="pacingSite_Y" type="double" value="1."/>
+	<Parameter name="pacingSite_Z" type="double" value="0."/>
+	
+	<Parameter name="StartFile" type="string" value="FHNStartSplitting"/>
 	
 	<!-- Mesh parameters -->
 	<Parameter name="meshDim_X" type="int" value="32"  />

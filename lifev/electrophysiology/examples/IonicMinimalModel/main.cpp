@@ -118,7 +118,14 @@ using namespace LifeV;
 
 Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
 {
-    if ( sqrt( x*x + y*y + z*z ) <= 0.1 )
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    Real pacingSite_X = monodomainList.get ("pacingSite_X", 0.);
+    Real pacingSite_Y = monodomainList.get ("pacingSite_Y", 0.);
+    Real pacingSite_Z = monodomainList.get ("pacingSite_Z", 1. );
+    Real stimulusRadius = 0.1; // monodomainList.get ("stimulusRadius", 0.1);
+
+    if (  ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
+                    <= ( stimulusRadius * stimulusRadius ) )
         return 1.0;
     else
         return 0.0;
@@ -143,7 +150,12 @@ Int main ( Int argc, char** argv )
     //  LifeChrono chronoinitialsettings;
     //  chronoinitialsettings.start();
 
-    typedef RegionMesh<LinearTetra>                         mesh_Type;
+    typedef RegionMesh<LinearTetra>            mesh_Type;
+    typedef boost::shared_ptr<mesh_Type>       meshPtr_Type;
+    typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
+    typedef VectorEpetra                       vector_Type;
+    typedef FESpace< mesh_Type, MapEpetra >    feSpace_Type;
+    typedef boost::shared_ptr<feSpace_Type>    feSpacePtr_Type;
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
@@ -187,12 +199,47 @@ Int main ( Int argc, char** argv )
     }
 
 
-    //********************************************//
-    // In the parameter list we need to specify   //
-    // the mesh name and the mesh path.           //
-    //********************************************//
-    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
-    std::string meshPath = monodomainList.get ("mesh_path", "./");
+    // +-----------------------------------------------+
+   // |               Loading the mesh                |
+   // +-----------------------------------------------+
+   if ( Comm->MyPID() == 0 )
+   {
+       std::cout << std::endl << "[Loading the mesh]" << std::endl;
+   }
+
+   meshPtr_Type fullMeshPtr ( new mesh_Type ( Comm ) );
+
+   VectorSmall<3> meshDim;
+   meshDim[0] =  monodomainList.get ("meshDim_X", 10 );
+   meshDim[1] =  monodomainList.get ("meshDim_Y", 10 );
+   meshDim[2] =  monodomainList.get ("meshDim_Z", 10 );
+   VectorSmall<3> domain;
+   domain[0] =  monodomainList.get ("domain_X", 1. );
+   domain[1] =  monodomainList.get ("domain_Y", 1. );
+   domain[2] =  monodomainList.get ("domain_Z", 1. );
+
+   // Building the mesh from the source
+   regularMesh3D ( *fullMeshPtr,
+                   1,
+                   meshDim[0], meshDim[1], meshDim[2],
+                   false,
+                   domain[0], domain[1], domain[2],
+                   0.0, 0.0, 0.0 );
+
+   if ( Comm->MyPID() == 0 )
+   {
+       std::cout << "Mesh size  : " << MeshUtility::MeshStatistics::computeSize ( *fullMeshPtr ).maxH << std::endl;
+   }
+   if ( Comm->MyPID() == 0 )
+   {
+       std::cout << "Partitioning the mesh ... " << std::endl;
+   }
+   meshPtr_Type meshPtr;
+   {
+       MeshPartitioner< mesh_Type > meshPart ( fullMeshPtr, Comm );
+       meshPtr = meshPart.meshPartition();
+   }
+   fullMeshPtr.reset(); //Freeing the global mesh to save memory
 
     //********************************************//
     // We need the GetPot datafile for to setup   //
@@ -213,8 +260,9 @@ Int main ( Int argc, char** argv )
         std::cout << "Building Monodomain Solvers... ";
     }
 
-    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
-    monodomainSolverPtr_Type ICI ( new monodomainSolver_Type ( dataFile, model, splitting ->  localMeshPtr() ) );
+    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( dataFile, model, meshPtr ) );
+    const feSpacePtr_Type FESpacePtr =  splitting->feSpacePtr(); //FE Space
+
 
     if ( Comm->MyPID() == 0 )
     {
@@ -234,16 +282,11 @@ Int main ( Int argc, char** argv )
 //    function_Type f = &Stimulus;
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f );
-    ICI -> setPotentialFromFunction ( f ); //initialize potential
 
     //setting up initial conditions
     * ( splitting -> globalSolution().at (1) ) = 1.0;
     * ( splitting -> globalSolution().at (2) ) = 1.0;
     * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
-
-    * ( ICI -> globalSolution().at (1) ) = 1.0;
-    * ( ICI -> globalSolution().at (2) ) = 1.0;
-    * ( ICI -> globalSolution().at (3) ) = 0.021553043080281;
 
     if ( Comm->MyPID() == 0 )
     {
@@ -254,7 +297,6 @@ Int main ( Int argc, char** argv )
     // Setting up the time data                   //
     //********************************************//
     splitting -> setParameters ( monodomainList );
-    ICI -> setParameters ( monodomainList );
 
     //********************************************//
     // Create a fiber direction                   //
@@ -265,7 +307,6 @@ Int main ( Int argc, char** argv )
     fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
 
     splitting ->setupFibers (fibers);
-    ICI->setupFibers(fibers);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
@@ -273,12 +314,6 @@ Int main ( Int argc, char** argv )
     splitting -> setupLumpedMassMatrix();
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
-
-    ICI -> setupLumpedMassMatrix();
-    ICI -> setupStiffnessMatrix();
-    ICI -> setupGlobalMatrix();
-
-    monodomainSolverPtr_Type SVI ( new monodomainSolver_Type ( *ICI ) );
 
     //********************************************//
     // Creating exporters to save the solution    //
@@ -289,18 +324,10 @@ Int main ( Int argc, char** argv )
 
     string filenameSplitting =  monodomainList.get ("OutputFile", "MinMod" );
     filenameSplitting += "Splitting";
-    string filenameICI =  monodomainList.get ("OutputFile", "MinMod");
-    filenameICI += "ICI";
-    string filenameSVI =  monodomainList.get ("OutputFile", "MinMod" );
-    filenameSVI += "SVI";
 
     splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
-    ICI -> setupPotentialExporter ( exporterICI, filenameICI );
-    SVI -> setupPotentialExporter ( exporterSVI, filenameSVI );
 
     splitting -> exportSolution ( exporterSplitting, 0);
-    ICI -> exportSolution ( exporterICI, 0);
-    SVI -> exportSolution ( exporterSVI, 0);
 
     //********************************************//
     // Solving the system                         //
@@ -311,16 +338,45 @@ Int main ( Int argc, char** argv )
     }
 
     Real Savedt = monodomainList.get ("saveStep", 0.1);
-//    Real TF = monodomainList.get ("endTime", 150.0);
+    Real timeStep = monodomainList.get ("timeStep", 0.01);
+    Real endTime = monodomainList.get ("endTime", 10.);
+    Real initialTime = monodomainList.get ("initialTime", 0.);
 
-    splitting   -> solveSplitting ( exporterSplitting, Savedt );
+    vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
+    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+
+    int iter((Savedt / timeStep)+ 1e-9);
+    int nbTimeStep (1);
+    int k(0);
+    if (endTime > timeStep) {
+        for (Real t = initialTime; t < endTime;){
+
+            t += timeStep;
+            k++;
+            if (nbTimeStep==1) {
+                    splitting->solveOneReactionStepFE();
+                    (*(splitting->rhsPtrUnique())) *= 0;
+                    splitting->updateRhs();
+                    splitting->solveOneDiffusionStepBE();
+                    splitting->exportSolution(exporterSplitting, t);
+            }else{
+                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+                splitting->solveOneReactionStepFE(2);
+                (*(splitting->rhsPtrUnique())) *= 0;
+                splitting->updateRhs();
+//                splitting->solveOneDiffusionStepBE();
+                splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
+                splitting->solveOneReactionStepFE(2);
+                if (k % iter == 0) {
+                    splitting->exportSolution(exporterSplitting, t);
+                }
+            }
+            nbTimeStep++;
+        }
+    }
+
     exporterSplitting.closeFile();
 
-    ICI         -> solveICI ( exporterICI, Savedt );
-    exporterICI.closeFile();
-
-    SVI         -> solveSVI ( exporterSVI, Savedt );
-    exporterSVI.closeFile();
 
     //********************************************//
     // Saving Fiber direction to file             //
