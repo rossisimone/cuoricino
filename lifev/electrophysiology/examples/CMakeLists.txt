@@ -34,7 +34,7 @@ ADD_SUBDIRECTORIES(
  # IonicMinimalModel_pacingECG
   IonicFox
   IonicFoxSpiral
- # IonicFox_pacingECG
+  IonicFox_pacingECG
   IonicTenTusscherModel
   Restart
   RosenbrockTest
