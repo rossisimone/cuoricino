@@ -22,7 +22,7 @@
     <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
 	
-	<Parameter name="OutputFile" type="string" value="MM_restart_"/>
+	<Parameter name="OutputFile" type="string" value="MM_restarttest_"/>
 	
 	<Parameter name="StartFile" type="string" value="MMStartSplitting"/>
 	<Parameter name="StartIteration" type="string" value="00050"/>
@@ -40,7 +40,8 @@
 	
 	<Parameter name="pacingSite_X" type="double" value="0."/>
 	<Parameter name="pacingSite_Y" type="double" value="0."/>
-	<Parameter name="pacingSite_Z" type="double" value="1."/>
+	<Parameter name="pacingSite_Z" type="double" value="0."/>
+	
 	<Parameter name="stimulusRadius" type="double" value="0.15"/>
 	<Parameter name="stimulusValue" type="double" value="1."/>
 	
@@ -64,7 +65,7 @@
 	<!-- Pseudo-ECG parameters-->
 	<Parameter name="ecg_position_X" type="double" value="1.0"/>
 	<Parameter name="ecg_position_Y" type="double" value="1.0"/>
-	<Parameter name="ecg_position_Z" type="double" value="1.0"/>
+	<Parameter name="ecg_position_Z" type="double" value="0.5"/>
 	
 	<!-- Mesh parameters -->
 	<Parameter name="meshDim_X" type="int" value="32"  />

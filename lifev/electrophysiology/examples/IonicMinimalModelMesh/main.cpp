@@ -409,10 +409,10 @@ Int main ( Int argc, char** argv )
     // Setting up the initial condition form      //
     // a given function.                          //
     //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nInitializing potential:  " ;
-    }
+//    if ( Comm->MyPID() == 0 )
+//    {
+//        cout << "\nInitializing potential:  " ;
+//    }
 //    //Compute the potential at t0
 //
 //    splitting -> setPotentialFromFunction ( f );
