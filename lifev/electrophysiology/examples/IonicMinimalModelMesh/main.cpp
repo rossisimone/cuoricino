@@ -347,63 +347,45 @@ Int main ( Int argc, char** argv )
     //              RESTART Protocol                 //
     //***********************************************//
 
-//    string filenameStart =  monodomainList.get ("StartFile", "MMStartSplitting" );
-//    std::string sol ( filenameStart ); // name of the file from which we want to restart
-//    string iterationString =  monodomainList.get ("StartIteration", "00050" );
-//
-//
-//    // Setting up the importer
-//    filterPtr_Type importer ( new hdf5Filter_Type( ) );
-//    importer->setMeshProcId ( splitting -> localMeshPtr(), Comm -> MyPID() );
-//    importer->setPrefix ( sol );
-//
-//    // Import the value of the potential and gating variable
-//    monodomainSolver_Type::vectorPtr_Type newSol;
-//    newSol.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
-//
-//    exporterData_Type ImportDataPotential (exporterData_Type::ScalarField, ("Variable0." + iterationString) , splitting -> feSpacePtr(),
-//                                              newSol, UInt (0), exporterData_Type::UnsteadyRegime);
-//
-//    monodomainSolver_Type::vectorPtr_Type newGating1;
-//    newGating1.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
-//
-//    exporterData_Type ImportDataGating1 (exporterData_Type::ScalarField, ("Variable1." + iterationString), splitting -> feSpacePtr(),
-//                                                  newGating1, UInt (0), exporterData_Type::UnsteadyRegime);
-//
-//    monodomainSolver_Type::vectorPtr_Type newGating2;
-//    newGating2.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
-//
-//    exporterData_Type ImportDataGating2 (exporterData_Type::ScalarField, ( "Variable2." + iterationString), splitting -> feSpacePtr(),
-//                                                  newGating2, UInt (0), exporterData_Type::UnsteadyRegime);
-//
-//    monodomainSolver_Type::vectorPtr_Type newGating3;
-//    newGating3.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
-//
-//    exporterData_Type ImportDataGating3 (exporterData_Type::ScalarField, ( "Variable3." + iterationString), splitting -> feSpacePtr(),
-//                                                  newGating3, UInt (0), exporterData_Type::UnsteadyRegime);
-//
-//    importer->readVariable ( ImportDataPotential );
-//    importer->readVariable( ImportDataGating1 );
-//    importer->readVariable( ImportDataGating2 );
-//    importer->readVariable( ImportDataGating3 );
-//
-//    //********************************************//
-//    // Setting up the initial condition form      //
-//    // a given function.                          //
-//    //********************************************//
-//    if ( Comm->MyPID() == 0 )
-//    {
-//        cout << "\nInitializing potential:  " ;
-//    }
-//
-//    splitting-> setPotentialPtr(newSol);
-//    * ( splitting -> globalSolution().at (1) ) = *newGating1;
-//    * ( splitting -> globalSolution().at (2) ) = *newGating2;
-//    * ( splitting -> globalSolution().at (3) ) = *newGating3;
+    string filenameStart =  monodomainList.get ("StartFile", "MMStartSplitting" );
+    std::string sol ( filenameStart ); // name of the file from which we want to restart
+    string iterationString =  monodomainList.get ("StartIteration", "00050" );
 
-    //*****************************************************************************************************
-    // END OF RESTART
-    //*****************************************************************************************************
+
+    // Setting up the importer
+    filterPtr_Type importer ( new hdf5Filter_Type( ) );
+    importer->setMeshProcId ( splitting -> localMeshPtr(), Comm -> MyPID() );
+    importer->setPrefix ( sol );
+
+    // Import the value of the potential and gating variable
+    monodomainSolver_Type::vectorPtr_Type newSol;
+    newSol.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
+
+    exporterData_Type ImportDataPotential (exporterData_Type::ScalarField, ("Variable0." + iterationString) , splitting -> feSpacePtr(),
+                                              newSol, UInt (0), exporterData_Type::UnsteadyRegime);
+
+    monodomainSolver_Type::vectorPtr_Type newGating1;
+    newGating1.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
+
+    exporterData_Type ImportDataGating1 (exporterData_Type::ScalarField, ("Variable1." + iterationString), splitting -> feSpacePtr(),
+                                                  newGating1, UInt (0), exporterData_Type::UnsteadyRegime);
+
+    monodomainSolver_Type::vectorPtr_Type newGating2;
+    newGating2.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
+
+    exporterData_Type ImportDataGating2 (exporterData_Type::ScalarField, ( "Variable2." + iterationString), splitting -> feSpacePtr(),
+                                                  newGating2, UInt (0), exporterData_Type::UnsteadyRegime);
+
+    monodomainSolver_Type::vectorPtr_Type newGating3;
+    newGating3.reset(new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ));
+
+    exporterData_Type ImportDataGating3 (exporterData_Type::ScalarField, ( "Variable3." + iterationString), splitting -> feSpacePtr(),
+                                                  newGating3, UInt (0), exporterData_Type::UnsteadyRegime);
+
+    importer->readVariable ( ImportDataPotential );
+    importer->readVariable( ImportDataGating1 );
+    importer->readVariable( ImportDataGating2 );
+    importer->readVariable( ImportDataGating3 );
 
     //********************************************//
     // Setting up the initial condition form      //
@@ -413,12 +395,30 @@ Int main ( Int argc, char** argv )
     {
         cout << "\nInitializing potential:  " ;
     }
-    //Compute the potential at t0
 
-    splitting -> setPotentialFromFunction ( f );
-    //setting up initial conditions
-    * ( splitting -> globalSolution().at (1) ) = 1.0;
-    * ( splitting -> globalSolution().at (2) ) = 1.0;
+    splitting-> setPotentialPtr(newSol);
+    * ( splitting -> globalSolution().at (1) ) = *newGating1;
+    * ( splitting -> globalSolution().at (2) ) = *newGating2;
+    * ( splitting -> globalSolution().at (3) ) = *newGating3;
+
+    //*****************************************************************************************************
+    // END OF RESTART
+    //*****************************************************************************************************
+
+//    //********************************************//
+//    // Setting up the initial condition form      //
+//    // a given function.                          //
+//    //********************************************//
+//    if ( Comm->MyPID() == 0 )
+//    {
+//        cout << "\nInitializing potential:  " ;
+//    }
+//    //Compute the potential at t0
+//
+//    splitting -> setPotentialFromFunction ( f );
+//    //setting up initial conditions
+//    * ( splitting -> globalSolution().at (1) ) = 1.0;
+//    * ( splitting -> globalSolution().at (2) ) = 1.0;
     * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
 
     // APD calculation variables
