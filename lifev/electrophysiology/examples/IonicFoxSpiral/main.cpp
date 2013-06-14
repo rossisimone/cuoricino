@@ -166,15 +166,6 @@ Real Cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/
     else
         return 0.0;
 }
-//Real Cut2 (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
-//{
-//    if ( y<= 0.45 )
-//        return 0.0;
-////    else if( y<= 0.55)
-////        return -94.7*( 0.55 - y )/(0.1);
-//    else
-//        return -94.7;
-//}
 
 Int main ( Int argc, char** argv )
 {

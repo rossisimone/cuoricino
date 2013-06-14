@@ -543,15 +543,12 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
+    VectorSmall<3> fibers;
+    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2.0) / 2.0 );
+    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2.0) / 2.0 );
+    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
 
-    function_Type Fiber_fct;
-    Fiber_fct = &Fibers;
-    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-    ( new FESpace< mesh_Type, MapEpetra > ( splitting->localMeshPtr(), "P1", 3, Comm) );
-    vectorPtr_Type fibers_vect(new vector_Type( Space3D->map() ));
-    Space3D -> interpolate(static_cast< FESpace < RegionMesh<LinearTetra >, MapEpetra >::function_Type>(Fiber_fct), *fibers_vect,0. );
-
-    splitting ->setFiberPtr(fibers_vect);
+    splitting ->setupFibers (fibers);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
