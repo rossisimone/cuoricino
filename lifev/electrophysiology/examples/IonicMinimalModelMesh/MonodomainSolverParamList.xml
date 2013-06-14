@@ -45,7 +45,7 @@
 	<Parameter name="stimulusRadius" type="double" value="0.15"/>
 	<Parameter name="stimulusValue" type="double" value="1."/>
 	
-	<Parameter name="NbStimulusPeriod" type="int" value="12"/>
+	<Parameter name="NbStimulusPeriod" type="int" value="21"/>
 	<Parameter name="stimulus0" type="double" value="300"/>
 	<Parameter name="stimulus1" type="double" value="250"/>
 	<Parameter name="stimulus2" type="double" value="200"/>
@@ -58,6 +58,16 @@
 	<Parameter name="stimulus9" type="double" value="175"/>
 	<Parameter name="stimulus10" type="double" value="150"/>
 	<Parameter name="stimulus11" type="double" value="125"/>
+	<Parameter name="stimulus12" type="double" value="200"/>
+	<Parameter name="stimulus13" type="double" value="175"/>
+	<Parameter name="stimulus14" type="double" value="150"/>
+	<Parameter name="stimulus15" type="double" value="125"/>
+	<Parameter name="stimulus16" type="double" value="300"/>
+	<Parameter name="stimulus17" type="double" value="250"/>
+	<Parameter name="stimulus18" type="double" value="200"/>
+	<Parameter name="stimulus19" type="double" value="175"/>
+	<Parameter name="stimulus20" type="double" value="150"/>
+
 	
 	<!-- Post-processing parameters-->
 	<Parameter name="threshold" type="double" value="0.15"/>
