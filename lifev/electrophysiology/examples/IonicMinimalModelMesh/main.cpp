@@ -419,7 +419,7 @@ Int main ( Int argc, char** argv )
 //    //setting up initial conditions
 //    * ( splitting -> globalSolution().at (1) ) = 1.0;
 //    * ( splitting -> globalSolution().at (2) ) = 1.0;
-    * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
+//    * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
 
     // APD calculation variables
     Int sz = 0;
