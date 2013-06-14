@@ -115,9 +115,8 @@ Int main ( Int argc, char** argv )
     // other informations  about the object.      //
     //********************************************//
 
+    stimulation.showMe();
 	xb.showMe();
-	stimulation.showMe();
-
 
 	//********************************************//
 	// Initialize the solution to 0. The model    //
@@ -127,18 +126,20 @@ Int main ( Int argc, char** argv )
 	//********************************************//
 
 	std::cout << "Initializing solution vector...";
-    std::vector<Real> XbStates (xb.Size(), 0);
+	std::vector<Real> XbStates (xb.Size(), 0);
+	std::vector<Real> XbStatesTemp (xb.Size(), 0);
+
     std::vector<Real> states (ionicModel.Size(), 0);
-	states.at (0)  = - 84.1638;
-    states.at (1)  = 0.0328302;
+	states.at (0)  = -86.1638;
+    states.at (1)  = 3.28302e-2;
     states.at (2)  = 0.988354;
-    states.at (3)  = 0.992540;
-	states.at (4)  = 0.000928836;
+    states.at (3)  = 0.99254;
+	states.at (4)  = 9.28836e-4;
     states.at (5)  = 10.2042;
     states.at (6)  = 143.727;
 	states.at (7)  = 5.4;
-	states.at (8)  = 9.94893e-11;
-    states.at (9)  = 1.243891;
+	states.at (8)  = 9.94893e-5;
+    states.at (9)  = 1.24891;
     states.at (10) = 1.36058e-4;
     states.at (11) = 1.17504;
     states.at (12) = 0.762527;
@@ -150,7 +151,7 @@ Int main ( Int argc, char** argv )
     states.at (18) = 1.535e-9;
     states.at (19) = 1.63909e-14;
     states.at (20) = 6.56337e-20;
-    states.at (21) = 9.84546e-21;
+    states.at (21) = 9.084546e-21;
     states.at (22) = 2.72826e-3;
 	states.at (23) = 6.99215e-7;
     states.at (24) = 6.71989e-11;
@@ -158,9 +159,8 @@ Int main ( Int argc, char** argv )
     states.at (26) = 4.59752e-20;
 	states.at (27) = 0.0;
     states.at (28) = 0.998983;
-    states.at (29) = 0.00635;
-	states.at (30) = 0.13598;
-    std::cout << " Done!" << endl;
+    states.at (29) = 0.0; // Computation of this value is done with XbStates.
+	states.at (30) = 135.9813e-3;
 
 
     //********************************************//
@@ -172,8 +172,10 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
 	std::cout << "Initializing rhs..." ;
-    std::vector<Real> XbRhs (xb.Size(), 0);
+	std::vector<Real> XbRhs (xb.Size(), 0);
+	std::vector<Real> XbRhsTemp (xb.Size(), 0);
     std::vector<Real> rhs (ionicModel.Size(), 0);
+    Real              rhsCoupling;
     std::cout << " Done! "  << endl;
 
 
@@ -183,11 +185,16 @@ Int main ( Int argc, char** argv )
     // concentration.                             //
     //********************************************//
 
-    Real vel  ( 0.0 );
-    Real Ca   ( 0.0 );
-    Real Iapp ( 0.0 );
-    Real X    ( 1.05 );
-    Real L    = nlParameterList.get("inLength", 1.05);
+    Real vel     ( 0.0 );
+    Real Ca      ( 0.0 );
+    Real Bi      ( 0.0 );
+    Real CmdnTot = ionicModel.cmdnTot()*1e-3;   // Term 1e-3 is to adjust in order to have consistent units
+    Real KmCmdn  = ionicModel.constmCmdn()*1e-3;
+    Real Iapp    ( 0.0 );
+    Real Lm      = nlParameterList.get("inLength", 1.05);
+    Real L       = nlParameterList.get("inLength", 1.05);
+    Real X       = L - xb.Hc();
+    Real F       ( 0.0 );
 
     //********************************************//
     // Simulation starts on t=0 and ends on t=TF. //
@@ -204,13 +211,13 @@ Int main ( Int argc, char** argv )
     // solution.                                  //
     //********************************************//
 
-    string filename        = "output.txt";
+    string filename        = "output1125.txt";
     string filenameStimPro = "outputStimPro.txt";
-    string XbFilename      = "XbOutput.txt";
+    string XbFilename      = "XbOutput1125.txt";
 
-    std::ofstream output        ("output.txt");
+    std::ofstream output        ("output1125.txt");
     std::ofstream outputStimPro ("outputStimPro.txt");
-    std::ofstream XbOutput      ("XbOutput.txt");
+    std::ofstream XbOutput      ("XbOutput1125.txt");
 
 
     //********************************************//
@@ -229,20 +236,16 @@ Int main ( Int argc, char** argv )
     	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
     	// The list of protocols are described in the StimulationProtocol.hpp
 
-
-    	// Velocity of motion
-
-    	xb.computeX( dt, L, X );
-    	xb.computeVelocity( X, L, vel );
-
     	//********************************************//
     	// Compute Calcium concentration. Here it is  //
     	// given as a function of time.               //
     	//********************************************//
 
     	Ca = states.at(8)*1000;
+    	Bi = 1 / ( 1 + CmdnTot * KmCmdn / ( ( KmCmdn + Ca ) * ( KmCmdn + Ca ) ) );
+
     	// Because the concentration is in mM in the ionic model
-    	// and in the Xb model it sould be in uM.
+    	// and in the Xb model it should be in uM.
 
         std::cout << "\r " << t << " ms.       " << std::flush;
 
@@ -252,7 +255,7 @@ Int main ( Int argc, char** argv )
         
         xb.computeRhs             ( XbStates, Ca, L, vel, XbRhs );
         ionicModel.computeRhs     ( states, Iapp, rhs );
-
+        xb.computeCoupling        ( XbStates, Ca, Bi, vel, rhsCoupling );
 
         //********************************************//
         // Use forward Euler method to advance the    //
@@ -262,43 +265,54 @@ Int main ( Int argc, char** argv )
         // method and Newton algorithm.               //
         //********************************************//
         
-		for(int j(0); j <= 30; ++j)
+        for(int j(0); j <= 30; ++j)
         {
-//    		if ( ( j <= 4 ) || ( j >= 12 ) )
-    			states.at (j) = states.at (j)  + dt * rhs.at (j);
+        	if ( j != 8 && j != 29)
+        		states.at (j) = states.at (j) + dt * rhs.at (j);
+        	else if ( j == 8 )
+        		states.at (j) = states.at (j) + dt * ( rhs.at (j) + rhsCoupling );
         }
 
-		states.at (5)  = ionicModel.computeNewtonNa    (states, dt, 10);
-		states.at (6)  = ionicModel.computeNewtonKi    (states, dt, 10);
-		states.at (7)  = ionicModel.computeNewtonKo    (states, dt, 10);
-		states.at (8)  = ionicModel.computeNewtonCai   (states, dt, 10);
-		states.at (9)  = ionicModel.computeNewtonCaNSR (states, dt, 10);
-		states.at (10) = ionicModel.computeNewtonCaSS  (states, dt, 10);
-		states.at (11) = ionicModel.computeNewtonCaJSR (states, dt, 10);
-		
+
+        XbStatesTemp = XbStates;
+        XbRhsTemp    = XbRhs;
+
         XbStates.at (0) = XbStates.at (0)  + dt * XbRhs.at (0);
         XbStates.at (1) = XbStates.at (1)  + dt * XbRhs.at (1);
         XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
 
+        Ca = states.at(8)*1000;
+
+        xb.computeTotalMuscleLength( XbStates, t, dt, X, Lm, L, vel, F );
+
+        xb.computeRhs      ( XbStates, Ca, L, vel, XbRhs );
+
+        XbStates.at (0) = XbStatesTemp.at (0) + 0.5 * dt * ( XbRhs.at (0) + XbRhsTemp.at (0) );
+        XbStates.at (1) = XbStatesTemp.at (1) + 0.5 * dt * ( XbRhs.at (1) + XbRhsTemp.at (1) );
+        XbStates.at (2) = XbStatesTemp.at (2) + 0.5 * dt * ( XbRhs.at (2) + XbRhsTemp.at (2) );
+
+
 		// Implicit method
-        xb.computeX( dt, L, X );
-        xb.computeVelocity( X, L, vel );
-        xb.computeBackwardEuler( XbStates, Ca, vel, dt );
+//        xb.computeBackwardEuler( XbStates, Ca, vel, dt );
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
 
         iter++;
-        if( iter % savedt == 0)
+        if( iter % savedt == 0 )
         {
+        	output << t << ", ";
+
         	for ( int j (0); j < ionicModel.Size() - 1; j++)
         	{
-            	output << states.at (j) << ", ";
+        		output << states.at (j) << ", ";
         	}
+
         	output << states.at ( ionicModel.Size() - 1 ) << "\n";
 
-        	XbOutput << t << ", " << X << ", " << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
+        	XbOutput << t << ", " << rhsCoupling << ", " << Lm << ", " << L << ", " << X << ", "<< F << ", "
+        			 << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
         }
 
         tStim = stimulation.timeSt();
@@ -313,7 +327,7 @@ Int main ( Int argc, char** argv )
         t = t + dt;
     }
     std::cout << "\n...Time loop ends.\n";
-    std::cout << "Solution written on file: " << filename << "\n";
+    std::cout << "Solution written on file: " << filename << ", " << XbFilename << " and " << filenameStimPro << "\n";
 
     //********************************************//
     // Close exported file.                       //

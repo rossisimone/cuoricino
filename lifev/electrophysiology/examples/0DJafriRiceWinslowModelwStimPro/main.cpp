@@ -124,7 +124,7 @@ Int main ( Int argc, char** argv )
 
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns  (model.Size(), 0 );
-//    std::vector<Real> unknowns0 (model.Size(), 0 );
+    std::vector<Real> unknowns0 (model.Size(), 0 );
     unknowns[0]  = -86.1638;
     unknowns[1]  = 3.28302e-2;
     unknowns[2]  = 0.988354;
@@ -146,7 +146,7 @@ Int main ( Int argc, char** argv )
     unknowns[18] = 1.535e-9;
     unknowns[19] = 1.63909e-14;
     unknowns[20] = 6.56337e-20;
-    unknowns[21] = 9084546e-21;
+    unknowns[21] = 9.084546e-21;
     unknowns[22] = 2.72826e-3;
     unknowns[23] = 6.99215e-7;
     unknowns[24] = 6.71989e-11;
@@ -169,10 +169,10 @@ Int main ( Int argc, char** argv )
 
     cout << "Initializing rhs..." ;
     std::vector<Real> rhs  (model.Size(), 0);
-//    std::vector<Real> rhs1 (model.Size(), 0);
-//    std::vector<Real> rhs2 (model.Size(), 0);
-//    std::vector<Real> rhs3 (model.Size(), 0);
-//    std::vector<Real> rhs4 (model.Size(), 0);
+    std::vector<Real> rhs1 (model.Size(), 0);
+    std::vector<Real> rhs2 (model.Size(), 0);
+    std::vector<Real> rhs3 (model.Size(), 0);
+    std::vector<Real> rhs4 (model.Size(), 0);
     cout << " Done! "  << endl;
 
 
@@ -278,15 +278,15 @@ Int main ( Int argc, char** argv )
 
         for(int j(0); j <= 30; ++j)
         {
-////    		if ( ( j <= 4 ) || ( j >= 12 ) )
+//    		if ( ( j <= 4 ) || ( j >= 12 ) )
     			unknowns.at (j) = unknowns.at (j) + dt * rhs.at (j);
-//
-////    		if( j == 0 || j >= 12 )
-////    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-////    		else if ( ( j <= 4 ) && ( j != 0 ) )
-////    			unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
-////			else if ( j >= 12 )
-////				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
+
+//    		if( j == 0 || j >= 12 )
+//    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+//    		else if ( ( j <= 4 ) && ( j != 0 ) )
+//    			unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
+//			else if ( j >= 12 )
+//				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
          }
 
 //        unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
@@ -316,28 +316,28 @@ Int main ( Int argc, char** argv )
 //        	{
 //        		case 1:
 //        		{
-//        			rhs1 = rhs;
-//        			break;
-//        		}
-//        		case 2:
-//        		{
-//        			rhs2 = rhs;
-//        			break;
-//        		}
-//        		case 3:
+//       			rhs1 = rhs;
+//       			break;
+//       		}
+//       		case 2:
+//       		{
+//       			rhs2 = rhs;
+//       			break;
+//	       		}
+//       		case 3:
 //        		{
 //        			rhs3 = rhs;
 //        			break;
 //        		}
 //        		case 4:
-//        		{
+//       		{
 //        			rhs4 = rhs;
 //        			break;
 //        		}
 //        	}
 //        }
 //
-//        for(int j(0); j <= 30; ++j)
+//       for(int j(0); j <= 30; ++j)
 //        {
 //        	unknowns.at (j) = unknowns0.at (j) + 0.1666666667 * dt * ( rhs1.at (j) +  2 * rhs2.at (j) + 2 * rhs3.at (j) + rhs4.at (j) );
 //        }

@@ -476,8 +476,8 @@
 		Real jUp   = M_v3 * ( cCa * cCa ) / ( M_KmUp * M_KmUp + cCa * cCa );
 		Real jTr   = ( cCaNSR - cCaJSR ) / M_tauTr;
 		Real jXFer = ( cCaSS - cCa ) / M_tauXFer;
-		Real jTRPN = M_kPHtrpn * cCa * ( M_HtrpnTot - cHTrpnCa ) - M_kNHtrpn * cHTrpnCa
-						+ M_kPLtrpn * cCa * ( M_LtrpnTot - cLTrpnCa ) - M_kNLtrpn * cLTrpnCa;
+		Real jTRPN = M_kPHtrpn * cCa * ( M_HtrpnTot - cHTrpnCa ) - M_kNHtrpn * cHTrpnCa;
+//						+ M_kPLtrpn * cCa * ( M_LtrpnTot - cLTrpnCa ) - M_kNLtrpn * cLTrpnCa;
 
 		Real bI   = 1 / ( 1 + M_CmdnTot * M_KmCmdn / ( ( M_KmCmdn + cCa ) * ( M_KmCmdn + cCa ) ) );
 		Real bSS  = 1 / ( 1 + M_CmdnTot * M_KmCmdn / ( ( M_KmCmdn + cCaSS ) * ( M_KmCmdn + cCaSS ) ) );
@@ -754,8 +754,8 @@
 
 		channelRyrRHS[0] = -M_kap * std::pow(cCaSS, M_n) * fracPC1 + M_kan * fracPO1;
 		channelRyrRHS[1] = M_kap * std::pow(cCaSS, M_n) * fracPC1 - M_kan * fracPO1 -
-                			M_kbp * std::pow(cCaSS, M_m) * fracPO1 + M_kbn * fracPO2 - M_kcp * fracPO1 + M_kcn * fracPC2;
-		channelRyrRHS[2] = M_kbp * std::pow(cCaSS, M_m) * fracPO1 - M_kbn * fracPO2;
+                			M_kbp * std::pow(cCaSS, M_m) * fracPO1 + M_kbn * fracPO2 - M_kcp * fracPO1 + M_kcn * fracPC2; 
+		channelRyrRHS[2] = M_kbp * std::pow(cCaSS, M_m) * fracPO1 - M_kbn * fracPO2; 
 		channelRyrRHS[3] = M_kcp * fracPO1 - M_kcn * fracPC2;
 //		channelRyrRHS[0]  = - ( M_kap * std::pow(cCaSS, M_n) );
 //		channelRyrRHS[1]  = - ( M_kbp * std::pow(cCaSS, M_m) + M_kcp + M_kan );

@@ -18,7 +18,7 @@
 	<Parameter name="knHtrpn" type="double" value="0.066e-3"/>
 	<Parameter name="kpLtrpn" type="double" value="4.0e1"/>
 	<Parameter name="knLtrpn" type="double" value="40.0e-3"/>
-	<Parameter name="cmdnTot" type="double" value="0.7"/>
+	<Parameter name="cmdnTot" type="double" value="0.05"/>
 	<Parameter name="csqnTot" type="double" value="15.0"/>
 	<Parameter name="constmCmdn" type="double" value="2.38e-3"/>
 	<Parameter name="constmCsqn" type="double" value="0.8"/>
@@ -29,12 +29,12 @@
 	<Parameter name="maxCondNa" type="double" value="0.128"/>
 	<Parameter name="maxCondKp" type="double" value="8.28e-5"/>
 	<Parameter name="permNaK" type="double" value="0.01833"/>
-	<Parameter name="kNaCa" type="double" value="50.0"/>
+	<Parameter name="kNaCa" type="double" value="100.0"/>
 	<Parameter name="constmNa" type="double" value="87.5"/>
 	<Parameter name="constmCa" type="double" value="1.38"/>
 	<Parameter name="kSat" type="double" value="0.1"/>
 	<Parameter name="eta" type="double" value="0.35"/>
-	<Parameter name="courNaK" type="double" value="2.724e-2"/>
+	<Parameter name="courNaK" type="double" value="1.3e-2"/>
 	<Parameter name="constmNai" type="double" value="10.0"/>
 	<Parameter name="constmK0" type="double" value="1.5"/>
 	<Parameter name="permNsCa" type="double" value="0.0"/>
@@ -44,8 +44,8 @@
 	<Parameter name="maxCondCab" type="double" value="6.032e-5"/>
 	<Parameter name="maxCondNab" type="double" value="1.41e-5"/>
 	<Parameter name="maxRyRPerm" type="double" value="1.8"/>
-	<Parameter name="leakRateConst" type="double" value="3.6e-4"/>
-	<Parameter name="pumpRateATPase" type="double" value="6.375e-3"/>
+	<Parameter name="leakRateConst" type="double" value="5.8e-5"/>
+	<Parameter name="pumpRateATPase" type="double" value="1.8e-3"/>
 	<Parameter name="constmUp" type="double" value="0.5e-3"/>
 	<Parameter name="timeConstNsrJsr" type="double" value="34.48"/>
 	<Parameter name="timeConstSubMyo" type="double" value="3.125"/>
@@ -64,7 +64,7 @@
 	<Parameter name="modeTParamA" type="double" value="2.0"/>
 	<Parameter name="modeTParamB" type="double" value="2.0"/>
 	<Parameter name="modeTParamO" type="double" value="0.01"/>
-	<Parameter name="permCa" type="double" value="33.75e-6"/>
+	<Parameter name="permCa" type="double" value="54.0e-6"/>
 	<Parameter name="permK" type="double" value="1.0e-9"/>
 	<Parameter name="courCaHalf" type="double" value="-0.458e-2"/>
 </ParameterList>
