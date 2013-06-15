@@ -494,6 +494,16 @@ Int main ( Int argc, char** argv )
         returnPeriods.push_back( monodomainList.get ("stimulus18", 275.) );
         returnPeriods.push_back( monodomainList.get ("stimulus19", 275.) );
         returnPeriods.push_back( monodomainList.get ("stimulus20", 275.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus21", 275.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus22", 450.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus23", 400.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus24", 375.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus25", 350.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus26", 325.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus27", 300.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus28", 275.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus29", 275.) );
+        returnPeriods.push_back( monodomainList.get ("stimulus30", 275.) );
 
         NumberPacingPeriods = monodomainList.get ("NbStimulusPeriod", 12);
 
