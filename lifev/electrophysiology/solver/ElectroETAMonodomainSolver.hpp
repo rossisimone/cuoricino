@@ -89,6 +89,8 @@
 
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/core/algorithm/Preconditioner.hpp>
+#include <lifev/core/algorithm/PreconditionerML.hpp>
+#include <lifev/core/algorithm/PreconditionerIfpack.hpp>
 
 namespace LifeV {
 
@@ -142,7 +144,7 @@ public:
 
 	typedef LifeV::Preconditioner basePrec_Type;
 	typedef boost::shared_ptr<basePrec_Type> basePrecPtr_Type;
-	typedef LifeV::PreconditionerIfpack prec_Type;
+	typedef LifeV::PreconditionerML prec_Type;
 	typedef boost::shared_ptr<prec_Type> precPtr_Type;
 
 	typedef IonicModel ionicModel_Type;
@@ -726,7 +728,7 @@ public:
 	 */
 	void inline updateRhs() {
 		(*M_rhsPtrUnique) += (*M_massMatrixPtr) * (*M_potentialPtr)
-				* (1.0 / M_timeStep);
+				* (1.0 / (M_timeStep));
 	}
 
 	//! Solves one diffusion step using the BDF2 scheme
@@ -1246,7 +1248,7 @@ template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalMatrix() {
 	(*M_globalMatrixPtr) *= 0;
 	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
-	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * (1.0 / M_timeStep));
+	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * (1.0 / (M_timeStep)));
 }
 
 template<typename Mesh, typename IonicModel>
@@ -1364,7 +1366,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(int su
 
 	for (UInt i = 0; i < M_ionicModelPtr->Size(); i++) {
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
-				+ ( M_timeStep / subiterations ) * (*(M_globalRhs.at(i)));
+				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i)));
 	}
 
 }
