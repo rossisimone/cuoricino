@@ -584,10 +584,10 @@ Int main ( Int argc, char** argv )
     filenameSplitting += "Splitting";
     splitting -> setupPotentialExporter( exporterSplitting, filenameSplitting );
 
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplittingLast;
+    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplittingRestart;
     string filenameSplittingLast =  monodomainList.get ("OutputFile", "MinMod" );
-    filenameSplittingLast += "LAST";
-    splitting -> setupExporter( exporterSplittingLast, filenameSplittingLast );
+    filenameSplittingLast += "RESTART";
+    splitting -> setupExporter( exporterSplittingRestart, filenameSplittingLast );
 
     vectorPtr_Type APDptr ( new vector_Type (apd, Repeated ) );
     exporterSplitting.addVariable ( ExporterData<mesh_Type>::ScalarField,  "apd", FESpacePtr,
@@ -647,6 +647,7 @@ Int main ( Int argc, char** argv )
     *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
     int control = 0;
     int iter((Savedt / timeStep)+ 1e-9);
+    int iterRestart((500 / timeStep)+ 1e-9);
     int nbTimeStep (1);
     int k(0);
     if (endTime > timeStep) {
@@ -692,6 +693,7 @@ Int main ( Int argc, char** argv )
                 splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
                 splitting->solveOneReactionStepFE(2);
                 if (k % iter == 0) splitting->exportSolution(exporterSplitting, t);
+                if (k % iterRestart == 0) splitting->exportSolution(exporterSplittingRestart, t);
             }
             nbTimeStep++;
 
@@ -730,7 +732,7 @@ Int main ( Int argc, char** argv )
            }
         }
     }
-    splitting->exportSolution(exporterSplittingLast, 0);
+    splitting->exportSolution(exporterSplittingRestart, endTime);
     exporterSplitting.closeFile();
 
     //********************************************//
