@@ -1,17 +1,19 @@
 <ParameterList>
 	<!-- LinearSolver parameters -->
-    <Parameter name="surfaceVolumeRatio" type="double" value="1400.0"/>
+    <Parameter name="surfaceVolumeRatio" type="double" value="2400.0"/>
     <Parameter name="membraneCapacitance" type="double" value="1.0"/>
     <Parameter name="k" type="double" value="8.0"  />
     <Parameter name="a" type="double" value="0.1"  />
     <Parameter name="epsilon" type="double" value="0.01"  />
-    <Parameter name="timeStep" type="double" value="0.01"  />
-    <Parameter name="endTime" type="double" value="350."  />
-    <Parameter name="saveStep" type="double" value="0.1"  />
+    <Parameter name="timeStep" type="double" value="0.1"  />
+    <Parameter name="endTime" type="double" value="5.0"  />
+    <Parameter name="saveStep" type="double" value="0.5"  />
     <Parameter name="longitudinalDiffusion" type="double" value="0.0001"  />
     <Parameter name="transversalDiffusion" type="double" value="0.0001"  />
+    <Parameter name="TCut" type="double" value="41.5.0"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-
+    <Parameter name="mesh_name" type="string" value="lid32.mesh"  />
+    <Parameter name="mesh_path" type="string" value="../Meshes/"  />
     <Parameter name="fiber_X" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />
@@ -19,21 +21,33 @@
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
-	<Parameter name="Solver Type" type="string" value="AztecOO"/>
-	<Parameter name="OutputFile" type="string" value="Spiral"/>
-
-	<!-- Spiral parameters-->
-	<Parameter name="TCut" type="double" value="300."/>
-	
-	<!-- Post-processing parameters-->
-	<Parameter name="threshold" type="double" value="0.15"/>
-	    
-	<!-- Pseudo-ECG parameters-->
-	<Parameter name="ecg_position_X" type="double" value="1.0"/>
-	<Parameter name="ecg_position_Y" type="double" value="1.0"/>
-	<Parameter name="ecg_position_Z" type="double" value="1.0"/>
-	
-	<!-- Mesh parameters -->
+    <Parameter name="Solver Type" type="string" value="AztecOO"/>
+    
+    <Parameter name="saveStep" type="double" value="1.0"  />
+    
+    <!-- Pacing parameters-->
+    <Parameter name="pacingPeriod" type="double" value="350."/>
+    <Parameter name="pacingPeriodMin" type="double" value="80."/>
+    <Parameter name="pacingDelta" type="double" value="10."/>
+    <Parameter name="stimulusStart" type="double" value="0."/>
+    <Parameter name="stimulusStop" type="double" value="1.0"/>
+    <Parameter name="stimulusRadius" type="double" value="0.1"/>
+    <Parameter name="stimulusValue" type="double" value="80."/>
+    <Parameter name="stimulusNumber" type="int" value="2"/>
+    
+    <Parameter name="pacingSite_X" type="double" value="0."/>
+    <Parameter name="pacingSite_Y" type="double" value="0."/>
+    <Parameter name="pacingSite_Z" type="double" value="0."/>
+    
+    <!-- Post-processing parameters-->
+    <Parameter name="threshold" type="double" value="10."/>
+    
+    <!-- Pseudo-ECG parameters-->
+    <Parameter name="ecg_position_X" type="double" value="1."/>
+    <Parameter name="ecg_position_Y" type="double" value="1."/>
+    <Parameter name="ecg_position_Z" type="double" value="0.5"/>
+    
+    <!-- Mesh parameters -->
 	<Parameter name="meshDim_X" type="int" value="32"  />
 	<Parameter name="meshDim_Y" type="int" value="32"  />
 	<Parameter name="meshDim_Z" type="int" value="2"  />
@@ -41,7 +55,8 @@
 	<Parameter name="domain_X" type="double" value="1."  />
 	<Parameter name="domain_Y" type="double" value="1."  />
 	<Parameter name="domain_Z" type="double" value="0.0625"  />
-	
+    
+    
 	<!-- Operator specific parameters (AztecOO) -->
 	<ParameterList name="Solver: Operator List">
 

@@ -143,18 +143,14 @@ Real Fibers (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real
     }
 }
 
-Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& z, const ID& /*i*/)
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
-    if (z >= (0.5 - 0.0625)){
-        if ( x<= 0.1 )
-            return 80.0;
-        else if( x<= 0.2)
-            return 80.0*( 0.2 - x )/(0.1);
-        else
-            return 0.0;
-    }else{
+    if ( x<= 0.1 )
+        return 80.0;
+    else if( x<= 0.2)
+        return 80.0*( 0.2 - x )/(0.1);
+    else
         return 0.0;
-    }
 }
 Real Cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
@@ -181,9 +177,6 @@ Int main ( Int argc, char** argv )
     // Starts the chronometer.                    //
     //********************************************//
     LifeChrono chronoinitialsettings;
-
-    LifeChrono chrono;
-    Real timeECGsolve (0.);
 
     chronoinitialsettings.start();
 
@@ -242,13 +235,6 @@ Int main ( Int argc, char** argv )
     {
         std::cout << " Done!" << endl;
     }
-
-    //********************************************//
-    // In the parameter list we need to specify   //
-    // the mesh name and the mesh path.           //
-    //********************************************//
-//    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
-//    std::string meshPath = monodomainList.get ("mesh_path", "./");
 
     //********************************************//
     // We need the GetPot datafile for to setup   //
@@ -385,21 +371,21 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
-//    VectorSmall<3> fibers;
-//    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2.0) / 2.0 );
-//    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2.0) / 2.0 );
-//    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+    VectorSmall<3> fibers;
+    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2.0) / 2.0 );
+    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2.0) / 2.0 );
+    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+
+    splitting ->setupFibers (fibers);
+
+//    function_Type Fiber_fct;
+//    Fiber_fct = &Fibers;
+//    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
+//    ( new FESpace< mesh_Type, MapEpetra > ( splitting->localMeshPtr(), "P1", 3, Comm) );
+//    vectorPtr_Type fibers_vect(new vector_Type( Space3D->map() ));
+//    Space3D -> interpolate(static_cast< FESpace < RegionMesh<LinearTetra >, MapEpetra >::function_Type>(Fiber_fct), *fibers_vect,0. );
 //
-//    splitting ->setupFibers (fibers);
-
-    function_Type Fiber_fct;
-    Fiber_fct = &Fibers;
-    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-    ( new FESpace< mesh_Type, MapEpetra > ( splitting->localMeshPtr(), "P1", 3, Comm) );
-    vectorPtr_Type fibers_vect(new vector_Type( Space3D->map() ));
-    Space3D -> interpolate(static_cast< FESpace < RegionMesh<LinearTetra >, MapEpetra >::function_Type>(Fiber_fct), *fibers_vect,0. );
-
-    splitting ->setFiberPtr(fibers_vect);
+//    splitting ->setFiberPtr(fibers_vect);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
@@ -414,7 +400,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
 
-    splitting -> setupExporter ( exporterSplitting, "SplittingFibre" );
+    splitting -> setupExporter ( exporterSplitting, "Splitting" );
     splitting -> exportSolution ( exporterSplitting, 0);
 
 
@@ -487,12 +473,9 @@ Int main ( Int argc, char** argv )
 		// ECG : discrete laplacian of the solution
 		(*rhs_Laplacian) = (*systemMatrixL) * (*(splitting->globalSolution().at(0)));
 		
-		chrono.start();
 		linearSolver2.setOperator ( systemMatrixM );
         linearSolver2.setRightHandSide ( rhs_Laplacian );
         linearSolver2.solve ( pseudoEcgVec_ptr );
-        chrono.stop();
-        timeECGsolve += chrono.globalDiff(*Comm);
 
         pseudoEcgVec = (*pseudoEcgVec_ptr)/ecgDistance;
 
@@ -511,8 +494,6 @@ Int main ( Int argc, char** argv )
             feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
             (*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
             *(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
-//            *(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
-
         }
 
 	    if (  Comm->MyPID() == 0 ){
@@ -535,32 +516,8 @@ Int main ( Int argc, char** argv )
         cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
 
-    if ( Comm->MyPID() == 0 )
-        {
-            cout << "\nTime ECG   " << timeECGsolve <<std::endl;
-        }
-
     MPI_Barrier (MPI_COMM_WORLD);
     }
     MPI_Finalize();
     return ( EXIT_SUCCESS );
 }
-
-
-
-//~ if( t >= TCut1 && t<=TCut2)
-//~ {
-    //~ //cout<<"Defining variables"<<endl;
-    //~ function_Type g = &Cut;
-    //~ vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
-    //~ const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
-    //~ feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
-    //~ //cout<<"Interpolating"<<endl;
-    //~ (*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
-    //~ //cout<<"Multiplying"<<endl;
-    //~ *(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
-    //~ *(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
-    //~ //cout<<"End"<<endl;
-//~ }
-
-//std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;

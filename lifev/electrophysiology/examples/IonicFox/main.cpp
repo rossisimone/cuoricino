@@ -110,14 +110,17 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
 {
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
-    Real x_length = monodomainList.get ("domain_X", 1. );
-    if ( x<= x_length/20 )
+    Real pacingSite_X = monodomainList.get ("pacingSite_X", 0.);
+    Real pacingSite_Y = monodomainList.get ("pacingSite_Y", 0.);
+    Real pacingSite_Z = monodomainList.get ("domain_Z", 1. );
+    Real stimulusRadius = 0.1; // monodomainList.get ("stimulusRadius", 0.1);
+
+    if (  ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
+                    <= ( stimulusRadius * stimulusRadius ) )
         return -14.7;
-    else if( x<= x_length/10 )
-        return -14.7*( x_length/10 - x )/(x_length/20);
     else
         return -94.7;
 }

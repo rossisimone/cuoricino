@@ -110,12 +110,7 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
-
-//Real Stimulus (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
-//{
-//    return ( 0.5 + 0.5 * ( std::tanh ( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
-//}
-
+//Initial condition: spherical from pacing site
 Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
 {
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
@@ -131,6 +126,16 @@ Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, 
         return 0.0;
 }
 
+//Initiation of a plane wave
+Real PlaneWave (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
+{
+    if ( x<= 0.05 )
+        return 1.0;
+    else if( x<= 0.1)
+        return 1.0*( 0.1 - x )/(0.05);
+    else
+        return 0.0;
+}
 
 
 Int main ( Int argc, char** argv )
@@ -319,8 +324,6 @@ Int main ( Int argc, char** argv )
     // Creating exporters to save the solution    //
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterICI;
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSVI;
 
     string filenameSplitting =  monodomainList.get ("OutputFile", "MinMod" );
     filenameSplitting += "Splitting";
@@ -364,7 +367,6 @@ Int main ( Int argc, char** argv )
                 splitting->solveOneReactionStepFE(2);
                 (*(splitting->rhsPtrUnique())) *= 0;
                 splitting->updateRhs();
-//                splitting->solveOneDiffusionStepBE();
                 splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
                 splitting->solveOneReactionStepFE(2);
                 if (k % iter == 0) {

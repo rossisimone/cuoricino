@@ -158,14 +158,6 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
     return returnValue;
 }
 
-//Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
-//{
-//    if ( sqrt( x*x + y*y ) <= 0.1 )
-//    	return -14.7;
-//    else
-//    	return -94.7;
-//}
-
 Int main ( Int argc, char** argv )
 {
 
@@ -540,19 +532,6 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-//    Real dt = monodomainList.get ("timeStep", 0.1);
-//    Real TF = monodomainList.get ("endTime", 150.0);
-//    Real Savedt = monodomainList.get ("saveStep", 1.0);
-
-//    splitting   -> solveSplitting ( exporterSplitting, Savedt );
-//    exporterSplitting.closeFile();
-
-//    ICI         -> solveICI ( exporterICI, Savedt );
-//    exporterICI.closeFile();
-//
-//    SVI         -> solveSVI ( exporterSVI, Savedt );
-//    exporterSVI.closeFile();
-//
    Real Savedt = monodomainList.get ("saveStep", 0.1);
    Real timeStep = monodomainList.get ("timeStep", 0.01);
    Real endTime = monodomainList.get ("endTime", 10.);
@@ -596,7 +575,6 @@ Int main ( Int argc, char** argv )
            splitting -> solveOneSplittingStep(exporterSplitting, t);
        else
            splitting -> solveOneSplittingStep();
-//      splitting -> solveOneSplittingStep (exporterSplitting, t);
 
        // ECG : discrete laplacian of the solution
        (*rhs_Laplacian) = (*systemMatrixL) * (*(splitting->globalSolution().at(0)));

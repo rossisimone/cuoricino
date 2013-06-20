@@ -24,16 +24,11 @@ ADD_SUBDIRECTORIES(
   XbNegroniLascano96
   IonicAlievPanfilov
   IonicFitzHughNagumo
-  IonicFitzHughNagumo_test
-  IonicRogersMcCulloch
+  IonicRogersMcCulloch_pacingECG
   IonicRogersMcCullochSpiral
   IonicMinimalModel
-  IonicMinimalModelPlaneWave
-  IonicMinimalModelMesh
-  IonicMinimalModelSpiral
- # IonicMinimalModel_pacingECG
+  IonicMinimalModel_pacingECG
   IonicFox
-  IonicFoxSpiral
   IonicFox_pacingECG
   IonicTenTusscherModel
   Restart
