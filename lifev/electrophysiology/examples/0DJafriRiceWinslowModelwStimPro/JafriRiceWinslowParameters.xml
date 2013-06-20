@@ -1,7 +1,7 @@
 <!-- Model Parameters -->
 <ParameterList name="Jafri Rice Winslow: Parameter list">
-	<Parameter name="endTime" type="double" value="3300"/>
-	<Parameter name="timeStep" type="double" value="1e-4"/>
+	<Parameter name="endTime" type="double" value="4500"/>
+	<Parameter name="timeStep" type="double" value="1e-7"/>
 	<Parameter name="savedt" type="double" value="0.1"/>
 	<Parameter name="areaCap" type="double" value="1.5343e-2"/>
 	<Parameter name="volMyo" type="double" value="25.84e-6"/>

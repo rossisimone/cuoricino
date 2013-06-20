@@ -1,7 +1,7 @@
 <!-- Model Parameters -->
 	<ParameterList name="Ten Tusscher : Parameter list">
-	<Parameter name="endTime"  type="double" value="200000" />
-	<Parameter name="timeStep"  type="double" value="1e-2" />
+	<Parameter name="endTime"  type="double" value="100000" />
+	<Parameter name="timeStep"  type="double" value="1e-4" />
 	<Parameter name="savedt" type="double" value="0.1"/>
 	<Parameter name="gasConst" type="double" value="8314.472"/>
 	<Parameter name="temp" type="double" value="310.0"/>
