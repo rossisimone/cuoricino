@@ -233,7 +233,7 @@ Int main ( Int argc, char** argv )
 
     	Ca = states.at(13)*1000;
     	Bi = 1.0 / ( 1.0 + Buffc * KBuffc / ( ( Ca + KBuffc ) * ( Ca + KBuffc ) ) );
-    	cout << "Test" << Bi;
+
     	// Because the concentration is in mM in the ionic model
     	// and in the Xb model it sould be in uM.
 

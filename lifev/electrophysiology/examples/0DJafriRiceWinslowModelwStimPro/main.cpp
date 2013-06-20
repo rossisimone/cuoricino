@@ -201,7 +201,7 @@ Int main ( Int argc, char** argv )
     string filename             = "output.txt";
     string filenameStimPro      = "outputStimPro.txt";
 
-    std::ofstream output        ("output.txt");
+    std::ofstream output        ("output3.txt");
     std::ofstream outputStimPro ("outputStimPro.txt");
 
     //********************************************//

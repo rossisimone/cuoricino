@@ -948,7 +948,7 @@ void XbNegroniLascano96TTJRW::computeCoupling( std::vector<Real>&  v, const Real
 	Real Qr  = M_Y3 * v[1] - M_Z3 * Ca * v[2];
 	Real Qd2 = M_Yd * vel * vel * v[1];
 
-	rhsCoupling =  Bi * ( - Qb + Qr + Qd2 ) * 1e-6;
+	rhsCoupling =  ( Bi * (- Qb + Qr ) + Qd2 ) * 1e-6;
 	// 1e-6 is a corrector term in order to have equivalent units in both side of the equation.
 
 }
