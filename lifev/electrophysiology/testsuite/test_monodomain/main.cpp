@@ -89,7 +89,42 @@ using namespace LifeV;
 
 Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
 {
-    return ( 0.5 + 0.5 * ( std::tanh ( - ( y - 90.0 ) / 5.0 ) ) );
+//    return 1;
+//	return std::exp(-2 * (x*x+y*y+z*z) / (0.15 * 0.15));
+
+    Real pacingSite_X = 0.0;
+    Real pacingSite_Y = 0.0;
+    Real pacingSite_Z = 0.0;
+    Real stimulusRadius = 0.15;
+
+    if ( std::abs( x - pacingSite_X ) <= stimulusRadius && std::abs( z - pacingSite_Z ) <= stimulusRadius && std::abs( y - pacingSite_Y ) <= stimulusRadius)
+    {
+        return 1.0;
+    }
+    else
+    {
+        return 0.0;
+    }
+}
+
+    Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+    {
+
+    Real pacingSite_X = 0.0;
+    Real pacingSite_Y = 0.0;
+    Real pacingSite_Z = 0.0;
+    Real stimulusRadius = 0.15;
+    Real stimulusValue = 0;
+
+    Real returnValue1;
+
+    if ( std::abs( x - pacingSite_X ) <= stimulusRadius && std::abs( z - pacingSite_Z ) <= stimulusRadius && std::abs( y - pacingSite_Y ) <= stimulusRadius){
+        returnValue1 = stimulusValue;
+    }else{
+        returnValue1 = 0.;
+    }
+
+    return returnValue1;
 }
 
 
@@ -203,7 +238,11 @@ Int main ( Int argc, char** argv )
         cout << "\nInitializing potential:  " ;
     }
 
-    HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 3 );
+    // Initial pacing
+    function_Type pacing = &PacingProtocol;
+    splitting -> initializePotential();
+
+    HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 6 );
  //   HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 45 );
 
     function_Type f = &smoothing;
@@ -240,7 +279,8 @@ Int main ( Int argc, char** argv )
 
     boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
 	std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
-    HeartUtility::importFibers( fiber, nm, splitting -> localMeshPtr() );
+//    HeartUtility::importFibers( fiber, nm, splitting -> localMeshPtr() );
+    HeartUtility::setupFibers ( *fiber, 0.0, 0.0, 1.0 );
     splitting -> setFiberPtr(fiber);
 
     if ( Comm->MyPID() == 0 )
@@ -256,12 +296,14 @@ Int main ( Int argc, char** argv )
     }
 
     splitting -> setupLumpedMassMatrix();
+//    splitting -> setupMassMatrix();
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
     if ( Comm->MyPID() == 0 )
     {
         cout << "Done! \n" ;
     }
+
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
@@ -302,25 +344,45 @@ Int main ( Int argc, char** argv )
     Real timeDiff = 0.0;
     LifeChrono chrono;
 
+    Real stimulusStart = 0.0;
+    Real stimulusStop  = 2.0;
+
     for ( Real t = 0.0; t < TF; )
     {
-        t = t + dt;
 
-        chrono.start();
-        if(meth==1)
-            splitting->solveOneReactionStepROS3P(dtVec, dt_min);
+        if (  t >=stimulusStart &&   t <=  stimulusStop + dt )
+        {
+            splitting -> setAppliedCurrentFromFunction ( pacing );
+        }
         else
-           	splitting->solveOneReactionStepFE();
-        chrono.stop();
-        timeReac += chrono.diff();
+        {
+            splitting -> initializeAppliedCurrent();
+        }
+
+        chrono.reset();
+        if(meth==1)
+        {
+            chrono.start();
+            splitting->solveOneReactionStepROS3P(dtVec, dt_min);
+            chrono.stop();
+        }
+        else
+        {
+            chrono.start();
+           	splitting->solveOneReactionStepFE( );
+           	chrono.stop();
+        }
+
+        timeReac += chrono.globalDiff( *Comm );
 
         (*splitting->rhsPtrUnique()) *= 0.0;
         splitting->updateRhs();
 
+        chrono.reset();
         chrono.start();
         splitting->solveOneDiffusionStepBE();
         chrono.stop();
-        timeDiff += chrono.diff();
+        timeDiff += chrono.globalDiff( *Comm );
 
         if( k % iter == 0 )
         {
@@ -340,10 +402,16 @@ Int main ( Int argc, char** argv )
 
         k++;
 
+        t = t + dt;
+
         if ( Comm->MyPID() == 0 )
         	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
 
     }
+
+    Real normSolution = ( ( splitting -> globalSolution().at (0) )->norm2());
+    if ( Comm->MyPID() == 0 )
+        std::cout << "2-norm of potential solution: " << normSolution << std::endl;
 
     exporterSplitting.closeFile();
     Exp.closeFile();
@@ -365,5 +433,16 @@ Int main ( Int argc, char** argv )
     }
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();
-    return ( EXIT_SUCCESS );
+
+    Real returnValue;
+
+    if (std::abs(normSolution - 3.35648) > 1e-4 )
+    {
+        returnValue = EXIT_FAILURE; // Norm of solution did not match
+    }
+    else
+    {
+        returnValue = EXIT_SUCCESS;
+    }
+    return ( returnValue );
 }
