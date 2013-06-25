@@ -48,14 +48,32 @@
 
 using namespace LifeV;
 
-Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
 {
-    if ( x<= 0.05 )
-        return 1.0;
-    else if( x<= 0.1)
-        return 1.0*( 0.1 - x )/(0.05);
+    if ( x<= 0.15 && y<=0.15 && z<=0.15 && t <= 2.0)
+        return 30.0;
     else
-        return 0.0;
+        return -85.23;
+}
+
+Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+{
+
+    Real pacingSite_X = 0.0;
+    Real pacingSite_Y = 0.0;
+    Real pacingSite_Z = 0.0;
+    Real stimulusRadius = 0.15;
+    Real stimulusValue = 2;
+
+    Real returnValue1;
+
+    if ( std::abs( x - pacingSite_X ) <= stimulusRadius && std::abs( z - pacingSite_Z ) <= stimulusRadius && std::abs( y - pacingSite_Y ) <= stimulusRadius){
+        returnValue1 = stimulusValue;
+    }else{
+        returnValue1 = 0.;
+    }
+
+    return returnValue1;
 }
 
 
@@ -63,11 +81,11 @@ Int main ( Int argc, char** argv )
 {
   typedef RegionMesh<LinearTetra>                         mesh_Type;
   typedef boost::shared_ptr<mesh_Type>                    meshPtr_Type;
-  typedef boost::function < Real (const Real& /*t*/,
-                                    const Real &   x,
-                                    const Real &   y,
-                                    const Real& /*z*/,
-                                    const ID&   /*i*/ ) >   function_Type;
+  typedef boost::function < Real (const Real &   t,
+                                  const Real &   x,
+                                  const Real &   y,
+                                  const Real &   z,
+                                  const ID&   /*i*/ ) >   function_Type;
   typedef IonicTenTusscherFE					ionicModel_Type;
   typedef boost::shared_ptr< ionicModel_Type >  ionicModelPtr_Type;
   typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type >        monodomainSolver_Type;
@@ -125,11 +143,14 @@ Int main ( Int argc, char** argv )
       {
         std::cout << "Building Constructor for the tenTusscher model with parameters ... ";
       }
-    ionicModelPtr_Type  ionicModel ( new ionicModel_Type() );
+    Teuchos::ParameterList parameterList  = * ( Teuchos::getParametersFromXmlFile ( "TenTusscherParameters.xml" ) );
+    ionicModelPtr_Type  ionicModel ( new ionicModel_Type(  parameterList ) );
     if ( comm->MyPID() == 0 )
       {
         std::cout << " Done!" << endl;
       }
+    // Initial pacing
+    function_Type pacing = &PacingProtocol;
 
     //********************************************//
     // We solve with the Operator Splitting method               //
@@ -158,29 +179,28 @@ Int main ( Int argc, char** argv )
         cout << "\nInitializing potential:  " ;
     }
 
-    //setting up initial conditions for TenTusscher
-      * ( monodomain -> globalSolution().at (1) ) = 0.0;
-      * ( monodomain -> globalSolution().at (2) ) = 0.75;
-      * ( monodomain -> globalSolution().at (3) ) = 0.75;
-      * ( monodomain -> globalSolution().at (4) ) = 0.0;
-      * ( monodomain -> globalSolution().at (5) ) = 1.0;
-      * ( monodomain -> globalSolution().at (6) ) = 0.0;
-      * ( monodomain -> globalSolution().at (7) ) = 0.0;
-      * ( monodomain -> globalSolution().at (8) ) = 1.0;
-      * ( monodomain -> globalSolution().at (9) ) = 1.0;
-      * ( monodomain -> globalSolution().at (10) ) = 0.0;
-      * ( monodomain -> globalSolution().at (11) ) = 1.0;
-      * ( monodomain -> globalSolution().at (12) ) = 1.0;
-      * ( monodomain -> globalSolution().at (13) ) = 2e-4;
-      * ( monodomain -> globalSolution().at (14) ) = 0.2;
-      * ( monodomain -> globalSolution().at (15) ) = 11.6;
-      * ( monodomain -> globalSolution().at (16) ) = 138.3;
-
     //monodomain -> setInitialConditions();
     function_Type Stim = &Stimulus2;
     monodomain -> setPotentialFromFunction( Stim );
     //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
 
+    //setting up initial conditions for TenTusscher
+      * ( monodomain -> globalSolution().at (1) ) = 0.00172;
+      * ( monodomain -> globalSolution().at (2) ) = 0.7045;
+      * ( monodomain -> globalSolution().at (3) ) = 0.7444;
+      * ( monodomain -> globalSolution().at (4) ) = 0.00621;
+      * ( monodomain -> globalSolution().at (5) ) = 0.4712;
+      * ( monodomain -> globalSolution().at (6) ) = 0.0095;
+      * ( monodomain -> globalSolution().at (7) ) = 0.00003373;
+      * ( monodomain -> globalSolution().at (8) ) = 0.7888;
+      * ( monodomain -> globalSolution().at (9) ) = 0.9953; //?
+      * ( monodomain -> globalSolution().at (10) ) = 2.42e-8;
+      * ( monodomain -> globalSolution().at (11) ) = 0.999998;
+      * ( monodomain -> globalSolution().at (12) ) = 0.9755; //??
+      * ( monodomain -> globalSolution().at (13) ) = 0.000126; // Intracellular Ca
+      * ( monodomain -> globalSolution().at (14) ) = 3.64;     // Sarcoplasmic Ca
+      * ( monodomain -> globalSolution().at (15) ) = 8.604;    // Intracellular Na
+      * ( monodomain -> globalSolution().at (16) ) = 136.89;   // Intracellular Ka
 
     if ( comm->MyPID() == 0 )
     {
@@ -195,17 +215,22 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
+
     VectorSmall<3> fibers;
-    fibers[0] =  monodomainList.get ("fiber_X", std::sqrt (2) / 2.0 );
-    fibers[1] =  monodomainList.get ("fiber_Y", std::sqrt (2) / 2.0 );
-    fibers[2] =  monodomainList.get ("fiber_Z", 0.0 );
+    fibers[0] =  monodomainList.get ("fiber_X", 0.0 );
+    fibers[1] =  monodomainList.get ("fiber_Y", 0.0 );
+    fibers[2] =  monodomainList.get ("fiber_Z", 1.0 );
 
     monodomain ->setupFibers (fibers);
+
+    //boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
+    //HeartUtility::setupFibers ( *fiber, 0.0, 0.0, 1.0 );
+    //splitting -> setFiberPtr(fiber);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
-    monodomain -> setupLumpedMassMatrix();
+    monodomain -> setupMassMatrix();
     monodomain -> setupStiffnessMatrix();
     monodomain -> setupGlobalMatrix();
 
@@ -228,6 +253,7 @@ Int main ( Int argc, char** argv )
 
     Real Savedt = monodomainList.get ("saveStep", 0.1);
     monodomain   -> solveSplitting ( exporterMonodomain, Savedt );
+
     exporterMonodomain.closeFile();
 
     if ( comm->MyPID() == 0 )
