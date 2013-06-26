@@ -504,7 +504,7 @@ int main (int argc, char** argv)
 
      Real sx = 1.0, sy = 0.0, sz = 0.0;
      solid.material()->setupSheetVector(sx, sy, sz);
-
+   //  solid.material()->showMyParameters();
      if ( comm->MyPID() == 0 )
      {
          std::cout << "\nset fibers" << std::endl;
