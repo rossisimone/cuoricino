@@ -197,7 +197,8 @@ public:
 
     return_Type operator() (const Real& a)
     {
-    	return std::exp( a );
+    	if(a!=0) return std::exp( a );
+    	else return 1.0;
     }
 
 
@@ -214,7 +215,8 @@ public:
 
     return_Type operator() (const Real& a)
     {
-    	return std::exp( a * a );
+    	if(a!=0) return std::exp( a * a );
+    	else return 1.0;
     }
 
 
@@ -231,6 +233,7 @@ public:
 
     return_Type operator() (const Real& a)
     {
+    	std::cout.precision(15);
     	std::cout << "value is: " << a <<" \n";
     	return 1.0;
     }
