@@ -22,6 +22,7 @@
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="false"/>
     <Parameter name="Solver Type" type="string" value="AztecOO"/>
+    <Parameter name="OutputFile" type="string" value="iso_"/>
     
     <!-- Post-processing parameters-->
     <Parameter name="threshold" type="double" value="10."/>

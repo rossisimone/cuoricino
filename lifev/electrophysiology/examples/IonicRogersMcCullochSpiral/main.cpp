@@ -400,7 +400,11 @@ Int main ( Int argc, char** argv )
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
 
-    splitting -> setupExporter ( exporterSplitting, "Splitting" );
+    string filenameSplitting =  monodomainList.get ("OutputFile", "" );
+    filenameSplitting += "RM_spiral";
+
+    splitting -> setupPotentialExporter ( exporterSplitting, filenameSplitting );
+
     splitting -> exportSolution ( exporterSplitting, 0);
 
 
