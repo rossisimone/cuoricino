@@ -102,6 +102,14 @@ public:
     typedef LifeV::PreconditionerIfpack prec_Type;
     typedef boost::shared_ptr<prec_Type> precPtr_Type;
 
+	typedef MatrixEpetra<Real> matrix_Type;
+	typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
+
+    typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 >       scalarETFESpace_Type;
+    typedef boost::shared_ptr<scalarETFESpace_Type>                      scalarETFESpacePtr_Type;
+    typedef ETFESpace< mesh_Type, MapEpetra, 3, 3 >       vectorialETFESpace_Type;
+    typedef boost::shared_ptr<vectorialETFESpace_Type>                      vectorialETFESpacePtr_Type;
+
     /*! @enum FSI3DActivated_ActivationModelType
      */
     enum FSI3DActivated_ActivationModelType
@@ -109,6 +117,12 @@ public:
         Algebraic,
         SimpleODE,
         StretchDependentODE
+    };
+
+    enum FSI3DActivated_ActivationType
+    {
+    	TransverselyIsotropic,
+        Orthotropic
     };
 
     //@}
@@ -224,10 +238,15 @@ private:
     IOFilePtr_Type                          M_importerElectro;
 
     vectorPtr_Type							M_gammaf;
+    vectorPtr_Type							M_gammas;
+    vectorPtr_Type							M_gamman;
+
 
     bool									M_usingDifferentMeshes;
     bool									M_oneWayCoupling;
     vectorPtr_Type							M_gammafSolid;
+    vectorPtr_Type							M_gammasSolid;
+    vectorPtr_Type							M_gammanSolid;
     std::vector<Real>                       M_activationCenter;
     Real                                    M_activationRadius;
     UInt                                    M_activationMarker;
@@ -236,6 +255,7 @@ private:
     std::string								M_dataFileName;
 
     vectorPtr_Type							M_displacementMonodomain;
+    vectorialETFESpacePtr_Type				M_monodomainDisplacementETFESpace;
 
     interpolationPtr_Type					M_coarseToFineInterpolant;
     interpolationPtr_Type					M_fineToCoarseInterpolant;
@@ -247,10 +267,18 @@ private:
     FSI3DActivated_ActivationModelType      M_activationModelType;
 
     vectorPtr_Type							M_rescalingVector;
-//    boost::shared_ptr<LinearSolver>         M_activationSolver;
+    boost::shared_ptr<LinearSolver>         M_activationSolver;
 
 
     std::string                             M_interpolationType;
+
+    scalarETFESpacePtr_Type					M_activationETFESpace;
+
+    FSI3DActivated_ActivationType      		M_activationType;
+    Real 									M_orthotropicActivationFactor;
+    matrixPtr_Type 							M_activationOperator;
+    vectorPtr_Type							M_preloadVector;
+    bool									M_preloadInTime;
 
 };
 
