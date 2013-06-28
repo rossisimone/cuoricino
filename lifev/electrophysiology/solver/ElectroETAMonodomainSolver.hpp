@@ -139,8 +139,13 @@ public:
 
 //    typedef ExporterHDF5< mesh_Type >          exporter_Type;
 //    typedef boost::shared_ptr<exporter_Type>                       exporterPtr_Type;
-	typedef Exporter<mesh_Type> exporter_Type;    //                IOFile_Type;
-	typedef boost::shared_ptr<exporter_Type> exporterPtr_Type; //                IOFilePtr_Type;
+	typedef Exporter<mesh_Type> IOFile_Type;    //                IOFile_Type;
+	typedef boost::shared_ptr<IOFile_Type> IOFilePtr_Type; //                IOFilePtr_Type;
+    typedef ExporterData< mesh_Type >             IOData_Type;
+    typedef ExporterEnsight< mesh_Type >                       ensightIOFile_Type;
+#ifdef HAVE_HDF5
+    typedef ExporterHDF5< mesh_Type >                          hdf5IOFile_Type;
+#endif
 
 	typedef LifeV::Preconditioner basePrec_Type;
 	typedef boost::shared_ptr<basePrec_Type> basePrecPtr_Type;
@@ -728,7 +733,7 @@ public:
 	 */
 	void inline updateRhs() {
 		(*M_rhsPtrUnique) += (*M_massMatrixPtr) * (*M_potentialPtr)
-				* (1.0 / (M_timeStep));
+				* (1.0 / (M_timeStep) / M_membraneCapacitance);
 	}
 
 	//! Solves one diffusion step using the BDF2 scheme
@@ -768,20 +773,20 @@ public:
 	 * A\mathbf{V}^{n+1} = \left( \frac{M}{\Delta t} + K(\mathbf{f}) \right)\mathbf{V}^{n+1} =\frac{M}{\Delta t} \mathbf{V}^*.
 	 * \f]
 	 */
-	void solveOneSplittingStep(exporter_Type& exporter, Real t);
+	void solveOneSplittingStep(IOFile_Type& exporter, Real t);
 	//!Solve the system with operator splitting from M_initialTime to the M_endTime with time step M_timeStep and export the solution
-	void solveSplitting(exporter_Type& exporter);
+	void solveSplitting(IOFile_Type& exporter);
 	//!Solve the system with operator splitting from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
-	void solveSplitting(exporter_Type& exporter, Real dt);
+	void solveSplitting(IOFile_Type& exporter, Real dt);
 	//! add to a given exporter the pointer to the potential
-	void setupPotentialExporter(exporter_Type& exporter);
+	void setupPotentialExporter(IOFile_Type& exporter);
 	//! add to a given exporter the pointer to the potential and to the gating variables
-	void setupExporter(exporter_Type& exporter);
+	void setupExporter(IOFile_Type& exporter);
 
 	//! add to a given exporter the pointer to the potential saved with name fileName
-	void setupPotentialExporter(exporter_Type& exporter, std::string fileName);
+	void setupPotentialExporter(IOFile_Type& exporter, std::string fileName);
 	//! add to a given exporter the pointer to the potential and to the gating variables saved with name fileName
-	void setupExporter(exporter_Type& exporter, std::string fileName);
+	void setupExporter(IOFile_Type& exporter, std::string fileName);
 
 	//! Generates a default fiber direction (0,1,0)
 	void setupFibers();
@@ -829,32 +834,33 @@ public:
 	 * \f]
 	 * where $\mathbf{I}$ is the vector of the ionic currents $I_j = I_{ion}(V_j^n)$
 	 */
-	void solveOneICIStep(exporter_Type& exporter, Real t);
+	void solveOneICIStep(IOFile_Type& exporter, Real t);
 	//!Solve one full step with ionic current interpolation  and export the solution
 	/*!
 	 * \f[
 	 * A\mathbf{V}^{n+1} = \left( \frac{M}{\Delta t} + K(\mathbf{f}) \right)\mathbf{V}^{n+1} =\frac{M}{\Delta t} \mathbf{V}^n+\mathbf{I}_{ion}(\mathbf{V}^n).
 	 * \f]
 	 */
-	void solveOneSVIStep(exporter_Type& exporter, Real t);
+	void solveOneSVIStep(IOFile_Type& exporter, Real t);
 
 	//! solve system using ICI from M_initialTime to the M_endTime with time step M_timeStep and export the solution
-	void solveICI(exporter_Type& exporter);
+	void solveICI(IOFile_Type& exporter);
 	//! solve system using SVI from M_initialTime to the M_endTime with time step M_timeStep and export the solution
-	void solveSVI(exporter_Type& exporter);
+	void solveSVI(IOFile_Type& exporter);
     //!Solve the system using ICI from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
-	void solveICI(exporter_Type& exporter, Real dt);
+	void solveICI(IOFile_Type& exporter, Real dt);
     //!Solve the using SVI from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
-	void solveSVI(exporter_Type& exporter, Real dt);
+	void solveSVI(IOFile_Type& exporter, Real dt);
 	//! Generates a file where the fiber direction is saved
 	void exportFiberDirection();
 	//! save the fiber direction into the given exporter
-	void exportFiberDirection(exporter_Type& exporter);
-
+	void exportFiberDirection(IOFile_Type& exporter);
 	//! Save the solution in the exporter
-	void inline exportSolution(exporter_Type& exporter, Real t) {
+	void inline exportSolution(IOFile_Type& exporter, Real t) {
 		exporter.postProcess(t);
 	}
+	//! Import solution
+	void importSolution(GetPot& dataFile, std::string prefix, std::string postDir, Real time);
 
 	void inline setInitialConditions()
 	{
@@ -1105,7 +1111,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::exportFiberDirection() {
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::exportFiberDirection(
-		exporter_Type& exporter) {
+		IOFile_Type& exporter) {
 	boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > Space3D(
 			new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
 					3, M_commPtr));
@@ -1114,6 +1120,27 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::exportFiberDirection(
 			Space3D, M_fiberPtr, UInt(0));
 	exporter.postProcess(0);
 }
+
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::importSolution(GetPot& dataFile, std::string prefix, std::string postDir, Real time)
+{
+    const std::string exporterType = dataFile ( "exporter/type", "ensight" );
+
+    IOFilePtr_Type importer( new hdf5IOFile_Type() );
+    importer->setDataFromGetPot ( dataFile );
+    importer->setPrefix ( prefix );
+    importer->setPostDir ( postDir );
+
+    importer->setMeshProcId ( M_feSpacePtr->mesh(), M_feSpacePtr->map().comm().MyPID() );
+
+
+    importer -> addVariable ( IOData_Type::ScalarField, "Variable0", M_feSpacePtr, M_potentialPtr, static_cast <UInt> (0) );
+    for(int i(1); i < M_ionicModelPtr->Size(); i++)
+    	importer -> addVariable( IOData_Type::ScalarField, "Variable" + number2string ( i ), M_feSpacePtr, M_globalSolution.at(i), static_cast <UInt> (0) );
+    importer -> importFromTime ( time );
+
+}
+
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup(GetPot& dataFile,
@@ -1248,7 +1275,8 @@ template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalMatrix() {
 	(*M_globalMatrixPtr) *= 0;
 	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
-	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * (1.0 / (M_timeStep)));
+	(*M_globalMatrixPtr) *= 1.0 / M_surfaceVolumeRatio;
+	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * ( M_membraneCapacitance / (M_timeStep)));
 }
 
 template<typename Mesh, typename IonicModel>
@@ -1313,7 +1341,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalRhs(
 /************** EXPORTER */    //////////////
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupPotentialExporter(
-		exporter_Type& exporter) {
+		IOFile_Type& exporter) {
 	exporter.setMeshProcId(M_localMeshPtr, M_commPtr->MyPID());
 	exporter.setPrefix("Potential");
 	exporter.addVariable(ExporterData<mesh_Type>::ScalarField, "Potential",
@@ -1322,7 +1350,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupPotentialExporter(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupExporter(
-		exporter_Type& exporter) {
+		IOFile_Type& exporter) {
 	exporter.setMeshProcId(M_localMeshPtr, M_commPtr->MyPID());
 	exporter.setPrefix("Solution");
 	exporter.exportPID(M_localMeshPtr, M_commPtr);
@@ -1336,7 +1364,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupExporter(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupPotentialExporter(
-		exporter_Type& exporter, std::string fileName) {
+		IOFile_Type& exporter, std::string fileName) {
 	exporter.setMeshProcId(M_localMeshPtr, M_commPtr->MyPID());
 	exporter.setPrefix(fileName);
 	exporter.exportPID(M_localMeshPtr, M_commPtr);
@@ -1346,7 +1374,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupPotentialExporter(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupExporter(
-		exporter_Type& exporter, std::string fileName) {
+		IOFile_Type& exporter, std::string fileName) {
 	exporter.setMeshProcId(M_localMeshPtr, M_commPtr->MyPID());
 	exporter.setPrefix(fileName);
 	exporter.exportPID(M_localMeshPtr, M_commPtr);
@@ -1366,7 +1394,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(int su
 
 	for (UInt i = 0; i < M_ionicModelPtr->Size(); i++) {
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
-				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i)));
+				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i))) / M_membraneCapacitance;
 	}
 
 }
@@ -1439,7 +1467,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBDF2(vec
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBE() {
 	if(M_displacementPtr) M_linearSolverPtr ->setOperator(M_globalMatrixPtr);
-	M_linearSolverPtr->setRightHandSide(M_rhsPtrUnique);
+	M_linearSolverPtr->setRightHandSide( M_rhsPtrUnique );
 	M_linearSolverPtr->solve(M_potentialPtr);
 }
 
@@ -1453,7 +1481,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneSplittingStep() {
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneSplittingStep(
-		exporter_Type& exporter, Real t) {
+		IOFile_Type& exporter, Real t) {
 	solveOneSplittingStep();
 	exportSolution(exporter, t);
 }
@@ -1468,7 +1496,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSplitting() {
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSplitting(
-		exporter_Type& exporter) {
+		IOFile_Type& exporter) {
 	if (M_endTime > M_timeStep) {
 		for (Real t = M_initialTime; t < M_endTime;) {
 			t = t + M_timeStep;
@@ -1479,7 +1507,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSplitting(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSplitting(
-		exporter_Type& exporter, Real dt) {
+		IOFile_Type& exporter, Real dt) {
 	assert(
 			dt >= M_timeStep
 					&& "Cannot save the solution for step smaller than the timestep!");
@@ -1560,21 +1588,21 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSVI() {
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneICIStep(
-		exporter_Type& exporter, Real t) {
+		IOFile_Type& exporter, Real t) {
 	solveOneICIStep();
 	exportSolution(exporter, t);
 }
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneSVIStep(
-		exporter_Type& exporter, Real t) {
+		IOFile_Type& exporter, Real t) {
 	solveOneSVIStep();
 	exportSolution(exporter, t);
 }
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveICI(
-		exporter_Type& exporter) {
+		IOFile_Type& exporter) {
 
 	Real dt = M_timeStep;
 	for (Real t = M_initialTime; t < M_endTime;) {
@@ -1588,7 +1616,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveICI(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSVI(
-		exporter_Type& exporter) {
+		IOFile_Type& exporter) {
 	for (Real t = M_initialTime; t < M_endTime;) {
 		t = t + M_timeStep;
 		solveOneStepGatingVariablesFE();
@@ -1598,7 +1626,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSVI(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveICI(
-        exporter_Type& exporter, Real dt) {
+        IOFile_Type& exporter, Real dt) {
     assert(
             dt >= M_timeStep
                     && "Cannot save the solution for step smaller than the timestep!");
@@ -1624,7 +1652,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveICI(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSVI(
-        exporter_Type& exporter, Real dt) {
+        IOFile_Type& exporter, Real dt) {
     assert(
             dt >= M_timeStep
                     && "Cannot save the solution for step smaller than the timestep!");
