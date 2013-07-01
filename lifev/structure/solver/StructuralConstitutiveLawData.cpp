@@ -65,6 +65,7 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData() :
     M_gamma                            ( ),
     M_order                            ( ),
     M_fileFiberDirections              ( ),
+    M_fileSheetDirections              ( ),
     M_verbose                          ( ),
     M_vectorMaterialFlags              ( ),
     M_a								   ( ),
@@ -92,6 +93,7 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData ( const StructuralC
     M_gamma                            ( structuralConstitutiveLawData.M_gamma ),
     M_order                            ( structuralConstitutiveLawData.M_order ),
     M_fileFiberDirections              ( structuralConstitutiveLawData.M_fileFiberDirections ),
+    M_fileSheetDirections              ( structuralConstitutiveLawData.M_fileSheetDirections ),
     M_verbose                          ( structuralConstitutiveLawData.M_verbose ),
     M_vectorMaterialFlags              ( structuralConstitutiveLawData.M_vectorMaterialFlags ),
     M_a								   ( structuralConstitutiveLawData.M_a ),
@@ -126,6 +128,7 @@ StructuralConstitutiveLawData::operator= ( const StructuralConstitutiveLawData& 
         M_gamma                            = structuralConstitutiveLawData.M_gamma;
         M_order                            = structuralConstitutiveLawData.M_order;
         M_fileFiberDirections              = structuralConstitutiveLawData.M_fileFiberDirections;
+        M_fileSheetDirections              = structuralConstitutiveLawData.M_fileSheetDirections;
         M_verbose                          = structuralConstitutiveLawData.M_verbose;
         M_vectorMaterialFlags              = structuralConstitutiveLawData.M_vectorMaterialFlags;
         M_a								   = structuralConstitutiveLawData.M_a ;
@@ -236,6 +239,7 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
 
     // fiber directions
     M_fileFiberDirections = dataFile ( ( section + "/space_discretization/fibers_file" ).data(), "" );
+    M_fileSheetDirections = dataFile ( ( section + "/space_discretization/sheets_file" ).data(), "" );
 
     // miscellaneous
     M_verbose          = dataFile ( ( section + "/miscellaneous/verbose" ).data(), 0 );
@@ -325,6 +329,7 @@ StructuralConstitutiveLawData::showMe ( std::ostream& output ) const
     output << "\n*** Values for data [solid/space_discretization]\n\n";
     output << "FE order                         = " << M_order << std::endl;
     output << "File for fiber directions        = " << M_fileFiberDirections << std::endl;
+    output << "File for sheet directions        = " << M_fileSheetDirections << std::endl;
 
     output << "\n*** Values for data [solid/time_discretization]\n\n";
     M_time->showMe ( output );

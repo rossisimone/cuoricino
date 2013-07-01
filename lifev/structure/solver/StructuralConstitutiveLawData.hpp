@@ -392,6 +392,10 @@ public:
     {
         return M_fileFiberDirections;
     }
+    const std::string& fileSheetDirections() const
+    {
+        return M_fileSheetDirections;
+    }
 
     //! Get verbose level
     /*!
@@ -466,6 +470,7 @@ private:
     //! Space discretization
     std::string            M_order;
     std::string            M_fileFiberDirections;
+    std::string            M_fileSheetDirections;
 
     //! Miscellaneous
     UInt                   M_verbose; // temporal output verbose
