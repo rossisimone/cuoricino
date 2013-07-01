@@ -2,11 +2,11 @@
     <Parameter name="surfaceVolumeRatio" type="double" value="1400.0"/><!-- cm ^ -1-->
     <Parameter name="membraneCapacitance" type="double" value="1.00"/><!-- mu F cm ^ -2 -->
     <Parameter name="timeStep" type="double" value="0.01"  /><!-- ms ^ -1-->
-    <Parameter name="endTime" type="double" value="50.0"  />
-    <Parameter name="saveStep" type="double" value="0.1"  />
+    <Parameter name="endTime" type="double" value="500.0"  />
+    <Parameter name="saveStep" type="double" value="1.0"  />
     <Parameter name="stimulus_value" type="double" value="1.0"  />
-    <Parameter name="longitudinalDiffusion" type="double" value="0.133417721518987"  /><!-- Ohm ^-1 m ^ -1-->
-    <Parameter name="transversalDiffusion" type="double" value ="0.0176061776061776"  /><!-- Ohm ^-1 m ^ -1-->
+    <Parameter name="longitudinalDiffusion" type="double" value="0.0133417721518987"  /><!-- k Ohm ^-1 cm ^ -1-->
+    <Parameter name="transversalDiffusion" type="double" value ="0.00176061776061776"  /><!--k Ohm ^-1 cm ^ -1-->
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="benchmark_05mm.mesh"  />
     <Parameter name="mesh_path" type="string" value="./"  />
