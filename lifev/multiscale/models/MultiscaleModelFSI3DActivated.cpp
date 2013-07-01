@@ -178,6 +178,8 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     HeartUtility::importFibers ( M_fiber, nm, M_monodomain -> localMeshPtr() );
     M_monodomain-> setFiberPtr (M_fiber);
 
+
+
     // Activation function
 
     M_displacementMonodomain.reset ( new vector_Type ( M_monodomainDisplacementETFESpace -> map() ) );
@@ -276,10 +278,6 @@ MultiscaleModelFSI3DActivated::setupModel()
     M_monodomain -> setInitialConditions();
 
 
-    HeartUtility::importFibers ( super::solver() -> solid().material() -> fiberVector(),
-                                 super::solver() -> solid().material() -> materialData() -> fileFiberDirections(),
-                                 solidLocalMeshPtr );
-
     HeartUtility::setValueOnBoundary ( * (M_monodomain -> potentialPtr() ), M_monodomain -> fullMeshPtr(), 1.0, M_activationMarker );
 
     function_Type f ( boost::bind ( &MultiscaleModelFSI3DActivated::activationFunction, this, _1, _2, _3, _4, _5 ) );
@@ -314,9 +312,24 @@ MultiscaleModelFSI3DActivated::setupModel()
 		std::string fieldname = list.get ("fieldname", "");
 		HeartUtility::importScalarField(M_rescalingVector, filename, fieldname, super::solver() -> solidLocalMeshPtr() );
     }
-
-//    *M_activationSolver = *M_monodomain -> linearSolverPtr();
+    if(M_data->dataFluid()->dataTime()->initialTime() > 0)
+    {
+    	std::string prefix = multiscaleProblemPrefix + "_Model_" + number2string ( M_ID ) +  "_Electro_" + number2string ( multiscaleProblemStep - 1);
+    	M_monodomain -> importSolution(dataFile,prefix,multiscaleProblemFolder,M_data->dataFluid()->dataTime()->initialTime() );
+    }
+    	//    *M_activationSolver = *M_monodomain -> linearSolverPtr();
     //setting up activation solver
+    HeartUtility::importFibers ( super::solver() -> solid().material() -> fiberVector(),
+                                 super::solver() -> solid().material() -> materialData() -> fileFiberDirections(),
+                                 solidLocalMeshPtr );
+
+    // sheet direction
+    std::string sheetFileName = list.get ("sheet_file", "SheetDirection") ;
+    std::string sheetFieldName = list.get ("sheet_field", "sheets") ;
+    HeartUtility::importVectorField(	super::solver() -> solid().material() -> sheetVectorPtr(),
+    									sheetFileName,
+    									"sheets",
+    									super::solver() -> solidLocalMeshPtr() );
 
 }
 
@@ -698,7 +711,7 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
         if (fineToCoarseInterpolationType != "RBFlocallyRescaledScalar" && fineToCoarseInterpolationType != "RBFhtp")
         {
             // Set radius only when using standard RBF interpolation
-            M_fineToCoarseInterpolant -> setRadius ( (double) MeshUtility::MeshStatistics::computeSize ( * (M_monodomain -> fullMeshPtr() ) ).maxH );
+            M_fineToCoarseInterpolant -> setRadius ( (double) MeshUtility::MeshStatistics::computeSize ( * (M_fullSolidMesh ) ).maxH );
         }
 
         M_fineToCoarseInterpolant -> setupRBFData ( M_gammaf, M_gammafSolid, dataFile, monodomainList);
@@ -718,7 +731,7 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
             if (coarseToFineInterpolationType != "RBFlocallyRescaledVectorial" && coarseToFineInterpolationType != "RBFhtpVectorial")
             {
                 // Set radius only when using standard RBF interpolation
-                M_coarseToFineInterpolant -> setRadius ( (double) MeshUtility::MeshStatistics::computeSize ( * (M_monodomain -> fullMeshPtr() ) ).maxH );
+                M_coarseToFineInterpolant -> setRadius ( (double) MeshUtility::MeshStatistics::computeSize ( * (M_fullSolidMesh ) ).maxH );
             }
 
             M_coarseToFineInterpolant -> setupRBFData ( M_solidDisplacement , M_monodomain -> displacementPtr(), dataFile, monodomainList);
