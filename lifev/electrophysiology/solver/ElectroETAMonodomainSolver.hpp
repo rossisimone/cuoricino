@@ -780,13 +780,10 @@ public:
 	void solveSplitting(IOFile_Type& exporter, Real dt);
 	//! add to a given exporter the pointer to the potential
 	void setupPotentialExporter(IOFile_Type& exporter);
-	//! add to a given exporter the pointer to the potential and to the gating variables
-	void setupExporter(IOFile_Type& exporter);
-
 	//! add to a given exporter the pointer to the potential saved with name fileName
 	void setupPotentialExporter(IOFile_Type& exporter, std::string fileName);
 	//! add to a given exporter the pointer to the potential and to the gating variables saved with name fileName
-	void setupExporter(IOFile_Type& exporter, std::string fileName);
+	void setupExporter(IOFile_Type& exporter, std::string fileName = "output", std::string folder = "./" );
 
 	//! Generates a default fiber direction (0,1,0)
 	void setupFibers();
@@ -866,6 +863,9 @@ public:
 	{
 		M_ionicModelPtr -> initialize( M_globalSolution );
 	}
+
+	//! save the fiber direction into the given exporter
+	void registerActivationTime(vector_Type& activationTimeVector, Real time, Real threshold = 0.0);
 
 	//@}
 
@@ -1138,6 +1138,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::importSolution(GetPot& dataFi
     for(int i(1); i < M_ionicModelPtr->Size(); i++)
     	importer -> addVariable( IOData_Type::ScalarField, "Variable" + number2string ( i ), M_feSpacePtr, M_globalSolution.at(i), static_cast <UInt> (0) );
     importer -> importFromTime ( time );
+    importer -> closeFile();
 
 }
 
@@ -1349,20 +1350,6 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupPotentialExporter(
 }
 
 template<typename Mesh, typename IonicModel>
-void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupExporter(
-		IOFile_Type& exporter) {
-	exporter.setMeshProcId(M_localMeshPtr, M_commPtr->MyPID());
-	exporter.setPrefix("Solution");
-	exporter.exportPID(M_localMeshPtr, M_commPtr);
-	std::string variableName;
-	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
-		variableName = "Variable" + boost::lexical_cast<std::string>(i);
-		exporter.addVariable(ExporterData<mesh_Type>::ScalarField, variableName,
-				M_feSpacePtr, M_globalSolution.at(i), UInt(0));
-	}
-}
-
-template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupPotentialExporter(
 		IOFile_Type& exporter, std::string fileName) {
 	exporter.setMeshProcId(M_localMeshPtr, M_commPtr->MyPID());
@@ -1374,10 +1361,11 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupPotentialExporter(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupExporter(
-		IOFile_Type& exporter, std::string fileName) {
+		IOFile_Type& exporter, std::string fileName, std::string folder) {
 	exporter.setMeshProcId(M_localMeshPtr, M_commPtr->MyPID());
 	exporter.setPrefix(fileName);
 	exporter.exportPID(M_localMeshPtr, M_commPtr);
+	exporter.setPostDir(folder);
 	std::string variableName;
 	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
 		variableName = "Variable" + boost::lexical_cast<std::string>(i);
@@ -1392,7 +1380,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(int su
 	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution,
 			*M_appliedCurrentPtr, M_globalRhs);
 
-	for (UInt i = 0; i < M_ionicModelPtr->Size(); i++) {
+	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
 				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i))) / M_membraneCapacitance;
 	}
@@ -1531,7 +1519,7 @@ template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneStepGatingVariablesFE() {
 	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
 
-	for (UInt i = 1; i < M_ionicModelPtr->Size(); i++) {
+	for (int i = 1; i < M_ionicModelPtr->Size(); i++) {
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
 				+ M_timeStep * (*(M_globalRhs.at(i)));
 	}
@@ -1672,6 +1660,23 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSVI(
         }
     }
 }
+
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::registerActivationTime(vector_Type& activationTimeVector, Real time, Real threshold )
+{
+    int n1 = M_potentialPtr -> epetraVector().MyLength();
+    int i (0);
+    for ( int l (0); l < n1; l++)
+    {
+        i = M_potentialPtr -> blockMap().GID (l);
+        if(activationTimeVector[i] < 0 && (*(M_potentialPtr))[i] > threshold )
+        {
+        	activationTimeVector[i] = time;
+        }
+
+    }
+}
+
 
 /********   INITIALIZITION FOR CONSTRUCTOR ****/    //////
 template<typename Mesh, typename IonicModel>
