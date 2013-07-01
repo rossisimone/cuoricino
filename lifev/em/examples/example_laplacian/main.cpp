@@ -493,8 +493,8 @@ int main ( int argc, char** argv )
 
       ExporterHDF5< RegionMesh <LinearTetra> > exporter2;
         exporter2.setMeshProcId ( meshPart, Comm->MyPID() );
-        exporter2.setPrefix ("rescaledGammaf");
-        exporter2.addVariable ( ExporterData<mesh_Type>::ScalarField,  "rescaledGammaf", uFESpace,
+        exporter2.setPrefix ("rescalingGammaf_refined1");
+        exporter2.addVariable ( ExporterData<mesh_Type>::ScalarField,  "rescalingGammaf", uFESpace,
                                importedSolution, UInt (0) );
         exporter2.postProcess ( 0 );
         exporter2.closeFile();
