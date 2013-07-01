@@ -15,10 +15,7 @@ ADD_SUBDIRECTORIES(
   0DNegroniLascanoModelJafriRiceWinslow
   0DFitzHughNagumoModel
   0DFoxModel
-#  CreateFiberEllipsoid
   FiberInterpolation
-#  ActiveStrainODE
-#  AlievPanfilov
   basic_example
   ETA_MonodomainSolver
   XbNegroniLascano96
@@ -33,5 +30,4 @@ ADD_SUBDIRECTORIES(
   IonicTenTusscherModel
   Restart
   RosenbrockTest
-#  RiceModel
 )
