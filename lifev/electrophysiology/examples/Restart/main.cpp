@@ -67,12 +67,9 @@
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <lifev/core/filter/ExporterEmpty.hpp>
-#include <lifev/core/filter/Exporter.hpp>
 
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
-#include <lifev/electrophysiology/solver/ElectroIonicSolver.hpp>
-#include <lifev/core/util/HeartUtility.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
@@ -80,46 +77,46 @@
 #endif
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
-#include <lifev/electrophysiology/solver/IonicModels/IonicAlievPanfilov.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
-// ---------------------------------------------------------------
-// In order to use the ETA framework, a special version of the
-// FESpace structure must be used. It is called ETFESpace and
-// has basically the same role as the FESpace.
-// ---------------------------------------------------------------
 
-#include <lifev/eta/fem/ETFESpace.hpp>
-#include <lifev/eta/expression/Integrate.hpp>
+#include <sys/stat.h>
 
-
-// ---------------------------------------------------------------
-// The most important file to include is the Integrate.hpp file
-// which contains all the definitions required to perform the
-// different integrations.
-// ---------------------------------------------------------------
-
-//#include <lifev/eta/expression/Integrate.hpp>
-//
-//#include <lifev/eta/expression/ExpressionDot.hpp>
-
-
-using std::cout;
-using std::endl;
 using namespace LifeV;
 
-
-Real Stimulus (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
+Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
 {
-    //      return ( 0.5 + 0.5 * ( std::tanh( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
-    return ( 0.5 + 0.5 * ( std::tanh ( - 10 * ( ( x - 30 ) * ( x - 50 ) ) ) ) );
-    //      return ( exp( -0.001 * ( ( x - 50 ) * ( x - 50 ) + ( y - 37 ) * ( y - 37 ) + ( z - 42 ) * ( z - 42 )  ) ) );
-}
 
+    Real pacingSite_X = 0.0;
+    Real pacingSite_Y = 0.0;
+    Real pacingSite_Z = 0.0;
+    Real stimulusRadius = 0.15;
+//    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+//    Real stimulusValue =  monodomainList.get ("stimulus_value", 0.0);
+    Real stimulusValue = 10;
+
+    Real returnValue;
+
+    if ( std::abs( x - pacingSite_X ) <= stimulusRadius
+    		 &&
+    	 std::abs( z - pacingSite_Z ) <= stimulusRadius
+    	 	 &&
+    	 std::abs( y - pacingSite_Y ) <= stimulusRadius
+    	 	 &&
+    	 t <= 2)
+    {
+    	returnValue = stimulusValue;
+    }
+    else{
+        returnValue = 0.;
+    }
+
+    return returnValue;
+}
 
 
 Int main ( Int argc, char** argv )
@@ -133,24 +130,42 @@ Int main ( Int argc, char** argv )
         cout << "% using MPI" << endl;
     }
 
+    //*********************************************//
+    // creating output folder
+    //*********************************************//
+    GetPot commandLine ( argc, argv );
+    std::string problemFolder = commandLine.follow ( "Output", 2, "-o", "--output" );
+    // Create the problem folder
+    if ( problemFolder.compare ("./") )
+    {
+        problemFolder += "/";
+
+        if ( Comm->MyPID() == 0 )
+        {
+            mkdir ( problemFolder.c_str(), 0777 );
+        }
+    }
+
     //********************************************//
     // Starts the chronometer.                    //
     //********************************************//
-    //  LifeChrono chronoinitialsettings;
-    //  chronoinitialsettings.start();
-
     typedef RegionMesh<LinearTetra>                         mesh_Type;
-    typedef boost::shared_ptr< RegionMesh<LinearTetra> >	   meshPtr_Type;
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
                                     const Real& /*z*/,
                                     const ID&   /*i*/ ) >   function_Type;
 
-    typedef  IonicAlievPanfilov                             ionicModel_Type;
-    typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type >      monodomainSolver_Type;
+    typedef ElectroETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
-    typedef ExporterData<mesh_Type> exporterData_Type;
+    typedef VectorEpetra				vector_Type;
+    typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
+
+
+    LifeChrono chronoinitialsettings;
+
+    if ( Comm->MyPID() == 0 )
+      	chronoinitialsettings.start();
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -162,7 +177,6 @@ Int main ( Int argc, char** argv )
     {
         std::cout << "Importing parameters list...";
     }
-    //   Teuchos::ParameterList APParameterList = *( Teuchos::getParametersFromXmlFile( "AlievPanfilovParameters.xml" ) );
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
     if ( Comm->MyPID() == 0 )
     {
@@ -177,9 +191,9 @@ Int main ( Int argc, char** argv )
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << "Building Constructor for Aliev Panfilov Model with parameters ... ";
+        std::cout << "Building Constructor for Minimal Model with parameters ... ";
     }
-    boost::shared_ptr<ionicModel_Type>  model ( new ionicModel_Type() );
+    boost::shared_ptr<IonicMinimalModel>  model ( new IonicMinimalModel() );
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
@@ -212,10 +226,10 @@ Int main ( Int argc, char** argv )
         std::cout << "Building Monodomain Solvers... ";
     }
 
-    monodomainSolverPtr_Type splitting ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    monodomainSolverPtr_Type solver ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << " Splitting solver done... ";
+        std::cout << " solver done... ";
     }
 
 
@@ -225,11 +239,15 @@ Int main ( Int argc, char** argv )
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        cout << "\nInitializing potential:  " ;
+        cout << "\nInitializing potential and gating variables:  " ;
     }
 
-    function_Type f = &Stimulus;
-    splitting -> setPotentialFromFunction ( f );
+    // Initial pacing
+    solver -> initializePotential();
+    solver -> initializeAppliedCurrent();
+    solver -> setInitialConditions();
+
+    function_Type stimulus = &PacingProtocol;
 
     if ( Comm->MyPID() == 0 )
     {
@@ -239,35 +257,21 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Setting up the time data                   //
     //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\n\nsetting paramters:  " ;
-    }
-
-    splitting -> setParameters ( monodomainList );
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "Done! \n" ;
-    }
+    solver -> setParameters ( monodomainList );
 
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        cout << "\n\nsetting fibers:  " ;
+        cout << "\nSetting fibers:  " ;
     }
 
-    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
-    ( new FESpace< mesh_Type, MapEpetra > ( splitting -> localMeshPtr(), "P1", 3, splitting -> commPtr() ) );
-
-    boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
-    std::string fibersDirectory = monodomainList.get ("fiber_path", "./" );
-    std::string fibersFile = monodomainList.get ("fiber_file", "fibers.dat" );
-
-    HeartUtility::importFibersFromTextFile(fiber,fibersFile, fibersDirectory);
-
-    splitting -> setFiberPtr(fiber);
+    VectorSmall<3> fibers;
+    fibers[0]=0.0;
+    fibers[1]=0.0;
+    fibers[2]=1.0;
+    solver -> setupFibers( fibers );
 
     if ( Comm->MyPID() == 0 )
     {
@@ -275,214 +279,135 @@ Int main ( Int argc, char** argv )
     }
 
     //********************************************//
+    // Create the global matrix: mass + stiffness //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nSetup operators:  " ;
+    }
+
+   	solver -> setupLumpedMassMatrix();
+
+    solver -> setupStiffnessMatrix();
+    solver -> setupGlobalMatrix();
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "Done! \n" ;
+    }
+
+    //********************************************//
+    // Creating exporters to save the solution    //
+    //********************************************//
+    ExporterHDF5< RegionMesh <LinearTetra> > exporter;
+    solver -> setupExporter ( exporter, monodomainList.get ("OutputFile", "Solution"), problemFolder );
+    solver -> exportSolution ( exporter, 0);
+
+    //********************************************//
+    // Solving the system                         //
+    //********************************************//
+    if ( Comm->MyPID() == 0 )
+    {
+        cout << "\nstart solving:  " ;
+    }
+
+    Real dt = monodomainList.get ("timeStep", 0.1);
+    Real TF = monodomainList.get ("endTime", 150.0);
+    Int iter = monodomainList.get ("saveStep", 1.0) / dt;
+    Int k(0);
+
+
+
+    std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
+
+    Real normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
+    if ( Comm->MyPID() == 0 )
+            std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+
+    for ( Real t = 0.0; t < TF; )
+    {
+        solver -> setAppliedCurrentFromFunction ( stimulus, t );
+
+		solver->solveOneReactionStepFE( );
+
+		(*solver->rhsPtrUnique()) *= 0.0;
+		solver->updateRhs();
+
+		solver->solveOneDiffusionStepBE();
+
+        t = t + dt;
+        k++;
+
+        if( k % iter == 0 )
+        {
+           	solver -> exportSolution (exporter, t);
+        }
+
+
+
+        if ( Comm->MyPID() == 0 )
+        	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+
+        normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
+        if ( Comm->MyPID() == 0 )
+                std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+
+    }
+
+
+
+    exporter.closeFile();
+
+
+    //*************************///
+    // RESTART				   ///
+    //*************************///
+
+    //******************************///
+    // Setting the solution to zero ///
+    //******************************///
+    for(int i(0); i < model -> Size(); i++)
+    {
+    *(solver -> globalSolution().at(i)) *= 0;
+    }
+
+    normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
+    if ( Comm->MyPID() == 0 )
+        std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+
+    //*************************///
+    // Importing			   ///
+    //*************************///
+    solver -> importSolution(dataFile, monodomainList.get ("InputFile", "Solution"), problemFolder, 0.3 );
+
+
+    //*************************///
+    // Exporting the restart   ///
+    //*************************///
+    ExporterHDF5< RegionMesh <LinearTetra> > restartExporter;
+
+    solver -> setupExporter ( restartExporter, monodomainList.get ("RestartedOutputFile", "RestartedSolution"), problemFolder );
+    solver -> exportSolution( restartExporter, 0.3 );
+    normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
+    if ( Comm->MyPID() == 0 )
+        std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+    restartExporter.closeFile();
+    //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
     if ( Comm->MyPID() == 0 )
-    {
-        cout << "\n\nexporting fibers:  \n\n" ;
-    }
-
-    splitting -> exportFiberDirection();
-
-    //********************************************//
-    // Create the global matrix: mass + stiffness //
-    //********************************************//
-
-
-//    ExporterHDF5<mesh_Type> exp;
-//    exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
-//    exp.setPrefix ("FiberDirection");
-//    exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", Space3D, splitting -> fiberPtr(), UInt (0) );
-//    exp.postProcess (0);
-//    exp.closeFile();
-
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\n\nDone! \n" ;
-    }
-
-    //********************************************//
-    // Creating exporters to save the solution    //
-    //********************************************//
-
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\n Preparing the restarter ..." ;
-    }
-
-    std::string name ( "FiberDirection" );
-    monodomainSolver_Type::vectorPtr_Type newFiber ( new VectorEpetra ( Space3D -> map(), LifeV::Unique ) );
-
-
-
-//    exporterData_Type impData (exporterData_Type::VectorField, "fibers.00000", Space3D,
-//                               newFiber, UInt (0), exporterData_Type::UnsteadyRegime);
-//
-//    if ( Comm->MyPID() == 0 )
-//    {
-//        cout << "Done! \n" ;
-//    }
-//
-//    if ( Comm->MyPID() == 0 )
-//    {
-//        cout << "\n Restarting ..." ;
-//    }
-//
-    typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > >    filterPtr_Type;
-    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >                                  hdf5Filter_Type;
-    typedef boost::shared_ptr<hdf5Filter_Type>                                              hdf5FilterPtr_Type;
-//
-//    //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
-//    filterPtr_Type importer ( new hdf5Filter_Type() );
-//
-//    importer -> setMeshProcId ( splitting -> localMeshPtr(), Comm -> MyPID() );
-    std::string const Name = "fiberdirection";
-//    importer-> setPrefix (name);
-//    if ( Comm->MyPID() == 0 )
-//    {
-//        cout << "Done! \n" ;
-//    }
-//
-//    importer -> readVariable (impData);
-//
-//    importer -> closeFile();
-
-    HeartUtility::importFibers(newFiber, name, splitting -> localMeshPtr() );
-//    HeartUtility::importFibers(newFiber, splitting -> localMeshPtr() );
-
-    ExporterHDF5<mesh_Type> Exp;
-    Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
-    Exp.setPrefix (Name);
-//    (*newFiber) *= 100.0;
-    Exp.addVariable ( ExporterData<mesh_Type>::VectorField,  "ciccia", Space3D, newFiber, UInt (0) );
-    Exp.postProcess (0);
-    Exp.closeFile();
-
-
-
-    //********************************************//
-    // Creating exporters to save the solution    //
-    //********************************************//
-    ExporterHDF5< RegionMesh <LinearTetra> > exporterSplitting;
-
-    splitting -> setupExporter ( exporterSplitting, "Splitting" );
-
-    splitting -> exportSolution ( exporterSplitting, 0);
-
-    //********************************************//
-    // Create the global matrix: mass + stiffness //
-    //********************************************//
-    splitting -> setupLumpedMassMatrix();
-    splitting -> setupStiffnessMatrix();
-    splitting -> setupGlobalMatrix();
-
-    splitting -> solveICI (exporterSplitting);
-    exporterSplitting.closeFile();
-
-
-    //================================================
-    //
-    //================================================
-    std::string sol ( "Splitting" );
-    monodomainSolver_Type::vectorPtr_Type newSol ( new VectorEpetra ( splitting -> feSpacePtr() -> map(), LifeV::Unique ) );
-    exporterData_Type ImportData (exporterData_Type::ScalarField, "Variable0.00001", splitting -> feSpacePtr(),
-                                  newSol, UInt (0), exporterData_Type::UnsteadyRegime);
-
-    //================================================
-    //
-    //================================================
-    filterPtr_Type Imp ( new hdf5Filter_Type() );
-    //
-    Imp -> setMeshProcId ( splitting -> localMeshPtr(), Comm -> MyPID() );
-    Imp-> setPrefix (sol);
-    //
-    Imp -> readVariable (ImportData);
-    Imp -> closeFile();
-    //================================================
-    //
-    //================================================
-    splitting -> setPotentialPtr (newSol);
-    ( * ( splitting -> globalSolution().at (1) ) ) *= 0;
-
-    //********************************************//
-    // Creating exporters to save the solution    //
-    //********************************************//
-    ExporterHDF5< RegionMesh <LinearTetra> > exporter2;
-
-    splitting -> setupExporter ( exporter2, "exp2" );
-
-    splitting -> exportSolution ( exporter2, 0);
-
-    splitting -> solveICI (exporter2);
-    exporter2.closeFile();
-
-    //================================================
-    //
-    //================================================
-    typedef VectorEpetra                           vector_Type;
-    typedef boost::shared_ptr<VectorEpetra>    vectorPtr_Type;
-
-    //    boost::shared_ptr<mesh_Type> lmesh( new mesh_Type( Comm ) );
-    //    lmesh ->se
-    boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > space (new FESpace<mesh_Type, MapEpetra> (  splitting -> localMeshPtr(), "P1", 1, Comm ) );
-
-
-    //    vectorPtr_Type vec( new vector_Type( splitting -> feSpacePtr() -> map(), Unique ) );
-    vectorPtr_Type vec ( new vector_Type ( space -> map(), Unique ) );
-//    meshPtr_Type mesh1 ( new mesh_Type ( Comm ) );
-//    meshPtr_Type fullMesh1 ( new mesh_Type ( Comm ) );
-//    MeshUtility::fillWithFullMesh (mesh1, fullMesh1, meshName, meshPath);
-
-    for ( UInt j (0); j < vec -> epetraVector().MyLength() ; ++j)
-    {
-
-        if ( splitting -> fullMeshPtr() -> point ( vec -> blockMap().GID (j) ).markerID() == 15 )
-        {
-            //if ( vec -> blockMap().LID ( vec -> blockMap().GID (j) ) != -1 )
-            //{
-                (*vec) ( vec -> blockMap().GID (j) ) = 1.0;
-            //}
-        }
-
-        if ( splitting -> fullMeshPtr() -> point ( vec -> blockMap().GID (j) ).markerID() == 14 )
-        {
-            if ( vec -> blockMap().LID ( vec -> blockMap().GID (j) ) != -1 )
-            {
-                (*vec) ( vec -> blockMap().GID (j) ) = 2.0;
-            }
-        }
-        if ( splitting -> fullMeshPtr() -> point ( vec -> blockMap().GID (j) ).markerID() == 13 )
-        {
-            if ( vec -> blockMap().LID ( vec -> blockMap().GID (j) ) != -1 )
-            {
-                (*vec) ( vec -> blockMap().GID (j) ) = 3.0;
-            }
-        }
-        if ( splitting -> fullMeshPtr() -> point ( vec -> blockMap().GID (j) ).markerID() == 37 )
-        {
-            if ( vec -> blockMap().LID ( vec -> blockMap().GID (j) ) != -1 )
-            {
-                (*vec) ( vec -> blockMap().GID (j) ) = 4.0;
-            }
-        }
-    }
-
-
-
-    ExporterHDF5<mesh_Type> Exp1;
-    Exp1.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
-    Exp1.setPrefix ("pippo");
-    Exp1.addVariable ( ExporterData<mesh_Type>::ScalarField,  "ciccia", splitting -> feSpacePtr(), vec, UInt (0) );
-    Exp1.postProcess (0);
-    Exp1.closeFile();
-
+        std::cout << "\nExporting fiber direction: " << std::endl;
+    solver -> exportFiberDirection();
 
 
     if ( Comm->MyPID() == 0 )
     {
-        cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+    	chronoinitialsettings.stop();
+    	std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
+        std::cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
+
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();
-    return ( EXIT_SUCCESS );
+
+    return 0;
 }
