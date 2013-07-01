@@ -61,6 +61,8 @@
 #pragma GCC diagnostic warning "-Wunused-local-typedefs"
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
+#include <lifev/core/LifeV.hpp>
+
 #include <boost/shared_ptr.hpp>
 
 #include <iostream>
@@ -128,6 +130,10 @@ private:
 public:
     ActiveStructure (char* dataxml, comm_t comm)
     {
+
+        LifeV::LifeChrono chrono;
+        Real timeToAssemble = 0;
+        Real timeToLinearSolve = 0;
 
         bool ilead = (comm->MyPID() == 0);
         if (ilead) std::cout << "== Initialise ActiveStructure ==" << std::endl;
@@ -248,23 +254,29 @@ public:
         boost::shared_ptr<vector_t> u0exp(new vector_t(solid.displacement(), exporter->mapType()));
         exporter->addVariable(LifeV::ExporterData<mesh_t>::VectorField, "displacement", u_space, u0exp, UInt(0));
 
-        if (ilead) std::cout << solid.displacement().norm2() << std::endl;
-        exporter->postProcess(0.0);
+        //if (ilead) std::cout << "Solid displacement = " << solid.displacement().norm2() << std::endl;
+        //exporter->postProcess(0.0);
 
         // ================
         // Nonlinear solver
         // ----------------
 
+        chrono.reset();
+        chrono.start();
         solid.iterate(bcs);
+        chrono.stop();
+        timeToLinearSolve += chrono.globalDiff( *comm );
 
         MPI_Barrier(MPI_COMM_WORLD);
 
-        if (ilead) std::cout << solid.displacement().norm2() << std::endl;
+        //if (ilead) std::cout << solid.displacement().norm2() << std::endl;
 
         *u0exp = solid.displacement();
-        exporter->postProcess(1.0);
+        //exporter->postProcess(1.0);
 
+        if (ilead) std::cout << "Total time to solution: " << timeToLinearSolve << std::endl;
     }
+
 };
 
 int main (int argc, char** argv)

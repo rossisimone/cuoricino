@@ -73,31 +73,71 @@ kspace          = 800
 tol             = 1.e-10    		# AztecOO tolerance
 
 [../prec]
-prectype        = Ifpack #Ifpack	 		# Ifpack or ML
+prectype        = ML #Ifpack	 		# Ifpack or ML
 displayList     = true
 xmlName         = xmlParameters.xml
 
 [./ifpack]
-overlap  	= 3
 
-[./fact]
-ilut_level-of-fill 	= 1
-drop_tolerance          = 1.e-5
-relax_value             = 0
+	overlap  	= 0
 
-[../amesos]
-solvertype 		=  Amesos_Umfpack 	# Amesos_KLU or Amesos_Umfpack
+	[./fact]
+	level-of-fill		= 1
+	ilut_level-of-fill 	= 1
+	drop_tolerance          = 1.e-5
+	relax_value             = 0.0
 
-[../partitioner]
-overlap 		= 4
+	[../amesos]
+	solvertype 		=  Amesos_KLU 	# Amesos_KLU or Amesos_Umfpack
 
+	[../partitioner]
+	overlap 		= 2
 
-[../schwarz]
-reordering_type 	= none 			# metis, rcm, none
-filter_singletons 	= true
+	[../schwarz]
+	reordering_type 	= none 			# metis, rcm, none
+	filter_singletons 	= false
+	compute_condest         = false
 
-[../]
-[../]
+	[../subdomain]
+        number-of-processors    = 1
+
+	[../] #schwarz
+[../] #ifpack
+
+[./ML] 
+
+    default_parameter_list = SA    # Domain-decomposition
+#    prec_type =  MGV               # Multigrid, single V-cycle
+    max_levels = 2
+    inc_or_dec = increasing
+
+    [./energy_minimization]
+    enable = true
+    type   = 3
+
+    [../repartition]
+    enable              = 1
+    max_min_ratio       = 1.3
+    min_per_proc        = 500
+    partitioner         = ParMETIS #Zoltan: to be implemented
+
+    [../aggregation]
+#    type                = METIS
+    threshold            = 0.01
+    nodes_per_aggregate = 32
+
+    [../coarse]
+    max_size            = 100
+    type                = 'symmetric Gauss-Seidel'
+
+    [../smoother]
+    type        = 'symmetric Gauss-Seidel'           # Gauss-Seidel smoother
+    pre_or_post = both
+#    ifpack_type = Ifpack
+#    ifpack_overlap = 0
+    [../]
+
+[../] # end of ML
 
 
 
