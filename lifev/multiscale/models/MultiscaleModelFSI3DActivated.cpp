@@ -312,10 +312,10 @@ MultiscaleModelFSI3DActivated::setupModel()
 		std::string fieldname = list.get ("fieldname", "");
 		HeartUtility::importScalarField(M_rescalingVector, filename, fieldname, super::solver() -> solidLocalMeshPtr() );
     }
-    if(M_data->dataFluid()->dataTime()->initialTime() > 0)
+    if( super::solver() -> data().dataFluid()->dataTime()->initialTime() > 0)
     {
     	std::string prefix = multiscaleProblemPrefix + "_Model_" + number2string ( M_ID ) +  "_Electro_" + number2string ( multiscaleProblemStep - 1);
-    	M_monodomain -> importSolution(dataFile,prefix,multiscaleProblemFolder,M_data->dataFluid()->dataTime()->initialTime() );
+    	M_monodomain -> importSolution(dataFile,prefix,multiscaleProblemFolder,super::solver() -> data().dataFluid()->dataTime()->initialTime() );
     }
     	//    *M_activationSolver = *M_monodomain -> linearSolverPtr();
     //setting up activation solver
