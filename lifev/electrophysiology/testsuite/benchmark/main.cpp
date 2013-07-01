@@ -313,6 +313,19 @@ Int main ( Int argc, char** argv )
     solver -> exportSolution ( exporter, 0);
 
     //********************************************//
+    // Activation time						      //
+    //********************************************//
+    vectorPtr_Type activationTimeVector( new vector_Type( solver -> potentialPtr() -> map() ) );
+    *activationTimeVector = -1.0;
+
+    ExporterHDF5< RegionMesh <LinearTetra> > activationTimeExporter;
+    activationTimeExporter.setMeshProcId(solver -> localMeshPtr(), solver -> commPtr() ->MyPID());
+    activationTimeExporter.addVariable(ExporterData<mesh_Type>::ScalarField, "Activation Time",
+    				solver -> feSpacePtr(), activationTimeVector, UInt(0));
+    activationTimeExporter.setPrefix("ActivationTime");
+    activationTimeExporter.setPostDir(problemFolder);
+
+    //********************************************//
     // Solving the system                         //
     //********************************************//
     if ( Comm->MyPID() == 0 )
@@ -320,22 +333,15 @@ Int main ( Int argc, char** argv )
         cout << "\nstart solving:  " ;
     }
 
-    Real saveStep = monodomainList.get ("saveStep", 1.0);
-
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
-    Int k(0),j(0);
-    Int nodes;
+    Int k(0);
 
     Real timeReac = 0.0;
     Real timeDiff = 0.0;
     Real timeReacDiff = 0.0;
     LifeChrono chrono;
-
-    Real stimulusStart = 0.0;
-    Real stimulusStop  = 2.0;
-
 
     std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
 
@@ -381,14 +387,15 @@ Int main ( Int argc, char** argv )
 			timeReacDiff += chrono.globalDiff( *Comm );
         }
 
+        //register activation time
+        k++;
+        t = t + dt;
+        solver -> registerActivationTime(*activationTimeVector, t, 1.0);
+
         if( k % iter == 0 )
         {
            	solver -> exportSolution (exporter, t);
         }
-        k++;
-
-        t = t + dt;
-
         if ( Comm->MyPID() == 0 )
         	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
     }
@@ -398,6 +405,11 @@ Int main ( Int argc, char** argv )
         std::cout << "2-norm of potential solution: " << normSolution << std::endl;
 
     exporter.closeFile();
+    activationTimeExporter.postProcess(0);
+    activationTimeExporter.closeFile();
+
+    if ( Comm->MyPID() == 0 )
+          std::cout << "Exporting fibers: " << std::endl;
 
     //********************************************//
     // Saving Fiber direction to file             //
@@ -423,7 +435,7 @@ Int main ( Int argc, char** argv )
         	std::cout<<"Solution time : "<<timeReacDiff<<std::endl;
         }
 
-        std::cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+        std::cout << "\n\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();
