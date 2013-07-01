@@ -75,7 +75,8 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData() :
     M_b								   ( ),
     M_bf							   ( ),
     M_bs							   ( ),
-    M_bfs							   ( )
+    M_bfs							   ( ),
+    M_contractileFraction			   ( )
 {
 }
 
@@ -103,7 +104,8 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData ( const StructuralC
     M_b								   ( structuralConstitutiveLawData.M_b ),
     M_bf							   ( structuralConstitutiveLawData.M_bf ),
     M_bs							   ( structuralConstitutiveLawData.M_bs ),
-    M_bfs							   ( structuralConstitutiveLawData.M_bfs )
+    M_bfs							   ( structuralConstitutiveLawData.M_bfs ),
+    M_contractileFraction			   ( structuralConstitutiveLawData.M_contractileFraction )
 {
 }
 
@@ -139,6 +141,7 @@ StructuralConstitutiveLawData::operator= ( const StructuralConstitutiveLawData& 
         M_bf							   = structuralConstitutiveLawData.M_bf ;
         M_bs							   = structuralConstitutiveLawData.M_bs ;
         M_bfs							   = structuralConstitutiveLawData.M_bfs ;
+        M_contractileFraction			   = structuralConstitutiveLawData.M_contractileFraction ;
     }
 
     return *this;
@@ -199,6 +202,7 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
         M_bf[1] = dataFile ( ( section + "/physics/bf"   ).data(), 0. );
         M_bs[1] = dataFile ( ( section + "/physics/bs"   ).data(), 0. );
         M_bfs[1]= dataFile ( ( section + "/physics/bfs"  ).data(), 0. );
+        M_contractileFraction[1]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 0. );
     }
     else
     {
@@ -231,6 +235,8 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
             M_bf[material] = dataFile ( ( section + "/physics/bf"   ).data(), 0.   , i );
             M_bs[material] = dataFile ( ( section + "/physics/bs"   ).data(), 0.   , i );
             M_bfs[material]= dataFile ( ( section + "/physics/bfs"  ).data(), 0.   , i );
+            M_contractileFraction[1]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 0. , i);
+
         }
     }
 
@@ -315,6 +321,10 @@ StructuralConstitutiveLawData::showMe ( std::ostream& output ) const
     for ( materialContainerIterator_Type i = M_bfs.begin() ; i != M_bfs.end() ; ++i )
     {
         output << "Holzapfel-Ogden Material: parameter afs: [" << i->first << "]                 = " << i -> second << std::endl;
+    }
+    for ( materialContainerIterator_Type i = M_contractileFraction.begin() ; i != M_contractileFraction.end() ; ++i )
+    {
+        output << "Holzapfel-Ogden Material: contrictile fraction: [" << i->first << "]                 = " << i -> second << std::endl;
     }
 
     for ( UInt i (0); i < M_vectorMaterialFlags.size(); i++ )
@@ -554,6 +564,31 @@ StructuralConstitutiveLawData::Bfs ( const UInt& material ) const
     }
 
     if ( IT != M_bfs.end() )
+    {
+        return IT->second;
+    }
+    else
+    {
+ //       std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        return 0;
+    }
+}
+
+Real
+StructuralConstitutiveLawData::contractileFraction ( const UInt& material ) const
+{
+    materialContainer_Type::const_iterator IT;
+
+    if ( M_materialsFlagSet )
+    {
+        IT = M_contractileFraction.find ( material );
+    }
+    else
+    {
+        IT = M_contractileFraction.find ( 1 );
+    }
+
+    if ( IT != M_contractileFraction.end() )
     {
         return IT->second;
     }

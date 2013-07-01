@@ -264,6 +264,11 @@ public:
         M_materialsFlagSet = true;
         M_bfs[material] = bfs;
     }
+    void setContractileFraction ( const Real& fraction, const UInt& material )
+    {
+        M_materialsFlagSet = true;
+        M_contractileFraction[material] = fraction;
+    }
 
     //@}
 
@@ -374,6 +379,9 @@ public:
     Real Bf ( const UInt& material = 1 ) const;
     Real Bs ( const UInt& material = 1 ) const;
     Real Bfs ( const UInt& material = 1 ) const;
+
+
+    Real contractileFraction ( const UInt& material = 1 ) const;
 
     //! Get FE order
     /*!
@@ -490,6 +498,8 @@ private:
     materialContainer_Type M_bf;
     materialContainer_Type M_bs;
     materialContainer_Type M_bfs;
+
+    materialContainer_Type M_contractileFraction;
 };
 
 } // end namespace LifeV
