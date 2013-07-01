@@ -94,7 +94,25 @@
 		M_BuffSR   ( 10.0 ),
 		M_KBuffSR  ( 0.3 ),
 		M_typeCell ("epicardial")
-	{}
+	{
+	    M_restingConditions[0]  = - 86.2;
+	    M_restingConditions[1]  = 0.0;
+	    M_restingConditions[2]  = 0.75;
+	    M_restingConditions[3]  = 0.75;
+	    M_restingConditions[4]  = 0.0;
+	    M_restingConditions[5]  = 1.0;
+	    M_restingConditions[6]  = 0.0;
+	    M_restingConditions[7]  = 0.0;
+	    M_restingConditions[8]  = 1.0;
+	    M_restingConditions[9]  = 1.0;
+	    M_restingConditions[10] = 0.0;
+	    M_restingConditions[11] = 1.0;
+	    M_restingConditions[12] = 1.0;
+	    M_restingConditions[13] = 2e-4;
+	    M_restingConditions[14] = 0.2;
+	    M_restingConditions[15] = 11.6;
+	    M_restingConditions[16] = 138.3;
+	}
 
 	IonicTenTusscherFE::IonicTenTusscherFE ( Teuchos::ParameterList& parameterList ) :
 		super       ( 17 )
@@ -195,6 +213,7 @@
 		M_typeCell = model.M_typeCell;
 
 		M_numberOfEquations = model.M_numberOfEquations;
+		 M_restingConditions = model.M_restingConditions;
 	}
 
 	// ===================================================
@@ -249,6 +268,7 @@
 		M_typeCell = model.M_typeCell;
 
 		M_numberOfEquations = model.M_numberOfEquations;
+		 M_restingConditions = model.M_restingConditions;
 
 		return *this;
 	}
