@@ -234,7 +234,7 @@ public:
 
     //! @name Get Methods
     //@{
-
+    virtual void showMyParameters () {}
     //! Getters
     inline const dataPtr_Type materialData() const
     {
