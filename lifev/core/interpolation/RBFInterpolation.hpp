@@ -41,7 +41,7 @@
 #include <lifev/core/LifeV.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/GhostHandler.hpp>
-#include <lifev/core/algorithm/PreconditionerIfpack.hpp>
+#include <lifev/core/algorithm/PreconditionerML.hpp>
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>
