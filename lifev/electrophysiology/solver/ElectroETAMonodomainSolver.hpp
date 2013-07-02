@@ -728,12 +728,12 @@ public:
 	//! Update the rhs
 	/*!
 	 * \f[
-	 * rhs \leftarrow \frac{M}{\Delta t} \mathbf{V}^n
+	 * rhs \leftarrow C_m \frac{M}{\Delta t} \mathbf{V}^n
 	 * \f]
 	 */
 	void inline updateRhs() {
 		(*M_rhsPtrUnique) += (*M_massMatrixPtr) * (*M_potentialPtr)
-				* (1.0 / (M_timeStep) / M_membraneCapacitance);
+				* (1.0 / (M_timeStep) * M_membraneCapacitance);
 	}
 
 	//! Solves one diffusion step using the BDF2 scheme
@@ -747,7 +747,7 @@ public:
 	//! Solves one diffusion step using the backward Euler scheme
 	/*!
 	 * \f[
-	 * A\mathbf{V}^{n+1} = \left( \frac{M}{\Delta t} + K(\mathbf{f}) \right)\mathbf{V}^{n+1} =\frac{M}{\Delta t} \mathbf{V}^*.
+	 * A\mathbf{V}^{n+1} = \left( C_m \frac{M}{\Delta t} + K(\mathbf{f}) \right)\mathbf{V}^{n+1} =\frac{M}{\Delta t} \mathbf{V}^*.
 	 * \f]
 	 */
 	void solveOneDiffusionStepBE();
@@ -1277,7 +1277,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalMatrix() {
 	(*M_globalMatrixPtr) *= 0;
 	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
 	(*M_globalMatrixPtr) *= 1.0 / M_surfaceVolumeRatio;
-	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * ( M_membraneCapacitance / (M_timeStep)));
+	(*M_globalMatrixPtr) += ( (*M_massMatrixPtr) * ( M_membraneCapacitance / M_timeStep ) );
 }
 
 template<typename Mesh, typename IonicModel>
