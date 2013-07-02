@@ -101,8 +101,7 @@ void
 MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 {
 
-	boost::shared_ptr<Epetra_Comm> comm( M_monodomain -> commPtr() );
-    // FSI setup
+	// FSI setup
     M_dataFileName = fileName;
     super::setupData (M_dataFileName);
     M_fullSolidMesh.reset ( new mesh_Type ( M_FSIoperator -> solidMesh() ) );
@@ -170,7 +169,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_monodomain -> setupExporter ( *M_exporterElectro, prefix);
 
     // Fiber directions
-
+    boost::shared_ptr<Epetra_Comm> comm( M_monodomain -> commPtr() );
     M_monodomainDisplacementETFESpace.reset
     ( new vectorialETFESpace_Type ( M_monodomain -> localMeshPtr(),  &feTetraP1,  comm ) );
     M_fiber.reset ( new vector_Type ( M_monodomainDisplacementETFESpace -> map() ) );
@@ -216,7 +215,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 		prec_Type* precRawPtr;
 		basePrecPtr_Type precPtr;
 		precRawPtr = new prec_Type;
-		precRawPtr->setDataFromGetPot (dataFile, "prec");
+		precRawPtr->setDataFromGetPot (dataFile, "electrophysiology/prec");
 		precPtr.reset (precRawPtr);
 
 		Teuchos::RCP < Teuchos::ParameterList > solverParamList = Teuchos::rcp (
@@ -243,6 +242,8 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 	  	M_activationOperator -> globalAssemble();
 
 	  	M_activationSolver->setOperator( M_activationOperator );
+
+	  	M_preloadVector.reset( new vector_Type( M_fiber -> map() ) );
     }
 //=======================================
 // setup INTERPOLATION
@@ -346,8 +347,6 @@ MultiscaleModelFSI3DActivated::buildModel()
     M_monodomain -> setupLumpedMassMatrix();
     M_monodomain -> setupStiffnessMatrix();
     M_monodomain -> setupGlobalMatrix();
-
-    *M_preloadVector = super::solver() -> solid().displacement();
 
 }
 
@@ -688,8 +687,8 @@ MultiscaleModelFSI3DActivated::checkSolution() const
 void MultiscaleModelFSI3DActivated::setupInterpolant()
 {
     GetPot dataFile ( M_dataFileName );
-    std::string xmlpath = dataFile ("electrophysiology/monodomain_xml_path", "./");
-    std::string xmlfile = dataFile ("electrophysiology/monodomain_xml_file", "MonodomainSolverParamList.xml");
+    std::string xmlpath = dataFile ("interpolation/interpolation_xml_path", "./");
+    std::string xmlfile = dataFile ("interpolation/interpolation_xml_file", "InterpolationParamList.xml");
 
     Teuchos::RCP< Teuchos::ParameterList > monodomainList = Teuchos::rcp ( new Teuchos::ParameterList );
     monodomainList = Teuchos::getParametersFromXmlFile (  xmlpath + xmlfile );
