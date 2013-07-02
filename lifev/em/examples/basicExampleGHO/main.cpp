@@ -522,8 +522,8 @@ int main (int argc, char** argv)
      HeartUtility::setupFibers(*solidFibers, fvec);
 
 
-     Real sx = parameterList.get ("sheet_X", 1.0);
-     Real sy = parameterList.get ("sheet_Y", 0.0);
+     Real sx = parameterList.get ("sheet_X", 0.0);
+     Real sy = parameterList.get ("sheet_Y", 1.0);
      Real sz = parameterList.get ("sheet_Z", 0.0);;
      solid.material()->setupSheetVector(sx, sy, sz);
 
@@ -619,8 +619,16 @@ int main (int argc, char** argv)
      vectorPtr_Type solidGammas( new vector_Type( solidGammaf -> map() ) );
      vectorPtr_Type solidGamman( new vector_Type( solidGammaf -> map() ) );
      Int gcase = parameterList.get ("case", 0);
+     if ( comm->MyPID() == 0 )
+     {
+         std::cout << "\ncase: " << gcase << std::endl;
+     }
      if(gcase == 1)
      {
+         if ( comm->MyPID() == 0 )
+         {
+             std::cout << "\n\n\nI SHOULD BE HERE!!!!!!!!!!!!!!/\n!!!!!!!!!!!!!\n!!!!!\n" << std::endl;
+         }
 		 Real gfactor = parameterList.get ("gfactor", 3.0);
 		 *solidGamman = gfactor * *solidGammaf;
 		 solid.material() -> setGamman(*solidGamman);
@@ -646,6 +654,10 @@ int main (int argc, char** argv)
      }
      else
      {
+         if ( comm->MyPID() == 0 )
+         {
+             std::cout << "\n\n\nWHY AM I HERE????????????????????/\n????????????????????????\n?????????????????????????\n" << std::endl;
+         }
 		 *solidGammas = 1.0;
 		 *solidGammas /= (1.0 + *solidGammaf);
 		 EpetraSqrt(*solidGammas);
@@ -962,6 +974,13 @@ int main (int argc, char** argv)
   	//				Initializing solid
   	//===========================================================
   	//===========================================================
+	if ( comm->MyPID() == 0 )
+		{
+			std::cout << "\nContractile fraction: " << solid.data() -> contractileFraction() << std::endl;
+		}
+	solid.data() -> showMe();
+	solid.material() -> showMyParameters();
+
     if(parameterList.get("pressure_ramp", false) == true){
 		if ( comm->MyPID() == 0 )
 		{
