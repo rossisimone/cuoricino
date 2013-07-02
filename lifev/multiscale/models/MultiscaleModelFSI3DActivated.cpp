@@ -101,7 +101,12 @@ void
 MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 {
 
+<<<<<<< HEAD
 	// FSI setup
+=======
+
+    // FSI setup
+>>>>>>> bugfix in the monodomain setup in FSIActivated
     M_dataFileName = fileName;
     super::setupData (M_dataFileName);
     M_fullSolidMesh.reset ( new mesh_Type ( M_FSIoperator -> solidMesh() ) );
@@ -169,7 +174,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_monodomain -> setupExporter ( *M_exporterElectro, prefix);
 
     // Fiber directions
-    boost::shared_ptr<Epetra_Comm> comm( M_monodomain -> commPtr() );
+	boost::shared_ptr<Epetra_Comm> comm( M_monodomain -> commPtr() );
     M_monodomainDisplacementETFESpace.reset
     ( new vectorialETFESpace_Type ( M_monodomain -> localMeshPtr(),  &feTetraP1,  comm ) );
     M_fiber.reset ( new vector_Type ( M_monodomainDisplacementETFESpace -> map() ) );
