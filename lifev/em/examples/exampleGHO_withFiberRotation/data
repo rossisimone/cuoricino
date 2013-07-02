@@ -36,14 +36,15 @@ gamma		= 1.0
 gammaf		= 0.0
 a			= 4960
 af			= 151930
-as			= 0 #328300
-afs			= 0 #66200
+as			= 32830
+afs			= 6620
 b			= 7.209
 bf			= 20.417
 bs			= 11.176
 bfs			= 9.466
+contractile_fraction = 0.99
 bulk		= 3500000
-solidType 	= HolzapfelOgden #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
+solidType 	= GeneralizedActiveHolzapfelOgden #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
 lawType     = nonlinear
 viscosity = 0.0005;
 active_coefficient = -2.0;
@@ -51,13 +52,13 @@ Ca_diastolic = -0.02155;
 
 
    [../boundary_conditions]
-    list = 'Epi Endo1 Endo2'
+    list = 'Epi Epi1 Endo1 Endo2'
 #	list = 'fixed'
 #	list = 'symm0 symm1 symm2'
 #	list = 'cyl0 cyl1 cyl2 cyl3 cyl4'
 
         [./Epi]
-        type       = EssentailVertices
+        type       = EssentialVertices
         flag       = 6000
         mode       = Full
         component  = 3
@@ -71,6 +72,13 @@ Ca_diastolic = -0.02155;
             function = ' 5.00 * 1000' # D
 
             [../]
+
+        [../Epi1]
+        type       = Essential
+        flag       = 600
+        mode       = Component
+        component  = 0
+	function  = '0.0'
 
         [../fixed]
         type       = Essential
@@ -126,7 +134,7 @@ Ca_diastolic = -0.02155;
         flag       = 1000
         mode       = Component
         component  = 1
-		function  = '0.0'
+	function  = '0.0'
         
         [../Endo2]
         type       = EssentialVertices
