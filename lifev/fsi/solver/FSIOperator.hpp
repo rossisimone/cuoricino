@@ -75,6 +75,7 @@
 #include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
 #include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
 #include <lifev/structure/solver/HolzapfelOgdenMaterial.hpp>
+#include <lifev/structure/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
 
 #include <lifev/core/fem/DOFInterface3Dto3D.hpp>
 #include <lifev/core/fem/DOFInterface3Dto2D.hpp>
@@ -353,9 +354,13 @@ public:
     {
         return new NeoHookeanActivatedMaterial< FSIOperator::mesh_Type >();
     }
-    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createHolzapfelOgdenMaterialActivated()
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createHolzapfelOgdenMaterial()
     {
         return new HolzapfelOgdenMaterial< FSIOperator::mesh_Type >();
+    }
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createGeneralizedActiveHolzapfelOgdenMaterial()
+    {
+        return new GeneralizedActiveHolzapfelOgdenMaterial< FSIOperator::mesh_Type >();
     }
 
     //@}

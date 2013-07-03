@@ -658,7 +658,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setDefaultParams()
     // Scalar parameters used in the model (default value, from G\"oktepe, 2011)
     M_aiso = 0.496; M_af = 15.193; M_as =  3.283; M_afs = 0.662; // in [kPa]
     M_biso = 7.209; M_bf = 20.417; M_bs = 11.176; M_bfs = 9.466; // adimensional
-    M_contractileFraction = 1.;
+    M_contractileFraction = 0.7;
 }
 
 template <typename MeshType>
@@ -765,7 +765,7 @@ GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setupVectorsParameters ( void
         M_afs   = this->M_dataMaterial->Afs( markerID );
         M_biso  = this->M_dataMaterial->B( markerID );
         M_bf    = this->M_dataMaterial->Bf( markerID );
-        M_as    = this->M_dataMaterial->Bs( markerID );
+        M_bs    = this->M_dataMaterial->Bs( markerID );
         M_bfs   = this->M_dataMaterial->Bfs( markerID );
         M_kappa = this->M_dataMaterial->bulk( markerID );
         M_contractileFraction = this->M_dataMaterial->contractileFraction( markerID );
@@ -810,7 +810,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
 	{
     using namespace ExpressionAssembly;
 
-    displayer->leaderPrint ("   Non-Linear S-  updating non linear terms in the Jacobian Matrix (Holzapfel-Ogden)");
+    displayer->leaderPrint ("   Non-Linear S-  updating non linear terms in the Jacobian Matrix (Generalized Active Holzapfel-Ogden)");
 
     * (jacobian) *= 0.0;
 
@@ -879,15 +879,6 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
     BOOST_AUTO_TPL(I8fseiso, dI8fsedI8fs * I8fsiso);
 
     // Strain-energy derivatives
-    BOOST_AUTO_TPL(dW1e,    value( M_contractileFraction) * eval(dW1fun, I1eiso));
-    BOOST_AUTO_TPL(d2W1e,   value( M_contractileFraction) * eval(d2W1fun, I1eiso));
-    BOOST_AUTO_TPL(dW4fe,   value( M_contractileFraction) * eval(dW4ffun, I4feiso));
-    BOOST_AUTO_TPL(d2W4fe,  value( M_contractileFraction) * eval(d2W4ffun, I4feiso));
-    BOOST_AUTO_TPL(dW4se,   value( M_contractileFraction) * eval(dW4sfun, I4seiso));
-    BOOST_AUTO_TPL(d2W4se,  value( M_contractileFraction) * eval(d2W4sfun, I4seiso));
-    BOOST_AUTO_TPL(dW8fse,  value( M_contractileFraction) * eval(dW8fsfun, I8fseiso));
-    BOOST_AUTO_TPL(d2W8fse, value( M_contractileFraction) * eval(d2W8fsfun, I8fseiso));
-
     BOOST_AUTO_TPL(dW1,    value(1.0 - M_contractileFraction) * eval(dW1fun, I1iso));
     BOOST_AUTO_TPL(d2W1,   value(1.0 - M_contractileFraction) * eval(d2W1fun, I1iso));
     BOOST_AUTO_TPL(dW4f,   value(1.0 - M_contractileFraction) * eval(dW4ffun, I4fiso));
@@ -896,6 +887,16 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
     BOOST_AUTO_TPL(d2W4s,  value(1.0 - M_contractileFraction) * eval(d2W4sfun, I4siso));
     BOOST_AUTO_TPL(dW8fs,  value(1.0 - M_contractileFraction) * eval(dW8fsfun, I8fsiso));
     BOOST_AUTO_TPL(d2W8fs, value(1.0 - M_contractileFraction) * eval(d2W8fsfun, I8fsiso));
+
+    BOOST_AUTO_TPL(dW1e,    value( M_contractileFraction ) * eval(dW1fun, I1eiso));
+    BOOST_AUTO_TPL(d2W1e,   value( M_contractileFraction ) * eval(d2W1fun, I1eiso));
+    BOOST_AUTO_TPL(dW4fe,   /* value( M_contractileFraction ) */ eval(dW4ffun, I4feiso));
+    BOOST_AUTO_TPL(d2W4fe,  /* value( M_contractileFraction ) */ eval(d2W4ffun, I4feiso));
+    BOOST_AUTO_TPL(dW4se,   /* value( M_contractileFraction ) */ eval(dW4sfun, I4seiso));
+    BOOST_AUTO_TPL(d2W4se,  /* value( M_contractileFraction ) */ eval(d2W4sfun, I4seiso));
+    BOOST_AUTO_TPL(dW8fse,  /* value( M_contractileFraction ) */ eval(dW8fsfun, I8fseiso));
+    BOOST_AUTO_TPL(d2W8fse, /* value( M_contractileFraction ) */ eval(d2W8fsfun, I8fseiso));
+
 
     BOOST_AUTO_TPL(dWvol,  eval(dWvolfun, J));
     BOOST_AUTO_TPL(d2Wvol, eval(d2Wvolfun, J));
@@ -914,25 +915,16 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
     BOOST_AUTO_TPL(dI4fiso,  dJm23 * I4f + Jm23 * dI4f );
     BOOST_AUTO_TPL(dI4siso,  dJm23 * I4s + Jm23 * dI4s );
     BOOST_AUTO_TPL(dI8fsiso, dJm23 * I8fs + Jm23 * dI8fs );
-    //    BOOST_AUTO_TPL(dI1iso,   value(2.0) * Jm23 * (F - I1 * value(1.0 / 3.0) * FmT ) );
-    //    BOOST_AUTO_TPL(dI4fiso,  value(2.0) * Jm23 * (F * outerProduct(f0, f0) - I4f * value(1.0 / 3.0) * FmT ) );
-    //    BOOST_AUTO_TPL(dI4siso,  value(2.0) * Jm23 * (F * outerProduct(s0, s0) - I4s * value(1.0 / 3.0) * FmT ) );
-    //    BOOST_AUTO_TPL(dI8fsiso,  value(2.0) * Jm23 * ( value(0.5) * F * ( outerProduct(f0, s0) + outerProduct(s0, f0) ) - I8fs * value(1.0 / 3.0) * FmT ) );
 
     BOOST_AUTO_TPL(dI1eiso,  dI1edI1 * dI1iso + dI1edI4f * dI4fiso + dI1edI4s * dI4siso );
     BOOST_AUTO_TPL(dI4feiso, dI4fedI4f * dI4fiso );
     BOOST_AUTO_TPL(dI4seiso, dI4sedI4s * dI4siso );
     BOOST_AUTO_TPL(dI8fseiso, dI8fsedI8fs * dI8fsiso );
 
-	BOOST_AUTO_TPL(Pisoe_1,   dW1e * dI1eiso );
-	BOOST_AUTO_TPL(Pisoe_4f,  dW4fe * dI4feiso);
-	BOOST_AUTO_TPL(Pisoe_4s,  dW4se * dI4seiso);
-	BOOST_AUTO_TPL(Pisoe_8fs, dW8fse * dI8fseiso);
-
-	BOOST_AUTO_TPL(Piso_1,   dW1 * dI1iso );
-	BOOST_AUTO_TPL(Piso_4f,  dW4f * dI4fiso);
-	BOOST_AUTO_TPL(Piso_4s,  dW4s * dI4siso);
-	BOOST_AUTO_TPL(Piso_8fs, dW8fs * dI8fsiso);
+	BOOST_AUTO_TPL(Piso_1,   dW1 * dI1eiso);
+	BOOST_AUTO_TPL(Piso_4f,  dW4f * dI4feiso);
+	BOOST_AUTO_TPL(Piso_4s,  dW4s * dI4seiso);
+	BOOST_AUTO_TPL(Piso_8fs, dW8fs * dI8fseiso);
 
     BOOST_AUTO_TPL(dI1dF,   value(2.0) * dot( F, dF ) );
     BOOST_AUTO_TPL(d2I1dF,  value(2.0) * dF );
@@ -956,65 +948,15 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
     BOOST_AUTO_TPL(d2I4seisodF, dI4sedI4s * d2I4sisodF );
     BOOST_AUTO_TPL(d2I8fseisodF,dI8fsedI8fs * d2I8fsisodF );
 
-	BOOST_AUTO_TPL(dPisoe_1,   dW1e * d2I1eisodF     + d2W1e * dot( dI1eiso,  dF) * dI1eiso  );
-	BOOST_AUTO_TPL(dPisoe_4f,  dW4fe * d2I4feisodF   + d2W4fe * dot( dI4feiso, dF) * dI4feiso );
-	BOOST_AUTO_TPL(dPisoe_4s,  dW4se * d2I4seisodF   + d2W4se * dot( dI4seiso, dF) * dI4seiso  );
-	BOOST_AUTO_TPL(dPisoe_8fs, dW8fse * d2I8fseisodF + d2W8fse * dot( dI8fseiso, dF) * dI8fseiso  );
+	BOOST_AUTO_TPL(dPeiso_1,   dW1e * d2I1eisodF     + d2W1e * dot( dI1eiso,  dF) * dI1eiso  );
+	BOOST_AUTO_TPL(dPeiso_4f,  dW4fe * d2I4feisodF   + d2W4fe* dot( dI4feiso, dF) * dI4feiso );
+	BOOST_AUTO_TPL(dPeiso_4s,  dW4se * d2I4seisodF   + d2W4se* dot( dI4seiso, dF) * dI4seiso  );
+	BOOST_AUTO_TPL(dPeiso_8fs, dW8fse * d2I8fseisodF + d2W8fse* dot( dI8fseiso, dF) * dI8fseiso  );
 
 	BOOST_AUTO_TPL(dPiso_1,   dW1 * d2I1isodF     + d2W1 * dot( dI1iso,  dF) * dI1iso  );
-	BOOST_AUTO_TPL(dPiso_4f,  dW4f * d2I4fisodF   + d2W4f * dot( dI4fiso, dF) * dI4fiso );
-	BOOST_AUTO_TPL(dPiso_4s,  dW4s * d2I4sisodF   + d2W4s * dot( dI4siso, dF) * dI4siso  );
-	BOOST_AUTO_TPL(dPiso_8fs, dW8fs * d2I8fsisodF + d2W8fs * dot( dI8fsiso, dF) * dI8fsiso  );
-
-
-    //        BOOST_AUTO_TPL(dI4fiso,  value(2.0) * Jm23 * (F * outerProduct(s0, s0) - I4s * value(1.0 / 3.0) * FmT ) );
-//        BOOST_AUTO_TPL(dI8fsiso,  value(2.0) * Jm23 * ( value(0.5) * F * ( outerProduct(f0, s0) + outerProduct(s0, f0) ) - I8fs * value(1.0 / 3.0) * FmT ) );
-
-    //    BOOST_AUTO_TPL(dI4feiso,  value(2.)*Jm23*pow(gamma, -2)*Fdev4f);
-    //    BOOST_AUTO_TPL(dI4seiso,  value(2.)*Jm23*gamma*Fdev4s);
-    //    BOOST_AUTO_TPL(dI8fseiso, value(2.)*Jm23*pow(gamma, -1./2)*Fdev8fs);
-    //    BOOST_AUTO_TPL();
-//    // Deviatorics
-//    BOOST_AUTO_TPL(Fdev1,   F - value(1./3)*I1*FmT);
-//    BOOST_AUTO_TPL(Fdev4f,  outerProduct(F*f0, f0) - value(1./3)*I4f*FmT);
-//    BOOST_AUTO_TPL(Fdev4s,  outerProduct(F*s0, s0) - value(1./3)*I4s*FmT);
-//    BOOST_AUTO_TPL(Fdev8fs, value(0.5)*(outerProduct(F*s0, f0) + outerProduct(F*f0, s0)) - value(1./3)*I8fs*FmT);
-//
-//    // Derivatives
-//    BOOST_AUTO_TPL(dF,   grad(phi_j));
-//    BOOST_AUTO_TPL(dJ,   J*FmT);
-//    BOOST_AUTO_TPL(dFmT, value(-1.0)*FmT*transpose(dF)*FmT);
-//
-//    BOOST_AUTO_TPL(dI1eiso,   value(2.)*Jm23*(gamma*Fdev1 + gammac*Fdev4f));
-//    BOOST_AUTO_TPL(dI4feiso,  value(2.)*Jm23*pow(gamma, -2)*Fdev4f);
-//    BOOST_AUTO_TPL(dI4seiso,  value(2.)*Jm23*gamma*Fdev4s);
-//    BOOST_AUTO_TPL(dI8fseiso, value(2.)*Jm23*pow(gamma, -1./2)*Fdev8fs);
-//
-//    BOOST_AUTO_TPL(dFdev1,   dF + value(-1./3)*(value(2.0)*dot(F, dF)*FmT + I1*dFmT));
-//    BOOST_AUTO_TPL(dFdev4f,  outerProduct(dF*f0, f0) - value(1./3)*(value(2.0)*dot(F*f0, dF*f0)*FmT + I4f*dFmT));
-//    BOOST_AUTO_TPL(dFdev4s,  outerProduct(dF*s0, s0) - value(1./3)*(value(2.0)*dot(F*s0, dF*s0)*FmT + I4s*dFmT));
-//    BOOST_AUTO_TPL(dFdev8fs,   value(0.5)*(outerProduct(dF*s0, f0) + outerProduct(dF*f0, s0))
-//                             - value(1./3)*((dot(F*s0, dF*f0)+dot(F*f0, dF*s0))*FmT + I8fs*dFmT));
-//
-//    BOOST_AUTO_TPL(d2I1eiso,    value(2.)*Jm23*(gamma*dFdev1 + gammac*dFdev4f
-//                              - value(2./3)*dot(FmT, dF)*(gamma*Fdev1 + gammac*Fdev4f)));
-//    BOOST_AUTO_TPL(d2I4feiso,   value(2.)*Jm23*pow(gamma, -2)*(dFdev4f
-//                              - value(2./3)*dot(FmT, dF)*Fdev4f));
-//    BOOST_AUTO_TPL(d2I4seiso,   value(2.)*Jm23*gamma*(dFdev4s
-//                              - value(2./3)*dot(FmT, dF)*Fdev4s));
-//    BOOST_AUTO_TPL(d2I8fseiso,   value(2.)*Jm23*pow(gamma,-1./2)*(dFdev8fs
-//                               - value(2./3)*dot(FmT, dF)*Fdev8fs));
-//
-//    // Isochoric part
-//    BOOST_AUTO_TPL(Piso_1,   dW1*dI1eiso);
-//    BOOST_AUTO_TPL(Piso_4f,  dW4f*dI4feiso);
-//    BOOST_AUTO_TPL(Piso_4s,  dW4s*dI4seiso);
-//    BOOST_AUTO_TPL(Piso_8fs, dW8fs*dI8fseiso);
-//
-//    BOOST_AUTO_TPL(dPiso_1,   d2W1*dot(dI1eiso, dF)*dI1eiso + dW1*d2I1eiso );
-//    BOOST_AUTO_TPL(dPiso_4f,  d2W4f*dot(dI4feiso, dF)*dI4feiso + dW4f*d2I4feiso );
-//    BOOST_AUTO_TPL(dPiso_4s,  d2W4s*dot(dI4seiso, dF)*dI4seiso + dW4s*d2I4seiso );
-//    BOOST_AUTO_TPL(dPiso_8fs, d2W8fs*dot(dI8fseiso, dF)*dI8fseiso + dW8fs*d2I8fseiso );
+	BOOST_AUTO_TPL(dPiso_4f,  dW4f * d2I4fisodF   + d2W4f* dot( dI4fiso, dF) * dI4fiso );
+	BOOST_AUTO_TPL(dPiso_4s,  dW4s * d2I4sisodF   + d2W4s* dot( dI4siso, dF) * dI4siso  );
+	BOOST_AUTO_TPL(dPiso_8fs, dW8fs * d2I8fsisodF + d2W8fs* dot( dI8fsiso, dF) * dI8fsiso  );
 
     // Volumetric part
     BOOST_AUTO_TPL(Pvol,  dWvol*dJ);
@@ -1025,7 +967,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
                 this->M_dispETFESpace,
-                dot(dPiso_1 + dPisoe_1  + dPvol, grad(phi_i))
+                dot( dPiso_1 + dPeiso_1 + dPvol, grad(phi_i))
               ) >> jacobian;
     if(M_af > 0)
     {
@@ -1033,7 +975,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
 					this->M_dispFESpace->qr(),
 					this->M_dispETFESpace,
 					this->M_dispETFESpace,
-					dot( dPiso_4f + dPisoe_4f, grad(phi_i))
+					dot(/* dPiso_4f +*/ dPeiso_4f , grad(phi_i))
 				  ) >> jacobian;
     }
     if(M_sheetVector)
@@ -1044,7 +986,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
 					this->M_dispFESpace->qr(),
 					this->M_dispETFESpace,
 					this->M_dispETFESpace,
-					dot( dPiso_4s + dPisoe_4s, grad(phi_i))
+					dot( /*dPiso_4s + */dPeiso_4s, grad(phi_i))
 				  ) >> jacobian;
 		}
 		if(M_afs > 0)
@@ -1053,7 +995,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
 					this->M_dispFESpace->qr(),
 					this->M_dispETFESpace,
 					this->M_dispETFESpace,
-					dot( dPiso_8fs + dPisoe_8fs, grad(phi_i))
+					dot(/* dPiso_8fs +*/ dPeiso_8fs, grad(phi_i))
 				  ) >> jacobian;
 		}
     }
@@ -1155,23 +1097,16 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const
     BOOST_AUTO_TPL(I8fseiso, dI8fsedI8fs * I8fsiso);
 
     // Strain-energy derivatives
-    BOOST_AUTO_TPL(dW1e,    value(M_contractileFraction) * eval(dW1fun, I1eiso));
-    BOOST_AUTO_TPL(d2W1e,   value(M_contractileFraction) * eval(d2W1fun, I1eiso));
-    BOOST_AUTO_TPL(dW4fe,   value(M_contractileFraction) * eval(dW4ffun, I4feiso));
-    BOOST_AUTO_TPL(d2W4fe,  value(M_contractileFraction) * eval(d2W4ffun, I4feiso));
-    BOOST_AUTO_TPL(dW4se,   value(M_contractileFraction) * eval(dW4sfun, I4seiso));
-    BOOST_AUTO_TPL(d2W4se,  value(M_contractileFraction) * eval(d2W4sfun, I4seiso));
-    BOOST_AUTO_TPL(dW8fse,  value(M_contractileFraction) * eval(dW8fsfun, I8fseiso));
-    BOOST_AUTO_TPL(d2W8fse, value(M_contractileFraction) * eval(d2W8fsfun, I8fseiso));
-
     BOOST_AUTO_TPL(dW1,    value(1.0 - M_contractileFraction) * eval(dW1fun, I1iso));
-    BOOST_AUTO_TPL(d2W1,   value(1.0 - M_contractileFraction) * eval(d2W1fun, I1iso));
     BOOST_AUTO_TPL(dW4f,   value(1.0 - M_contractileFraction) * eval(dW4ffun, I4fiso));
-    BOOST_AUTO_TPL(d2W4f,  value(1.0 - M_contractileFraction) * eval(d2W4ffun, I4fiso));
     BOOST_AUTO_TPL(dW4s,   value(1.0 - M_contractileFraction) * eval(dW4sfun, I4siso));
-    BOOST_AUTO_TPL(d2W4s,  value(1.0 - M_contractileFraction) * eval(d2W4sfun, I4siso));
     BOOST_AUTO_TPL(dW8fs,  value(1.0 - M_contractileFraction) * eval(dW8fsfun, I8fsiso));
-    BOOST_AUTO_TPL(d2W8fs, value(1.0 - M_contractileFraction) * eval(d2W8fsfun, I8fsiso));
+
+    // Strain-energy derivatives
+    BOOST_AUTO_TPL(dW1e,    value(M_contractileFraction) * eval(dW1fun, I1eiso));
+    BOOST_AUTO_TPL(dW4fe,   /* value(M_contractileFraction) */ eval(dW4ffun, I4feiso));
+    BOOST_AUTO_TPL(dW4se,   /* value(M_contractileFraction) */ eval(dW4sfun, I4seiso));
+    BOOST_AUTO_TPL(dW8fse,  /* value(M_contractileFraction) */ eval(dW8fsfun, I8fseiso));
 
     BOOST_AUTO_TPL(dWvol,  eval(dWvolfun, J));
     BOOST_AUTO_TPL(d2Wvol, eval(d2Wvolfun, J));
@@ -1190,10 +1125,10 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const
     BOOST_AUTO_TPL(dI4seiso, dI4sedI4s * dI4siso );
     BOOST_AUTO_TPL(dI8fseiso, dI8fsedI8fs * dI8fsiso );
 
-	BOOST_AUTO_TPL(Pisoe_1,   dW1e*dI1eiso);
-	BOOST_AUTO_TPL(Pisoe_4f,  dW4fe*dI4feiso);
-	BOOST_AUTO_TPL(Pisoe_4s,  dW4se*dI4seiso);
-	BOOST_AUTO_TPL(Pisoe_8fs, dW8fse*dI8fseiso);
+	BOOST_AUTO_TPL(Peiso_1,   dW1e*dI1eiso);
+	BOOST_AUTO_TPL(Peiso_4f,  dW4fe*dI4feiso);
+	BOOST_AUTO_TPL(Peiso_4s,  dW4se*dI4seiso);
+	BOOST_AUTO_TPL(Peiso_8fs, dW8fse*dI8fseiso);
 
 	BOOST_AUTO_TPL(Piso_1,   dW1*dI1iso);
 	BOOST_AUTO_TPL(Piso_4f,  dW4f*dI4fiso);
@@ -1208,7 +1143,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const
     integrate ( elements ( this->M_dispETFESpace->mesh() ),
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
-                dot(Piso_1 + Pisoe_1 + Pvol, grad(phi_i))
+                dot( Piso_1 + Peiso_1 + Pvol, grad(phi_i))
               ) >> M_stiff;
     // Assemble residual
     if(M_af > 0)
@@ -1216,7 +1151,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const
     	integrate ( elements ( this->M_dispETFESpace->mesh() ),
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
-                dot( Piso_4f + Pisoe_4f, grad(phi_i))
+                dot( /*Piso_4f + */Peiso_4f , grad(phi_i))
               ) >> M_stiff;
     }
     // Assemble residual
@@ -1228,7 +1163,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const
 		integrate ( elements ( this->M_dispETFESpace->mesh() ),
 					this->M_dispFESpace->qr(),
 					this->M_dispETFESpace,
-					dot( Piso_4s + Pisoe_4s , grad(phi_i))
+					dot( /* Piso_4s +*/ Peiso_4s , grad(phi_i))
 				  ) >> M_stiff;
 		}
 		// Assemble residual
@@ -1237,7 +1172,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const
 		integrate ( elements ( this->M_dispETFESpace->mesh() ),
 					this->M_dispFESpace->qr(),
 					this->M_dispETFESpace,
-					dot( Piso_8fs + Pisoe_8fs, grad(phi_i))
+					dot( /*Piso_8fs +*/ Peiso_8fs, grad(phi_i))
 				  ) >> M_stiff;
 		}
     }
@@ -1265,6 +1200,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::showMyParameters ()
 	std::cout << "\nbs: " << M_bs;
 	std::cout << "\nafs: " << M_afs;
 	std::cout << "\nbfs: " << M_bfs;
+	std::cout << "\ncontractile fraction: " << M_contractileFraction;
 	std::cout << "\n********************************************\n\n";
 }
 
@@ -1286,7 +1222,7 @@ inline StructuralConstitutiveLaw<MeshType>* createGeneralizedActiveHolzapfelOgde
 }
 namespace
 {
-static bool registerGHO = StructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct("GeneralizedActiveHolzapfelOgden", &createGeneralizedActiveHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
+static bool registerGHO = StructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct("GAHO", &createGeneralizedActiveHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
 }
 
 } //Namespace LifeV

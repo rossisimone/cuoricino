@@ -235,7 +235,7 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
             M_bf[material] = dataFile ( ( section + "/physics/bf"   ).data(), 0.   , i );
             M_bs[material] = dataFile ( ( section + "/physics/bs"   ).data(), 0.   , i );
             M_bfs[material]= dataFile ( ( section + "/physics/bfs"  ).data(), 0.   , i );
-            M_contractileFraction[1]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 0. , i);
+            M_contractileFraction[material]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 0. , i);
 
         }
     }
@@ -308,23 +308,23 @@ StructuralConstitutiveLawData::showMe ( std::ostream& output ) const
     }
     for ( materialContainerIterator_Type i = M_b.begin() ; i != M_b.end() ; ++i )
     {
-        output << "Holzapfel-Ogden Material: parameter a: [" << i->first << "]                 = " << i -> second << std::endl;
+        output << "Holzapfel-Ogden Material: parameter b: [" << i->first << "]                 = " << i -> second << std::endl;
     }
     for ( materialContainerIterator_Type i = M_bf.begin() ; i != M_bf.end() ; ++i )
     {
-        output << "Holzapfel-Ogden Material: parameter af: [" << i->first << "]                 = " << i -> second << std::endl;
+        output << "Holzapfel-Ogden Material: parameter bf: [" << i->first << "]                 = " << i -> second << std::endl;
     }
     for ( materialContainerIterator_Type i = M_bs.begin() ; i != M_bs.end() ; ++i )
     {
-        output << "Holzapfel-Ogden Material: parameter as: [" << i->first << "]                 = " << i -> second << std::endl;
+        output << "Holzapfel-Ogden Material: parameter bs: [" << i->first << "]                 = " << i -> second << std::endl;
     }
     for ( materialContainerIterator_Type i = M_bfs.begin() ; i != M_bfs.end() ; ++i )
     {
-        output << "Holzapfel-Ogden Material: parameter afs: [" << i->first << "]                 = " << i -> second << std::endl;
+        output << "Holzapfel-Ogden Material: parameter bfs: [" << i->first << "]                 = " << i -> second << std::endl;
     }
     for ( materialContainerIterator_Type i = M_contractileFraction.begin() ; i != M_contractileFraction.end() ; ++i )
     {
-        output << "Holzapfel-Ogden Material: contrictile fraction: [" << i->first << "]                 = " << i -> second << std::endl;
+        output << "Holzapfel-Ogden Material: contractile fraction: [" << i->first << "]                 = " << i -> second << std::endl;
     }
 
     for ( UInt i (0); i < M_vectorMaterialFlags.size(); i++ )
@@ -594,7 +594,7 @@ StructuralConstitutiveLawData::contractileFraction ( const UInt& material ) cons
     }
     else
     {
- //       std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        std::cout << " !!! Contractile Fraction has not been set !!!" << std::endl;
         return 0;
     }
 }
