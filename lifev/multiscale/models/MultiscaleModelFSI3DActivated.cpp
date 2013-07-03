@@ -87,7 +87,7 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_fineToCoarseInterpolant		(),
 	M_rescalingVector				(),
 	M_activationETFESpace			(),
-	M_orthotropicActivationFactor	(),
+	M_orthotropicActivationFactor	(3),
 	M_activationOperator			(),
 	M_preloadVector					(),
 	M_preloadInTime					(false)
@@ -101,12 +101,7 @@ void
 MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 {
 
-<<<<<<< HEAD
 	// FSI setup
-=======
-
-    // FSI setup
->>>>>>> bugfix in the monodomain setup in FSIActivated
     M_dataFileName = fileName;
     super::setupData (M_dataFileName);
     M_fullSolidMesh.reset ( new mesh_Type ( M_FSIoperator -> solidMesh() ) );
@@ -213,11 +208,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     //=====================
     if(M_activationModelType==StretchDependentODE)
     {
-	  //  M_activationSolver.reset ( new LinearSolver( ) );
-
-		xmlpath = dataFile ("electrophysiology/activation_solver_data_path", "./");
-		xmlfile = dataFile ("electrophysiology/activation_solver_data_file", "Activation_solver");
-		prec_Type* precRawPtr;
+	    prec_Type* precRawPtr;
 		basePrecPtr_Type precPtr;
 		precRawPtr = new prec_Type;
 		precRawPtr->setDataFromGetPot (dataFile, "electrophysiology/prec");
@@ -231,6 +222,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 
 		solverParamList = Teuchos::getParametersFromXmlFile (xmlpath + xmlfile);
 
+		M_activationSolver.reset ( new LinearSolver() );
 		M_activationSolver->setCommunicator ( M_monodomain -> commPtr() );
 		M_activationSolver->setParameters ( *solverParamList );
 		M_activationSolver->setPreconditioner ( precPtr );
@@ -334,7 +326,7 @@ MultiscaleModelFSI3DActivated::setupModel()
     std::string sheetFieldName = list.get ("sheet_field", "sheets") ;
     HeartUtility::importVectorField(	super::solver() -> solid().material() -> sheetVectorPtr(),
     									sheetFileName,
-    									"sheets",
+    									sheetFieldName,
     									super::solver() -> solidLocalMeshPtr() );
 
 }
@@ -442,7 +434,7 @@ MultiscaleModelFSI3DActivated::solveModel()
             }
             case StretchDependentODE:
             {
-                ASSERT(false, "ERROR: Stretch-dependent activation is not yet implemented.");
+                //ASSERT(false, "ERROR: Stretch-dependent activation is not yet implemented.");
 
                 switch (M_activationType)
                 {
