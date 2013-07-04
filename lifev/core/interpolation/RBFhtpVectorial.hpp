@@ -68,7 +68,7 @@ public:
     typedef LifeV::Preconditioner                                                 basePrec_Type;
     typedef boost::shared_ptr<basePrec_Type>                                      basePrecPtr_Type;
 
-    typedef LifeV::PreconditionerML                                           prec_Type;
+    typedef LifeV::PreconditionerIfpack                                           prec_Type;
     typedef boost::shared_ptr<prec_Type>                                          precPtr_Type;
 
     typedef Teuchos::RCP< Teuchos::ParameterList >                                parameterList_Type;
