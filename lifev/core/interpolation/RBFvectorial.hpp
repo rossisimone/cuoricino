@@ -459,7 +459,7 @@ void RBFvectorial<mesh_Type>::interpolate()
     prec_Type* precRawPtr;
     basePrecPtr_Type precPtr;
     precRawPtr = new prec_Type;
-    precRawPtr->setDataFromGetPot ( M_datafile, "prec" );
+    precRawPtr->setDataFromGetPot ( M_datafile, "interpolation/prec" );
     precPtr.reset ( precRawPtr );
 
     LinearSolver solverRBF1;
