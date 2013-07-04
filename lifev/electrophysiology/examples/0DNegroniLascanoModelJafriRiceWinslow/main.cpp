@@ -211,13 +211,13 @@ Int main ( Int argc, char** argv )
     // solution.                                  //
     //********************************************//
 
-    string filename        = "output20.txt";
+    string filename        = "output1350.txt";
     string filenameStimPro = "outputStimPro.txt";
-    string XbFilename      = "XbOutput20.txt";
+    string XbFilename      = "XbOutput1350.txt";
 
-    std::ofstream output        ("output20.txt");
+    std::ofstream output        ("output1350.txt");
     std::ofstream outputStimPro ("outputStimPro.txt");
-    std::ofstream XbOutput      ("XbOutput20.txt");
+    std::ofstream XbOutput      ("XbOutput1350.txt");
 
 
     //********************************************//
