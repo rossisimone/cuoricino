@@ -417,6 +417,8 @@ public:
                             const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/,
                             const displayerPtr_Type& displayer );
 
+    void computeResidual( const vector_Type& disp );
+
     //! Computes the new Stiffness vector for Neo-Hookean and Exponential materials in
     //! StructuralSolver given a certain displacement field.
     //! This function is used both in StructuralSolver::evalResidual and in StructuralSolver::updateSystem
@@ -508,6 +510,7 @@ public:
     {
         return M_Gamman;
     }
+
 
     void apply ( const vector_Type& sol, vector_Type& res,
                  const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
@@ -1024,13 +1027,20 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const
                                                        const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
                                                        const displayerPtr_Type& displayer )
 {
-    using namespace ExpressionAssembly;
-
-    this->M_stiff.reset (new vector_Type (*this->M_localMap) );
-
     displayer->leaderPrint (" \n******************************************************************\n  ");
     displayer->leaderPrint (" Non-Linear S-  Computing the Holzapfel-Ogden nonlinear stiffness vector"     );
     displayer->leaderPrint (" \n******************************************************************\n  ");
+
+    computeResidual(disp);
+}
+
+
+template <typename MeshType>
+void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeResidual ( const vector_Type& disp )
+{
+    using namespace ExpressionAssembly;
+
+    this->M_stiff.reset (new vector_Type (*this->M_localMap) );
 
     M_stiff.reset (new vector_Type (*this->M_localMap) );
     * (M_stiff) *= 0.0;

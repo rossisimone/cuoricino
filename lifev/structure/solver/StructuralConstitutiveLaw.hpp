@@ -192,6 +192,9 @@ public:
                                      const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
                                      const displayerPtr_Type& displayer ) = 0;
 
+    virtual  void computeResidual ( const vector_Type& disp ) {}
+
+
 
     //! Computes the deformation Gradient F, the cofactor of F Cof(F),
     //! the determinant of F J = det(F), the trace of C Tr(C).
