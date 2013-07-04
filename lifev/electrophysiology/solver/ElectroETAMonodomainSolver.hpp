@@ -1189,7 +1189,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 	{
 		using namespace ExpressionAssembly;
 
-		integrate(elements(M_localMeshPtr), quadRuleTetra4pt, M_ETFESpacePtr,
+		integrate(elements(M_localMeshPtr), M_feSpacePtr -> qr(), M_ETFESpacePtr,
 				M_ETFESpacePtr, phi_i * phi_j) >> M_massMatrixPtr;
 
 	}
@@ -1222,7 +1222,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 	{
 		using namespace ExpressionAssembly;
 
-		integrate(elements(M_localMeshPtr), quadRuleTetra4pt, M_ETFESpacePtr,
+		integrate(elements(M_localMeshPtr), M_feSpacePtr -> qr(), M_ETFESpacePtr,
 				M_ETFESpacePtr,
 				dot(
 						rotate(M_ETFESpacePtr, *M_fiberPtr, diffusion)
@@ -1253,7 +1253,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix( vectorP
 #define diffusionTensor ( detDeformationGradientTensor *  deformationGradientTensor_1 * diffusion *  deformationGradientTensor_T  )
 		using namespace ExpressionAssembly;
 
-		integrate(elements(M_localMeshPtr), quadRuleTetra4pt, M_ETFESpacePtr,
+		integrate(elements(M_localMeshPtr), M_feSpacePtr -> qr(), M_ETFESpacePtr,
 				M_ETFESpacePtr,
 				dot(
 					diffusionTensor	* grad(phi_i), grad(phi_j) ) )
