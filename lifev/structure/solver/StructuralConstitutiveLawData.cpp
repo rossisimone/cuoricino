@@ -202,7 +202,7 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
         M_bf[1] = dataFile ( ( section + "/physics/bf"   ).data(), 0. );
         M_bs[1] = dataFile ( ( section + "/physics/bs"   ).data(), 0. );
         M_bfs[1]= dataFile ( ( section + "/physics/bfs"  ).data(), 0. );
-        M_contractileFraction[1]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 0. );
+        M_contractileFraction[1]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 1. );
     }
     else
     {
@@ -235,7 +235,7 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
             M_bf[material] = dataFile ( ( section + "/physics/bf"   ).data(), 0.   , i );
             M_bs[material] = dataFile ( ( section + "/physics/bs"   ).data(), 0.   , i );
             M_bfs[material]= dataFile ( ( section + "/physics/bfs"  ).data(), 0.   , i );
-            M_contractileFraction[material]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 0. , i);
+            M_contractileFraction[material]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 1. , i);
 
         }
     }
