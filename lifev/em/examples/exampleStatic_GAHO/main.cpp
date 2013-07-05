@@ -970,12 +970,21 @@ int main (int argc, char** argv)
   	//				Initializing solid
   	//===========================================================
   	//===========================================================
+    boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterRamp;
+    exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, parameterList.get ("StructureOutputFile", "StructureOutput") ) );
+
+    //      exporter->setPostDir ( "./" );
+          exporterRamp -> setPostDir ( problemFolder );
+    exporterRamp->setMeshProcId ( localSolidMesh, comm->MyPID() );
+
+    exporterRamp->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "displacement", dFESpace, solidDisp, UInt (0) );
+
     if(parameterList.get("pressure_ramp", false) == true){
 		if ( comm->MyPID() == 0 )
 		{
 			std::cout << "\nSTARTING PRESSURE RAMP!\n" << std::endl;
 		}
-
+		exporterRamp -> postProcess(0);
 	     vectorPtr_Type TMPsolidGammaf( new vector_Type( solidGammaf -> map() ) );
 	     vectorPtr_Type TMPsolidGammas( new vector_Type( solidGammaf -> map() ) );
 	     vectorPtr_Type TMPsolidGamman( new vector_Type( solidGammaf -> map() ) );
@@ -1018,6 +1027,7 @@ int main (int argc, char** argv)
     		solid.data() -> dataTime() -> setTime(pseudot);
     		solidBC -> handler() -> showMe();
     		solid.iterate ( solidBC -> handler() );
+    		exporterRamp -> postProcess(pseudot);
 		}
     }
     *solidDisp = solid.displacement();
