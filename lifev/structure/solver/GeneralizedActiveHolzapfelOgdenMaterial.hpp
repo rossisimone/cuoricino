@@ -488,12 +488,12 @@ public:
         return M_stiff;
     }
 
-    inline  vectorPtr_Type const fiberVectorPtr() const
+    inline  vectorPtr_Type fiberVectorPtr()
     {
         return M_fiberVector;
     }
 
-    inline  vectorPtr_Type const sheetVectorPtr() const
+    inline  vectorPtr_Type sheetVectorPtr()
     {
         return M_sheetVector;
     }
