@@ -78,6 +78,7 @@
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicLuoRudyI.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -88,7 +89,7 @@
 
 using namespace LifeV;
 
-Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
 {
 
     Real pacingSite_X = 0.0;
@@ -98,6 +99,36 @@ Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z
 //    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
 //    Real stimulusValue =  monodomainList.get ("stimulus_value", 0.0);
     Real stimulusValue = 10;
+
+    Real returnValue;
+
+    if ( std::abs( x - pacingSite_X ) <= stimulusRadius
+    		 &&
+    	 std::abs( z - pacingSite_Z ) <= stimulusRadius
+    	 	 &&
+    	 std::abs( y - pacingSite_Y ) <= stimulusRadius
+    	 	 &&
+    	 t <= 2)
+    {
+    	returnValue = stimulusValue;
+    }
+    else{
+        returnValue = 0.;
+    }
+
+    return returnValue;
+}
+
+Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+{
+
+    Real pacingSite_X = 0.0;
+    Real pacingSite_Y = 0.0;
+    Real pacingSite_Z = 0.0;
+    Real stimulusRadius = 0.15;
+//    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+//    Real stimulusValue =  monodomainList.get ("stimulus_value", 0.0);
+    Real stimulusValue = 50;
 
     Real returnValue;
 
@@ -159,8 +190,11 @@ Int main ( Int argc, char** argv )
                                     const Real& /*z*/,
                                     const ID&   /*i*/ ) >   function_Type;
 
-    typedef ElectroETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
+   	typedef ElectroIonicModel	 ionicModel_Type;
+    typedef boost::shared_ptr<ionicModel_Type> ionicModelPtr_Type;
+    typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type >        monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
+
     typedef VectorEpetra				vector_Type;
     typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
 
@@ -186,6 +220,14 @@ Int main ( Int argc, char** argv )
         std::cout << " Done!" << endl;
     }
 
+    std::string ionic_model( monodomainList.get ("ionic_model", "minimalModel") );
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "\nIonic_Model:" << ionic_model;
+    }
+
+
+
     //********************************************//
     // Creates a new model object representing the//
     // model from Aliev and Panfilov 1996.  The   //
@@ -194,13 +236,20 @@ Int main ( Int argc, char** argv )
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << "Building Constructor for Minimal Model with parameters ... ";
+        std::cout << "\nBuilding Constructor for " << ionic_model << " Model with parameters ... ";
     }
-    boost::shared_ptr<IonicMinimalModel>  model ( new IonicMinimalModel() );
+    ionicModelPtr_Type  model;
+    if( ionic_model == "LuoRudyI" )
+    	model.reset( new IonicLuoRudyI() );
+    else
+    	model.reset( new IonicMinimalModel() );
+
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
     }
+
+    model -> showMe();
 
 
     //********************************************//
@@ -250,7 +299,11 @@ Int main ( Int argc, char** argv )
     solver -> initializeAppliedCurrent();
     solver -> setInitialConditions();
 
-    function_Type stimulus = &PacingProtocol;
+    function_Type stimulus;
+    if(ionic_model == "MinimalModel" )
+    	stimulus = &PacingProtocolMM;
+    else
+    	stimulus = &PacingProtocol;
     solver -> setAppliedCurrentFromFunction(stimulus, 0.0);
 
     if ( Comm->MyPID() == 0 )
