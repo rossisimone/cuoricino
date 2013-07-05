@@ -1030,7 +1030,7 @@ int main (int argc, char** argv)
     		exporterRamp -> postProcess(pseudot);
 		}
     }
-    exporterRamp -> closeFile();
+
     *solidDisp = solid.displacement();
     exporter->postProcess ( 0 );
 
@@ -1486,10 +1486,7 @@ int main (int argc, char** argv)
       }
 
 
-      expElectro.closeFile();
-      expGammaf.closeFile();
 
-      exporter -> closeFile();
 
 
 
@@ -1498,7 +1495,10 @@ int main (int argc, char** argv)
         std::cout << "\nActive strain example: Passed!" << std::endl;
     }
 
-
+    expElectro.closeFile();
+    expGammaf.closeFile();
+    exporterRamp -> closeFile();
+    exporter -> closeFile();
     bool save4restart = parameterList.get("save4restart", true);
     if(save4restart)
     {
