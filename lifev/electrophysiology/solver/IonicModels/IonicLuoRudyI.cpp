@@ -46,7 +46,7 @@ namespace LifeV
 //! Constructors
 // ===================================================
 IonicLuoRudyI::IonicLuoRudyI()  :
-    super       (  8   ),
+    super       (  8 , 6  ),
     M_ENa		( 54.4 ),
     M_gNa		( 23.0 ),
     M_gsi		( 0.09 ),
@@ -79,7 +79,7 @@ IonicLuoRudyI::IonicLuoRudyI()  :
 }
 
 IonicLuoRudyI::IonicLuoRudyI ( Teuchos::ParameterList& parameterList     )   :
-    super       ( 8 )
+    super       ( 8, 6 )
 {
     M_ENa        =  parameterList.get ("ENa", 54.4  );
     M_gNa        =  parameterList.get ("gNa", 23.3  );
@@ -127,6 +127,7 @@ IonicLuoRudyI::IonicLuoRudyI ( const IonicLuoRudyI& model )
     M_gK = computeGK(M_K0);
     M_gK1= computeGK1(M_K0);
     M_numberOfEquations = model.M_numberOfEquations;
+    M_numberOfGatingVariables = model.M_numberOfGatingVariables;
     M_restingConditions = model.M_restingConditions;
 
 }
@@ -149,6 +150,7 @@ IonicLuoRudyI& IonicLuoRudyI::operator= ( const IonicLuoRudyI& model )
     M_gK = computeGK(M_K0);
     M_gK1= computeGK1(M_K0);
     M_numberOfEquations = model.M_numberOfEquations;
+    M_numberOfGatingVariables = model.M_numberOfGatingVariables;
     M_restingConditions = model.M_restingConditions;
 
     return      *this;
@@ -217,6 +219,14 @@ void IonicLuoRudyI::computeRhs ( const   std::vector<Real>&  v,
     rhs[7] = dCa(V, d, f, Ca);
 }
 
+Real IonicLuoRudyI::computeGatingVariablesWithRushLarsen( const   Real  V,
+                                     	 	 	 	 const   Real  gatingVariable,
+                                     	 	 	 	 const int gatingVariableNumber,
+                                     	 	 	 	 const Real dt )
+{
+	if( gatingVariableNumber == 0)
+		return ( minf(V) + ( gatingVariable - minf(V) ) * std::exp( - dt / tm(V) ) );
+}
 
 Real IonicLuoRudyI::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp)
 {

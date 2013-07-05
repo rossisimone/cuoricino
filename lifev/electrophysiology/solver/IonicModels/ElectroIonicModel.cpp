@@ -47,20 +47,29 @@ namespace LifeV
 // ===================================================
 ElectroIonicModel::ElectroIonicModel() :
     M_numberOfEquations (0),
+    M_numberOfGatingVariables(0),
 	M_restingConditions	()
 {
 }
 
 ElectroIonicModel::ElectroIonicModel ( int n ) :
     M_numberOfEquations (n),
+    M_numberOfGatingVariables(0),
 	M_restingConditions (std::vector<Real>(M_numberOfEquations, 0.0) )
 {
 }
 
-
+ElectroIonicModel::ElectroIonicModel ( int n, int g ) :
+    M_numberOfEquations (n),
+    M_numberOfGatingVariables(g),
+	M_restingConditions (std::vector<Real>(M_numberOfEquations, 0.0) )
+{
+}
 
 ElectroIonicModel::ElectroIonicModel ( const ElectroIonicModel& Ionic ) :
-    M_numberOfEquations ( Ionic.Size() )
+    M_numberOfEquations ( Ionic.Size() ),
+    M_numberOfGatingVariables ( Ionic.numberOfGatingVariables() ),
+    M_restingConditions ( Ionic.restingConditions() )
 {
 }
 
@@ -69,8 +78,10 @@ ElectroIonicModel::ElectroIonicModel ( const ElectroIonicModel& Ionic ) :
 // ===================================================
 ElectroIonicModel& ElectroIonicModel::operator = ( const ElectroIonicModel& Ionic )
 {
-    M_numberOfEquations = Ionic.M_numberOfEquations;
-    return      *this;
+	M_numberOfEquations = Ionic.M_numberOfEquations;
+    M_numberOfGatingVariables = Ionic.M_numberOfGatingVariables;
+    M_restingConditions = Ionic.M_restingConditions;
+	return      *this;
 }
 
 vector< vector<Real> > ElectroIonicModel::getJac (const vector<Real>& v, Real h)

@@ -715,6 +715,7 @@ public:
 	 * \f]
 	 */
 	void solveOneReactionStepFE(int subiterations = 1);
+	void solveOneReactionStepRL(int subiterations = 1);
 
 	//! Solves one reaction step using the Rosenbrock  method
 	/*!
@@ -801,6 +802,7 @@ public:
 	}
 	//! Solves the gating variables with forward Euler
 	void solveOneStepGatingVariablesFE();
+	void solveOneStepGatingVariablesRL();
 	//! Compute the rhs using state variable interpolation
 	void computeRhsSVI();
 	//! Compute the rhs using ionic current interpolation
@@ -1384,6 +1386,17 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(int su
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
 				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i))) / M_membraneCapacitance;
 	}
+}
+
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepRL(int subiterations) {
+	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution,
+			*M_appliedCurrentPtr, M_globalRhs);
+
+	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
+		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
+				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i))) / M_membraneCapacitance;
+	}
 
 }
 
@@ -1523,8 +1536,17 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneStepGatingVariablesFE
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
 				+ M_timeStep * (*(M_globalRhs.at(i)));
 	}
-
 }
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneStepGatingVariablesRL() {
+	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
+
+	for (int i = 1; i < M_ionicModelPtr->Size(); i++) {
+		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
+				+ M_timeStep * (*(M_globalRhs.at(i)));
+	}
+}
+
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsICI() {

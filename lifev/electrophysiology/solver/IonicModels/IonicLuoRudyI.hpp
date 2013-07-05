@@ -465,6 +465,8 @@ public:
 
     void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
 
+    Real computeGatingVariablesWithRushLarsen( const Real V, const Real gatingVariable, const int gatingVariableNumber, const Real dt  );
+
     // compute the rhs with state variable interpolation
     Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
 

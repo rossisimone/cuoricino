@@ -77,6 +77,8 @@ public:
 
     ElectroIonicModel ( int n );
 
+    ElectroIonicModel ( int n, int g );
+
     ElectroIonicModel ( const ElectroIonicModel& Ionic );
 
     //! Destructor
@@ -89,6 +91,10 @@ public:
     inline const short int& Size() const
     {
         return M_numberOfEquations;
+    }
+    inline const short int& numberOfGatingVariables() const
+    {
+        return M_numberOfGatingVariables;
     }
 
     inline const std::vector<Real> restingConditions() const
@@ -118,6 +124,8 @@ public:
     virtual void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs) = 0;
 
     virtual void computeRhs ( const vector_Type& v, const Real& Iapp, vector_Type& rhs);
+
+    virtual Real computeGatingVariablesWithRushLarsen ( const Real V, const Real gatingVariable, const int gatingVariableNumber, const Real dt ) {}
 
     //Compute the rhs on a mesh/ 3D case
     virtual void computeRhs ( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
@@ -150,6 +158,7 @@ public:
 protected:
 
     short int  M_numberOfEquations;
+    short int  M_numberOfGatingVariables;
     std::vector<Real> M_restingConditions;
 
 
