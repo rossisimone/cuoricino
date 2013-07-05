@@ -324,6 +324,8 @@ MultiscaleModelFSI3DActivated::setupModel()
     super::solver() ->solid().material() -> setFiberVector(*fiber);
 
     // sheet direction
+    std::string sheetFileName = list.get ("sheet_file", "SheetDirection") ;
+    std::string sheetFieldName = list.get ("sheet_field", "sheets") ;
     vectorPtr_Type sheet(new vector_Type( super::solver() -> dFESpace().map() ) );
     HeartUtility::importVectorField(sheet,
     									sheetFileName,
