@@ -91,6 +91,11 @@ public:
         return M_numberOfEquations;
     }
 
+    inline const std::vector<Real> restingConditions() const
+    {
+        return M_restingConditions;
+    }
+
     //virtual void updateRepeated( )=0;
 
     //! Solves the ODE model

@@ -1,6 +1,7 @@
 SET( solver_IonicModels_HEADERS
   solver/IonicModels/IonicAlievPanfilov.hpp
   solver/IonicModels/IonicFitzHughNagumo.hpp
+  solver/IonicModels/IonicLuoRudyI.hpp
   solver/IonicModels/IonicMitchellSchaeffer.hpp
   solver/IonicModels/IonicJafriRiceWinslow.hpp
   solver/IonicModels/IonicTenTusscher.hpp
@@ -13,6 +14,7 @@ CACHE INTERNAL "")
 SET( solver_IonicModels_SOURCES
   solver/IonicModels/IonicAlievPanfilov.cpp
   solver/IonicModels/IonicFitzHughNagumo.cpp
+  solver/IonicModels/IonicLuoRudyI.cpp
   solver/IonicModels/IonicMitchellSchaeffer.cpp
   solver/IonicModels/IonicJafriRiceWinslow.cpp
   solver/IonicModels/IonicTenTusscher.cpp
