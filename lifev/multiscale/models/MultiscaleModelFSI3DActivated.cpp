@@ -317,17 +317,19 @@ MultiscaleModelFSI3DActivated::setupModel()
     }
     	//    *M_activationSolver = *M_monodomain -> linearSolverPtr();
     //setting up activation solver
-    HeartUtility::importFibers ( super::solver() -> solid().material() -> fiberVector(),
+    vectorPtr_Type fiber(new vector_Type( super::solver() -> dFESpace().map() ) );
+    HeartUtility::importFibers ( fiber,
                                  super::solver() -> solid().material() -> materialData() -> fileFiberDirections(),
                                  solidLocalMeshPtr );
+    super::solver() ->solid().material() -> setFiberVector(*fiber);
 
     // sheet direction
-    std::string sheetFileName = list.get ("sheet_file", "SheetDirection") ;
-    std::string sheetFieldName = list.get ("sheet_field", "sheets") ;
-    HeartUtility::importVectorField(	super::solver() -> solid().material() -> sheetVectorPtr(),
+    vectorPtr_Type sheet(new vector_Type( super::solver() -> dFESpace().map() ) );
+    HeartUtility::importVectorField(sheet,
     									sheetFileName,
     									sheetFieldName,
     									super::solver() -> solidLocalMeshPtr() );
+    super::solver() ->solid().material() -> setSheetVector(*sheet);
 
 }
 
@@ -340,6 +342,8 @@ MultiscaleModelFSI3DActivated::buildModel()
         M_fineToCoarseInterpolant -> buildOperators();
         //if( !M_oneWayCoupling ) M_coarseToFineInterpolant -> buildOperators();
     }
+
+    super::solver() -> solid().material() -> showMyParameters();
 
     M_monodomain -> setupLumpedMassMatrix();
     M_monodomain -> setupStiffnessMatrix();
@@ -469,7 +473,6 @@ MultiscaleModelFSI3DActivated::solveModel()
                	//boost::shared_ptr<Exp> EXP(new Exp);
                	//boost::shared_ptr<Exp2> EXP2(new Exp2);
                	//boost::shared_ptr<Psi4f> psi4f (new Psi4f);
-               	//boost::shared_ptr<ShowValue> sv(new ShowValue);
 
                 MatrixSmall<3,3> Id;
                 Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
@@ -551,7 +554,7 @@ MultiscaleModelFSI3DActivated::solveModel()
 							integrate ( elements ( M_monodomain -> localMeshPtr() ),
 									M_monodomain -> feSpacePtr() -> qr() ,
 									M_monodomain -> ETFESpacePtr(),
-									dW0 * phi_i
+									gamma_dot * phi_i
 							) >> tmpRhsActivation;
   						}
 
@@ -560,7 +563,9 @@ MultiscaleModelFSI3DActivated::solveModel()
   					*rhsActivation += ( ( M_monodomain -> timeStep() * *tmpRhsActivation ) );
 
   					M_activationSolver -> setRightHandSide(rhsActivation);
+  					std::cout << "\nMax of GammaF before solving: " << M_gammaf -> maxValue()<< std::endl;
   					M_activationSolver -> solve(M_gammaf);
+  					std::cout << "\nMax of GammaF after solving: " << M_gammaf -> maxValue()<< std::endl;
   					}
 
   					if( M_gammaf -> maxValue() > 0.0)
@@ -569,6 +574,10 @@ MultiscaleModelFSI3DActivated::solveModel()
 						int size =  M_gammaf -> size();
 						for(int l(0); l < d; l++)
 						{
+							std::cout << "\n*****************************************************";
+							std::cout << "\nChanging the gamma back to zero: " ;
+							std::cout << "\n*****************************************************";
+
 							int m1 = M_gammaf -> blockMap().GID(l);
 							//cout << m1 << "\t" << size << "\n";
 							if( (*M_gammaf)[m1] > 0)
@@ -634,13 +643,18 @@ MultiscaleModelFSI3DActivated::solveModel()
         }
         super::solver() -> solid().material() -> setGamman( *M_gammanSolid );
         super::solver() -> solid().material() -> setGammas( *M_gammasSolid );
+        std::cout << "\nMax gammaf " << super::solver() -> solid().material() -> gammaf() -> maxValue() << std::endl;
+        std::cout << "\nMin gammaf " << super::solver() -> solid().material() -> gammaf() -> minValue() << std::endl;
+
+        std::cout << "\nMax gammas " << super::solver() -> solid().material() -> gammas() -> maxValue() << std::endl;
+        std::cout << "\nMin gammas " << super::solver() -> solid().material() -> gammas() -> minValue() << std::endl;
+
+        std::cout << "\nMax gamman " << super::solver() -> solid().material() -> gamman() -> maxValue() << std::endl;
+        std::cout << "\nMin gamman " << super::solver() -> solid().material() -> gamman() -> minValue() << std::endl;
 
     }
 
     super::solveModel();
-
-
-
 }
 
 void
