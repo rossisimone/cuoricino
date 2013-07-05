@@ -971,7 +971,7 @@ int main (int argc, char** argv)
   	//===========================================================
   	//===========================================================
     boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterRamp;
-    exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, parameterList.get ("StructureOutputFile", "StructureOutput") ) );
+    exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile,"StructureRamp" ) );
 
     //      exporter->setPostDir ( "./" );
           exporterRamp -> setPostDir ( problemFolder );
