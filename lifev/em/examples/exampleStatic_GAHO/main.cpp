@@ -977,17 +977,20 @@ int main (int argc, char** argv)
           exporterRamp -> setPostDir ( problemFolder );
     exporterRamp->setMeshProcId ( localSolidMesh, comm->MyPID() );
 
-    exporterRamp->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "displacement", dFESpace, solidDisp, UInt (0) );
+
 
     if(parameterList.get("pressure_ramp", false) == true){
 		if ( comm->MyPID() == 0 )
 		{
 			std::cout << "\nSTARTING PRESSURE RAMP!\n" << std::endl;
 		}
-		exporterRamp -> postProcess(0);
+
 	     vectorPtr_Type TMPsolidGammaf( new vector_Type( solidGammaf -> map() ) );
 	     vectorPtr_Type TMPsolidGammas( new vector_Type( solidGammaf -> map() ) );
 	     vectorPtr_Type TMPsolidGamman( new vector_Type( solidGammaf -> map() ) );
+			exporterRamp->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "displacement", dFESpace, solid.displacementPtr(), UInt (0) );
+		      exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "solid_gammaf", solidaFESpace, TMPsolidGammaf, UInt (0) );
+			exporterRamp -> postProcess(0);
     	Real ramp_dt = parameterList.get("ramp_timestep", 0.1);
     	for(Real pseudot(0); pseudot < 1; ){
     		pseudot += ramp_dt;
