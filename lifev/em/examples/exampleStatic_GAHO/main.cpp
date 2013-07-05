@@ -308,9 +308,9 @@ int main (int argc, char** argv)
 
 
 		//HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
-		function_Type Vlid = &initialVlid;
-		monodomain -> setPotentialFromFunction( Vlid );
-
+//		function_Type Vlid = &initialVlid;
+//		monodomain -> setPotentialFromFunction( Vlid );
+		HeartUtility::setValueOnBoundary(*(monodomain -> potentialPtr()), monodomain -> fullMeshPtr(), 1.0, 5);
     }
 
     std::cout << "Norm Inf potential = " <<  (  *( monodomain -> globalSolution().at(0) ) ).normInf() << std::endl;
@@ -1030,6 +1030,7 @@ int main (int argc, char** argv)
     		exporterRamp -> postProcess(pseudot);
 		}
     }
+    exporterRamp -> closeFile();
     *solidDisp = solid.displacement();
     exporter->postProcess ( 0 );
 
