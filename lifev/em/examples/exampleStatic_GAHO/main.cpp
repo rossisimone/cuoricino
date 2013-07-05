@@ -975,6 +975,10 @@ int main (int argc, char** argv)
 		{
 			std::cout << "\nSTARTING PRESSURE RAMP!\n" << std::endl;
 		}
+
+	     vectorPtr_Type TMPsolidGammaf( new vector_Type( solidGammaf -> map() ) );
+	     vectorPtr_Type TMPsolidGammas( new vector_Type( solidGammaf -> map() ) );
+	     vectorPtr_Type TMPsolidGamman( new vector_Type( solidGammaf -> map() ) );
     	Real ramp_dt = parameterList.get("ramp_timestep", 0.1);
     	for(Real pseudot(0); pseudot < 1; ){
     		pseudot += ramp_dt;
@@ -982,6 +986,32 @@ int main (int argc, char** argv)
     		{
     			std::cout << "\nPRESSURE RAMP: " << pseudot;
     		}
+
+    		*TMPsolidGammaf = *solidGammaf;
+    		*TMPsolidGammaf *= ramp_dt;
+    	     if(gcase == 1)
+    	     {
+    			 Real gfactor = parameterList.get ("gfactor", 3.0);
+    			 cout << "\ngfactor: " << gfactor;
+    			 *TMPsolidGamman = gfactor * *solidGammaf;
+    			 solid.material() -> setGamman(*TMPsolidGamman);
+    			 *TMPsolidGammas = 1.0;
+    			 *TMPsolidGammas /= (1.0 + *TMPsolidGammaf);
+    			 *TMPsolidGammas /= (1.0 + *TMPsolidGamman);
+    			 *TMPsolidGammas -= 1.0;
+    			 solid.material() -> setGammas(*TMPsolidGammas);
+    	     }
+    	     else
+    	     {
+    			 *TMPsolidGammas = 1.0;
+    			 *TMPsolidGammas /= (1.0 + *solidGammaf);
+    			 EpetraSqrt(*TMPsolidGammas);
+    			 *TMPsolidGammas -= 1.0;
+    			 solid.material() -> setGamman(*TMPsolidGammas);
+    			 *TMPsolidGamman = *TMPsolidGammas;
+    			 solid.material() -> setGammas(*TMPsolidGamman);
+    	     }
+
     		solid.data() -> dataTime() -> setTime(pseudot);
     		solidBC -> handler() -> showMe();
     		solid.iterate ( solidBC -> handler() );
