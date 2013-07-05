@@ -988,7 +988,11 @@ int main (int argc, char** argv)
     		}
 
     		*TMPsolidGammaf = *solidGammaf;
-    		*TMPsolidGammaf *= ramp_dt;
+    		*TMPsolidGammaf *= (pseudot + ramp_dt );
+    		if ( comm->MyPID() == 0 )
+    		{
+    			std::cout << "\nmax of gamma: " << TMPsolidGammaf -> minValue();
+    		}
     	     if(gcase == 1)
     	     {
     			 Real gfactor = parameterList.get ("gfactor", 3.0);
