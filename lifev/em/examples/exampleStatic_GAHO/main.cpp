@@ -988,16 +988,15 @@ int main (int argc, char** argv)
     		}
 
     		*TMPsolidGammaf = *solidGammaf;
-    		*TMPsolidGammaf *= (pseudot + ramp_dt );
-    		if ( comm->MyPID() == 0 )
-    		{
+    		*TMPsolidGammaf *= pseudot;
+    		solid.material() ->  setGammaf( *TMPsolidGammaf );
     			std::cout << "\nmax of gamma: " << TMPsolidGammaf -> minValue();
-    		}
+
     	     if(gcase == 1)
     	     {
     			 Real gfactor = parameterList.get ("gfactor", 3.0);
     			 cout << "\ngfactor: " << gfactor;
-    			 *TMPsolidGamman = gfactor * *solidGammaf;
+    			 *TMPsolidGamman = gfactor * *TMPsolidGammaf;
     			 solid.material() -> setGamman(*TMPsolidGamman);
     			 *TMPsolidGammas = 1.0;
     			 *TMPsolidGammas /= (1.0 + *TMPsolidGammaf);
@@ -1008,7 +1007,7 @@ int main (int argc, char** argv)
     	     else
     	     {
     			 *TMPsolidGammas = 1.0;
-    			 *TMPsolidGammas /= (1.0 + *solidGammaf);
+    			 *TMPsolidGammas /= (1.0 + *TMPsolidGammaf);
     			 EpetraSqrt(*TMPsolidGammas);
     			 *TMPsolidGammas -= 1.0;
     			 solid.material() -> setGamman(*TMPsolidGammas);
