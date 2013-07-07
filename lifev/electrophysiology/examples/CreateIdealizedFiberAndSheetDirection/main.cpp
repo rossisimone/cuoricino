@@ -86,6 +86,7 @@
 #include <boost/shared_ptr.hpp>
 
 #include <lifev/core/mesh/MeshUtility.hpp>
+#include <lifev/core/util/HeartUtility.hpp>
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -131,35 +132,18 @@ Real bcOne (const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real
 
 Real sheets (const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& i)
 {
-	Real a = 8.0;
-	Real Z0 = Z - 8.0;
-	Real b = 2.8;
-//	Real sigma, tau, phi;
-//	tau 	= 0.5 / a * (std::sqrt(X*X+Y*Y+(Z0+a)*(Z0+a)) - std::sqrt(X*X+Y*Y+(Z0-a)*(Z0-a)));
-//	sigma 	= 0.5 / a * (std::sqrt(X*X+Y*Y+(Z0+a)*(Z0+a)) + std::sqrt(X*X+Y*Y+(Z0-a)*(Z0-a)));
-	Real R = std::sqrt(X*X+Y*Y+Z0*Z0);
-	Real phi   = std::acos( Z0 / R );
-	Real theta = std::atan(Y/X);
-	Real R0 = std::sqrt(X*X+Y*Y);
+	Real Z0 = Z - 6.4;
+//
+//	Real  varphi = std::asin(Z0 / R);
+	Real ae1 = 2.8 + 0.75;
+	Real be1 = 2.8 + 0.75 ;
+	Real ce1 = 0.8*8.0 + 0.3;
 
-	Real s1, s2;
-	if(R0!=0)
-	{
-		s1= X / R0;
-		s2= Y/R0;
-	}
-	else
-	{
-		s1 = 0.0;
-		s2 = 0.0;
-	}
+	Real N = std::sqrt(X*X/ae1/ae1/ae1/ae1+Y*Y/be1/be1/be1/be1+Z0*Z0/ce1/ce1/ce1/ce1);
+	Real compx = X / ae1 / ae1 / N;
+	Real compy = Y / be1 / be1 / N;
+	Real compz = Z0 / ce1 / ce1 /N;
 
-	Real compz = std::cos(phi);
-//	Real compx = b * std::cos(theta) * std::sin(phi);
-//	Real compy = b * std::sin(theta) * std::sin(phi);
-//	Real compz = compz;
-	Real compx = s1 * std::sin(phi);
-	Real compy = s2 * std::sin(phi);
 
 	if(i==0) return compx;
 //		return a*std::sqrt( ( sigma*sigma - 1.0 ) * ( 1.0 -  tau * tau) ) * std::cos(phi);
@@ -167,6 +151,90 @@ Real sheets (const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, co
 	//	return a*std::sqrt( ( sigma*sigma - 1.0 ) * ( 1.0 -  tau * tau) ) * std::sin(phi);
 	else if(i==2) return compz;
 	//	return a * sigma * tau;
+	else
+		return 0.0;
+}
+
+Real fibers (const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& i)
+{
+
+
+	//Compute sheets
+	Real Z0 = Z - 6.4;
+	Real R = std::sqrt(X*X+Y*Y+Z0*Z0);
+	Real phi   = std::acos( Z0 / R );
+
+	Real p = 3.14159265358979;
+
+
+	Real R0 = std::sqrt(X*X+Y*Y);
+
+	Real  varphi = std::asin(Z0 / R);
+	Real ae1 = 2.8 + 0.75;
+	Real be1 = 2.8 + 0.75 ;
+	Real ce1 = 0.8*8.0 + 0.3;
+	Real Re = std::sqrt( 1.0 / ( ( std::cos(phi) * std::cos(varphi) / ae1 ) * ( std::cos(phi) * std::cos(varphi) / ae1 )
+							   + ( std::sin(phi) * std::cos(varphi) / be1 ) * ( std::sin(phi) * std::cos(varphi) / be1 )
+							   + ( std::sin(varphi) / ce1 ) * ( std::sin(varphi) / ce1 ) ) );
+	Real dR = Re - R;
+	//compute fibers
+	Real N = std::sqrt(X*X/ae1/ae1/ae1/ae1+Y*Y/be1/be1/be1/be1+Z0*Z0/ce1/ce1/ce1/ce1);
+	Real s01 = X / ae1 / ae1 / N;
+	Real s02 = Y / be1 / be1 / N;
+	Real s03 = Z0 / ce1 / ce1 /N;
+
+
+	Real f001;
+	Real f002;
+	Real f003;
+
+	f001 = s02;
+	f002 = -s01;
+	f003 = 0;
+
+//	Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
+//	Real epi_angle = parameterList.get ("epi_angle", -60.0);
+//	Real endo_angle = parameterList.get ("endo_angle", 60.0);
+	Real epi_angle =  -60.0;
+	Real endo_angle =  60.0;
+//	Real teta = - 1.2566; //72 degrees
+	Real dR1 = -0.87177357881155; //on the epi
+	Real teta1 = p * epi_angle / 180; //67.5 degrees
+	Real dR2 = 0.741440817851517; //on the endo
+	Real teta2 = p * endo_angle / 180;
+	Real m = (teta1 - teta2 ) / (dR1 - dR2);
+	Real q = teta1 - m * dR1;
+	Real teta;
+
+	teta = m * dR + q;
+	if( Z > 6.4 ) teta = teta * ( 1 - 0.5 / 1.6 * Z0 );
+
+
+	Real R11 = std::cos(teta) + s01 * s01 * ( 1 - std::cos(teta) );
+	Real R12 = s01 * s02 *  ( 1 - std::cos(teta) ) - s03 * std::sin(teta);
+	Real R13 = s01 * s03 *  ( 1 - std::cos(teta) ) + s02 * std::sin(teta);
+
+	Real R21 = s02 * s01 *  ( 1 - std::cos(teta) ) + s03 * std::sin(teta);
+	Real R22 = std::cos(teta) + s02 * s02 * ( 1 - std::cos(teta) );
+	Real R23 = s02 * s03 *  ( 1 - std::cos(teta) ) - s01 * std::sin(teta);
+
+	Real R31 = s03 * s01 *  ( 1 - std::cos(teta) ) - s02 * std::sin(teta);
+	Real R32 = s03 * s02 *  ( 1 - std::cos(teta) ) + s01 * std::sin(teta);
+	Real R33 = std::cos(teta) + s03 * s03 * ( 1 - std::cos(teta) );
+
+
+	Real compz(0.0);
+	Real compx(0.0);
+	Real compy(0.0);
+	compx = R11 * f001 + R12 * f002 + R13 * f003;
+	compy = R21 * f001 + R22 * f002 + R23 * f003;
+	compz = R31 * f001 + R32 * f002 + R33 * f003;
+
+	//compx = phi;
+
+	if(i==0) return -compx;
+	else if(i ==1) return -compy;
+	else if(i==2) return -compz;
 	else
 		return 0.0;
 }
@@ -321,41 +389,59 @@ int main ( int argc, char** argv )
         function_Type s = &sheets;
         coarse -> interpolate(static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(s),
         				*sheet, 0.0);
+        HeartUtility::normalize(*sheet);
+
+        vectorPtr_Type fiber( new vector_Type( coarse -> map() ) );
+        function_Type f = &fibers;
+        coarse -> interpolate(static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(f),
+        				*fiber, 0.0);
+
+        HeartUtility::normalize(*fiber);
 
 
-        int n1 = sheet -> epetraVector().MyLength();
-        int d1 = n1 / 3;
-        int i (0);
-        int j (0);
-        int k (0);
+//        int n1 = sheet -> epetraVector().MyLength();
+//        int d1 = n1 / 3;
+//        int i (0);
+//        int j (0);
+//        int k (0);
+//
+//        for ( int l (0); l < d1; l++)
+//        {
+//            i = sheet->blockMap().GID (l);
+//            j = sheet->blockMap().GID (l + d1);
+//            k = sheet->blockMap().GID (l + 2 * d1);
+//            Real norm = std::sqrt((*sheet)[i]*(*sheet)[i]+(*sheet)[j]*(*sheet)[j]+(*sheet)[k]*(*sheet)[k]);
+//            if(norm!=0)
+//            {
+//            (*sheet)[i] = (*sheet)[i]/norm;
+//            (*sheet)[j] = (*sheet)[j]/norm;
+//            (*sheet)[k] = (*sheet)[k]/norm;
+//
+//            }
+//            else
+//            {
+//                (*sheet)[i] = 0.0;
+//                (*sheet)[j] = 0.0;
+//                (*sheet)[k] = 1.0;
+//            }
+//        }
+        ExporterHDF5< RegionMesh <LinearTetra> > exporter1;
+          exporter1.setMeshProcId ( meshPart, Comm->MyPID() );
+          exporter1.setPrefix (parameterList.get ("fiber_output_file", "fibers"));
+          exporter1.addVariable ( ExporterData<mesh_Type>::VectorField,  parameterList.get ("fiber_output_field", "fibers"), coarse,
+                                 fiber, UInt (0) );
+          exporter1.postProcess ( 0 );
+          exporter1.closeFile();
 
-        for ( int l (0); l < d1; l++)
-        {
-            i = sheet->blockMap().GID (l);
-            j = sheet->blockMap().GID (l + d1);
-            k = sheet->blockMap().GID (l + 2 * d1);
-            Real norm = std::sqrt((*sheet)[i]*(*sheet)[i]+(*sheet)[j]*(*sheet)[j]+(*sheet)[k]*(*sheet)[k]);
-            if(norm!=0)
-            {
-            (*sheet)[i] = (*sheet)[i]/norm;
-            (*sheet)[j] = (*sheet)[j]/norm;
-            (*sheet)[k] = (*sheet)[k]/norm;
-
-            }
-            else
-            {
-                (*sheet)[i] = 0.0;
-                (*sheet)[j] = 0.0;
-                (*sheet)[k] = 1.0;
-            }
-        }
         ExporterHDF5< RegionMesh <LinearTetra> > exporter2;
           exporter2.setMeshProcId ( meshPart, Comm->MyPID() );
-          exporter2.setPrefix ("sheets");
-          exporter2.addVariable ( ExporterData<mesh_Type>::VectorField,  "sheets", coarse,
+          exporter2.setPrefix (parameterList.get ("sheet_output_file", "sheets"));
+          exporter2.addVariable ( ExporterData<mesh_Type>::VectorField,  parameterList.get ("sheet_output_field", "sheets"), coarse,
                                  sheet, UInt (0) );
           exporter2.postProcess ( 0 );
           exporter2.closeFile();
+
+
     // ---------------------------------------------------------------
     // We finalize the MPI session if MPI was used
     // ---------------------------------------------------------------

@@ -28,4 +28,5 @@ ADD_SUBDIRECTORIES(
   IonicFox_pacingECG
   Restart
   RosenbrockTest
+  CreateIdealizedFiberAndSheetDirection
 )

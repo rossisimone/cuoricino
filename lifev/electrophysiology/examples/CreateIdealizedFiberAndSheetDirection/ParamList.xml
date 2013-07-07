@@ -1,22 +1,14 @@
 <ParameterList>
 	<!-- LinearSolver parameters -->
-    <Parameter name="timeStep" type="double" value="0.02"  />
-    <Parameter name="endTime" type="double" value="0.06"  />
-    <Parameter name="saveStep" type="double" value="1.0"  />
-    <Parameter name="meth" type="double" value="1.0"  />
-    <Parameter name="emdt" type="double" value="0.1"  />
-    <Parameter name="longitudinalDiffusion" type="double" value="0.10"  />
-    <Parameter name="transversalDiffusion" type="double" value="0.010"  />
+    <Parameter name="epi_angle" type="double" value="-45.0"/>
+    <Parameter name="endo_angle" type="double" value="75.0"/>
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="solid_mesh_name" type="string" value="idealHeart_structure.mesh"  />
-    <Parameter name="solid_mesh_path" type="string" value="/home/srossi/Dropbox/IH_meshes/idealized/"  />
-    <Parameter name="solid_fiber_file" type="string" value="idealHeart_structure_fiber"  />
-    <Parameter name="mesh_name" type="string" value="idealHeart_structure.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/home/srossi/Dropbox/IH_meshes/idealized/"  />
-    <Parameter name="fiber_file" type="string" value="idealHeart_electro_fiber"  />
-    <Parameter name="fiber_X" type="double" value="0.707106781187"  />
-    <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
-    <Parameter name="fiber_Z" type="double" value="0.0"  />
+    <Parameter name="fiber_output_file" type="string" value="fibers_level0_60_60"  />
+    <Parameter name="fiber_output_field" type="string" value="fibers"  />
+    <Parameter name="sheet_output_file" type="string" value="sheets"  />
+    <Parameter name="sheet_output_field" type="string" value="sheets"  />    
+    <Parameter name="mesh_name" type="string" value="idealHeart_structure_level0.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/idealized/level0/"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>
