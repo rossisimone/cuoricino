@@ -26,13 +26,13 @@
 
 /*!
  *  @file
- *  @brief File containing the Multiscale Model FSI3D
+ *  @brief File containing the Multiscale Model FSI3DActivated
  *
- *  @date 19-04-2010
- *  @author Paolo Crosetto <paolo.crosetto@epfl.ch>
- *  @author Cristiano Malossi <cristiano.malossi@epfl.ch>
+ *  @date 10-07-2013
+ *  @author Simone Rossi <simone.rossi@epfl.ch>
+ *  @author Toni Lassila <toni.lassila@epfl.ch>
  *
- *  @maintainer Cristiano Malossi <cristiano.malossi@epfl.ch>
+ *  @maintainer Simone Rossi <simone.rossi@epfl.ch>
  */
 
 #include <lifev/multiscale/models/MultiscaleModelFSI3DActivated.hpp>
@@ -73,8 +73,6 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_activationCenter             (3),
     M_activationRadius             (),
     M_activationMarker             (),
-//    M_endocardiumMarker				(),
-//    M_epicardiumMarker				(),
     M_dataFileName                 (),
     M_gammafSolid                  (),
     M_displacementMonodomain       (),
@@ -83,14 +81,14 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_minCalciumLikeVariable       (0.21),
     M_maxCalciumLikeVariable       (0.85),
     M_activationSolver             (),
-    M_coarseToFineInterpolant		(),
-    M_fineToCoarseInterpolant		(),
-	M_rescalingVector				(),
-	M_activationETFESpace			(),
-	M_orthotropicActivationFactor	(3),
-	M_activationOperator			(),
-	M_preloadVector					(),
-	M_preloadInTime					(false)
+    M_coarseToFineInterpolant       (),
+    M_fineToCoarseInterpolant       (),
+    M_rescalingVector               (),
+    M_activationETFESpace           (),
+    M_orthotropicActivationFactor   (3),
+    M_activationOperator            (),
+    M_preloadVector                 (),
+    M_preloadInTime                 (false)
 {
 }
 
@@ -101,12 +99,13 @@ void
 MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 {
 
-	// FSI setup
+    // FSI setup
+
     M_dataFileName = fileName;
     super::setupData (M_dataFileName);
     M_fullSolidMesh.reset ( new mesh_Type ( M_FSIoperator -> solidMesh() ) );
 
-    // Meshes and monodomain data
+    // Reading of meshes and monodomain solver settings
 
     GetPot dataFile (M_dataFileName);
 
@@ -119,9 +118,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = monodomainList.get ("mesh_path", "./");
 
-
-
-
+    // Activation model settings
 
     std::map< std::string, FSI3DActivated_ActivationModelType > activationModelTypeMap;
     activationModelTypeMap["Algebraic"]           = Algebraic;
@@ -154,9 +151,8 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_activationCenter[2] = monodomainList.get ("activation_center_Z", 0.);
     M_activationRadius = monodomainList.get ("activation_radius", 1.);
     M_activationMarker = monodomainList.get ("activation_marker", 0);
-//    M_endocardiumMarker = monodomainList.get ("endocardium_marker", 0);
-//    M_epicardiumMarker = monodomainList.get ("epicardium_marker", 0);
 
+    // Coupling method for electromechanics
 
     M_usingDifferentMeshes = monodomainList.get ("using_different_meshes", false);
     M_oneWayCoupling       = monodomainList.get ("one_way_coupling", true);
@@ -168,8 +164,9 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_exporterElectro->setPostDir ( multiscaleProblemFolder );
     M_monodomain -> setupExporter ( *M_exporterElectro, prefix);
 
-    // Fiber directions
-	boost::shared_ptr<Epetra_Comm> comm( M_monodomain -> commPtr() );
+    // Fiber directions for electrophysiology
+
+    boost::shared_ptr<Epetra_Comm> comm ( M_monodomain -> commPtr() );
     M_monodomainDisplacementETFESpace.reset
     ( new vectorialETFESpace_Type ( M_monodomain -> localMeshPtr(),  &feTetraP1,  comm ) );
     M_fiber.reset ( new vector_Type ( M_monodomainDisplacementETFESpace -> map() ) );
@@ -177,28 +174,23 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     HeartUtility::importFibers ( M_fiber, nm, M_monodomain -> localMeshPtr() );
     M_monodomain-> setFiberPtr (M_fiber);
 
-
-
     // Activation function
 
     M_displacementMonodomain.reset ( new vector_Type ( M_monodomainDisplacementETFESpace -> map() ) );
 
-    M_gammaf.reset( new vector_Type ( M_monodomain -> potentialPtr() -> map() ) );
-    M_gammas.reset( new vector_Type( M_gammaf -> map() ) );
-    M_gamman.reset( new vector_Type( M_gammaf -> map() ) );
+    M_gammaf.reset ( new vector_Type ( M_monodomain -> potentialPtr() -> map() ) );
+    M_gammas.reset ( new vector_Type ( M_gammaf -> map() ) );
+    M_gamman.reset ( new vector_Type ( M_gammaf -> map() ) );
 
-    M_activationModelType 	= activationModelTypeMap[dataFile ( "electrophysiology/activation_model", "SimpleODE" )];
-    M_activationType 		= activationTypeMap[dataFile ( "electrophysiology/activation_type", "TransverselyIsotropic" )];
+    M_activationModelType   = activationModelTypeMap[dataFile ( "electrophysiology/activation_model", "SimpleODE" )];
+    M_activationType        = activationTypeMap[dataFile ( "electrophysiology/activation_type", "TransverselyIsotropic" )];
 
-    M_preloadInTime			= dataFile("solid/physics/preload",0);
+    M_preloadInTime         = dataFile ("solid/physics/preload", 0);
     typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >          FESpace_Type;
     typedef boost::shared_ptr<FESpace_Type>                        FESpacePtr_Type;
 
-    FESpacePtr_Type aFESpace ( new FESpace_Type (M_monodomain -> localMeshPtr(), "P1", 1, M_monodomain -> commPtr()) );
-//    scalarETFESpace_Type cippalippa(M_monodomain -> localMeshPtr(), &feTetraP1, M_monodomain -> localMeshPtr() -> comm() );
-
-//    boost::shared_ptr<mesh_Type> mesh(M_monodomain -> localMeshPtr());
-        M_activationETFESpace.reset ( new scalarETFESpace_Type ( M_monodomain -> localMeshPtr(), &feTetraP1,  comm ) );
+    FESpacePtr_Type aFESpace ( new FESpace_Type (M_monodomain -> localMeshPtr(), "P1", 1, M_monodomain -> commPtr() ) );
+    M_activationETFESpace.reset ( new scalarETFESpace_Type ( M_monodomain -> localMeshPtr(), &feTetraP1,  comm ) );
 
 
     //=====================
@@ -206,47 +198,49 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     // Activation solver  *
     //*********************
     //=====================
-    if(M_activationModelType==StretchDependentODE)
+
+    if (M_activationModelType == StretchDependentODE)
     {
-	    prec_Type* precRawPtr;
-		basePrecPtr_Type precPtr;
-		precRawPtr = new prec_Type;
-		precRawPtr->setDataFromGetPot (dataFile, "electrophysiology/prec");
-		precPtr.reset (precRawPtr);
+        prec_Type* precRawPtr;
+        basePrecPtr_Type precPtr;
+        precRawPtr = new prec_Type;
+        precRawPtr->setDataFromGetPot (dataFile, "electrophysiology/prec");
+        precPtr.reset (precRawPtr);
 
-		Teuchos::RCP < Teuchos::ParameterList > solverParamList = Teuchos::rcp (
-																	  new Teuchos::ParameterList);
+        Teuchos::RCP < Teuchos::ParameterList > solverParamList = Teuchos::rcp (
+                                                                      new Teuchos::ParameterList);
 
-		xmlpath = dataFile ("electrophysiology/monodomain_xml_path", "./");
-		xmlfile = dataFile ("electrophysiology/monodomain_xml_file", "MonodomainSolverParamList.xml");
+        xmlpath = dataFile ("electrophysiology/monodomain_xml_path", "./");
+        xmlfile = dataFile ("electrophysiology/monodomain_xml_file", "MonodomainSolverParamList.xml");
 
-		solverParamList = Teuchos::getParametersFromXmlFile (xmlpath + xmlfile);
+        solverParamList = Teuchos::getParametersFromXmlFile (xmlpath + xmlfile);
 
-		M_activationSolver.reset ( new LinearSolver() );
-		M_activationSolver->setCommunicator ( M_monodomain -> commPtr() );
-		M_activationSolver->setParameters ( *solverParamList );
-		M_activationSolver->setPreconditioner ( precPtr );
+        M_activationSolver.reset ( new LinearSolver() );
+        M_activationSolver->setCommunicator ( M_monodomain -> commPtr() );
+        M_activationSolver->setParameters ( *solverParamList );
+        M_activationSolver->setPreconditioner ( precPtr );
 
-	    M_activationOperator.reset(new matrix_Type( M_monodomain -> massMatrixPtr() -> map() ) ) ;
+        M_activationOperator.reset (new matrix_Type ( M_monodomain -> massMatrixPtr() -> map() ) ) ;
 
-	  	{
-	  		using namespace ExpressionAssembly;
+        {
+            using namespace ExpressionAssembly;
 
-	  		integrate(elements(M_monodomain -> localMeshPtr() ), M_monodomain -> feSpacePtr() -> qr(), M_monodomain -> ETFESpacePtr(),
-	  				M_monodomain -> ETFESpacePtr(), phi_i * phi_j) >> M_activationOperator;
-	  	}
+            integrate (elements (M_monodomain -> localMeshPtr() ), M_monodomain -> feSpacePtr() -> qr(), M_monodomain -> ETFESpacePtr(),
+                       M_monodomain -> ETFESpacePtr(), phi_i * phi_j) >> M_activationOperator;
+        }
 
-	  	M_activationOperator -> globalAssemble();
+        M_activationOperator -> globalAssemble();
 
-	  	M_activationSolver->setOperator( M_activationOperator );
+        M_activationSolver->setOperator ( M_activationOperator );
 
-	  	M_preloadVector.reset( new vector_Type( M_fiber -> map() ) );
+        M_preloadVector.reset ( new vector_Type ( M_fiber -> map() ) );
     }
-//=======================================
-// setup INTERPOLATION
-//=======================================
-    M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("disp_interpolation_type","RBFrescaledVectorial" ) ) );
-    M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("gammaf_interpolation_type","RBFrescaledScalar" ) ) );
+
+    //==============================================================
+    // setup INTERPOLATION from electrophysiology to solid mechanics
+    //==============================================================
+    M_coarseToFineInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("disp_interpolation_type", "RBFrescaledVectorial" ) ) );
+    M_fineToCoarseInterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( monodomainList.get ("gammaf_interpolation_type", "RBFrescaledScalar" ) ) );
 
 }
 
@@ -268,8 +262,8 @@ MultiscaleModelFSI3DActivated::setupModel()
     M_activationSpacePtr.reset ( new FESpace<mesh_Type, MapEpetra> ( solidLocalMeshPtr, "P1", 1,  M_comm ) );
 
     M_gammafSolid.reset ( new vector_Type ( M_activationSpacePtr -> map() ) );
-    M_gammasSolid.reset( new vector_Type( M_gammafSolid -> map() ) );
-    M_gammanSolid.reset( new vector_Type( M_gammafSolid -> map() ) );
+    M_gammasSolid.reset ( new vector_Type ( M_gammafSolid -> map() ) );
+    M_gammanSolid.reset ( new vector_Type ( M_gammafSolid -> map() ) );
 
     M_exporterSolid->addVariable ( IOData_Type::ScalarField, "activation", M_activationSpacePtr , M_gammafSolid, static_cast<UInt> ( 0 ) );
 
@@ -284,7 +278,7 @@ MultiscaleModelFSI3DActivated::setupModel()
     (*smoother) *= * (M_monodomain -> potentialPtr() );
     M_monodomain -> setPotential (*smoother);
 
-    //setting up initial conditions
+    // Setting up initial conditions
 
     super::solver() -> solid().material() -> setGammaf ( *M_gammaf );
     if (!M_oneWayCoupling)
@@ -293,45 +287,50 @@ MultiscaleModelFSI3DActivated::setupModel()
     }
     setupInterpolant();
 
-    //SETUP RESCALING VECTOR
+    // Setup rescaling vector
 
     GetPot dataFile ( M_dataFileName );
     std::string xmlpath = dataFile ("electrophysiology/monodomain_xml_path", "./");
     std::string xmlfile = dataFile ("electrophysiology/monodomain_xml_file", "MonodomainSolverParamList.xml");
     Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( xmlpath + xmlfile ) );
     std::string filename = list.get ("filename", "");
-    if(filename == "" )
+    if (filename == "" )
     {
-    	M_rescalingVector.reset();
+        M_rescalingVector.reset();
     }
     else
     {
-        M_rescalingVector.reset(new vector_Type( M_gammafSolid -> map() ) );
-		std::string fieldname = list.get ("fieldname", "");
-		HeartUtility::importScalarField(M_rescalingVector, filename, fieldname, super::solver() -> solidLocalMeshPtr() );
+        M_rescalingVector.reset (new vector_Type ( M_gammafSolid -> map() ) );
+        std::string fieldname = list.get ("fieldname", "");
+        HeartUtility::importScalarField (M_rescalingVector, filename, fieldname, super::solver() -> solidLocalMeshPtr() );
     }
-    if( super::solver() -> data().dataFluid()->dataTime()->initialTime() > 0)
+
+    // Restart from a previous solution if requested
+
+    if ( super::solver() -> data().dataFluid()->dataTime()->initialTime() > 0)
     {
-    	std::string prefix = multiscaleProblemPrefix + "_Model_" + number2string ( M_ID ) +  "_Electro_" + number2string ( multiscaleProblemStep - 1);
-    	M_monodomain -> importSolution(dataFile,prefix,multiscaleProblemFolder,super::solver() -> data().dataFluid()->dataTime()->initialTime() );
+        std::string prefix = multiscaleProblemPrefix + "_Model_" + number2string ( M_ID ) +  "_Electro_" + number2string ( multiscaleProblemStep - 1);
+        M_monodomain -> importSolution (dataFile, prefix, multiscaleProblemFolder, super::solver() -> data().dataFluid()->dataTime()->initialTime() );
     }
-    	//    *M_activationSolver = *M_monodomain -> linearSolverPtr();
-    //setting up activation solver
-    vectorPtr_Type fiber(new vector_Type( super::solver() -> dFESpace().map() ) );
+
+    // Setup activation solver
+
+    vectorPtr_Type fiber (new vector_Type ( super::solver() -> dFESpace().map() ) );
     HeartUtility::importFibers ( fiber,
                                  super::solver() -> solid().material() -> materialData() -> fileFiberDirections(),
                                  solidLocalMeshPtr );
-    super::solver() ->solid().material() -> setFiberVector(*fiber);
+    super::solver() ->solid().material() -> setFiberVector (*fiber);
 
-    // sheet direction
+    // Sheet direction for solid mechanics
+
     std::string sheetFileName = list.get ("sheet_file", "SheetDirection") ;
     std::string sheetFieldName = list.get ("sheet_field", "sheets") ;
-    vectorPtr_Type sheet(new vector_Type( super::solver() -> dFESpace().map() ) );
-    HeartUtility::importVectorField(sheet,
-    									sheetFileName,
-    									sheetFieldName,
-    									super::solver() -> solidLocalMeshPtr() );
-    super::solver() ->solid().material() -> setSheetVector(*sheet);
+    vectorPtr_Type sheet (new vector_Type ( super::solver() -> dFESpace().map() ) );
+    HeartUtility::importVectorField (sheet,
+                                     sheetFileName,
+                                     sheetFieldName,
+                                     super::solver() -> solidLocalMeshPtr() );
+    super::solver() ->solid().material() -> setSheetVector (*sheet);
 
 }
 
@@ -358,32 +357,29 @@ MultiscaleModelFSI3DActivated::updateModel()
 {
     super::updateModel();
 
-	if(M_preloadInTime)
-	{
-		if( M_monodomain -> globalSolution().at(3)-> minValue() < 0.02158)
-		{
-			int d = M_monodomain -> globalSolution().at(3) -> epetraVector().MyLength();
-			int size =  M_monodomain -> globalSolution().at(3) -> size();
-			for(int l(0); l < d; l++)
-			{
-				int m1 = M_monodomain -> globalSolution().at(3) -> blockMap().GID(l);
-				//cout << m1 << "\t" << size << "\n";
-				if( (*(M_monodomain -> globalSolution().at(3)))[m1] <= 0.02158)
-				{
-//					std::cout << "\nchanging at: " << m1 ;
-					int m2 = super::solver() -> solid().displacementPtr() -> blockMap().GID(l + size);
-					int m3 = super::solver() -> solid().displacementPtr() -> blockMap().GID(l + 2 * size);
-					//std::cout << "\n" << (*emDisp0)[m1] << " has become: ";
-					(*M_preloadVector)[m1] = (*(super::solver() -> solid().displacementPtr()))[m1];
-					//std::cout << (*emDisp0)[m1] << "\n";
-					(*M_preloadVector)[m2] = (*(super::solver() -> solid().displacementPtr()))[m2];
-					(*M_preloadVector)[m3] = (*(super::solver() -> solid().displacementPtr()))[m3];
-				}
-				//std::cout << "\n";
+    if (M_preloadInTime)
+    {
+        if ( M_monodomain -> globalSolution().at (3)-> minValue() < 0.02158)
+        {
+            int d = M_monodomain -> globalSolution().at (3) -> epetraVector().MyLength();
+            int size =  M_monodomain -> globalSolution().at (3) -> size();
+            for (int l (0); l < d; l++)
+            {
+                int m1 = M_monodomain -> globalSolution().at (3) -> blockMap().GID (l);
 
-			}
-		}
-	}
+                if ( (* (M_monodomain -> globalSolution().at (3) ) ) [m1] <= 0.02158)
+                {
+                    int m2 = super::solver() -> solid().displacementPtr() -> blockMap().GID (l + size);
+                    int m3 = super::solver() -> solid().displacementPtr() -> blockMap().GID (l + 2 * size);
+
+                    (*M_preloadVector) [m1] = (* (super::solver() -> solid().displacementPtr() ) ) [m1];
+                    (*M_preloadVector) [m2] = (* (super::solver() -> solid().displacementPtr() ) ) [m2];
+                    (*M_preloadVector) [m3] = (* (super::solver() -> solid().displacementPtr() ) ) [m3];
+                }
+
+            }
+        }
+    }
 }
 
 void
@@ -424,9 +420,13 @@ MultiscaleModelFSI3DActivated::solveModel()
                 // Simplistic activation model (\gammaf = a * Ca2)
                 *M_gammaf = * ( M_monodomain -> globalSolution().at (3) );
                 if ( M_maxCalciumLikeVariable < M_gammaf -> maxValue() )
+                {
                     M_maxCalciumLikeVariable = M_gammaf -> maxValue();
+                }
                 if ( M_minCalciumLikeVariable > M_gammaf -> minValue() )
+                {
                     M_minCalciumLikeVariable = M_gammaf -> minValue();
+                }
 
                 Real beta = -0.3;
                 HeartUtility::rescaleVector ( *M_gammaf, M_minCalciumLikeVariable, M_maxCalciumLikeVariable, beta);
@@ -435,7 +435,7 @@ MultiscaleModelFSI3DActivated::solveModel()
             case SimpleODE:
             {
                 // More prolonged activation model (\gammaf' = a * Ca2 + b * \gammaf)
-                *M_gammaf += 1000 * timeStep * ( -0.02 * *( M_monodomain -> globalSolution().at(3) ) - 0.04 * (*M_gammaf));
+                *M_gammaf += 1000 * timeStep * ( -0.02 * * ( M_monodomain -> globalSolution().at (3) ) * 0.5 - 0.04 * (*M_gammaf) );
                 break;
             }
             case StretchDependentODE:
@@ -444,154 +444,157 @@ MultiscaleModelFSI3DActivated::solveModel()
 
                 switch (M_activationType)
                 {
-                	case TransverselyIsotropic:
-                		*M_gammas *= 0.0;
-                		*M_gamman *= 0.0;
+                    case TransverselyIsotropic:
+                        *M_gammas *= 0.0;
+                        *M_gamman *= 0.0;
 
-                		*M_gammas = 1.0 ;
-                		*M_gammas /= ( 1.0 + *M_gammaf );
-                		M_gammas -> sqrt();
-                		*M_gammas -= 1.0;
-                		*M_gamman = *M_gammas;
-                		break;
-                	case Orthotropic:
-                		*M_gammas *= 0.0;
-                		*M_gamman *= 0.0;
+                        *M_gammas = 1.0 ;
+                        *M_gammas /= ( 1.0 + *M_gammaf );
+                        M_gammas -> sqrt();
+                        *M_gammas -= 1.0;
+                        *M_gamman = *M_gammas;
+                        break;
+                    case Orthotropic:
+                        *M_gammas *= 0.0;
+                        *M_gamman *= 0.0;
 
-                		*M_gamman = *M_gammaf;
-                		*M_gamman *= M_orthotropicActivationFactor;
-                		*M_gammas = 1.0 ;
-                		*M_gammas /= (1.0 + *M_gammaf);
-                		*M_gammas /= ( 1.0 + *M_gamman);
-                		*M_gammas -= 1.0;
-                		break;
+                        *M_gamman = *M_gammaf;
+                        *M_gamman *= M_orthotropicActivationFactor;
+                        *M_gammas = 1.0 ;
+                        *M_gammas /= (1.0 + *M_gammaf);
+                        *M_gammas /= ( 1.0 + *M_gamman);
+                        *M_gammas -= 1.0;
+                        break;
                 }
 
-               	//boost::shared_ptr<FLRelationshipGamma> flg (new FLRelationshipGamma);
-               	boost::shared_ptr<FLRelationship> fl (new FLRelationship);
+                //boost::shared_ptr<FLRelationshipGamma> flg (new FLRelationshipGamma);
+                boost::shared_ptr<FLRelationship> fl (new FLRelationship);
 
-               	boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
+                boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
 
-               	//boost::shared_ptr<Exp> EXP(new Exp);
-               	//boost::shared_ptr<Exp2> EXP2(new Exp2);
-               	//boost::shared_ptr<Psi4f> psi4f (new Psi4f);
+                //boost::shared_ptr<Exp> EXP(new Exp);
+                //boost::shared_ptr<Exp2> EXP2(new Exp2);
+                //boost::shared_ptr<Psi4f> psi4f (new Psi4f);
 
-                MatrixSmall<3,3> Id;
-                Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
-                Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
-                Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
+                MatrixSmall<3, 3> Id;
+                Id (0, 0) = 1.;
+                Id (0, 1) = 0., Id (0, 2) = 0.;
+                Id (1, 0) = 0.;
+                Id (1, 1) = 1., Id (1, 2) = 0.;
+                Id (2, 0) = 0.;
+                Id (2, 1) = 0., Id (2, 2) = 1.;
 
-              	vectorPtr_Type rhsActivation( new vector_Type( *M_gammaf ) );
-               	vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
-  			  {
-
-
-  					{
-  						using namespace ExpressionAssembly;
-
-
-  						BOOST_AUTO_TPL(I,      value(Id) );
-  						BOOST_AUTO_TPL(Grad_u, grad( M_monodomainDisplacementETFESpace, *M_displacementMonodomain, 0) );
-  						BOOST_AUTO_TPL(F,      ( Grad_u + I ) );
-  						BOOST_AUTO_TPL(FmT,    minusT(F) );
-  						BOOST_AUTO_TPL(J,       det(F) );
-  						BOOST_AUTO_TPL(Jm23,    pow(J, -2./3));
-  						BOOST_AUTO_TPL(I1,     dot(F, F));
-
-  						// Fibres
-  						BOOST_AUTO_TPL(f0,     value( M_monodomainDisplacementETFESpace, *( M_monodomain -> fiberPtr() ) ) );
-  						BOOST_AUTO_TPL(f,      F * f0 );
-  						BOOST_AUTO_TPL(I4f,    dot(f, f) );
-
-  					    //BOOST_AUTO_TPL(s0,     value(M_monodomain -> ETFESpacePtr(), *(super::solver() -> solid().material() -> sheetVectorPtr() ) ) );
-  						//BOOST_AUTO_TPL(I4s,    dot(F * s0, F * s0));
-
-  						//BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
-  						BOOST_AUTO_TPL(I4fiso,  Jm23 * I4f);
-  					    //BOOST_AUTO_TPL(I4siso,  Jm23 * I4s);
-
-  						// shortenings
-  					    BOOST_AUTO_TPL(gf,  value(M_activationETFESpace, *M_gammaf));
- 				    	//BOOST_AUTO_TPL(gs,  value(M_activationETFESpace, *M_gammas));
-  				    	//BOOST_AUTO_TPL(gn,  value(M_activationETFESpace, *M_gamman));
-
-  				        //BOOST_AUTO_TPL(dI1edI1,   value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  )    );
-  				        //BOOST_AUTO_TPL(dI1edI4f,  value(1.0) / (   (gf + value(1.0))  *  (gf + value(1.0))  ) -  value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  ) );
-  				        //BOOST_AUTO_TPL(dI1edI4s,  value(1.0) / (   (gs + value(1.0))  *  (gs + value(1.0))  ) -  value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  ) );
-  				        //BOOST_AUTO_TPL(dI4fedI4f, value(1.0) / (   (gf + value(1.0)) *   (gf + value(1.0))  )    );
-
-  					    //BOOST_AUTO_TPL(I1eiso,   dI1edI1 * I1iso + dI1edI4f * I4fiso + dI1edI4s * I4siso);
-  					    //BOOST_AUTO_TPL(I4feiso,  dI4fedI4f * I4fiso);
-  						//BOOST_AUTO_TPL(I4feisom1, ( I4feiso - value(1.0) ) );
-
-  						//initial
-  						BOOST_AUTO_TPL(Grad_u_i, grad(M_monodomainDisplacementETFESpace, *M_preloadVector, 0) );
-  						BOOST_AUTO_TPL(F_i,      ( Grad_u_i + I ) );
-  						BOOST_AUTO_TPL(J_i,       det(F_i) );
-  						BOOST_AUTO_TPL(Jm23_i,    pow(J_i, -2./3));
-  						// Fibres
-  						BOOST_AUTO_TPL(f_i,      F_i * f0 );
-  						BOOST_AUTO_TPL(I4f_i,    dot(f_i, f_i) );
-  						BOOST_AUTO_TPL(I4fiso_i,  Jm23_i * I4f_i);
-
-  						BOOST_AUTO_TPL(dW0, value(-2.0) * I4fiso_i) ;
-  						BOOST_AUTO_TPL(dW, value(-2.0) * I4fiso * pow(gf + value(1.0), -3) );
-
-  						BOOST_AUTO_TPL(Ca,    value( M_activationETFESpace, *( M_monodomain -> globalSolution().at(3)  ) ) );
-  						BOOST_AUTO_TPL(Ca2, Ca * Ca );
-
-  						Real Ca_diastolic = -0.02155;
-  						//dataFile( "solid/physics/Ca_diastolic", -0.02155 );
-  						BOOST_AUTO_TPL(dCa, Ca + value(Ca_diastolic) );
-  						Real active_coefficient = -2.5;
-  						//dataFile( "solid/physics/active_coefficient", -2.5 );
-  						BOOST_AUTO_TPL(Pa, value(active_coefficient) * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) + dW0 );
-  						Real betaA = 0.0005;
-  						//dataFile( "solid/physics/viscosity", 0.0005 );
-  						BOOST_AUTO_TPL(beta, value( betaA ) );
-
-  						BOOST_AUTO_TPL(gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );
-
-  						{
-							integrate ( elements ( M_monodomain -> localMeshPtr() ),
-									M_monodomain -> feSpacePtr() -> qr() ,
-									M_monodomain -> ETFESpacePtr(),
-									gamma_dot * phi_i
-							) >> tmpRhsActivation;
-  						}
-
-  					*rhsActivation *= 0;
-  					*rhsActivation = ( (*M_activationOperator) * ( *M_gammaf ) );
-  					*rhsActivation += ( ( M_monodomain -> timeStep() * *tmpRhsActivation ) );
-
-  					M_activationSolver -> setRightHandSide(rhsActivation);
-  					std::cout << "\nMax of GammaF before solving: " << M_gammaf -> maxValue()<< std::endl;
-  					M_activationSolver -> solve(M_gammaf);
-  					std::cout << "\nMax of GammaF after solving: " << M_gammaf -> maxValue()<< std::endl;
-  					}
-
-  					if( M_gammaf -> maxValue() > 0.0)
-					{
-						int d = M_gammaf -> epetraVector().MyLength();
-						int size =  M_gammaf -> size();
-						for(int l(0); l < d; l++)
-						{
-							std::cout << "\n*****************************************************";
-							std::cout << "\nChanging the gamma back to zero: " ;
-							std::cout << "\n*****************************************************";
-
-							int m1 = M_gammaf -> blockMap().GID(l);
-							//cout << m1 << "\t" << size << "\n";
-							if( (*M_gammaf)[m1] > 0)
-							{
-								(*M_gammaf)[m1] = 0.0;
-							}
-
-						}
-					}
+                vectorPtr_Type rhsActivation ( new vector_Type ( *M_gammaf ) );
+                vectorPtr_Type tmpRhsActivation ( new vector_Type ( rhsActivation -> map(), Repeated ) );
+                {
 
 
-  			  }
+                    {
+                        using namespace ExpressionAssembly;
+
+
+                        BOOST_AUTO_TPL (I,      value (Id) );
+                        BOOST_AUTO_TPL (Grad_u, grad ( M_monodomainDisplacementETFESpace, *M_displacementMonodomain, 0) );
+                        BOOST_AUTO_TPL (F,      ( Grad_u + I ) );
+                        BOOST_AUTO_TPL (FmT,    minusT (F) );
+                        BOOST_AUTO_TPL (J,       det (F) );
+                        BOOST_AUTO_TPL (Jm23,    pow (J, -2. / 3) );
+                        BOOST_AUTO_TPL (I1,     dot (F, F) );
+
+                        // Fibres
+                        BOOST_AUTO_TPL (f0,     value ( M_monodomainDisplacementETFESpace, * ( M_monodomain -> fiberPtr() ) ) );
+                        BOOST_AUTO_TPL (f,      F * f0 );
+                        BOOST_AUTO_TPL (I4f,    dot (f, f) );
+
+                        //BOOST_AUTO_TPL(s0,     value(M_monodomain -> ETFESpacePtr(), *(super::solver() -> solid().material() -> sheetVectorPtr() ) ) );
+                        //BOOST_AUTO_TPL(I4s,    dot(F * s0, F * s0));
+
+                        //BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
+                        BOOST_AUTO_TPL (I4fiso,  Jm23 * I4f);
+                        //BOOST_AUTO_TPL(I4siso,  Jm23 * I4s);
+
+                        // shortenings
+                        BOOST_AUTO_TPL (gf,  value (M_activationETFESpace, *M_gammaf) );
+                        //BOOST_AUTO_TPL(gs,  value(M_activationETFESpace, *M_gammas));
+                        //BOOST_AUTO_TPL(gn,  value(M_activationETFESpace, *M_gamman));
+
+                        //BOOST_AUTO_TPL(dI1edI1,   value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  )    );
+                        //BOOST_AUTO_TPL(dI1edI4f,  value(1.0) / (   (gf + value(1.0))  *  (gf + value(1.0))  ) -  value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  ) );
+                        //BOOST_AUTO_TPL(dI1edI4s,  value(1.0) / (   (gs + value(1.0))  *  (gs + value(1.0))  ) -  value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  ) );
+                        //BOOST_AUTO_TPL(dI4fedI4f, value(1.0) / (   (gf + value(1.0)) *   (gf + value(1.0))  )    );
+
+                        //BOOST_AUTO_TPL(I1eiso,   dI1edI1 * I1iso + dI1edI4f * I4fiso + dI1edI4s * I4siso);
+                        //BOOST_AUTO_TPL(I4feiso,  dI4fedI4f * I4fiso);
+                        //BOOST_AUTO_TPL(I4feisom1, ( I4feiso - value(1.0) ) );
+
+                        //initial
+                        BOOST_AUTO_TPL (Grad_u_i, grad (M_monodomainDisplacementETFESpace, *M_preloadVector, 0) );
+                        BOOST_AUTO_TPL (F_i,      ( Grad_u_i + I ) );
+                        BOOST_AUTO_TPL (J_i,       det (F_i) );
+                        BOOST_AUTO_TPL (Jm23_i,    pow (J_i, -2. / 3) );
+                        // Fibres
+                        BOOST_AUTO_TPL (f_i,      F_i * f0 );
+                        BOOST_AUTO_TPL (I4f_i,    dot (f_i, f_i) );
+                        BOOST_AUTO_TPL (I4fiso_i,  Jm23_i * I4f_i);
+
+                        BOOST_AUTO_TPL (dW0, value (-2.0) * I4fiso_i) ;
+                        BOOST_AUTO_TPL (dW, value (-2.0) * I4fiso * pow (gf + value (1.0), -3) );
+
+                        BOOST_AUTO_TPL (Ca,    value ( M_activationETFESpace, * ( M_monodomain -> globalSolution().at (3)  ) ) );
+                        BOOST_AUTO_TPL (Ca2, Ca * Ca );
+
+                        Real Ca_diastolic = -0.02155;
+                        //dataFile( "solid/physics/Ca_diastolic", -0.02155 );
+                        BOOST_AUTO_TPL (dCa, Ca + value (Ca_diastolic) );
+                        Real active_coefficient = -2.5;
+                        //dataFile( "solid/physics/active_coefficient", -2.5 );
+                        BOOST_AUTO_TPL (Pa, value (active_coefficient) * eval (H, dCa) * eval (H, dCa) * eval (fl, I4fiso) + dW0 );
+                        Real betaA = 0.0005;
+                        //dataFile( "solid/physics/viscosity", 0.0005 );
+                        BOOST_AUTO_TPL (beta, value ( betaA ) );
+
+                        BOOST_AUTO_TPL (gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );
+
+                        {
+                            integrate ( elements ( M_monodomain -> localMeshPtr() ),
+                                        M_monodomain -> feSpacePtr() -> qr() ,
+                                        M_monodomain -> ETFESpacePtr(),
+                                        gamma_dot * phi_i
+                                      ) >> tmpRhsActivation;
+                        }
+
+                        *rhsActivation *= 0;
+                        *rhsActivation = ( (*M_activationOperator) * ( *M_gammaf ) );
+                        *rhsActivation += ( ( M_monodomain -> timeStep() * *tmpRhsActivation ) );
+
+                        M_activationSolver -> setRightHandSide (rhsActivation);
+                        std::cout << "\nMax of GammaF before solving: " << M_gammaf -> maxValue() << std::endl;
+                        M_activationSolver -> solve (M_gammaf);
+                        std::cout << "\nMax of GammaF after solving: " << M_gammaf -> maxValue() << std::endl;
+                    }
+
+                    if ( M_gammaf -> maxValue() > 0.0)
+                    {
+                        int d = M_gammaf -> epetraVector().MyLength();
+                        int size =  M_gammaf -> size();
+                        for (int l (0); l < d; l++)
+                        {
+                            std::cout << "\n*****************************************************";
+                            std::cout << "\nChanging the gamma back to zero: " ;
+                            std::cout << "\n*****************************************************";
+
+                            int m1 = M_gammaf -> blockMap().GID (l);
+                            //cout << m1 << "\t" << size << "\n";
+                            if ( (*M_gammaf) [m1] > 0)
+                            {
+                                (*M_gammaf) [m1] = 0.0;
+                            }
+
+                        }
+                    }
+
+
+                }
             }
         }
 
@@ -609,42 +612,44 @@ MultiscaleModelFSI3DActivated::solveModel()
         }
 
         if ( M_activationModelType == SimpleODE)
+        {
             *M_gammafSolid *= 0.3 / 0.415;
+        }
 
         *M_gammafSolid *= ( M_gammafSolid -> operator <= (0.0) );
-        if(M_rescalingVector)
+        if (M_rescalingVector)
         {
-        	*M_gammafSolid /= 0.3;
-        	*M_gammafSolid *= *M_rescalingVector;
+            *M_gammafSolid /= 0.3;
+            *M_gammafSolid *= *M_rescalingVector;
         }
 
         super::solver() -> solid().material() -> setGammaf ( *M_gammafSolid );
         switch (M_activationType)
         {
-        	case TransverselyIsotropic:
-        		*M_gammasSolid *= 0. ;
-        		*M_gammanSolid *= 0. ;
+            case TransverselyIsotropic:
+                *M_gammasSolid *= 0. ;
+                *M_gammanSolid *= 0. ;
 
-        		*M_gammasSolid = 1.0 ;
-        		*M_gammasSolid /= ( 1.0 + *M_gammafSolid );
-        		M_gammasSolid -> sqrt();
-        		*M_gammasSolid -= 1.0;
-        		*M_gammanSolid = *M_gammasSolid;
-        		break;
-        	case Orthotropic:
-        		*M_gammasSolid *= 0. ;
-        		*M_gammanSolid *= 0. ;
+                *M_gammasSolid = 1.0 ;
+                *M_gammasSolid /= ( 1.0 + *M_gammafSolid );
+                M_gammasSolid -> sqrt();
+                *M_gammasSolid -= 1.0;
+                *M_gammanSolid = *M_gammasSolid;
+                break;
+            case Orthotropic:
+                *M_gammasSolid *= 0. ;
+                *M_gammanSolid *= 0. ;
 
-        		*M_gammanSolid = *M_gammafSolid;
-        		*M_gammanSolid *= M_orthotropicActivationFactor;
-        		*M_gammasSolid = 1.0 ;
-        		*M_gammasSolid /= (1.0 + *M_gammafSolid);
-        		*M_gammasSolid /= ( 1.0 + *M_gammanSolid);
-        		*M_gammasSolid -= 1.0;
-        		break;
+                *M_gammanSolid = *M_gammafSolid;
+                *M_gammanSolid *= M_orthotropicActivationFactor;
+                *M_gammasSolid = 1.0 ;
+                *M_gammasSolid /= (1.0 + *M_gammafSolid);
+                *M_gammasSolid /= ( 1.0 + *M_gammanSolid);
+                *M_gammasSolid -= 1.0;
+                break;
         }
-        super::solver() -> solid().material() -> setGamman( *M_gammanSolid );
-        super::solver() -> solid().material() -> setGammas( *M_gammasSolid );
+        super::solver() -> solid().material() -> setGamman ( *M_gammanSolid );
+        super::solver() -> solid().material() -> setGammas ( *M_gammasSolid );
         std::cout << "\nMax gammaf " << super::solver() -> solid().material() -> gammaf() -> maxValue() << std::endl;
         std::cout << "\nMin gammaf " << super::solver() -> solid().material() -> gammaf() -> minValue() << std::endl;
 
@@ -723,15 +728,15 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
         if (fineToCoarseInterpolationType != "RBFlocallyRescaledScalar" && fineToCoarseInterpolationType != "RBFhtp")
         {
             // Set radius only when using standard RBF interpolation
-            M_fineToCoarseInterpolant -> setRadius ( (double) MeshUtility::MeshStatistics::computeSize ( * (M_fullSolidMesh ) ).maxH );
+            M_fineToCoarseInterpolant -> setRadius ( 1.1 * (double) MeshUtility::MeshStatistics::computeSize ( * (M_monodomain -> fullMeshPtr() ) ).maxH );
         }
 
         M_fineToCoarseInterpolant -> setupRBFData ( M_gammaf, M_gammafSolid, dataFile, monodomainList);
 
-        if (fineToCoarseInterpolationType == "RBFscalar")
+        if (fineToCoarseInterpolationType == "RBFscalar" || fineToCoarseInterpolationType == "RBFrescaledScalar")
         {
             // Set RBF basis function only when using standard RBF interpolation (default = thin-plate spline)
-            M_fineToCoarseInterpolant->setBasis ( list.get ("gammaf_interpolation_basis", "TPS" ) );
+            M_fineToCoarseInterpolant->setBasis ( list.get ("gammaf_interpolation_basis", "BW" ) );
         }
 
         if ( !M_oneWayCoupling )
@@ -743,15 +748,15 @@ void MultiscaleModelFSI3DActivated::setupInterpolant()
             if (coarseToFineInterpolationType != "RBFlocallyRescaledVectorial" && coarseToFineInterpolationType != "RBFhtpVectorial")
             {
                 // Set radius only when using standard RBF interpolation
-                M_coarseToFineInterpolant -> setRadius ( (double) MeshUtility::MeshStatistics::computeSize ( * (M_fullSolidMesh ) ).maxH );
+                M_coarseToFineInterpolant -> setRadius ( 1.1 * (double) MeshUtility::MeshStatistics::computeSize ( * (M_fullSolidMesh ) ).maxH );
             }
 
             M_coarseToFineInterpolant -> setupRBFData ( M_solidDisplacement , M_monodomain -> displacementPtr(), dataFile, monodomainList);
 
-            if (coarseToFineInterpolationType == "RBFvectorial")
+            if (coarseToFineInterpolationType == "RBFvectorial" || coarseToFineInterpolationType == "RBFrescaledVectorial")
             {
                 // Set RBF basis function only when using standard RBF interpolation (default = thin-plate spline)
-                M_coarseToFineInterpolant->setBasis ( list.get ("disp_interpolation_basis", "TPS" ) );
+                M_coarseToFineInterpolant->setBasis ( list.get ("disp_interpolation_basis", "BW" ) );
             }
 
             M_coarseToFineInterpolant -> buildOperators();
