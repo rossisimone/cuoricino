@@ -85,10 +85,14 @@ MultiscaleModelFSI3DActivated::MultiscaleModelFSI3DActivated() :
     M_fineToCoarseInterpolant       (),
     M_rescalingVector               (),
     M_activationETFESpace           (),
-    M_orthotropicActivationFactor   (3),
+    M_orthotropicActivationAnisotropyRatio   (3),
     M_activationOperator            (),
     M_preloadVector                 (),
-    M_preloadInTime                 (false)
+    M_preloadInTime                 (false),
+    M_activationPeriod              (1.0),
+    M_activationOffset              (0.0),
+    M_activationCurrent             (0.0),
+    M_activationLength              (0.002)
 {
 }
 
@@ -149,8 +153,12 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_activationCenter[0] = monodomainList.get ("activation_center_X", 0.);
     M_activationCenter[1] = monodomainList.get ("activation_center_Y", 0.);
     M_activationCenter[2] = monodomainList.get ("activation_center_Z", 0.);
-    M_activationRadius = monodomainList.get ("activation_radius", 1.);
-    M_activationMarker = monodomainList.get ("activation_marker", 0);
+    M_activationRadius    = monodomainList.get ("activation_radius",   1.);
+    M_activationMarker    = monodomainList.get ("activation_marker",   0);
+    M_activationPeriod    = monodomainList.get ("activation_period",   1.);
+    M_activationOffset    = monodomainList.get ("activation_offset",   0.);
+    M_activationCurrent   = monodomainList.get ("activation_current",  0.);
+    M_activationLength    = monodomainList.get ("activation_length",   0.002);
 
     // Coupling method for electromechanics
 
@@ -160,6 +168,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     // Electrics solution exporter
 
     M_exporterElectro -> setDataFromGetPot ( dataFile );
+
     std::string prefix = multiscaleProblemPrefix + "_Model_" + number2string ( M_ID ) +  "_Electro_" + number2string ( multiscaleProblemStep );
     M_exporterElectro->setPostDir ( multiscaleProblemFolder );
     M_monodomain -> setupExporter ( *M_exporterElectro, prefix);
@@ -184,6 +193,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 
     M_activationModelType   = activationModelTypeMap[dataFile ( "electrophysiology/activation_model", "SimpleODE" )];
     M_activationType        = activationTypeMap[dataFile ( "electrophysiology/activation_type", "TransverselyIsotropic" )];
+    M_orthotropicActivationAnisotropyRatio = dataFile ( "electrophysiology/anisotropy_ratio", 3. );
 
     M_preloadInTime         = dataFile ("solid/physics/preload", 0);
     typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >          FESpace_Type;
@@ -230,9 +240,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
         }
 
         M_activationOperator -> globalAssemble();
-
         M_activationSolver->setOperator ( M_activationOperator );
-
         M_preloadVector.reset ( new vector_Type ( M_fiber -> map() ) );
     }
 
@@ -246,9 +254,22 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 
 
 LifeV::Real
-MultiscaleModelFSI3DActivated::activationFunction (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const LifeV::ID& /*i*/)
+MultiscaleModelFSI3DActivated::activationFunction (const Real& t, const Real& x, const Real& y, const Real& z, const LifeV::ID& /*i*/)
 {
-    return std::exp ( - ( std::pow (x - M_activationCenter[0], 2) + std::pow (y - M_activationCenter[1], 2) + std::pow (z - M_activationCenter[2], 2) ) / std::pow (M_activationRadius, 2) );
+
+    Real returnValue = 0;
+
+    if ( fmod(t - M_activationOffset, M_activationPeriod) <= M_activationLength )
+    {
+        if ( std::abs( x - M_activationCenter[0] ) <= M_activationRadius &&
+                        std::abs( y - M_activationCenter[1] ) <= M_activationRadius &&
+                        std::abs( z - M_activationCenter[2] ) <= M_activationRadius )
+        {
+            returnValue = M_activationCurrent;
+        }
+    }
+
+    return returnValue;
 }
 
 void
@@ -267,9 +288,14 @@ MultiscaleModelFSI3DActivated::setupModel()
 
     M_exporterSolid->addVariable ( IOData_Type::ScalarField, "activation", M_activationSpacePtr , M_gammafSolid, static_cast<UInt> ( 0 ) );
 
+    M_monodomain -> initializePotential();
+    M_monodomain -> initializeAppliedCurrent();
     M_monodomain -> setInitialConditions();
 
+    function_Type stimulus ( boost::bind ( &MultiscaleModelFSI3DActivated::activationFunction, this, _1, _2, _3, _4, _5 ) );
+    M_monodomain -> setAppliedCurrentFromFunction(stimulus, 0.0);
 
+    /*
     HeartUtility::setValueOnBoundary ( * (M_monodomain -> potentialPtr() ), M_monodomain -> fullMeshPtr(), 1.0, M_activationMarker );
 
     function_Type f ( boost::bind ( &MultiscaleModelFSI3DActivated::activationFunction, this, _1, _2, _3, _4, _5 ) );
@@ -277,6 +303,7 @@ MultiscaleModelFSI3DActivated::setupModel()
     M_monodomain -> feSpacePtr() -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *smoother , 0);
     (*smoother) *= * (M_monodomain -> potentialPtr() );
     M_monodomain -> setPotential (*smoother);
+     */
 
     // Setting up initial conditions
 
@@ -411,6 +438,10 @@ MultiscaleModelFSI3DActivated::solveModel()
 
         M_monodomain -> setInitialTime ( 1000.0 * tn );
         M_monodomain -> setEndTime ( 1000.0 * (tn + timeStep) );
+
+        function_Type stimulus ( boost::bind ( &MultiscaleModelFSI3DActivated::activationFunction, this, _1, _2, _3, _4, _5 ) );
+        M_monodomain -> setAppliedCurrentFromFunction ( stimulus, tn );
+
         M_monodomain -> solveSplitting();
 
         switch (M_activationModelType)
@@ -459,7 +490,7 @@ MultiscaleModelFSI3DActivated::solveModel()
                         *M_gamman *= 0.0;
 
                         *M_gamman = *M_gammaf;
-                        *M_gamman *= M_orthotropicActivationFactor;
+                        *M_gamman *= M_orthotropicActivationAnisotropyRatio;
                         *M_gammas = 1.0 ;
                         *M_gammas /= (1.0 + *M_gammaf);
                         *M_gammas /= ( 1.0 + *M_gamman);
@@ -568,9 +599,8 @@ MultiscaleModelFSI3DActivated::solveModel()
                         *rhsActivation += ( ( M_monodomain -> timeStep() * *tmpRhsActivation ) );
 
                         M_activationSolver -> setRightHandSide (rhsActivation);
-                        std::cout << "\nMax of GammaF before solving: " << M_gammaf -> maxValue() << std::endl;
                         M_activationSolver -> solve (M_gammaf);
-                        std::cout << "\nMax of GammaF after solving: " << M_gammaf -> maxValue() << std::endl;
+
                     }
 
                     if ( M_gammaf -> maxValue() > 0.0)
@@ -579,12 +609,7 @@ MultiscaleModelFSI3DActivated::solveModel()
                         int size =  M_gammaf -> size();
                         for (int l (0); l < d; l++)
                         {
-                            std::cout << "\n*****************************************************";
-                            std::cout << "\nChanging the gamma back to zero: " ;
-                            std::cout << "\n*****************************************************";
-
                             int m1 = M_gammaf -> blockMap().GID (l);
-                            //cout << m1 << "\t" << size << "\n";
                             if ( (*M_gammaf) [m1] > 0)
                             {
                                 (*M_gammaf) [m1] = 0.0;
@@ -641,7 +666,7 @@ MultiscaleModelFSI3DActivated::solveModel()
                 *M_gammanSolid *= 0. ;
 
                 *M_gammanSolid = *M_gammafSolid;
-                *M_gammanSolid *= M_orthotropicActivationFactor;
+                *M_gammanSolid *= M_orthotropicActivationAnisotropyRatio;
                 *M_gammasSolid = 1.0 ;
                 *M_gammasSolid /= (1.0 + *M_gammafSolid);
                 *M_gammasSolid /= ( 1.0 + *M_gammanSolid);
@@ -650,14 +675,6 @@ MultiscaleModelFSI3DActivated::solveModel()
         }
         super::solver() -> solid().material() -> setGamman ( *M_gammanSolid );
         super::solver() -> solid().material() -> setGammas ( *M_gammasSolid );
-        std::cout << "\nMax gammaf " << super::solver() -> solid().material() -> gammaf() -> maxValue() << std::endl;
-        std::cout << "\nMin gammaf " << super::solver() -> solid().material() -> gammaf() -> minValue() << std::endl;
-
-        std::cout << "\nMax gammas " << super::solver() -> solid().material() -> gammas() -> maxValue() << std::endl;
-        std::cout << "\nMin gammas " << super::solver() -> solid().material() -> gammas() -> minValue() << std::endl;
-
-        std::cout << "\nMax gamman " << super::solver() -> solid().material() -> gamman() -> maxValue() << std::endl;
-        std::cout << "\nMin gamman " << super::solver() -> solid().material() -> gamman() -> minValue() << std::endl;
 
     }
 

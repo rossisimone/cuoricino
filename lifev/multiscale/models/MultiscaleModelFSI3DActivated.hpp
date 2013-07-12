@@ -250,6 +250,11 @@ private:
     std::vector<Real>                       M_activationCenter;
     Real                                    M_activationRadius;
     UInt                                    M_activationMarker;
+    Real                                    M_activationPeriod;
+    Real                                    M_activationOffset;
+    Real                                    M_activationCurrent;
+    Real                                    M_activationLength;
+
  //   UInt                                    M_endocardiumMarker;
  //   UInt                                    M_epicardiumMarker;
     std::string								M_dataFileName;
@@ -275,7 +280,7 @@ private:
     scalarETFESpacePtr_Type					M_activationETFESpace;
 
     FSI3DActivated_ActivationType      		M_activationType;
-    Real 									M_orthotropicActivationFactor;
+    Real 									M_orthotropicActivationAnisotropyRatio;
     matrixPtr_Type 							M_activationOperator;
     vectorPtr_Type							M_preloadVector;
     bool									M_preloadInTime;
