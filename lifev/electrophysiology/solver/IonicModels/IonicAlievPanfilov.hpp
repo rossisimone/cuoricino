@@ -146,9 +146,9 @@ public:
     //@{
 
     //Compute the rhs on a single node or for the 0D case
-    void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
+    void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
 
-    void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
+    void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
 
     //Compute the rhs on a mesh/ 3D case
     //    void computeRhs( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
@@ -157,7 +157,7 @@ public:
     //
 
     // compute the rhs with state variable interpolation
-    Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
+    Real computeLocalPotentialRhs ( const std::vector<Real>& v);
 
     //    void computePotentialRhs(     const std::vector<vectorPtr_Type>& v,
     //                      const VectorEpetra& Iapp,

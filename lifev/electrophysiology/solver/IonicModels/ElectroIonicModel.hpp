@@ -64,6 +64,11 @@ public:
     typedef RegionMesh<LinearTetra>                 mesh_Type;
     typedef MatrixEpetra<Real> matrix_Type;
     typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
+	typedef FESpace<mesh_Type, MapEpetra> feSpace_Type;
+	typedef boost::shared_ptr<feSpace_Type> feSpacePtr_Type;
+	typedef boost::function<
+			Real(const Real& t, const Real& x, const Real& y, const Real& z,
+					const ID& i)> function_Type;
     //@}
 
     //! @name Constructors & Destructor
@@ -88,19 +93,64 @@ public:
 
     //! @name Methods
     //@{
-    inline const short int& Size() const
+    inline const short int Size() const
     {
         return M_numberOfEquations;
     }
-    inline const short int& numberOfGatingVariables() const
+    inline const short int numberOfGatingVariables() const
     {
         return M_numberOfGatingVariables;
+    }
+    inline const Real membraneCapacitance() const
+    {
+    	return M_membraneCapacitance;
+    }
+    inline const Real appliedCurrent() const
+    {
+    	return M_appliedCurrent;
+    }
+    inline vectorPtr_Type appliedCurrentPtr() const
+    {
+    	return M_appliedCurrentPtr;
     }
 
     inline const std::vector<Real> restingConditions() const
     {
         return M_restingConditions;
     }
+    inline const function_Type pacaingProtocol() const
+    {
+    	return M_pacingProtocol;
+    }
+
+    inline void setMembraneCapacitance( const Real p )
+    {
+    	M_membraneCapacitance = p;
+    }
+    inline void setAppliedCurrent(const Real p)
+    {
+    	M_appliedCurrent = p;
+    }
+
+	inline void setAppliedCurrentPtr(const vectorPtr_Type p) {
+		this->M_appliedCurrentPtr = p;
+	}
+	inline void setAppliedCurrent(const vector_Type& p) {
+		M_appliedCurrentPtr.reset( new vector_Type( p ) );
+	}
+	inline void setAppliedCurrentFromFunction(function_Type& f, feSpacePtr_Type feSpacePtr,
+			Real time = 0.0) {
+
+		feSpacePtr -> interpolate(
+						static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(f),
+						*M_appliedCurrentPtr, time);
+	}
+
+	inline void setPacingProtocol( function_Type pacingProtocol )
+	{
+		M_pacingProtocol = pacingProtocol;
+	}
+
 
     //virtual void updateRepeated( )=0;
 
@@ -119,29 +169,36 @@ public:
 
     virtual vector< vector<Real> > getJac(const vector<Real>& v, Real h=1.0e-8);
 
+    virtual void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs ) = 0;
+
+    virtual void computeNonGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs )
+    {
+    	if(M_numberOfGatingVariables == 0 ) computeGatingRhs(v, rhs);
+    };
+
+
     virtual void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs) = 0;
 
-    virtual void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs) = 0;
-
-    virtual void computeRhs ( const vector_Type& v, const Real& Iapp, vector_Type& rhs);
-
-    virtual Real computeGatingVariablesWithRushLarsen ( const Real V, const Real gatingVariable, const int gatingVariableNumber, const Real dt ) {}
+    virtual void computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt ) {}
 
     //Compute the rhs on a mesh/ 3D case
+    virtual void computeGatingRhs ( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
+
+    //Compute the rhs on a mesh/ 3D case
+    virtual void computeNonGatingRhs ( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
+
+
     virtual void computeRhs ( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
 
-    virtual void computeRhs ( const std::vector<vectorPtr_Type>& v, const VectorEpetra& Iapp, std::vector<vectorPtr_Type>& rhs );
-
+    virtual void computeGatingVariablesWithRushLarsen ( std::vector<vectorPtr_Type>& v, const Real dt );
     // compute the rhs with state variable interpolation
-    virtual Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp) = 0;
+    virtual Real computeLocalPotentialRhs ( const std::vector<Real>& v ) = 0;
 
     virtual void computePotentialRhsICI ( const std::vector<vectorPtr_Type>& v,
-                                          const VectorEpetra&                 Iapp,
                                           std::vector<vectorPtr_Type>&        rhs,
                                           matrix_Type&                        massMatrix );
 
     virtual void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
-                                          const VectorEpetra&                 Iapp,
                                           std::vector<vectorPtr_Type>&        rhs,
                                           FESpace<mesh_Type, MapEpetra>&  uFESpace );
     //@}
@@ -160,6 +217,10 @@ protected:
     short int  M_numberOfEquations;
     short int  M_numberOfGatingVariables;
     std::vector<Real> M_restingConditions;
+    Real M_membraneCapacitance;
+    Real M_appliedCurrent;
+    vectorPtr_Type M_appliedCurrentPtr;
+    function_Type M_pacingProtocol;
 
 
 };

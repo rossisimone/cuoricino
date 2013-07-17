@@ -184,7 +184,8 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.computeRhs ( unknowns, Iapp, rhs);
+        model.setAppliedCurrent(Iapp);
+        model.computeRhs ( unknowns, rhs);
 
         //********************************************//
         // Writes solution on file.                   //

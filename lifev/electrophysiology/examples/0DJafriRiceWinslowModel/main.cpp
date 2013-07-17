@@ -226,8 +226,8 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-
-        model.computeRhs ( unknowns, Iapp, rhs );
+        model.setAppliedCurrent(Iapp);
+        model.computeRhs ( unknowns, rhs );
 //        std::vector<Real> gateInf     ( model.gateInf( unknowns ) );
 //        std::vector<Real> otherVarInf ( model.otherVarInf( unknowns ) );
 

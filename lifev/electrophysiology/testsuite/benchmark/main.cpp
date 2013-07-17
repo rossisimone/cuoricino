@@ -79,6 +79,8 @@
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicLuoRudyI.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher06.hpp>
+
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -241,6 +243,8 @@ Int main ( Int argc, char** argv )
     ionicModelPtr_Type  model;
     if( ionic_model == "LuoRudyI" )
     	model.reset( new IonicLuoRudyI() );
+    else if ( ionic_model == "TenTusscher06")
+    	model.reset(new IonicTenTusscher06() );
     else
     	model.reset( new IonicMinimalModel() );
 
@@ -349,7 +353,8 @@ Int main ( Int argc, char** argv )
     else
     	solver -> setupMassMatrix();
 
-    solver -> setupStiffnessMatrix();
+
+    solver -> setupStiffnessMatrix( solver -> diffusionTensor() );
     solver -> setupGlobalMatrix();
     if ( Comm->MyPID() == 0 )
     {
@@ -407,7 +412,9 @@ Int main ( Int argc, char** argv )
         {
 			chrono.reset();
 			chrono.start();
-			solver->solveOneReactionStepFE( );
+			if(ionic_model != "MinimalModel")
+				solver->solveOneReactionStepRL();
+			else solver->solveOneReactionStepFE();
 			chrono.stop();
 
 			timeReac += chrono.globalDiff( *Comm );
@@ -425,8 +432,11 @@ Int main ( Int argc, char** argv )
         {
 			chrono.reset();
 			chrono.start();
-        	solver -> solveOneStepGatingVariablesFE();
-        	solver -> solveOneICIStep();
+			if(ionic_model != "MinimalModel")
+				solver -> solveOneStepGatingVariablesRL();
+			else
+				solver -> solveOneStepGatingVariablesFE();
+			solver -> solveOneICIStep();
 			chrono.stop();
 			timeReacDiff += chrono.globalDiff( *Comm );
         }
@@ -434,7 +444,10 @@ Int main ( Int argc, char** argv )
         {
 			chrono.reset();
 			chrono.start();
-        	solver -> solveOneStepGatingVariablesFE();
+			if(ionic_model != "MinimalModel")
+				solver -> solveOneStepGatingVariablesRL();
+			else
+				solver -> solveOneStepGatingVariablesFE();
         	solver -> solveOneSVIStep();
 			chrono.stop();
 			timeReacDiff += chrono.globalDiff( *Comm );

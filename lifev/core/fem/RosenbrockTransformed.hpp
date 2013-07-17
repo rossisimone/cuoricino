@@ -248,7 +248,7 @@ void RosenbrockTransformed::computeStages(MatrixStandard& U, const VectorStandar
 		ytmp = y + Utmp;											//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
 		U.times(M_C.getLine(i), Utmp);				//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
 		Utmp /= dt;
-		Fun->computeRhs( ytmp, 0.0, rhs);
+		Fun->computeRhs( ytmp, rhs);
 		Utmp += rhs;
 		Psys.times(Utmp, rhs);
 		M_solver.solveL(Lsys, rhs);

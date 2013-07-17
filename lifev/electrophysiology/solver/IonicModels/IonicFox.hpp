@@ -490,13 +490,13 @@
         //@{
 
         //Compute the rhs on a single node or for the 0D case
-        void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs );
+        void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs );
 
-        void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs );
+        void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs );
 
 
         //Compute the rhs with state variable interpolation
-        Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp );
+        Real computeLocalPotentialRhs ( const std::vector<Real>& v );
 
         std::vector<Real> computeLocalGatingRhs ( const std::vector<Real>& v );
 

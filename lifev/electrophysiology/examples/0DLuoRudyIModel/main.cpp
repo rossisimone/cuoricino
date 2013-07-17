@@ -149,8 +149,10 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
     Real TF (500);
-    Real dt (0.01);
+    Real dt (.25);
 
+    int savestep( 1. / dt );
+    int iter(0);
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -166,40 +168,52 @@ Int main ( Int argc, char** argv )
     std::cout << "Time loop starts...\n";
     for ( Real t = 0; t < TF; )
     {
-
+    	iter++;
         //********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if( t > 3 && t < 3.1 ) Iapp = 1000.0;
+        if( t > 3 && t < 5 ) Iapp = 20.;
         else Iapp = 0;
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        ionicModel.computeRhs ( states, Iapp, rhs);
+        ionicModel.setAppliedCurrent(Iapp);
+        ionicModel.computeRhs ( states, rhs);
+        rhs[0]+=Iapp;
 
         //********************************************//
         // Use forward Euler method to advance the    //
         // solution in time.                          //
         //********************************************//
 
-        for ( int j (0); j < ionicModel.Size(); j++)
-        {
-            rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
-        }
+//        for ( int j (0); j < ionicModel.Size(); j++)
+//        {
+//            rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
+//        }
+		rStates.at (0) = rStates.at (0)  + dt * rRhs.at (0);
+        ionicModel.computeGatingVariablesWithRushLarsen( states, dt);
+
+        int offset = 1 + ionicModel.numberOfGatingVariables();
+        for ( int j (0); j < ( ionicModel.Size() - offset ); j++)
+			{
+				rStates.at (j+offset) = rStates.at (j+offset)  + dt * rRhs.at (j+offset);
+
+			}
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
+        if( iter % savestep == 0  ){
         output << t << ", ";
         for ( int j (0); j < ionicModel.Size() - 1; j++)
         {
             output << rStates.at (j) << ", ";
         }
         output << rStates.at ( ionicModel.Size() - 1 ) << "\n";
-
+        }
         //********************************************//
         // Update the time.                           //
         //********************************************//

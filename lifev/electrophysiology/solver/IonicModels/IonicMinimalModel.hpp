@@ -342,12 +342,12 @@ public:
         }
     }
     //Compute the rhs on a single node or for the 0D case
+    void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
+
     void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
 
-    void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
-
     // compute the rhs with state variable interpolation
-    Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
+    Real computeLocalPotentialRhs ( const std::vector<Real>& v );
 
     //! Display information about the model
     void showMe();

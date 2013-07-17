@@ -93,7 +93,7 @@ IonicMitchellSchaeffer& IonicMitchellSchaeffer::operator= ( const IonicMitchellS
 //! Methods
 // ===================================================
 //Only gating variables
-void IonicMitchellSchaeffer::computeRhs ( const std::vector<Real>&  v,
+void IonicMitchellSchaeffer::computeGatingRhs ( const std::vector<Real>&  v,
                                          std::vector<Real>& rhs )
 {
 
@@ -103,18 +103,17 @@ void IonicMitchellSchaeffer::computeRhs ( const std::vector<Real>&  v,
 
 //Potential and gating variables
 void IonicMitchellSchaeffer::computeRhs (const   std::vector<Real>&  v,
-                                         const   Real&           Iapp,
                                          std::vector<Real>& rhs )
 {
-	rhs[0] = computeLocalPotentialRhs( v, Iapp );
+	rhs[0] = computeLocalPotentialRhs( v );
     rhs[1] = computeLocalGatingRhs( v );
 }
 
 
 
-Real IonicMitchellSchaeffer::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp )
+Real IonicMitchellSchaeffer::computeLocalPotentialRhs ( const std::vector<Real>& v )
 {
-    return ( - ( v[1] / M_tauIn ) * v[0] * v[0] * ( v[0] - 1 ) - v[0] / M_tauOut  + Iapp );
+    return ( - ( v[1] / M_tauIn ) * v[0] * v[0] * ( v[0] - 1 ) - v[0] / M_tauOut );
 }
 
 Real IonicMitchellSchaeffer::computeLocalGatingRhs ( const std::vector<Real>& v )

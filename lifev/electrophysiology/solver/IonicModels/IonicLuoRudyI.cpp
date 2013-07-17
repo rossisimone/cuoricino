@@ -160,7 +160,7 @@ IonicLuoRudyI& IonicLuoRudyI::operator= ( const IonicLuoRudyI& model )
 // ===================================================
 //! Methods
 // ===================================================
-void IonicLuoRudyI::computeRhs ( const   std::vector<Real>&  v,
+void IonicLuoRudyI::computeGatingRhs ( const   std::vector<Real>&  v,
                                      std::vector<Real>& rhs )
 {
     Real V = v[0];
@@ -188,8 +188,19 @@ void IonicLuoRudyI::computeRhs ( const   std::vector<Real>&  v,
     rhs[6] = dCa(V, d, f, Ca);
 }
 
+void IonicLuoRudyI::computeNonGatingRhs ( const   std::vector<Real>&  v,
+                                     std::vector<Real>& rhs )
+{
+    Real V = v[0];
+    Real d = v[4];
+    Real f = v[5];
+    Real Ca = v[7];
+
+    //Ca
+    rhs[0] = dCa(V, d, f, Ca);
+}
+
 void IonicLuoRudyI::computeRhs ( const   std::vector<Real>&  v,
-                                     const   Real&           Iapp,
                                      std::vector<Real>& rhs )
 {
     Real V = v[0];
@@ -202,7 +213,7 @@ void IonicLuoRudyI::computeRhs ( const   std::vector<Real>&  v,
     Real Ca = v[7];
 
     //V
-    rhs[0] = - Itot(V, m ,h ,j , d, f, X, Ca) + Iapp;
+    rhs[0] = - Itot(V, m ,h ,j , d, f, X, Ca);
     //m
     rhs[1] = dm(V, m);
     //h
@@ -219,16 +230,27 @@ void IonicLuoRudyI::computeRhs ( const   std::vector<Real>&  v,
     rhs[7] = dCa(V, d, f, Ca);
 }
 
-Real IonicLuoRudyI::computeGatingVariablesWithRushLarsen( const   Real  V,
-                                     	 	 	 	 const   Real  gatingVariable,
-                                     	 	 	 	 const int gatingVariableNumber,
-                                     	 	 	 	 const Real dt )
+void IonicLuoRudyI::computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt )
 {
-	if( gatingVariableNumber == 0)
-		return ( minf(V) + ( gatingVariable - minf(V) ) * std::exp( - dt / tm(V) ) );
+    Real V = v[0];
+    Real m = v[1];
+    Real h = v[2];
+    Real j = v[3];
+    Real d = v[4];
+    Real f = v[5];
+    Real X = v[6];
+    Real Ca = v[7];
+
+    v[1] = minf(V) - ( minf(V) - m ) * std::exp(- dt / tm(V) );
+    v[2] = hinf(V) - ( hinf(V) - h ) * std::exp(- dt / th(V) );
+    v[3] = jinf(V) - ( jinf(V) - j ) * std::exp(- dt / tj(V) );
+    v[4] = dinf(V) - ( dinf(V) - d ) * std::exp(- dt / td(V) );
+    v[5] = finf(V) - ( finf(V) - f ) * std::exp(- dt / tf(V) );
+    v[6] = Xinf(V) - ( Xinf(V) - X ) * std::exp(- dt / tX(V) );
+
 }
 
-Real IonicLuoRudyI::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp)
+Real IonicLuoRudyI::computeLocalPotentialRhs ( const std::vector<Real>& v )
 {
     Real dPotential (0.0);
 
@@ -241,7 +263,7 @@ Real IonicLuoRudyI::computeLocalPotentialRhs ( const std::vector<Real>& v, const
     Real X = v[6];
     Real Ca = v[7];
 
-    dPotential = - Itot(V, m ,h ,j , d, f, X, Ca) + Iapp;
+    dPotential = - Itot(V, m ,h ,j , d, f, X, Ca);
 
     return dPotential;
 }

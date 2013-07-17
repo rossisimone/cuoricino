@@ -245,7 +245,8 @@ Int main ( Int argc, char** argv )
         //********************************************//
         
 		xb.computeRhs             ( XbStates, Ca, vel, XbRhs );
-        ionicModel.computeRhs     ( states, Iapp, rhs );
+		ionicModel.setAppliedCurrent(Iapp);
+        ionicModel.computeRhs     ( states, rhs );
         std::vector<Real> gateInf ( ionicModel.gateInf( states ) );
 
 

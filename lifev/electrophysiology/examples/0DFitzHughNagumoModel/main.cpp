@@ -213,7 +213,8 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.computeRhs ( unknowns, Iapp, rhs);
+        model.setAppliedCurrent(Iapp);
+        model.computeRhs ( unknowns, rhs);
 
         //********************************************//
         // Use forward Euler method to advance the    //
@@ -344,7 +345,9 @@ void RosenbrockTransformedFunction( IonicFitzHughNagumo model, const VectorSmall
 	{
 		ytmp = y + U*A.extract(i); 				//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
 		Utmp = (U*C.extract(i))/dt;				//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
-		model.computeRhs ( ytmp, It, rhs);
+
+		model.setAppliedCurrent(It);
+		model.computeRhs ( ytmp, rhs);
 		Utmp = B*( rhs + Utmp );
 		setCol<n,s>(U, Utmp, i);
 	}
@@ -375,7 +378,8 @@ void RosenbrockTransformedFunction( IonicFitzHughNagumo model, const VectorSmall
 		{
 			ytmp = y + U*A.extract(i);				//Point where f will be evalued
 			Utmp = (U*C.extract(i))/dt;				//U_i = sum_{j=1}^{i-1} C(i,j)*U_j
-			model.computeRhs( ytmp, It, rhs);			//rhs = f(ytmp)
+			model.setAppliedCurrent(It);
+			model.computeRhs( ytmp, rhs);			//rhs = f(ytmp)
 			Utmp = B*( rhs + Utmp );				//solving the linear system, Utmp = U_i
 			setCol<n,s>(U, Utmp, i);				//Putting U_i in the ith column of U
 		}

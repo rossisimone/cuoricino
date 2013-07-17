@@ -267,7 +267,7 @@
     //! Methods
     // ===================================================
     //Only gating variables
-    void IonicFox::computeRhs ( const std::vector<Real>&  v, std::vector<Real>& rhs )
+    void IonicFox::computeGatingRhs ( const std::vector<Real>&  v, std::vector<Real>& rhs )
     {
         std::vector<Real> gatingRhs     ( computeLocalGatingRhs(v) );
         std::vector<Real> subSysCaRhs   ( computeLocalSubSysCaRhs(v) );
@@ -277,12 +277,12 @@
     }
 
     //Potential and gating variables
-    void IonicFox::computeRhs (const   std::vector<Real>&  v, const Real& Iapp, std::vector<Real>& rhs )
+    void IonicFox::computeRhs (const   std::vector<Real>&  v, std::vector<Real>& rhs )
     {
         std::vector<Real> gatingRhs     ( computeLocalGatingRhs(v) );
         std::vector<Real> subSysCaRhs   ( computeLocalSubSysCaRhs(v) );
 
-        rhs[0] = computeLocalPotentialRhs(v, Iapp);
+        rhs[0] = computeLocalPotentialRhs(v );
 
         if (rhs.size() > M_numberOfEquations){
             std::copy( gatingRhs.begin(), gatingRhs.end(), rhs.begin() + 1 );
@@ -294,7 +294,7 @@
 
     }
 
-    Real IonicFox::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp )
+    Real IonicFox::computeLocalPotentialRhs ( const std::vector<Real>& v )
     {
         Real INa = (fastINa(v))[0];
         Real IKr = (rapidIK(v))[0];
@@ -303,7 +303,7 @@
         Real ICa = (computeLocalSubSysCaRhs(v))[5];
 
         return   - ( INa + timeIIK1(v) + IKr + IKs + It0 + plaIKp(v) + pumpINaK(v)
-                        + exINaCa(v) + backINab(v) + backICab(v) + pumpIpCa(v) + ICa ) + Iapp ;
+                        + exINaCa(v) + backINab(v) + backICab(v) + pumpIpCa(v) + ICa ) ;
     }
 
     std::vector<Real> IonicFox::computeLocalGatingRhs ( const std::vector<Real>& v )

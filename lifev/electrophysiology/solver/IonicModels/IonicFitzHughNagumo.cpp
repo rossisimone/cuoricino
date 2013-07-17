@@ -106,7 +106,7 @@ IonicFitzHughNagumo& IonicFitzHughNagumo::operator= ( const IonicFitzHughNagumo&
 //! Methods
 // ===================================================
 //Only gating variables
-void IonicFitzHughNagumo::computeRhs (    const   std::vector<Real>&  v,
+void IonicFitzHughNagumo::computeGatingRhs (    const   std::vector<Real>&  v,
                                           std::vector<Real>& rhs )
 {
     Real dr = M_Eta * v[0] - M_Gamma * v[1] ;
@@ -116,19 +116,18 @@ void IonicFitzHughNagumo::computeRhs (    const   std::vector<Real>&  v,
 
 //Potential and gating variables
 void IonicFitzHughNagumo::computeRhs (    const   std::vector<Real>&  v,
-                                          const   Real&           Iapp,
                                           std::vector<Real>& rhs )
 {
-    Real dV = - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) + Iapp;
+    Real dV = - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] );
     Real dr = M_Eta * v[0] - M_Gamma * v[1] ;
 
     rhs[0] = dV;
     rhs[1] = dr;
 
 }
-void IonicFitzHughNagumo::computeRhs ( const VectorSmall<2>& v, const Real& Iapp, VectorSmall<2>& rhs)
+void IonicFitzHughNagumo::computeRhs ( const VectorSmall<2>& v, VectorSmall<2>& rhs)
 {
-    Real dV = - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) + Iapp;
+    Real dV = - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] );
     Real dr = M_Eta * v[0] - M_Gamma * v[1] ;
 
     rhs[0] = dV;
@@ -136,9 +135,9 @@ void IonicFitzHughNagumo::computeRhs ( const VectorSmall<2>& v, const Real& Iapp
 
 }
 
-Real IonicFitzHughNagumo::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp)
+Real IonicFitzHughNagumo::computeLocalPotentialRhs ( const std::vector<Real>& v)
 {
-    return ( - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) + Iapp );
+    return ( - ( M_G * v[0] * ( 1.0 - v[0] / M_Vth ) * ( 1.0 - v[0] / M_Vp ) + M_Eta1 * v[0] * v[1] ) );
 }
 
 vector< vector<Real> > IonicFitzHughNagumo::getJac (const std::vector<Real>& v, Real h)

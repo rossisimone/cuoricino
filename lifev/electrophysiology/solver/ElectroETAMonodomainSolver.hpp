@@ -279,14 +279,6 @@ public:
 		return M_surfaceVolumeRatio;
 	}
 
-	//! get the membrane capacitance
-	/*!
-	 * Not used in the code (  Usually equal 1 )
-	 */
-	inline const Real& membraneCapacitance() const {
-		return M_membraneCapacitance;
-	}
-
 	//! get the initial time (by default 0)
 	inline const Real& initialTime() const {
 		return M_initialTime;
@@ -366,7 +358,7 @@ public:
 	}
 	//! get the pointer to the applied current vector
 	inline const vectorPtr_Type appliedCurrentPtr() const {
-		return M_appliedCurrentPtr;
+		return M_ionicModelPtr -> appliedCurrentPtr();
 	}
 	//! get the pointer to the linear solver
 	inline const linearSolverPtr_Type linearSolverPtr() const {
@@ -390,20 +382,14 @@ public:
 	//! @name Set Methods
 	//@{
 
-	//! set the surface to volume ratio (NOT USED IN THE CODE)
+	//! set the surface to volume ratio
 	/*!
 	 @param Real surface to volume ratio
 	 */
 	inline void setSurfaceVolumeRatio(const Real& p) {
 		this->M_surfaceVolumeRatio = p;
 	}
-	//! set the membrane capacitance (NOT USED IN THE CODE, SET TO 1)
-	/*!
-	 @param Real membrane capacitance
-	 */
-	inline void setMembraneCapacitance(const Real& p) {
-		this->M_membraneCapacitance = p;
-	}
+
 	//! set the starting time
 	/*!
 	 @param Real initial time
@@ -525,7 +511,7 @@ public:
 	 @param boost::shared_ptr<VectorEpetra>  pointer to the applied current vector
 	 */
 	inline void setAppliedCurrentPtr(const vectorPtr_Type p) {
-		this->M_appliedCurrentPtr = p;
+		M_ionicModelPtr -> setAppliedCurrentPtr(p);
 	}
 	//! set the pointer to the linear solver
 	/*!
@@ -607,7 +593,7 @@ public:
 		(*(M_displacementPtr)) = p;
 	}
 	inline void setAppliedCurrent(const vector_Type& p) {
-		(*(M_appliedCurrentPtr)) = p;
+		M_ionicModelPtr -> setAppliedCurrent(p);
 	}
 	inline void setLinearSolver(const linearSolver_Type& p) {
 		(*(M_linearSolverPtr)) = p;
@@ -670,11 +656,11 @@ public:
 	}
 	//! Initialize the applied current to zero
 	void inline initializeAppliedCurrent() {
-		(*M_appliedCurrentPtr) *= 0;
+		(*(M_ionicModelPtr -> appliedCurrentPtr() ) ) *= 0;
 	}
 	//! Initialize the applied current to the value k
 	void inline initializeAppliedCurrent(Real k) {
-		(*M_appliedCurrentPtr) = k;
+		(*(M_ionicModelPtr -> appliedCurrentPtr() ) ) = k;
 	}
 	//! creates a vector of pointers to store the solution
 	/*!
@@ -704,9 +690,7 @@ public:
 	//! given a boost function initialize the applied current
 	void inline setAppliedCurrentFromFunction(function_Type& f,
 			Real time = 0.0) {
-		M_feSpacePtr->interpolate(
-				static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(f),
-				*M_appliedCurrentPtr, time);
+		M_ionicModelPtr -> setAppliedCurrentFromFunction(f, M_feSpacePtr, time);
 	}
 	//! Solves one reaction step using the forward Euler scheme
 	/*!
@@ -734,7 +718,7 @@ public:
 	 */
 	void inline updateRhs() {
 		(*M_rhsPtrUnique) += (*M_massMatrixPtr) * (*M_potentialPtr)
-				* (1.0 / (M_timeStep) * M_membraneCapacitance);
+				* (1.0 / (M_timeStep) );
 	}
 
 	//! Solves one diffusion step using the BDF2 scheme
@@ -882,7 +866,6 @@ private:
 	void init(meshPtr_Type meshPtr, ionicModelPtr_Type model);
 
 	Real M_surfaceVolumeRatio;
-	Real M_membraneCapacitance;
 
 	ionicModelPtr_Type M_ionicModelPtr;
 
@@ -904,7 +887,7 @@ private:
 	vectorPtr_Type M_rhsPtr;
 	vectorPtr_Type M_rhsPtrUnique;
 	vectorPtr_Type M_potentialPtr;
-	vectorPtr_Type M_appliedCurrentPtr;
+//	vectorPtr_Type M_appliedCurrentPtr;
 
 	linearSolverPtr_Type M_linearSolverPtr;
 
@@ -1006,8 +989,7 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 		const ElectroETAMonodomainSolver& solver) :
-		M_surfaceVolumeRatio(solver.M_surfaceVolumeRatio), M_membraneCapacitance(
-				solver.M_membraneCapacitance), M_ionicModelPtr(
+		M_surfaceVolumeRatio(solver.M_surfaceVolumeRatio),  M_ionicModelPtr(
 				solver.M_ionicModelPtr), M_commPtr(solver.M_commPtr), M_localMeshPtr(
 				solver.M_localMeshPtr), M_fullMeshPtr(solver.M_fullMeshPtr), M_ETFESpacePtr(
 				solver.M_ETFESpacePtr), M_feSpacePtr(solver.M_feSpacePtr), M_massMatrixPtr(
@@ -1018,8 +1000,7 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 				solver.M_timeStep), M_diffusionTensor(solver.M_diffusionTensor), M_rhsPtr(
 				new vector_Type(*(solver.M_rhsPtr))), M_rhsPtrUnique(
 				new vector_Type(*(M_rhsPtr), Unique)), M_potentialPtr(
-				new vector_Type(solver.M_ETFESpacePtr->map())), M_appliedCurrentPtr(
-				new vector_Type(*(solver.M_appliedCurrentPtr))), M_linearSolverPtr(
+				new vector_Type(solver.M_ETFESpacePtr->map())), M_linearSolverPtr(
 				new LinearSolver(*(solver.M_linearSolverPtr))), M_elementsOrder(
 				solver.M_elementsOrder), M_fiberPtr( new vector_Type(*(solver.M_fiberPtr))
 //				,M_previousPotential( new vectorPtr_Type(*(solver.M_previousPotential)))
@@ -1035,7 +1016,6 @@ template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>& ElectroETAMonodomainSolver<Mesh,
 		IonicModel>::operator=(const ElectroETAMonodomainSolver& solver) {
 	M_surfaceVolumeRatio = solver.M_surfaceVolumeRatio;
-	M_membraneCapacitance = solver.M_membraneCapacitance;
 	setIonicModel( (*solver.M_ionicModelPtr) );
 	M_commPtr = solver.M_commPtr;
 	M_localMeshPtr = solver.M_localMeshPtr;
@@ -1053,7 +1033,6 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>& ElectroETAMonodomainSolver<Mesh,
 	setRhsUnique( * ( solver.M_rhsPtrUnique ) );
 	setPotential( * ( solver.M_potentialPtr ) );
 
-	setAppliedCurrent( * ( solver.M_appliedCurrentPtr ) );
 	setLinearSolver( * ( solver.M_linearSolverPtr ) );
 	copyGlobalSolution(solver.M_globalSolution);
 	copyGlobalRhs(solver.M_globalRhs);
@@ -1162,7 +1141,6 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup(GetPot& dataFile,
 	M_rhsPtr.reset(new vector_Type(M_ETFESpacePtr->map(), Repeated));
 	M_rhsPtrUnique.reset(new vector_Type(*(M_rhsPtr), Unique));
 	M_potentialPtr.reset(new vector_Type(M_ETFESpacePtr->map()));
-	M_appliedCurrentPtr.reset(new vector_Type(M_ETFESpacePtr->map()));
 
 	//***********************//
 	//  Setup Linear Solver  //
@@ -1173,7 +1151,9 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup(GetPot& dataFile,
 	//  Setup Initial condition //
 	//**************************//
 	initializePotential(0.0);
-	initializeAppliedCurrent(0.0);
+	vector_Type Iapp( M_feSpacePtr -> map() );
+	Iapp *= 0.0;
+	M_ionicModelPtr -> setAppliedCurrent(Iapp);
 	setupGlobalSolution(ionicSize);
 	setupGlobalRhs(ionicSize);
 }
@@ -1223,12 +1203,30 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 		VectorSmall<3> diffusion) {
 	{
 		using namespace ExpressionAssembly;
+//
+//		integrate(elements(M_localMeshPtr), M_feSpacePtr -> qr(), M_ETFESpacePtr,
+//				M_ETFESpacePtr,
+//				dot(
+//						rotate(M_ETFESpacePtr, *M_fiberPtr, diffusion)
+//								* grad(phi_i), grad(phi_j)))
+//				>> M_stiffnessMatrixPtr;
+		Real sigmal = diffusion[0];
+		Real sigmat = diffusion[1];
+
+	    MatrixSmall<3,3> Id;
+	    Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
+	    Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
+	    Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
+
+		ETFESpaceVectorialPtr_Type spaceVectorial( new ETFESpaceVectorial_Type ( M_localMeshPtr, &feTetraP1, M_commPtr ) );
 
 		integrate(elements(M_localMeshPtr), M_feSpacePtr -> qr(), M_ETFESpacePtr,
 				M_ETFESpacePtr,
 				dot(
-						rotate(M_ETFESpacePtr, *M_fiberPtr, diffusion)
-								* grad(phi_i), grad(phi_j)))
+						( value(sigmat) * value(Id)
+				        + ( value(sigmal) - value(sigmat) )
+				       	 * outerProduct( value(spaceVectorial, *M_fiberPtr), value(spaceVectorial, *M_fiberPtr) ) )
+					    * grad(phi_i), grad(phi_j)))
 				>> M_stiffnessMatrixPtr;
 
 	}
@@ -1279,7 +1277,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalMatrix() {
 	(*M_globalMatrixPtr) *= 0;
 	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
 	(*M_globalMatrixPtr) *= 1.0 / M_surfaceVolumeRatio;
-	(*M_globalMatrixPtr) += ( (*M_massMatrixPtr) * ( M_membraneCapacitance / M_timeStep ) );
+	(*M_globalMatrixPtr) += ( (*M_massMatrixPtr) * ( 1. / M_timeStep ) );
 }
 
 template<typename Mesh, typename IonicModel>
@@ -1379,23 +1377,26 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupExporter(
 /********* SOLVING METHODS */    ////////////////////////
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(int subiterations) {
-	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution,
-			*M_appliedCurrentPtr, M_globalRhs);
+	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
 
 	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
-				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i))) / M_membraneCapacitance;
+				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i)));
 	}
 }
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepRL(int subiterations) {
-	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution,
-			*M_appliedCurrentPtr, M_globalRhs);
+	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
 
-	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
+	*(M_globalSolution.at(0)) = *(M_globalSolution.at(0))
+					+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(0)));
+
+	M_ionicModelPtr -> superIonicModel::computeGatingVariablesWithRushLarsen(M_globalSolution, M_timeStep / subiterations );
+	int offset = M_ionicModelPtr -> numberOfGatingVariables() + 1;
+	for (int i = offset; i < M_ionicModelPtr->Size(); i++) {
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
-				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i))) / M_membraneCapacitance;
+				+ ( (M_timeStep) / subiterations ) * (*(M_globalRhs.at(i)));
 	}
 
 }
@@ -1407,11 +1408,11 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P(
 	VectorStandard localVec(M_ionicModelPtr->Size(), 0.0);
 	Real dt;
 
-	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
+	int nodes = M_ionicModelPtr -> appliedCurrentPtr()->epetraVector().MyLength();
 	int j(0);
 
 	for (int k = 0; k < nodes; k++) {
-		j = M_appliedCurrentPtr->blockMap().GID(k);
+		j =M_ionicModelPtr -> appliedCurrentPtr()->blockMap().GID(k);
 
 		for (int i = 0; i < M_ionicModelPtr->Size(); i++)
 			localVec[i] = (*(M_globalSolution.at(i)))[j];
@@ -1431,11 +1432,11 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepROS3P(Rea
 	VectorStandard localVec(M_ionicModelPtr->Size(), 0.0);
 	Real dt;
 
-	int nodes = M_appliedCurrentPtr->epetraVector().MyLength();
+	int nodes = M_ionicModelPtr -> appliedCurrentPtr() ->epetraVector().MyLength();
 	int j(0);
 
 	for (int k = 0; k < nodes; k++) {
-		j = M_appliedCurrentPtr->blockMap().GID(k);
+		j =  M_ionicModelPtr -> appliedCurrentPtr() ->blockMap().GID(k);
 
 		for (int i = 0; i < M_ionicModelPtr->Size(); i++)
 			localVec[i] = (*(M_globalSolution.at(i)))[j];
@@ -1530,7 +1531,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveSplitting(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneStepGatingVariablesFE() {
-	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
+	M_ionicModelPtr->superIonicModel::computeGatingRhs(M_globalSolution, M_globalRhs);
 
 	for (int i = 1; i < M_ionicModelPtr->Size(); i++) {
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
@@ -1539,26 +1540,26 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneStepGatingVariablesFE
 }
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneStepGatingVariablesRL() {
-	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
 
-	for (int i = 1; i < M_ionicModelPtr->Size(); i++) {
+	M_ionicModelPtr -> superIonicModel::computeGatingVariablesWithRushLarsen(M_globalSolution, M_timeStep );
+	M_ionicModelPtr->superIonicModel::computeNonGatingRhs(M_globalSolution, M_globalRhs);
+	int offset = M_ionicModelPtr -> numberOfGatingVariables() + 1;
+	for (int i = offset; i < M_ionicModelPtr->Size(); i++) {
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
-				+ M_timeStep * (*(M_globalRhs.at(i)));
+				+ ( (M_timeStep) ) * (*(M_globalRhs.at(i)));
 	}
 }
 
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsICI() {
-	M_ionicModelPtr->superIonicModel::computePotentialRhsICI(M_globalSolution,
-			(*M_appliedCurrentPtr), M_globalRhs, (*M_massMatrixPtr));
+	M_ionicModelPtr->superIonicModel::computePotentialRhsICI(M_globalSolution, M_globalRhs, (*M_massMatrixPtr));
 	updateRhs();
 }
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
-	M_ionicModelPtr->superIonicModel::computePotentialRhsSVI(M_globalSolution,
-			(*M_appliedCurrentPtr), M_globalRhs, (*M_feSpacePtr));
+	M_ionicModelPtr->superIonicModel::computePotentialRhsSVI(M_globalSolution, M_globalRhs, (*M_feSpacePtr));
 	updateRhs();
 }
 
@@ -1764,7 +1765,6 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::init(meshPtr_Type meshPtr,
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setParameters() {
 	M_surfaceVolumeRatio = 2400.0;
-	M_membraneCapacitance = 1.0;
 	M_diffusionTensor[0] = 0.001;
 	M_diffusionTensor[1] = 0.001;
 	M_diffusionTensor[2] = 0.001;
@@ -1778,7 +1778,6 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setParameters() {
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setParameters(list_Type list) {
 	M_surfaceVolumeRatio = list.get("surfaceVolumeRatio", 2400.0);
-	M_membraneCapacitance = list.get("membraneCapacitance", 1.0);
 	M_diffusionTensor[0] = list.get("longitudinalDiffusion", 0.001);
 	M_diffusionTensor[1] = list.get("transversalDiffusion", 0.001);
 	M_diffusionTensor[2] = M_diffusionTensor[1];

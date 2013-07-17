@@ -8,11 +8,9 @@ ADD_SUBDIRECTORIES(
   0DMitchellSchaefferModel
   0DJafriRiceWinslowModel
   0DJafriRiceWinslowModelwStimPro
-  0DTenTusscherModel
-  0DTenTusscherModelwStimPro
+  0DTenTusscher06Model
   0DMinimalModel
   0DNegroniLascanoModel
-  0DNegroniLascanoModelTenTusscher
   0DNegroniLascanoModelJafriRiceWinslow
   0DFitzHughNagumoModel
   0DFoxModel
@@ -28,7 +26,6 @@ ADD_SUBDIRECTORIES(
   IonicMinimalModel_pacingECG
   IonicFox
   IonicFox_pacingECG
-  IonicTenTusscherModel
   Restart
   RosenbrockTest
 )

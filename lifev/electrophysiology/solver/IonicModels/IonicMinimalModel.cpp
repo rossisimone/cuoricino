@@ -231,7 +231,7 @@ IonicMinimalModel& IonicMinimalModel::operator= ( const IonicMinimalModel& model
 // ===================================================
 //! Methods
 // ===================================================
-void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
+void IonicMinimalModel::computeGatingRhs ( const   std::vector<Real>&  v,
                                      std::vector<Real>& rhs )
 {
 
@@ -254,7 +254,6 @@ void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
 }
 
 void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
-                                     const   Real&           Iapp,
                                      std::vector<Real>& rhs )
 {
 
@@ -276,14 +275,14 @@ void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
     Real Jso   = ( U - M_uo ) * ( 1.0 - Heaviside ( U - M_tetaw )  ) / tauo + Heaviside ( U - M_tetaw ) / tauso;
     Real Jsi   = - Heaviside ( U - M_tetaw ) * W * W / M_tausi;
 
-    rhs[0] = - ( Jfi + Jso + Jsi ) + Iapp;
+    rhs[0] = - ( Jfi + Jso + Jsi );
     rhs[1] = ( 1.0 - Heaviside ( U - M_tetav ) ) * ( vinf - V ) / tauvm - Heaviside ( U - M_tetav ) * V / M_tauvp;
     rhs[2] = ( 1.0 - Heaviside ( U - M_tetaw ) ) * ( winf - W ) / tauwm - Heaviside ( U - M_tetaw ) * W / M_tauwp;
     rhs[3] = ( ( 1.0 + std::tanh ( M_ks * ( U - M_us ) ) ) / 2.0 - S ) / taus;
 }
 
 
-Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp)
+Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v )
 {
     Real dPotential (0.0);
 
@@ -299,7 +298,7 @@ Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v, c
     Real Jso   = ( U - M_uo ) * ( 1.0 - Heaviside ( U - M_tetaw )  ) / tauo + Heaviside ( U - M_tetaw ) / tauso;
     Real Jsi   = - Heaviside ( U - M_tetaw ) * W * W / M_tausi;
 
-    dPotential = - ( Jfi + Jso + Jsi ) + Iapp;
+    dPotential = - ( Jfi + Jso + Jsi );
 
     return dPotential;
 }

@@ -282,7 +282,8 @@ Int main ( Int argc, char** argv )
         // Compute the rhs using the model equations  //
         //********************************************//
         typedef ElectroIonicModel super;
-        model.super::computeRhs (unknowns, *Iapp, rhs);
+        model.setAppliedCurrent(*Iapp);
+        model.super::computeRhs (unknowns, rhs);
         //********************************************//
         // Use forward Euler method to advance the    //
         // solution in time.                          //

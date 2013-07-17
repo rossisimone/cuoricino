@@ -164,12 +164,12 @@ public:
     //Compute the rhs on a single node or for the 0D case
     //this is to make visible the computeRhs defined in the base class, otherwise it is hidden by the ones defined here
     using ElectroIonicModel::computeRhs;
+    void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
     void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
-    void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
-    void computeRhs ( const VectorSmall<2>& v, const Real& Iapp, VectorSmall<2>& rhs);
+    void computeRhs ( const VectorSmall<2>& v, VectorSmall<2>& rhs);
 
     // compute the rhs with state variable interpolation
-    Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
+    Real computeLocalPotentialRhs ( const std::vector<Real>& v );
 
     //compute the Jacobian
     matrix_Type getJac(const vector_Type& v, Real h=1.0e-8);

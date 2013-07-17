@@ -191,7 +191,8 @@ Int main ( Int argc, char** argv )
         // Compute the rhs using the model equations  //
         //********************************************//
         xb.computeRhs ( XbStates, Ca, vel, XbRhs);
-        ionicModel.computeRhs ( states, Iapp, rhs);
+        ionicModel.setAppliedCurrent(Iapp);
+        ionicModel.computeRhs ( states, rhs);
 
         //********************************************//
         // Use forward Euler method to advance the    //

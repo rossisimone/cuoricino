@@ -461,14 +461,17 @@ public:
     	  return ( INa(V,m,h,j) + Isi(V, d, f, Ca) + IK(V, X) + IK1(V) + IK1(V) + IKp(V) + Ib(V) );
       }
     //Compute the rhs on a single node or for the 0D case
+    void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
+
+    void computeNonGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs );
+
+
     void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
 
-    void computeRhs ( const std::vector<Real>& v, const Real& Iapp, std::vector<Real>& rhs);
-
-    Real computeGatingVariablesWithRushLarsen( const Real V, const Real gatingVariable, const int gatingVariableNumber, const Real dt  );
+    void computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt );
 
     // compute the rhs with state variable interpolation
-    Real computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp);
+    Real computeLocalPotentialRhs ( const std::vector<Real>& v );
 
     //! Display information about the model
     void showMe();

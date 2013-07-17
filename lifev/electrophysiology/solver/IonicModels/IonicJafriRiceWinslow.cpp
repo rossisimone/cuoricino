@@ -327,7 +327,7 @@
 	//! Methods
 	// ===================================================
 	//Only gating variables
-	void IonicJafriRiceWinslow::computeRhs ( const std::vector<Real>&  v,
+	void IonicJafriRiceWinslow::computeGatingRhs ( const std::vector<Real>&  v,
 											 std::vector<Real>& rhs )
 	{
 		std::vector<Real> gatingRhs     ( computeLocalGatingRhs(v) );
@@ -351,7 +351,6 @@
 
 	//Potential and gating variables
 	void IonicJafriRiceWinslow::computeRhs (const   std::vector<Real>&  v,
-											 const   Real&           Iapp,
 											 std::vector<Real>& rhs )
 	{
 		std::vector<Real> gatingRhs     ( computeLocalGatingRhs(v) );
@@ -360,7 +359,7 @@
 		std::vector<Real> channelRyrRhs ( computeLocalChannelRyrRhs(v) );
 
 
-		rhs[0] = computeLocalPotentialRhs(v, Iapp);
+		rhs[0] = computeLocalPotentialRhs(v);
 
 		std::copy( gatingRhs.begin(), gatingRhs.end(), rhs.begin() + 1 );
 
@@ -377,7 +376,7 @@
 	}
 
 
-	Real IonicJafriRiceWinslow::computeLocalPotentialRhs ( const std::vector<Real>& v, const Real& Iapp )
+	Real IonicJafriRiceWinslow::computeLocalPotentialRhs ( const std::vector<Real>& v )
 	{
 		std::vector<Real> courSubSysCa ( computeLocalSubSysCaRhs(v) );
 		std::vector<Real> courINa	   ( fastINa(v) );
@@ -385,7 +384,7 @@
 		std::vector<Real> courInsCa    ( noSpecInsCa(v) );
 
 		return  ( 1 / M_Cm ) * ( - ( courINa[0] + courSubSysCa[0] + courDIK[0] + timeIIK1(v) + plaIKp(v) + exINaCa(v)
-				+ pumpINaK(v) + courInsCa[3] + pumpIpCa(v) + backICab(v) + courSubSysCa[1] + backINab(v) ) + Iapp );
+				+ pumpINaK(v) + courInsCa[3] + pumpIpCa(v) + backICab(v) + courSubSysCa[1] + backINab(v) ) );
 	}
 
 	std::vector<Real> IonicJafriRiceWinslow::computeLocalGatingRhs ( const std::vector<Real>& v )

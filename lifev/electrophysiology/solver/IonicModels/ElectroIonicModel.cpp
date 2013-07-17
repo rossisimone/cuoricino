@@ -48,29 +48,46 @@ namespace LifeV
 ElectroIonicModel::ElectroIonicModel() :
     M_numberOfEquations (0),
     M_numberOfGatingVariables(0),
-	M_restingConditions	()
+	M_restingConditions	(),
+	M_membraneCapacitance(1.),
+	M_appliedCurrent	(0.),
+	M_appliedCurrentPtr(),
+	M_pacingProtocol ()
 {
 }
 
 ElectroIonicModel::ElectroIonicModel ( int n ) :
     M_numberOfEquations (n),
     M_numberOfGatingVariables(0),
-	M_restingConditions (std::vector<Real>(M_numberOfEquations, 0.0) )
+	M_restingConditions (std::vector<Real>(M_numberOfEquations, 0.0) ),
+	M_membraneCapacitance(1.),
+	M_appliedCurrent	(0.),
+	M_appliedCurrentPtr(),
+	M_pacingProtocol ()
 {
 }
 
 ElectroIonicModel::ElectroIonicModel ( int n, int g ) :
     M_numberOfEquations (n),
     M_numberOfGatingVariables(g),
-	M_restingConditions (std::vector<Real>(M_numberOfEquations, 0.0) )
+	M_restingConditions (std::vector<Real>(M_numberOfEquations, 0.0) ),
+	M_membraneCapacitance(1.),
+	M_appliedCurrent	(0.),
+	M_appliedCurrentPtr(),
+	M_pacingProtocol ()
 {
 }
 
 ElectroIonicModel::ElectroIonicModel ( const ElectroIonicModel& Ionic ) :
     M_numberOfEquations ( Ionic.Size() ),
     M_numberOfGatingVariables ( Ionic.numberOfGatingVariables() ),
-    M_restingConditions ( Ionic.restingConditions() )
+    M_restingConditions ( Ionic.restingConditions() ),
+	M_membraneCapacitance( Ionic.M_membraneCapacitance ),
+	M_appliedCurrent	( Ionic.M_appliedCurrent ),
+	M_pacingProtocol (Ionic.M_pacingProtocol)
 {
+	if(Ionic.M_appliedCurrent)
+	M_appliedCurrentPtr = Ionic.M_appliedCurrentPtr;
 }
 
 // ===================================================
@@ -81,7 +98,13 @@ ElectroIonicModel& ElectroIonicModel::operator = ( const ElectroIonicModel& Ioni
 	M_numberOfEquations = Ionic.M_numberOfEquations;
     M_numberOfGatingVariables = Ionic.M_numberOfGatingVariables;
     M_restingConditions = Ionic.M_restingConditions;
-	return      *this;
+    M_membraneCapacitance = Ionic.M_membraneCapacitance;
+    M_appliedCurrent = Ionic.M_appliedCurrent;
+	if(Ionic.M_appliedCurrent)
+	M_appliedCurrentPtr = Ionic.M_appliedCurrentPtr;
+	M_pacingProtocol = Ionic.M_pacingProtocol;
+
+    return      *this;
 }
 
 vector< vector<Real> > ElectroIonicModel::getJac (const vector<Real>& v, Real h)
@@ -99,8 +122,10 @@ vector< vector<Real> > ElectroIonicModel::getJac (const vector<Real>& v, Real h)
 			y1[j] = v[j] + ((double)(i==j))*h;
 			y2[j] = v[j] - ((double)(i==j))*h;
 		}
-		this->computeRhs(y1, 0.0, f1);
-		this->computeRhs(y2, 0.0, f2);
+		this->computeRhs(y1, f1);
+		f1[0] += M_appliedCurrent;
+		this->computeRhs(y2, f2);
+		f2[0] += M_appliedCurrent;
 
 		for(int j=0; j<M_numberOfEquations; j++)
 			J[j][i] = (f1[j]-f2[j])/(2.0*h);
@@ -112,68 +137,50 @@ vector< vector<Real> > ElectroIonicModel::getJac (const vector<Real>& v, Real h)
 MatrixEpetra<Real> ElectroIonicModel::getJac (const vector_Type& v, Real h)
 {
 	matrix_Type J(v.map(), M_numberOfEquations, false);
-	vector<Real> f1(M_numberOfEquations,0.0);
-	vector<Real> f2(M_numberOfEquations,0.0);
-	vector< vector<Real> > df ( M_numberOfEquations, vector<Real> (M_numberOfEquations,0.0) );
-	vector<Real> y1(M_numberOfEquations,0.0);
-	vector<Real> y2(M_numberOfEquations,0.0);
-	const Int* k = v.blockMap().MyGlobalElements();
-
-	int* Indices = new int[M_numberOfEquations];
-	double* Values =  new double[M_numberOfEquations];
-	for(int i=0; i<M_numberOfEquations; i++)
-		Indices[i] = i;
-
-	for(int i=0; i<M_numberOfEquations; i++)
-	{
-		for(int j=0; j<M_numberOfEquations; j++)
-		{
-			y1[j] = v[ k[j] ] + ((double)(i==j))*h;
-			y2[j] = v[ k[j] ] - ((double)(i==j))*h;
-		}
-		this->computeRhs(y1, 0.0, f1);
-		this->computeRhs(y2, 0.0, f2);
-
-		for(int j=0; j<M_numberOfEquations; j++)
-			df[j][i] = (f1[j]-f2[j])/(2.0*h);
-	}
-
-
-	for(int i=0; i<M_numberOfEquations; i++)
-	{
-		for(int j=0; j<M_numberOfEquations; j++)
-			Values[j] = df[i][j];
-		J.matrixPtr()->InsertGlobalValues (i, M_numberOfEquations, Values, Indices);
-	}
-
-	J.globalAssemble();
-
-	delete[] Indices;
-	delete[] Values;
+//	vector<Real> f1(M_numberOfEquations,0.0);
+//	vector<Real> f2(M_numberOfEquations,0.0);
+//	vector< vector<Real> > df ( M_numberOfEquations, vector<Real> (M_numberOfEquations,0.0) );
+//	vector<Real> y1(M_numberOfEquations,0.0);
+//	vector<Real> y2(M_numberOfEquations,0.0);
+//	const Int* k = v.blockMap().MyGlobalElements();
+//
+//	int* Indices = new int[M_numberOfEquations];
+//	double* Values =  new double[M_numberOfEquations];
+//	for(int i=0; i<M_numberOfEquations; i++)
+//		Indices[i] = i;
+//
+//	for(int i=0; i<M_numberOfEquations; i++)
+//	{
+//		for(int j=0; j<M_numberOfEquations; j++)
+//		{
+//			y1[j] = v[ k[j] ] + ((double)(i==j))*h;
+//			y2[j] = v[ k[j] ] - ((double)(i==j))*h;
+//		}
+//		this->computeRhs(y1, f1);
+//		this->computeRhs(y2, f2);
+//
+//		for(int j=0; j<M_numberOfEquations; j++)
+//			df[j][i] = (f1[j]-f2[j])/(2.0*h);
+//	}
+//
+//
+//	for(int i=0; i<M_numberOfEquations; i++)
+//	{
+//		for(int j=0; j<M_numberOfEquations; j++)
+//			Values[j] = df[i][j];
+//		J.matrixPtr()->InsertGlobalValues (i, M_numberOfEquations, Values, Indices);
+//	}
+//
+//	J.globalAssemble();
+//
+//	delete[] Indices;
+//	delete[] Values;
 
 	return J;
 }
 
-void ElectroIonicModel::computeRhs ( const vector_Type& v, const Real& Iapp, vector_Type& rhs)
-{
-	std::vector<Real> vec(M_numberOfEquations, 0.0);
-	std::vector<Real> f(M_numberOfEquations, 0.0);
-	const Int* j = v.blockMap().MyGlobalElements();
-	const Int* i = rhs.blockMap().MyGlobalElements();
 
-	for(int k=0; k<M_numberOfEquations; k++)
-		vec[k] = v[j[k]];
-
-	this->computeRhs(vec, Iapp, f);
-
-	for(int k=0; k<M_numberOfEquations; k++)
-			rhs[i[k]] = f[k];
-
-	//delete j;
-	//delete i;
-}
-
-void ElectroIonicModel::computeRhs (   const std::vector<vectorPtr_Type>& v,
+void ElectroIonicModel::computeGatingRhs (   const std::vector<vectorPtr_Type>& v,
                                      std::vector<vectorPtr_Type>& rhs )
 {
 
@@ -195,7 +202,10 @@ void ElectroIonicModel::computeRhs (   const std::vector<vectorPtr_Type>& v,
             localVec.at (i) = ( * ( v.at (i) ) ) [j];
         }
 
-        computeRhs ( localVec, localRhs );
+        if(M_appliedCurrentPtr) M_appliedCurrent = (*M_appliedCurrentPtr)[j];
+        else M_appliedCurrent = 0.0;
+
+        computeGatingRhs ( localVec, localRhs );
 
         for ( int i = 1; i < M_numberOfEquations; i++ )
         {
@@ -206,13 +216,49 @@ void ElectroIonicModel::computeRhs (   const std::vector<vectorPtr_Type>& v,
 
 }
 
-
-void ElectroIonicModel::computeRhs (   const std::vector<vectorPtr_Type>& v,
-                                     const VectorEpetra& Iapp,
+void ElectroIonicModel::computeNonGatingRhs (   const std::vector<vectorPtr_Type>& v,
                                      std::vector<vectorPtr_Type>& rhs )
 {
 
-    int nodes = Iapp.epetraVector().MyLength();
+    int nodes = ( * (v.at (1) ) ).epetraVector().MyLength();
+
+
+    std::vector<Real>   localVec ( M_numberOfEquations, 0.0 );
+    int offset = 1 + M_numberOfGatingVariables;
+    std::vector<Real>   localRhs ( M_numberOfEquations - offset, 0.0 );
+
+    int j (0);
+
+    for ( int k = 0; k < nodes; k++ )
+    {
+
+        j = ( * (v.at (1) ) ).blockMap().GID (k);
+
+        for ( int i = 0; i < M_numberOfEquations; i++ )
+        {
+            localVec.at (i) = ( * ( v.at (i) ) ) [j];
+        }
+
+        if(M_appliedCurrentPtr) M_appliedCurrent = (*M_appliedCurrentPtr)[j];
+        else M_appliedCurrent = 0.0;
+
+        computeNonGatingRhs ( localVec, localRhs );
+
+        for ( int i = offset; i < M_numberOfEquations; i++ )
+        {
+            ( * ( rhs.at (i) ) ) [j] =  localRhs.at (i - offset);
+        }
+
+    }
+
+}
+
+
+void ElectroIonicModel::computeRhs (   const std::vector<vectorPtr_Type>& v,
+                                     std::vector<vectorPtr_Type>& rhs )
+{
+
+    int nodes = ( * (v.at (1) ) ).epetraVector().MyLength();
 
 
     std::vector<Real>   localVec ( M_numberOfEquations, 0.0 );
@@ -223,14 +269,18 @@ void ElectroIonicModel::computeRhs (   const std::vector<vectorPtr_Type>& v,
     for ( int k = 0; k < nodes; k++ )
     {
 
-        j = Iapp.blockMap().GID (k);
+        j = ( * (v.at (1) ) ).blockMap().GID (k);
 
         for ( int i = 0; i < M_numberOfEquations; i++ )
         {
             localVec.at (i) = ( * ( v.at (i) ) ) [j];
         }
 
-        computeRhs ( localVec, Iapp[j], localRhs );
+
+        if(M_appliedCurrentPtr) M_appliedCurrent = (*M_appliedCurrentPtr)[j];
+        else M_appliedCurrent = 0.0;
+        computeRhs ( localVec, localRhs );
+        localRhs[0] += M_appliedCurrent;
 
         for ( int i = 0; i < M_numberOfEquations; i++ )
         {
@@ -242,13 +292,12 @@ void ElectroIonicModel::computeRhs (   const std::vector<vectorPtr_Type>& v,
 }
 
 void ElectroIonicModel::computePotentialRhsICI (   const std::vector<vectorPtr_Type>& v,
-                                                 const VectorEpetra& Iapp,
                                                  std::vector<vectorPtr_Type>& rhs,
                                                  matrix_Type&                    massMatrix  )
 {
     int nodes = ( * (v.at (0) ) ).epetraVector().MyLength();
 
-
+    ( * ( rhs.at (0) ) ) *= 0.0;
     std::vector<Real>   localVec ( M_numberOfEquations, 0.0 );
 
     int j (0);
@@ -263,7 +312,10 @@ void ElectroIonicModel::computePotentialRhsICI (   const std::vector<vectorPtr_T
             localVec.at (i) = ( * ( v.at (i) ) ) [j];
         }
 
-        ( * ( rhs.at (0) ) ) [j] =  computeLocalPotentialRhs ( localVec, Iapp[j] );
+        if(M_appliedCurrentPtr) M_appliedCurrent = (*M_appliedCurrentPtr)[j];
+        else M_appliedCurrent = 0.0;
+
+        ( * ( rhs.at (0) ) ) [j] =  computeLocalPotentialRhs ( localVec ) + M_appliedCurrent;
 
     }
 
@@ -273,7 +325,6 @@ void ElectroIonicModel::computePotentialRhsICI (   const std::vector<vectorPtr_T
 
 
 void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_Type>& v,
-                                                 const VectorEpetra& Iapp,
                                                  std::vector<vectorPtr_Type>& rhs,
                                                  FESpace<mesh_Type, MapEpetra>& uFESpace )
 {
@@ -288,7 +339,9 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
         URepPtr.push_back ( * ( new vectorPtr_Type ( new VectorEpetra (  * ( v.at (k) )     , Repeated ) ) ) );
     }
 
-    VectorEpetra    IappRep ( Iapp       , Repeated );
+    VectorEpetra    IappRep ( uFESpace.map(), Repeated );
+    if(M_appliedCurrentPtr)     IappRep = (*( new VectorEpetra ( *M_appliedCurrentPtr , Repeated ) ) );
+    else IappRep *= 0.0;
 
 
     std::vector<elvecPtr_Type>      elvecPtr;
@@ -356,7 +409,7 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
             for ( UInt i = 0; i < uFESpace.fe().nbFEDof(); i++ )
             {
 
-                elvec_Iion ( i ) += computeLocalPotentialRhs (U, I) * uFESpace.fe().phi ( i, ig ) * uFESpace.fe().weightDet ( ig );
+                elvec_Iion ( i ) += ( computeLocalPotentialRhs (U) + I ) * uFESpace.fe().phi ( i, ig ) * uFESpace.fe().weightDet ( ig );
 
             }
 
@@ -371,6 +424,35 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
     }
 }
 
+
+void ElectroIonicModel::computeGatingVariablesWithRushLarsen ( std::vector<vectorPtr_Type>& v, const Real dt )
+{
+    int nodes = ( * (v.at (0) ) ).epetraVector().MyLength();
+
+    std::vector<Real>   localVec ( M_numberOfEquations, 0.0 );
+
+    int j (0);
+
+    for ( int k = 0; k < nodes; k++ )
+    {
+
+        j = ( * (v.at (0) ) ).blockMap().GID (k);
+
+        for ( int i = 0; i < M_numberOfEquations; i++ )
+        {
+            localVec.at (i) = ( * ( v.at (i) ) ) [j];
+        }
+
+        computeGatingVariablesWithRushLarsen(localVec, dt);
+
+        for ( int i = 0; i < M_numberOfEquations; i++ )
+        {
+            ( * ( v.at (i) ) ) [j] =  localVec.at (i);
+        }
+
+    }
+
+}
 void ElectroIonicModel::initialize( std::vector<Real>& v )
 {
 	for(int i(0); i <  M_numberOfEquations; i++ )

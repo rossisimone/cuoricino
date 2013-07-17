@@ -184,7 +184,9 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.computeRhs ( unknowns, Iapp, rhs);
+        model.setAppliedCurrent(Iapp);
+        model.computeRhs ( unknowns, rhs);
+        rhs[0] += Iapp;
 
         //********************************************//
         // Use forward Euler method to advance the    //
