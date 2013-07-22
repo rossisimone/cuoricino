@@ -29,4 +29,5 @@ ADD_SUBDIRECTORIES(
   Restart
   RosenbrockTest
   CreateIdealizedFiberAndSheetDirection
+  RosenbrockTest
 )

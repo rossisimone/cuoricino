@@ -1,0 +1,104 @@
+###################################################################################################
+#
+#                       This file is part of the LifeV Library
+#                Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
+#                Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
+#
+#      Author(s): Umberto Villa <uvilla@emory.edu>
+#                 Tiziano Passerini <tiziano@mathcs.emory.edu>
+#           Date: 10-12-2010
+#  License Terms: GNU LGPL
+#
+###################################################################################################
+### TESTSUITE: STRUCTURE MECHANICS ################################################################
+###################################################################################################
+#-------------------------------------------------
+#      Data file for Structure Solver
+#-------------------------------------------------
+
+
+
+
+[problem]
+
+ 
+
+   [./boundary_conditions]
+#    list = 'le re apex lv rv rvs'
+    list = 'Endo Epi'
+
+        [./le]
+        type       = Essential
+        flag       = 99
+        mode       = Full
+        component  = 1
+		function  = '1.0'
+		
+        [../re]
+        type       = Essential
+        flag       = 5
+        mode       = Full
+        component  = 1
+		function  = '1.0'
+
+        [../apex]
+        type       = Essential
+        flag       = 3
+        mode       = Full
+        component  = 1
+		function  = '1.0'
+		
+        [../lv]
+        type       = Essential
+        flag       = 1
+        mode       = Full
+        component  = 1
+		function  = '0.0'
+		
+				
+        [../rv]
+        type       = Essential
+        flag       = 2
+        mode       = Full
+        component  = 1
+		function  = '0.0'
+		
+        [../rvs]
+        type       = Essential
+        flag       = 4
+        mode       = Full
+        component  = 1
+		function  = '1.0'
+
+        [../Top]
+        type       = Natural
+        flag       = 300
+        mode       = Full
+        component  = 1
+		function  = '0.0'
+
+        [../Endo]
+        type       = Essential
+        flag       = 5
+        mode       = Full
+        component  = 1
+		function  = '0.0'
+        
+
+        [../Epi]
+        type       = Essential
+        flag       = 10
+        mode       = Full
+        component  = 1
+		function  = '1.0'
+        
+    
+        [../]
+[../]
+
+[exporter]
+type       = hdf5 #ensight 			# hdf5 (if library compiled with hdf5 support) or ensight
+multimesh  = false
+start      = 0
+save       = 1
+ 
