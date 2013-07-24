@@ -228,7 +228,7 @@ public:
     //inline const short int& Size() const { return M_numberOfEquations; }
 
    inline Real Ek( Real Ki) { return RTONF * std::log( ( Ko / Ki ) ); }
-   inline Real Ena(Real Nai){ return RTONF * std::log( ( Nao/Nai ) ); }
+   inline Real Ena(Real Nai){ return RTONF * std::log( ( Nao / Nai ) ); }
    inline Real Eks(Real Ki, Real Nai)
    	   {
 	   	   return RTONF * std::log( ( Ko + pKNa * Nao ) / ( Ki + pKNa * Nai ) );
@@ -334,7 +334,8 @@ public:
 		      INaK(V, Nai)  +
 		      INaCa(V, Nai, Cai) +
 		      IpCa(Cai)  +
-		      IpK(V, Ki);
+		      IpK(V, Ki)
+		      +  M_appliedCurrent;
    }
 
    //update concentrations
@@ -825,6 +826,7 @@ public:
     //! Display information about the model
     void showMe();
 
+    void solveOneStep(std::vector<Real>& v, Real dt);
     //! Solves the ionic model
     //virtual void solveXbModel( const vector_Type& Calcium,
     //                           const Real timeStep )=0;

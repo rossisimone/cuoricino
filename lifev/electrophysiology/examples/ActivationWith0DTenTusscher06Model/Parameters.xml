@@ -1,0 +1,13 @@
+<!-- Model Parameters -->
+<ParameterList name="Aliev Panfilov: Parameter list">
+	<Parameter name="TF" type="double" value="3100"/>
+	<Parameter name="dt" type="double" value="0.001"/>
+	<Parameter name="Iapp" type="double" value="-38."  />
+	<Parameter name="savestep" type="double" value="0.1"  />
+	<Parameter name="FE" type="bool" value="true"  />
+	<Parameter name="gfi" type="double" value="0."  />
+	<Parameter name="alpha" type="double" value="-3"  />
+	<Parameter name="eta" type="double" value="200."  />
+</ParameterList>
+
+	

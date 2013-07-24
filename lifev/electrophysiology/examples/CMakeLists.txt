@@ -14,6 +14,7 @@ ADD_SUBDIRECTORIES(
   0DNegroniLascanoModelJafriRiceWinslow
   0DFitzHughNagumoModel
   0DFoxModel
+  ActivationWith0DTenTusscher06Model
   FiberInterpolation
   basic_example
   ETA_MonodomainSolver
@@ -29,5 +30,4 @@ ADD_SUBDIRECTORIES(
   Restart
   RosenbrockTest
   CreateIdealizedFiberAndSheetDirection
-  RosenbrockTest
 )

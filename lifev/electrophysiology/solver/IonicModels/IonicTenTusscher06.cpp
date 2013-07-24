@@ -98,12 +98,14 @@ IonicTenTusscher06::IonicTenTusscher06()  :
 		//Parameters for Iks
 		pKNa=0.03;
 
-		Gks=0.098;
+		if(flag == MCell) Gks = 0.098;
+		else Gks = 0.932;
 		//Parameters for Ik1
 		GK1=5.405;
 		//Parameters for Ito
 
-		Gto=0.294;
+		if(flag == Endo) Gks = 0.073;
+		else Gto = 0.294;
 
 		//Parameters for INa
 		GNa=14.838;
@@ -129,9 +131,9 @@ IonicTenTusscher06::IonicTenTusscher06()  :
 		//Parameters for IpK;
 		GpK=0.0146;
 
-	    inverseVcF2=1/(2*Vc*F);
+	    inverseVcF2=1./(2.*Vc*F);
 	    inverseVcF=1./(Vc*F);
-	    inversevssF2=1/(2*Vss*F);
+	    inversevssF2=1./(2.*Vss*F);
 
 //		computeRTONF();
 //	computeInverseVcF();
@@ -689,6 +691,49 @@ void IonicTenTusscher06::showMe()
     std::cout << "\n************************************\n\n";
 }
 
+void IonicTenTusscher06::solveOneStep(std::vector<Real>& v, Real dt)
+{
+    Real V = v[0];
+    Real m = v[1];
+	Real h = v[2];
+    Real j = v[3];
+    Real d = v[4];
+    Real f = v[5];
+    Real f2 = v[6];
+    Real fcass = v[7];
+    Real r = v[8];
+    Real s = v[9];
+    Real xr1 = v[10];
+    Real xr2 = v[11];
+    Real xs = v[12];
+    Real Nai = v[13];
+    Real Ki = v[14];
+    Real Cai = v[15];
+    Real CaSS = v[16];
+    Real CaSR = v[17];
+    Real RR = v[18];
+
+    v[0] = solveV(V, m, h, j, d, f, f2, fcass, r, s, xr1, xr2, xs, Nai, Ki, Cai, CaSS, dt);
+    v[1] = solveM(V,m,dt);
+    v[2] = solveH(V,h,dt);
+    v[3] = solveJ(V,h,dt);
+    v[4] = solveD(V,d,dt);
+    v[5] = solveF(V,f,dt);
+    v[6] = solveF2(V,f2,dt);
+    v[7] = solveFCaSS(CaSS, fcass, dt);
+    v[8] = solveR(V,r,dt);
+    v[9] = solveS(V,s,dt);
+    v[10] = solveXr1(V,xr1,dt);
+    v[11] = solveXr2(V,xr2,dt);
+    v[12] = solveXs(V,xs,dt);
+    v[13] = solveNai(V, m, h, j, Nai, Cai, dt);
+    v[14] = solveKi(V, r, s, xr1, xr2, xs, Nai, Ki, dt);
+    v[15] =  solveCai(V,Nai,Cai,CaSR,CaSS,dt);
+    v[16] = solveCaSS(Cai,CaSR,CaSS,RR,V,d,f,f2,fcass,dt);
+    v[17] = solveCaSR(Cai,CaSR,CaSS,RR,dt);
+    v[18] = solveRR(CaSR,CaSS,RR,dt);
+
+}
 
 }
 
