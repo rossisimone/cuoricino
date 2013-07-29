@@ -356,8 +356,8 @@ void RBFvectorial<mesh_Type>::projectionOperator()
         delete GlobalID;
     }
 
-    if(M_basis=="BW"){
-
+    if(M_basis=="BW")
+    {
         std::vector<std::set<ID> > MatrixGraph (LocalNodesNumber);
         int* ElementsPerRow = new int[LocalNodesNumber];
         int* GlobalID = new int[LocalNodesNumber];
@@ -560,6 +560,7 @@ double RBFvectorial<mesh_Type>::rbf (double x1, double y1, double z1, double x2,
             return std::abs(distance/radius)*std::abs(distance/radius)*std::log(distance/radius);
     else if(M_basis=="IMQ")
         return 1/std::sqrt( std::abs(distance)*std::abs(distance) + radius*radius);
+
 }
 
 template <typename mesh_Type>
