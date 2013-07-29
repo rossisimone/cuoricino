@@ -1,12 +1,3 @@
-#include <lifev/core/array/MatrixSmall.hpp>
-
-namespace LifeV
-{
-
-// forward declaration
-template< UInt spaceDim, UInt FieldDim >
-class ETCurrentFE;
-
 ///*!
 // ETCurrenteFE is a template class.
 // This is the non-specialized class used with fieldDim = 3 or 2 (using faster VectorSmall return objects)
