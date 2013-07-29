@@ -50,8 +50,8 @@ struct partitioner
     template<typename M>
     static void dopartition (boost::shared_ptr<M>& mesh_p, comm_t comm)
     {
-        mesh_p->updateElementFacets (true, true);
-        mesh_p->updateElementRidges (true, true);
+        updateMeshFacets ( *mesh_p, true, true );
+        updateMeshRidges ( *mesh_p, true, true );
 
         LifeV::MeshPartitioner<M> part (mesh_p, comm);
     }

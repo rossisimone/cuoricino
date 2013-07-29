@@ -577,7 +577,7 @@ setup ()
     //make sure mesh facets are updated
     if (! M_FESpace.mesh()->hasLocalFacets() )
     {
-        M_FESpace.mesh()->updateElementFacets();
+        updateMeshFacets ( * ( M_FESpace.mesh() ) );
     }
 
 } // setup

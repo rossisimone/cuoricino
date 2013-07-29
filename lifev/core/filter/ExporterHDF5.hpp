@@ -47,6 +47,7 @@ along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-pedantic"
 
 #include <EpetraExt_DistArray.h>
 #include <EpetraExt_HDF5.h>
@@ -58,6 +59,7 @@ along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
+#pragma GCC diagnostic warning "-pedantic"
 
 #include <lifev/core/LifeV.hpp>
 

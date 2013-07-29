@@ -684,8 +684,8 @@ typename ExporterHDF5Mesh3D<MeshType>::meshPtr_Type ExporterHDF5Mesh3D<MeshType>
     volumeMarkers.clear();
     volumeGlobalId.clear();
 
-    tempMesh->updateElementEdges (false, false);
-    tempMesh->updateElementFaces (false, false);
+    updateMeshRidges ( *tempMesh, false, false);
+    updateMeshFacets ( *tempMesh, false, false);
 
     return tempMesh;
 }

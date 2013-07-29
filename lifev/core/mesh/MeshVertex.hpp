@@ -205,12 +205,27 @@ public:
 
     //! Returns the coordinates vector
     /*!
-        The method allows to access coordinates and modify them
+        The method allows to access coordinates
         @return Coordinates array
     */
     Vector3D const& coordinates () const
     {
         return M_coordinates;
+    }
+
+    //@}
+
+    //! @name Set Methods
+    //@{
+
+    //! Sets the coordinates vector
+    /*!
+        The method allows to set the coordinates
+        @coord Coordinates array to be set
+    */
+    void setCoordinates ( Vector3D const& coord )
+    {
+        M_coordinates = coord;
     }
 
     //@}

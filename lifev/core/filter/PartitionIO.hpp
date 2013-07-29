@@ -41,6 +41,7 @@ along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 // Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-pedantic"
 
 #include <Epetra_config.h>
 
@@ -52,6 +53,7 @@ along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 //Tell the compiler to restore the warning previously silented
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
+#pragma GCC diagnostic warning "-pedantic"
 
 #include<lifev/core/LifeV.hpp>
 #include <lifev/core/filter/HDF5IO.hpp>
@@ -1124,8 +1126,8 @@ void PartitionIO<MeshType>::readElements()
         }
     }
 
-    M_meshPartIn->updateElementEdges (false, false);
-    M_meshPartIn->updateElementFaces (false, false);
+    updateMeshRidges ( *M_meshPartIn, false, false);
+    updateMeshFacets ( *M_meshPartIn, false, false);
 }
 
 } /* namespace LifeV */

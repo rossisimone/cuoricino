@@ -39,7 +39,7 @@
 
 #include <lifev/core/LifeV.hpp>
 
-#include <lifev/core/mesh/RegionMesh2DStructured.hpp>
+#include <lifev/core/mesh/RegionMeshStructured.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 
 #ifdef HAVE_HDF5

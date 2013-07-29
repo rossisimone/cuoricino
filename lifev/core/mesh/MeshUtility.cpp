@@ -35,6 +35,12 @@
  */
 
 #include <lifev/core/mesh/MeshUtility.hpp>
+#include <lifev/core/util/LifeChrono.hpp>
+#include <lifev/core/util/Displayer.hpp>
+#include <lifev/core/mesh/MeshData.hpp>
+#include <lifev/core/mesh/RegionMesh3DStructured.hpp>
+#include <lifev/core/mesh/MeshPartitioner.hpp>
+#include <lifev/core/filter/PartitionIO.hpp>
 
 namespace LifeV
 {
@@ -85,6 +91,22 @@ const
     ret[ 1 ] = 1.0;
     ret[ 2 ] = 1.0;
 }
+
+
+//void
+//printMeshInfos( boost::shared_ptr<RegionMesh<LinearTetra, defaultMarkerCommon_Type > > mesh )
+//{
+//#ifdef HAVE_MPI
+//    boost::shared_ptr<Epetra_Comm> Comm( new Epetra_MpiComm( MPI_COMM_WORLD ) );
+//#else
+//    boost::shared_ptr<Epetra_Comm> Comm( new Epetra_SerialComm );
+//#endif
+//  Displayer displayer( Comm );
+//    MeshUtility::MeshStatistics::meshSize meshSize = MeshUtility::MeshStatistics::computeSize( *mesh );
+//    displayer.leaderPrint( "Mesh size (max): ", meshSize.maxH, "\n" );
+//    displayer.leaderPrint( "Mesh size (min): ", meshSize.minH, "\n" );
+//    displayer.leaderPrint( "Mesh size (av.): ", meshSize.meanH, "\n" );
+//}
 
 } // namespace MeshUtility
 
