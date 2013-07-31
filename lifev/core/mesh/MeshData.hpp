@@ -193,7 +193,7 @@ void readMesh ( RegionMesh<LinearTriangle, MC>& mesh, const MeshData& data )
     }
 
     //Update Edges
-    mesh.updateElementFacets (true);
+    updateMeshFacets ( mesh, true );
 
     if ( data.verbose() )
     {
@@ -215,7 +215,7 @@ void readMesh ( RegionMesh<GEOSHAPE, MC>& mesh, const MeshData& data )
     {
         BareMesh<GEOSHAPE> bareMesh;
         MeshIO::ReadINRIAMeshFile ( bareMesh, data.meshDir() + data.meshFile(), 1, data.verbose() );
-        convertBareMesh ( bareMesh, mesh );
+        convertBareMesh ( bareMesh, mesh, data.verbose() );
         //  readINRIAMeshFile( mesh, data.meshDir() + data.meshFile(), 1, data.verbose() );
     }
     else if ( data.meshType() == ".m++" )
@@ -238,8 +238,8 @@ void readMesh ( RegionMesh<GEOSHAPE, MC>& mesh, const MeshData& data )
     //Update Edges & Faces
     if (updateEdgesAndFaces)
     {
-        mesh.updateElementRidges ( true, data.verbose() );
-        mesh.updateElementFacets ( true, data.verbose() );
+        updateMeshRidges ( mesh, true, data.verbose() );
+        updateMeshFacets ( mesh, true, data.verbose() );
     }
 
     if ( data.verbose() )

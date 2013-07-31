@@ -57,12 +57,6 @@ along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 #pragma GCC diagnostic warning "-Wunused-parameter"
 #pragma GCC diagnostic warning "-pedantic"
 
-#ifndef HAVE_HDF5
-
-#warning warning you should reconfigure with --with-hdf5=... flag
-
-#else
-
 #include <lifev/core/LifeV.hpp>
 
 #include <lifev/core/array/MapEpetra.hpp>

@@ -3,6 +3,7 @@ SET(array_HEADERS
   array/VectorEpetra.hpp
   array/MapVector.hpp
   array/VectorSmall.hpp
+  array/MatrixSmall.hpp
   array/RNMTemplate.hpp
   array/MatrixEpetraStructuredUtility.hpp
   array/MatrixEpetraStructuredView.hpp

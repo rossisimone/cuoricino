@@ -57,7 +57,7 @@
 
 #include <lifev/core/mesh/ElementShapes.hpp>
 
-#include <lifev/core/mesh/MeshEntity.hpp>
+#include <lifev/core/mesh/UpdateMeshFacetsRidges.hpp>
 
 namespace LifeV
 {
@@ -341,13 +341,13 @@ void DOF::update ( MeshType& mesh )
     bool update_ridges ( nbLocalDofPerRidge != 0 && ! mesh.hasLocalRidges() && (MeshType::S_geoDimensions == 3) );
     if ( update_ridges )
     {
-        mesh.updateElementRidges();
+        updateMeshRidges ( mesh );
     }
 
     bool update_facets ( nbLocalDofPerFacet != 0 && ! mesh.hasLocalFacets() );
     if ( update_facets )
     {
-        mesh.updateElementFacets();
+        updateMeshFacets ( mesh );
     }
 
     UInt gcount ( 0 );

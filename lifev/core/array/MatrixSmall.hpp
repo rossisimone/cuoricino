@@ -237,7 +237,7 @@ public:
         return (tmp /= factor);
     }
 
-    //! Operator * (division by scalar)
+    //! Operator * (multiplication by scalar)
     MatrixSmall<Dim1, Dim2> operator* ( Real const& factor ) const
     {
         MatrixSmall<Dim1, Dim2> tmp ( *this );
@@ -280,7 +280,7 @@ public:
 
     //! Operator []
     //const OpIndexReturnType operator[] ( UInt const & i ) const
-    OpIndexReturnConstType const& operator[] ( UInt const& i ) const
+    OpIndexReturnConstType const operator[] ( UInt const& i ) const
     {
         ASSERT ( i < Dim1, "trying to access an index that exceeds the first dimension of the matrix" );
         return (M_coords [ i ]);
@@ -646,7 +646,24 @@ inline VectorSmall<Dim1> operator* ( VectorSmall<Dim2> const& vector, MatrixSmal
     return (matrix * vector);
 }
 
-
+//! Operator * (multiplication by a matrix)
+template <UInt Dim1, UInt Dim2, UInt Dim3>
+inline MatrixSmall<Dim1, Dim3>  operator* ( MatrixSmall<Dim1, Dim2> const& matrix1, MatrixSmall<Dim2, Dim3> const& matrix2 )
+{
+    MatrixSmall<Dim1, Dim3> resultMatrix;
+    for ( UInt j = 0; j < Dim3; j++ )
+    {
+        for ( UInt i = 0; i < Dim1; i++ )
+        {
+            resultMatrix ( i, j ) = 0;
+            for ( UInt k = 0; k < Dim2; k++ )
+            {
+                resultMatrix ( i, j ) += matrix1 ( i, k ) * matrix2 ( k , j );
+            }
+        }
+    }
+    return (resultMatrix);
+}
 
 //@}
 

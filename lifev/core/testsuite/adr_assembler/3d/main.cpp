@@ -64,7 +64,7 @@
 #include <lifev/core/fem/BCManage.hpp>
 
 #include <lifev/core/mesh/MeshPartitioner.hpp>
-#include <lifev/core/mesh/RegionMesh3DStructured.hpp>
+#include <lifev/core/mesh/RegionMeshStructured.hpp>
 #include <lifev/core/mesh/RegionMesh.hpp>
 
 #include <lifev/core/solver/ADRAssembler.hpp>
@@ -167,9 +167,8 @@ main ( int argc, char** argv )
         std::cout << " -- Building the mesh ... " << std::flush;
     }
     boost::shared_ptr< mesh_Type > fullMeshPtr ( new RegionMesh<LinearTetra> ( Comm ) );
-    regularMesh3D ( *fullMeshPtr, 1, Nelements, Nelements, Nelements, false,
-                    2.0,   2.0,   2.0,
-                    -1.0,  -1.0,  -1.0);
+    regularMesh ( *fullMeshPtr, 1, std::vector<UInt> ( 3, Nelements ), false,
+                  Vector3D ( 2.0, 2.0, 2.0 ), Vector3D ( -1.0, -1.0, -1.0 ) );
     if (verbose)
     {
         std::cout << " done ! " << std::endl;

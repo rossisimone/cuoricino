@@ -559,7 +559,7 @@ public:
         return *M_disp;
     }
 
-    vectorPtr_Type& displacementPtr()
+    vectorPtr_Type displacementPtr()
     {
         return M_disp;
     }
@@ -990,7 +990,7 @@ void StructuralOperator<Mesh>::updateSystem ( matrixPtr_Type& mat_stiff)
 template <typename Mesh>
 void StructuralOperator<Mesh>::updateSourceTerm ( source_Type const& source )
 {
-    vector_Type rhs (vector_Type (*M_localMap) );
+    vector_Type rhs ( *M_localMap );
 
     VectorElemental M_elvec (M_dispFESpace->fe().nbFEDof(), nDimensions);
     UInt nc = nDimensions;
@@ -1006,7 +1006,7 @@ void StructuralOperator<Mesh>::updateSourceTerm ( source_Type const& source )
         for ( UInt ic = 0; ic < nc; ++ic )
         {
             //compute_vec( source, M_elvec, M_dispFESpace->fe(),  M_data->dataTime()->time(), ic ); // compute local vector
-            assembleVector ( *rhs, M_elvec, M_dispFESpace->fe(), M_dispFESpace->dof(), ic, ic * M_dispFESpace->fieldDim() ); // assemble local vector into global one
+            assembleVector ( rhs, M_elvec, M_dispFESpace->fe(), M_dispFESpace->dof(), ic, ic * M_dispFESpace->fieldDim() ); // assemble local vector into global one
         }
     }
     M_rhsNoBC += rhs;
@@ -1611,6 +1611,13 @@ void StructuralOperator<Mesh>::updateJacobian ( const vector_Type& sol, matrixPt
 
     jacobian.reset (new matrix_Type (*M_localMap) );
     *jacobian += * (M_material->jacobian() );
+
+    //Spying the static part of the Jacobian to check if it is symmetric
+    // M_material->jacobian()->spy("staticJacobianMatrix");
+
+    // std::cout << "spyed" << std::endl;
+    // int n;
+    // std::cin >> n ;
 
     *jacobian += *M_massMatrix;
 
