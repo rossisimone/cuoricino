@@ -86,6 +86,7 @@
 
 #include <lifev/eta/fem/ETFESpace.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
+#include <lifev/core/mesh/MeshLoadingUtility.hpp>
 
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/core/algorithm/Preconditioner.hpp>

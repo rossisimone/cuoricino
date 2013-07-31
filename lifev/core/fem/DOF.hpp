@@ -501,84 +501,20 @@ void DOF::update ( MeshType& mesh )
 template <typename MeshType>
 std::vector<Int> DOF::globalElements ( MeshType& mesh )
 {
-    /*
-        std::set<Int> dofNumberSet;
-        // Gather all dofs local to the given mesh (dofs use global numbering)
-        // The set ensures no repetition
-        for (UInt elementId=0; elementId < mesh.numElements(); ++elementId )
-            for (UInt localDof=0; localDof < this->numLocalDof();++localDof )
-                dofNumberSet.insert( static_cast<Int>( this->localToGlobalMap( elementId, localDof ) ) );
-        // dump the set into a vector for adjacency
-        // to save memory I use copy() and not the vector constructor directly
-        std::vector<Int> myGlobalElements( dofNumberSet.size() );
-        std::copy( dofNumberSet.begin(), dofNumberSet.end(), myGlobalElements.begin() );
-        // Save memory
-        dofNumberSet.clear();
-    */
-
-    std::set<Int> myGlobalElementsSet;
-
-    // insert dof associated to geometric entities owned by current proc
-    const UInt pointOffset ( 0 );
-    const UInt ridgeOffset ( pointOffset + M_elementDofPattern.nbDofPerPeak() * mesh.numGlobalPeaks() );
-    const UInt facetOffset ( ridgeOffset + M_elementDofPattern.nbDofPerRidge() * mesh.numGlobalRidges() );
-    const UInt elementOffset ( facetOffset + M_elementDofPattern.nbDofPerFacet() * mesh.numGlobalFacets() );
-
-    for ( UInt i = 0; i < mesh.numElements(); i++ )
-    {
-        const typename MeshType::element_Type& element = mesh.element ( i );
-
-        // point block
-        for ( UInt k = 0; k < element.S_numPoints; k++ )
+    std::set<Int> dofNumberSet;
+    // Gather all dofs local to the given mesh (dofs use global numbering)
+    // The set ensures no repetition
+    for (UInt elementId = 0; elementId < mesh.numElements(); ++elementId )
+        for (UInt localDof = 0; localDof < this->numLocalDof(); ++localDof )
         {
-            const typename MeshType::point_Type point = element.point ( k );
-            if ( Flag::testOneSet ( point.flag(), EntityFlags::OWNED ) )
-            {
-                for ( UInt d = 0; d < M_elementDofPattern.nbDofPerPeak(); d++ )
-                {
-                    myGlobalElementsSet.insert ( pointOffset + point.id() + d * mesh.numGlobalPoints() );
-                }
-            }
+            dofNumberSet.insert ( static_cast<Int> ( this->localToGlobalMap (elementId, localDof ) ) );
         }
-
-        // ridge block
-        for ( UInt k = 0; k < element.S_numRidges; k++ )
-        {
-            const typename MeshType::ridge_Type ridge = mesh.ridge ( mesh.localRidgeId ( i, k ) );
-            if ( Flag::testOneSet ( ridge.flag(), EntityFlags::OWNED ) )
-            {
-                for ( UInt d = 0; d < M_elementDofPattern.nbDofPerRidge(); d++ )
-                {
-                    myGlobalElementsSet.insert ( ridgeOffset + ridge.id() + d * mesh.numGlobalRidges() );
-                }
-            }
-        }
-
-        // facet block
-        for ( UInt k = 0; k < element.S_numFacets; k++ )
-        {
-            const typename MeshType::facet_Type facet = mesh.facet ( mesh.localFacetId ( i, k ) );
-            if ( Flag::testOneSet ( facet.flag(), EntityFlags::OWNED ) )
-            {
-                for ( UInt d = 0; d < M_elementDofPattern.nbDofPerFacet(); d++ )
-                {
-                    myGlobalElementsSet.insert ( facetOffset + facet.id() + d * mesh.numGlobalFacets() );
-                }
-            }
-        }
-
-        // elem block
-        if ( Flag::testOneSet ( element.flag(), EntityFlags::OWNED ) )
-        {
-            for ( UInt d = 0; d < M_elementDofPattern.nbDofPerElement(); d++ )
-            {
-                myGlobalElementsSet.insert ( elementOffset + element.id() + d * mesh.numGlobalFacets() );
-            }
-        }
-    }
-
-    std::vector<Int> myGlobalElements ( myGlobalElementsSet.size() );
-    std::copy ( myGlobalElementsSet.begin(), myGlobalElementsSet.end(), myGlobalElements.begin() );
+    // dump the set into a vector for adjacency
+    // to save memory I use copy() and not the vector constructor directly
+    std::vector<Int> myGlobalElements (dofNumberSet.size() );
+    std::copy (dofNumberSet.begin(), dofNumberSet.end(), myGlobalElements.begin() );
+    // Save memory
+    dofNumberSet.clear();
 
     return myGlobalElements;
 }

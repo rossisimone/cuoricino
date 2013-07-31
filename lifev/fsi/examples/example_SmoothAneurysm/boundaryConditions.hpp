@@ -84,7 +84,7 @@ FSIOperator::fluidBchandlerPtr_Type BCh_harmonicExtension (FSIOperator& /*_oper*
 {
 
     // Boundary condition for the mesh
-    Debug ( 10000 ) << "Boundary condition for the harmonic extension\n";
+    debugStream ( 10000 ) << "Boundary condition for the harmonic extension\n";
 
     BCFunctionBase bcf (fZero);
 
@@ -122,7 +122,7 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFlux (bool /*isOpen=true*/)
 FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid (FSIOperator& _oper, bool const& /*isOpen=true*/)
 {
     // Boundary conditions for the fluid velocity
-    Debug ( 10000 ) << "Boundary condition for the fluid\n";
+    debugStream ( 10000 ) << "Boundary condition for the fluid\n";
 
     if (! _oper.isFluid() )
     {
@@ -159,7 +159,7 @@ FSIOperator::solidBchandlerPtr_Type BCh_monolithicSolid (FSIOperator& _oper)
     }
 
     // Boundary conditions for the solid displacement
-    Debug ( 10000 ) << "Boundary condition for the solid\n";
+    debugStream ( 10000 ) << "Boundary condition for the solid\n";
     FSIOperator::solidBchandlerPtr_Type BCh_solid ( new FSIOperator::solidBchandler_Type );
 
     BCFunctionBase bcf (fZero);

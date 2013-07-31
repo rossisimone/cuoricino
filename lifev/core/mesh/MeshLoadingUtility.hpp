@@ -76,7 +76,7 @@ namespace MeshUtility
 /*!
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
-MeshData
+inline MeshData
 getMeshData ( const std::string& meshName,
               const std::string& resourcesPath = "./",
               const std::string& meshOrder = "P1")
@@ -219,19 +219,19 @@ void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
                                const std::string& meshName,
                                const std::string& resourcesPath )
 {
-#ifdef HAVE_MPI
-    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
-#else
-    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
-#endif
-    Displayer displayer ( Comm );
-
-    LifeChrono meshReadChrono;
-    meshReadChrono.start();
-    PartitionIO< RegionMeshType > partitionIO ( ( resourcesPath + meshName ).data(), Comm);
-    partitionIO.read (meshLocal);
-    meshReadChrono.stop();
-    displayer.leaderPrint ("Loading time: ", meshReadChrono.diff(), " s.\n");
+//#ifdef HAVE_MPI
+//    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
+//#else
+//    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
+//#endif
+//    Displayer displayer ( Comm );
+//
+//    LifeChrono meshReadChrono;
+//    meshReadChrono.start();
+//    PartitionIO< RegionMeshType > partitionIO ( ( resourcesPath + meshName ).data(), Comm);
+//    partitionIO.read (meshLocal);
+//    meshReadChrono.stop();
+//    displayer.leaderPrint ("Loading time: ", meshReadChrono.diff(), " s.\n");
 }
 
 //! Build a mesh from a partitioned mesh

@@ -85,7 +85,6 @@
 
 #include <boost/shared_ptr.hpp>
 
-#include <lifev/core/mesh/MeshUtility.hpp>
 #include <lifev/core/util/HeartUtility.hpp>
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>

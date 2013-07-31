@@ -58,7 +58,6 @@
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/mesh/MeshData.hpp>
-#include <lifev/core/mesh/MeshUtility.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
