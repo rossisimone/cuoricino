@@ -625,10 +625,6 @@ int main (int argc, char** argv)
      }
      if(gcase == 1)
      {
-         if ( comm->MyPID() == 0 )
-         {
-             std::cout << "\n\n\nI SHOULD BE HERE!!!!!!!!!!!!!!/\n!!!!!!!!!!!!!\n!!!!!\n" << std::endl;
-         }
 		 Real gfactor = parameterList.get ("gfactor", 3.0);
 		 *solidGamman = gfactor * *solidGammaf;
 		 solid.material() -> setGamman(*solidGamman);
@@ -654,10 +650,6 @@ int main (int argc, char** argv)
      }
      else
      {
-         if ( comm->MyPID() == 0 )
-         {
-             std::cout << "\n\n\nWHY AM I HERE????????????????????/\n????????????????????????\n?????????????????????????\n" << std::endl;
-         }
 		 *solidGammas = 1.0;
 		 *solidGammas /= (1.0 + *solidGammaf);
 		 EpetraSqrt(*solidGammas);
