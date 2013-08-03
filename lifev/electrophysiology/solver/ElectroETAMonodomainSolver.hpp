@@ -836,7 +836,7 @@ public:
     //!Solve the using SVI from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
 	void solveSVI(IOFile_Type& exporter, Real dt);
 	//! Generates a file where the fiber direction is saved
-	void exportFiberDirection();
+	void exportFiberDirection(std::string postDir = "./" );
 	//! save the fiber direction into the given exporter
 	void exportFiberDirection(IOFile_Type& exporter);
 	//! Save the solution in the exporter
@@ -1077,13 +1077,14 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupFibers(
 }
 
 template<typename Mesh, typename IonicModel>
-void ElectroETAMonodomainSolver<Mesh, IonicModel>::exportFiberDirection() {
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::exportFiberDirection(std::string postDir) {
 	boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > Space3D(
 			new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
 					3, M_commPtr));
 
 	ExporterHDF5 < mesh_Type > exp;
 	exp.setMeshProcId(M_localMeshPtr, M_commPtr->MyPID());
+	exp.setPostDir ( postDir );
 	exp.setPrefix("FiberDirection");
 	exp.addVariable(ExporterData<mesh_Type>::VectorField, "fibers", Space3D,
 			M_fiberPtr, UInt(0));

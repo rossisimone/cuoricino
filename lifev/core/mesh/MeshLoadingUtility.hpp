@@ -136,6 +136,29 @@ void fillWithMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
 //! Read and partitioned a *.mesh file
 /*!
   @param meshLocal The partitioned mesh that we want to generate
+  @param meshFull  The non partitioned mesh that we want to keep
+  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+  @param meshOrder order of the mesh
+*/
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+template< typename RegionMeshType>
+void fillWithMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
+                    const std::string& meshName,
+                    const std::string& resourcesPath = "./",
+                    const std::string& meshOrder = "P1" )
+{
+		boost::shared_ptr< RegionMeshType > meshFull;
+        fillWithFullMesh ( meshLocal,  meshFull, meshName, resourcesPath, meshOrder );
+        meshFull.reset();
+}
+
+//! Read and partitioned a *.mesh file
+/*!
+  @param meshLocal The partitioned mesh that we want to generate
   @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
   @param meshName name of the mesh file
   @param resourcesPath path to the mesh folder

@@ -104,6 +104,8 @@
 
 #include <lifev/core/util/HeartUtility.hpp>
 #include <lifev/core/mesh/MeshUtility.hpp>
+#include <lifev/core/mesh/MeshLoadingUtility.hpp>
+
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -224,7 +226,7 @@ int main ( int argc, char** argv )
     std::string meshPath = parameterList.get ("mesh_path", "./");
 
     meshPtr_Type meshPart (new mesh_Type ( Comm ) );
-    MeshUtility::fillWithFullMesh(meshPart,meshName,meshPath);
+    MeshUtility::fillWithMesh(meshPart,meshName,meshPath);
 
     if (verbose)
     {

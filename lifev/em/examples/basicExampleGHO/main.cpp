@@ -67,7 +67,7 @@ Real d0(const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real& /*
 
 Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& Z, const ID& /*i*/)
 {
-	if( X < 0.05 ) return 1.0;
+	if( X > 0.95 ) return 1.0;
 	else return  0.;
 }
 
@@ -573,7 +573,7 @@ int main (int argc, char** argv)
      }
 
 
-     monodomain -> exportFiberDirection();
+     monodomain -> exportFiberDirection(problemFolder);
      //********************************************//
      // Create the global matrix: mass + stiffness in ELECTROPHYSIOLOGY //
      //********************************************//

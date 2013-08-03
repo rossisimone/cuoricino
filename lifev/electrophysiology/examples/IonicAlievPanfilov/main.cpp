@@ -62,6 +62,7 @@
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #include <lifev/core/filter/ExporterHDF5.hpp>
 #include <lifev/core/filter/ExporterEmpty.hpp>
+#include <lifev/core/mesh/MeshLoadingUtility.hpp>
 
 #include <lifev/electrophysiology/solver/ElectroMonodomainSolver.hpp>
 #include <lifev/electrophysiology/solver/ElectroIonicSolver.hpp>
@@ -139,7 +140,7 @@ Int main ( Int argc, char** argv )
     std::string meshName = APParameterList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = APParameterList.get ("mesh_path", "./");
 
-    MeshUtility::fillWithFullMesh ( meshPtr, meshName, meshPath );
+    MeshUtility::fillWithMesh( meshPtr, meshName, meshPath );
 
 
     //********************************************//
