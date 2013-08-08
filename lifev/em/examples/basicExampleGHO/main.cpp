@@ -1045,6 +1045,7 @@ int main (int argc, char** argv)
 
 		Real Ca_diastolic = dataFile( "solid/physics/Ca_diastolic", 0.02155 );
 
+
      for( Real t(0.0); t< monodomain -> endTime(); )
 	 {
 		  t = t + monodomain -> timeStep();
@@ -1368,7 +1369,7 @@ int main (int argc, char** argv)
 						else if( monodomain -> globalSolution().at(3)-> minValue() < Ca_diastolic)
 						{
 							int d = monodomain -> globalSolution().at(3) -> epetraVector().MyLength();
-							int size =  monodomain -> globalSolution().at(3) -> size();
+//							int size =  monodomain -> globalSolution().at(3) -> size();
 							for(int l(0); l < d; l++)
 							{
 								if ( comm->MyPID() == 0 )
@@ -1383,8 +1384,8 @@ int main (int argc, char** argv)
 								if( (*(monodomain -> globalSolution().at(3)))[m1] <= Ca_diastolic)
 								{
 									std::cout << "\nchanging at: " << m1 ;
-									int m2 = solid.displacementPtr() -> blockMap().GID(l + size);
-									int m3 = solid.displacementPtr() -> blockMap().GID(l + 2 * size);
+									int m2 = solid.displacementPtr() -> blockMap().GID(l + d);
+									int m3 = solid.displacementPtr() -> blockMap().GID(l + 2 * d);
 									std::cout << "\n" << (*emDisp0)[m1] << " has become: ";
 									(*emDisp0)[m1] = (*emDisp)[m1];
 									std::cout << (*emDisp0)[m1] << "\n";
