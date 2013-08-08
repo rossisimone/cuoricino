@@ -1043,7 +1043,7 @@ int main (int argc, char** argv)
         Real dt_min = 0.01;
 
 
-		Real Ca_diastolic = dataFile( "solid/physics/Ca_diastolic", -0.02155 );
+		Real Ca_diastolic = dataFile( "solid/physics/Ca_diastolic", 0.02155 );
 
      for( Real t(0.0); t< monodomain -> endTime(); )
 	 {
@@ -1099,7 +1099,9 @@ int main (int argc, char** argv)
 			}
 
 
-			  //if( monodomain -> globalSolution().at(3) -> normInf() >= 0.0216)
+			  if( monodomain -> globalSolution().at(3) -> normInf() >= Ca_diastolic
+					  ||
+				   emDisp -> normInf() >=  1e-7)
 			  {
 
 					if ( comm->MyPID() == 0 )
@@ -1189,7 +1191,7 @@ int main (int argc, char** argv)
 						BOOST_AUTO_TPL(Ca,    value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) );
 						BOOST_AUTO_TPL(Ca2, Ca * Ca );
 
-						BOOST_AUTO_TPL(dCa, ( Ca + value(Ca_diastolic) ) );
+						BOOST_AUTO_TPL(dCa, ( Ca - value(Ca_diastolic) ) );
 					//    Real alpha1 = -2.5;
 						Real active_coefficient = dataFile( "solid/physics/active_coefficient", -2.5 );
 					//	BOOST_AUTO_TPL(coeff, a * Jm23 * pow( eval(EXP, ( I1iso + value(-3.0) ) ), B )/*+ value(2.0) * af * eval( H, I4feisom1)*/ );
@@ -1240,7 +1242,7 @@ int main (int argc, char** argv)
 
 					linearSolver.solve(gammaf);
 			  }
-			  //else *gammaf *= 0.0;
+			  else *gammaf *= 0.0;
 
 				if( gammaf -> maxValue() > 0.0)
 				{
