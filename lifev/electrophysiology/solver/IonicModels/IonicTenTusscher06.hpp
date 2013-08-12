@@ -287,6 +287,17 @@ public:
    inline Real IKs(Real V, Real xs, Real Ki, Real Nai)
    {
 	   return Gks * xs * xs * ( V - Eks(Ki, Nai) );
+
+	   std::cout << "\n****  Iks   ******* ";
+	   std::cout << "\nGks: " << Gks;
+	   std::cout << "\nxs: " << xs;
+	   std::cout << "\nV: " << V;
+	   std::cout << "\nKi: " << Ki;
+	   std::cout << "\nNai: " << Nai;
+	   std::cout << "\nEks: " << Eks(Ki, Nai);
+	   std::cout << "\n*********** ";
+
+
    }
    inline Real IK1(Real V, Real Ki)
    {
@@ -334,8 +345,7 @@ public:
 		      INaK(V, Nai)  +
 		      INaCa(V, Nai, Cai) +
 		      IpCa(Cai)  +
-		      IpK(V, Ki)
-		      +  M_appliedCurrent;
+		      IpK(V, Ki);
    }
 
    //update concentrations
@@ -482,7 +492,6 @@ public:
 	{
 		return Ki + HT * dKi(V, r, s, xr1, xr2, xs, Nai, Ki);
 	}
-
 
 
 	inline Real AM(Real V)
@@ -806,7 +815,7 @@ public:
    	   	   	Real r, Real s, Real xr1, Real xr2, Real xs, Real Nai, Real Ki,
    	   	   	Real Cai, Real CaSS , Real HT)
     {
-    	return V + HT * (- Itot(V, m, h, j, d, f, f2, fcass, r, s, xr1, xr2, xs, Nai, Ki, Cai, CaSS ) );
+    	return V + HT * ( M_appliedCurrent + (- Itot(V, m, h, j, d, f, f2, fcass, r, s, xr1, xr2, xs, Nai, Ki, Cai, CaSS ) ) );
     }
 
     //Compute the rhs on a single node or for the 0D case

@@ -10,7 +10,7 @@ TRIBITS_ADD_EXECUTABLE(
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_electrophysiology_ActivationWith0DTenTusscher06_data
   CREATE_SYMLINK
-  SOURCE_FILES Parameters.xml
+  SOURCE_FILES Parameters.xml NegroniLascano96Parameters.xml
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

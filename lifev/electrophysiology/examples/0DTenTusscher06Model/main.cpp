@@ -155,10 +155,10 @@ Int main ( Int argc, char** argv )
     //********************************************//
     string filename = "output.txt";
     std::ofstream output ("output.txt");
-    output << 0 << ", ";
+    output << 0 << "\t";
     for ( int j (0); j < ionicModel.Size() - 1; j++)
      {
-         output << rStates.at (j) << ", ";
+         output << rStates.at (j) << "\t";
      }
      output << rStates.at ( ionicModel.Size() - 1 ) << "\n";
 
@@ -210,18 +210,18 @@ Int main ( Int argc, char** argv )
 
     string filename2 = "currents.txt";
     std::ofstream output2 ("currents.txt");
-    output2 << 0 << ", ";
-    output2 << itot << ", ";
-    output2 << iK1 << ", ";
-    output2 << ito << ", ";
-    output2 << iKr << ", ";
-    output2 << iKs << ", ";
-    output2 << iCaL << ", ";
-    output2 << iNa << ", ";
-    output2 << ibNa << ", ";
-    output2 << iNaCa << ", ";
-    output2 << ibCa << ", ";
-    output2 << ipK << ", ";
+    output2 << 0 << "\t";
+    output2 << itot << "\t";
+    output2 << iK1 << "\t";
+    output2 << ito << "\t";
+    output2 << iKr << "\t";
+    output2 << iKs << "\t";
+    output2 << iCaL << "\t";
+    output2 << iNa << "\t";
+    output2 << ibNa << "\t";
+    output2 << iNaCa << "\t";
+    output2 << ibCa << "\t";
+    output2 << ipK << "\t";
     output2 << ipCa << "\n";
 
 
@@ -244,35 +244,46 @@ Int main ( Int argc, char** argv )
 
 
     int savestep( ( list.get("savestep",1.) / dt ) );
+    int pacingstepstart( ( list.get("pacingstep",1000.) / dt ) );
+    int pacingstepstop( ( list.get("pacingstep",1001.) / dt ) );
+
     int iter(0);
 
     bool FE( list.get("FE", false ) );
 
     for ( Real t = 0; t < TF; )
     {
-    	iter++;
+
         //********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if( t > 3 && t < 3.1 ) Iapp = list.get("Iapp",100.);
-        else if( t > 900 && t < 900.1 ) Iapp = list.get("Iapp",100.);
-        else if( t > 1800 && t < 1800.1 ) Iapp = list.get("Iapp",100.);
-        else Iapp = 0;
+        if( pacingstepstart % iter == 0 )
+		{
+        	Iapp = list.get("Iapp",100.);
+            ionicModel.setAppliedCurrent(Iapp);
+		}
+        if( pacingstepstop % iter == 0 )
+		{
+        	Iapp = 0.0;
+            ionicModel.setAppliedCurrent(Iapp);
+		}
+
         std::cout << "\r " << t << " ms.       " << std::flush;
 
+
+        iter++;
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-//        std::cout << "\nIapp: "<<Iapp ;
-        ionicModel.setAppliedCurrent(Iapp);
+        std::cout << "\nIapp: "<<Iapp ;
 
-//        std::cout << "\nIonic Iapp: "<< ionicModel.appliedCurrent() ;
-//        std::cout << "\n: ";
+        std::cout << "\nIonic Iapp: "<< ionicModel.appliedCurrent() ;
+        std::cout << "\n: ";
 
         ionicModel.computeRhs ( states, rhs);
-//        std::cout << "\nrhs : "<< rhs[0] ;
-//        std::cout << "\n: ";
+        std::cout << "\nrhs : "<< rhs[0] ;
+        std::cout << "\n: ";
         rhs[0] += Iapp;
 
         //********************************************//
@@ -424,10 +435,10 @@ Int main ( Int argc, char** argv )
 
         t = t + dt;
         if( iter % savestep == 0  ){
-        output << t << ", ";
+        output << t << "\t";
         for ( int j (0); j < ionicModel.Size() - 1; j++)
         {
-            output << rStates.at (j) << ", ";
+            output << rStates.at (j) << "\t";
         }
         output << rStates.at ( ionicModel.Size() - 1 ) << "\n";
 
@@ -451,18 +462,18 @@ Int main ( Int argc, char** argv )
         ipK = ionicModel.IpK(V,Ki);
         ipCa = ionicModel.IpCa(Cai);
 
-        output2 << t << ", ";
-         output2 << itot << ", ";
-         output2 << iK1 << ", ";
-         output2 << ito << ", ";
-         output2 << iKr << ", ";
-         output2 << iKs << ", ";
-         output2 << iCaL << ", ";
-         output2 << iNa << ", ";
-         output2 << ibNa << ", ";
-         output2 << iNaCa << ", ";
-         output2 << ibCa << ", ";
-         output2 << ipK << ", ";
+        output2 << t << "\t";
+         output2 << itot << "\t";
+         output2 << iK1 << "\t";
+         output2 << ito << "\t";
+         output2 << iKr << "\t";
+         output2 << iKs << "\t";
+         output2 << iCaL << "\t";
+         output2 << iNa << "\t";
+         output2 << ibNa << "\t";
+         output2 << iNaCa << "\t";
+         output2 << ibCa << "\t";
+         output2 << ipK << "\t";
          output2 << ipCa << "\n";
 
         }

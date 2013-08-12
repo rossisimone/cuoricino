@@ -142,29 +142,29 @@ IonicTenTusscher06::IonicTenTusscher06()  :
     //V
 	M_restingConditions.at(0) = -86.2;
 	//m
-	M_restingConditions.at(1) = 0.00165;
+	M_restingConditions.at(1) = 0.0;
 	//h
-	M_restingConditions.at(2) = 0.749;
+	M_restingConditions.at(2) = 0.75;
 	//j
-	M_restingConditions.at(3) = 0.6788;
+	M_restingConditions.at(3) = 0.75;
 	//d
-	M_restingConditions.at(4) = 3.288e-5;
+	M_restingConditions.at(4) = 0.;
 	//f
-	M_restingConditions.at(5) = 0.7026;
+	M_restingConditions.at(5) = 1.;
 	//f2
-	M_restingConditions.at(6) = 0.9526;
+	M_restingConditions.at(6) = 1;
 	//fCass
 	M_restingConditions.at(7) = 1.0;
 	//r
-	M_restingConditions.at(8) = 2.347e-8;
+	M_restingConditions.at(8) = 0.;
 	//s
-	M_restingConditions.at(9) = 0.999998;
+	M_restingConditions.at(9) = 1.0;
 	//Xr1
-	M_restingConditions.at(10) = 0.0165;
+	M_restingConditions.at(10) = 0.0;
 	//Xr2
-	M_restingConditions.at(11) = 0.473;
+	M_restingConditions.at(11) = 1.0;
 	//Xs
-	M_restingConditions.at(12) =  0.0174;
+	M_restingConditions.at(12) =  0.0;
 	//Nai
 	M_restingConditions.at(13) = 7.67;
 	//Ki
@@ -176,7 +176,7 @@ IonicTenTusscher06::IonicTenTusscher06()  :
 	//Casr
 	M_restingConditions.at(17) = 1.3;
 	//Rprime
-	M_restingConditions.at(18) = 0.8978;
+	M_restingConditions.at(18) = 1.0;
 
 }
 
@@ -665,7 +665,6 @@ void IonicTenTusscher06::computeGatingVariablesWithRushLarsen ( std::vector<Real
     Real xs = v[12];
     Real CaSS = v[16];
 
-
     v[1] = M_INF(V) - ( M_INF(V) - m ) * std::exp(- dt / TAU_M(V) );
     v[2] = H_INF(V) - ( H_INF(V) - h ) * std::exp(- dt / TAU_H(V) );
     v[3] = J_INF(V) - ( J_INF(V) - j ) * std::exp(- dt / TAU_J(V) );
@@ -713,25 +712,66 @@ void IonicTenTusscher06::solveOneStep(std::vector<Real>& v, Real dt)
     Real CaSR = v[17];
     Real RR = v[18];
 
+
+//    Real itot = Itot(V, m, h, j, d, f, f2, fcass, r, s, xr1, xr2, xs, Nai, Ki, Cai, CaSS );
+//    Real iK1 = IK1(V,Ki);
+//    Real ito = Ito(V,r,s,Ki);
+//    Real iKr = IKr(V,xr1,xr2,Ki);
+//    Real iKs = IKs(V,xs,Ki,Nai);
+//    Real iCaL = ICaL(V,d,f,f2,fcass,CaSS);
+//    Real iNa = INa(V,m,h,j,Nai);
+//    Real ibNa = IbNa(V,Nai);
+//    Real iNaCa = INaCa(V,Nai,Cai);
+//    Real ibCa = IbCa(V,Cai);
+//    Real ipK = IpK(V,Ki);
+//    Real ipCa = IpCa(Cai);
+
+//    std::cout << "\n";//Gkr * std::sqrt(Ko/5.4) * xr1 * xr2 * ( V - Ek(Ki) )
+//    std::cout << Ek(Ki) << "\n";
+//    std::cout << Gkr << "\n";
+//    std::cout << Ko << "\n";
+//    std::cout << std::sqrt(Ko/5.4) << "\n";
+//    std::cout << xr1 << "\n";
+//    std::cout << xr2 << "\n";
+//    std::cout << V << "\n";
+//
+//    std::cout << "\nCurrents";
+//    std::cout << "Itot:"<< M_appliedCurrent-itot << "\n";
+//    std::cout << "Ik1:"<< iK1 << "\n";
+//    std::cout << "Ito:"<< ito << "\n";
+//    std::cout << "Ikr:"<< iKr << "\n";
+//    std::cout << "Iks:"<< iKs << "\n";
+//    std::cout << "Ical:"<< iCaL << "\n";
+//    std::cout << "Ina:"<< iNa << "\n";
+//    std::cout << "Ibna:"<< ibNa << "\n";
+//    std::cout << "Inaca:"<< iNaCa << "\n";
+//    std::cout << "Ibca:"<< ibCa << "\n";
+//    std::cout << "Ipk:"<< ipK << "\n";
+//    std::cout << "Ipca:"<< ipCa << "\n";
+//    std::cout << "Iapp:" << M_appliedCurrent << "\n";
+//    std::cout << "\n";
+//
+//	   std::cout << "\n****  Iks   ******* ";
+//	   std::cout << "\nGks: " << Gks;
+//	   std::cout << "\nxs: " << xs;
+//	   std::cout << "\nV: " << V;
+//	   std::cout << "\nKi: " << Ki;
+//	   std::cout << "\nNai: " << Nai;
+//	   std::cout << "\nEks: " << Eks(Ki, Nai);
+//	   std::cout << "\n*********** ";
+
+    computeGatingVariablesWithRushLarsen(v, dt);
+
     v[0] = solveV(V, m, h, j, d, f, f2, fcass, r, s, xr1, xr2, xs, Nai, Ki, Cai, CaSS, dt);
-    v[1] = solveM(V,m,dt);
-    v[2] = solveH(V,h,dt);
-    v[3] = solveJ(V,h,dt);
-    v[4] = solveD(V,d,dt);
-    v[5] = solveF(V,f,dt);
-    v[6] = solveF2(V,f2,dt);
-    v[7] = solveFCaSS(CaSS, fcass, dt);
-    v[8] = solveR(V,r,dt);
-    v[9] = solveS(V,s,dt);
-    v[10] = solveXr1(V,xr1,dt);
-    v[11] = solveXr2(V,xr2,dt);
-    v[12] = solveXs(V,xs,dt);
     v[13] = solveNai(V, m, h, j, Nai, Cai, dt);
     v[14] = solveKi(V, r, s, xr1, xr2, xs, Nai, Ki, dt);
     v[15] =  solveCai(V,Nai,Cai,CaSR,CaSS,dt);
     v[16] = solveCaSS(Cai,CaSR,CaSS,RR,V,d,f,f2,fcass,dt);
     v[17] = solveCaSR(Cai,CaSR,CaSS,RR,dt);
     v[18] = solveRR(CaSR,CaSS,RR,dt);
+
+
+
 
 }
 

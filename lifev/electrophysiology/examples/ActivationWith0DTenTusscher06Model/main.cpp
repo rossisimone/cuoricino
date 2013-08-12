@@ -58,6 +58,7 @@
 #include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher06.hpp>
+#include <lifev/electrophysiology/solver/XbModels/XbNegroniLascano96.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -86,6 +87,8 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Importing parameters list...";
     Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "Parameters.xml" ) );
+    Teuchos::ParameterList nlList    = * ( Teuchos::getParametersFromXmlFile ( "NegroniLascano96Parameters.xml" ) );
+
     std::cout << " Done!" << endl;
     //********************************************//
     // Creates a new model object representing the//
@@ -149,6 +152,32 @@ Int main ( Int argc, char** argv )
     Real dt (list.get("dt",100.));
 
 
+    //********************************************//
+    // Xbs                                         //
+    //********************************************//
+	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
+    XbNegroniLascano96  xb ( nlList );
+	xb.showMe();
+
+    std::cout << "Initializing Xb solution vector...";
+    std::vector<Real> XbStates (xb.Size(), 0);
+//    XbStates.at (0) = 7.0;
+//    XbStates.at (1) = 8.0;
+//    XbStates.at (2) = 1.0;
+//    XbStates.at (3) = 0.021553043080281;
+    Real Bufc = ionicModel.getBufc();
+    Real Kbufc = ionicModel.getKbufc();
+
+
+    std::cout << "Initializing Xb rhs..." ;
+    std::vector<Real> XbRhs (xb.Size(), 0);
+
+    Real vel  ( 0.0 );
+    Real Ca   ( 0.0 );
+    Real X    ( 1.05 );
+    Real dgammaf=vel;
+
+    std::ofstream XbOutput ("XbOutput.txt");
 
 
 
@@ -163,8 +192,10 @@ Int main ( Int argc, char** argv )
     Real gamma_f_initial = gammaf;
     Real l0 = 1.95;
 	Real alpha( list.get("alpha",1.0) );
+	Real pwr( list.get("power",2.0) );
+	Real pwr2( list.get("power2",2.0) );
 	Real eta( list.get("eta",100.0) );
-	Real Cai_diast =  states[15]/1e-4;
+	Real Cai_diast =  1.1703 / 10;
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -172,12 +203,23 @@ Int main ( Int argc, char** argv )
     //********************************************//
     string filename = "output.txt";
     std::ofstream output ("output.txt");
-    output << 0 << ", ";
+    output << 0 << "\t";
     for ( int it (0); it <= ionicModel.Size() - 1; it++)
      {
-         output << rStates.at (it) << ", ";
+         output << rStates.at (it) << "\t";
      }
-     output << gammaf << "\n";
+    output << 0.0 << "\t";
+    output << gammaf << "\n";
+
+
+    XbOutput << XbStates[0] << "\t";
+	XbOutput << XbStates[1] << "\t";
+	XbOutput << XbStates[2] << "\t";
+	XbOutput << 0.0 << "\t";
+	XbOutput << dgammaf << "\t";
+	XbOutput << gammaf << "\n";
+
+
 
     ///********************************
     // DEBUGGING
@@ -217,18 +259,18 @@ Int main ( Int argc, char** argv )
 
     string filename2 = "currents.txt";
     std::ofstream output2 ("currents.txt");
-    output2 << 0 << ", ";
-    output2 << itot << ", ";
-    output2 << iK1 << ", ";
-    output2 << ito << ", ";
-    output2 << iKr << ", ";
-    output2 << iKs << ", ";
-    output2 << iCaL << ", ";
-    output2 << iNa << ", ";
-    output2 << ibNa << ", ";
-    output2 << iNaCa << ", ";
-    output2 << ibCa << ", ";
-    output2 << ipK << ", ";
+    output2 << 0 << "\t";
+    output2 << itot << "\t";
+    output2 << iK1 << "\t";
+    output2 << ito << "\t";
+    output2 << iKr << "\t";
+    output2 << iKs << "\t";
+    output2 << iCaL << "\t";
+    output2 << iNa << "\t";
+    output2 << ibNa << "\t";
+    output2 << iNaCa << "\t";
+    output2 << ibCa << "\t";
+    output2 << ipK << "\t";
     output2 << ipCa << "\n";
 
 
@@ -251,41 +293,44 @@ Int main ( Int argc, char** argv )
 
 
     int savestep( ( list.get("savestep",1.) / dt ) );
+    int pacingstepstart( ( list.get("pacingstep",1000.) / dt ) );
+
     int iter(0);
-
-    bool FE( list.get("FE", false ) );
-
 
     std::cout << "\nMembrane capacitance: " << ionicModel.membraneCapacitance() << "\n";
     std::cout.precision(16);
     for ( Real t = 0; t < TF; )
     {
-    	iter++;
         //********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if( t > 50 && t < 51 ) Iapp = list.get("Iapp",100.);
-        else if( t > 1050 && t < 1051 ) Iapp = list.get("Iapp",100.);
-        else if( t > 2050 && t < 2051 ) Iapp = list.get("Iapp",100.);
-        else Iapp = 0;
-        //std::cout << "\r " << t << " ms.       " << std::flush;
+        if( iter % pacingstepstart == 0 )
+		{
+        	std::cout << "\nStarting stimulation: " << t << "\n";
+        	Iapp = list.get("Iapp",100.);
+            ionicModel.setAppliedCurrent(Iapp);
+		}
+        int iter2( iter - 1.0 / dt );
+        if( iter2 % pacingstepstart == 0 && iter >= 0 )
+		{
+        	std::cout << "\nStopping stimulation: " << t << "\n";
+        	Iapp = 0.0;
+            ionicModel.setAppliedCurrent(Iapp);
+		}
 
-        //********************************************//
-        // Compute the rhs using the model equations  //
-        //********************************************//
+    	iter++;
+
+
 //        std::cout << "\nIapp: "<<Iapp ;
-        ionicModel.setAppliedCurrent(Iapp);
-
+//
 //        std::cout << "\nIonic Iapp: "<< ionicModel.appliedCurrent() ;
 //        std::cout << "\n: ";
-
-        ionicModel.computeRhs ( states, rhs);
+//
+//        ionicModel.computeRhs ( states, rhs);
 //        std::cout << "\nrhs : "<< rhs[0] ;
 //        std::cout << "\n: ";
-        rhs[0] += Iapp;
-
-
+//        rhs[0] += Iapp;
         //********************************************//
         // Use forward Euler method to advance the    //
         // solution in time.                          //
@@ -309,84 +354,8 @@ Int main ( Int argc, char** argv )
         Cass = states[16];
         Casr = states[17];
         Rprime = states[18];
-        for(int it2(0) ; it2 < ionicModel.Size(); it2++)
-        {
-        	if( states[it2] != states[it2] )
-           	{
-        		std::cout << "\n\nI'm Nan " << it2 << "\n";
-        		return 0;
-        	}
-        }
-//        if(!FE)
-//        {
-//			rStates.at (0) = rStates.at (0)  + dt * rRhs.at (0);
-////			rStates.at (1) = ionicModel.M_INF(V)
-////						   - ( ionicModel.M_INF(V) - m)
-////						   * std::exp(-dt/ ionicModel.TAU_M(V));
-////			rStates.at (2) = ionicModel.H_INF(V)
-////						   - ( ionicModel.H_INF(V) - h)
-////						   * std::exp(-dt/ ionicModel.TAU_H(V));
-////			rStates.at (3) = ionicModel.jinf(V)
-////						   - ( ionicModel.jinf(V) - states[3])
-////						   * std::exp(-dt/ ionicModel.TAU_J(V));
-////			rStates.at (4) = ionicModel.dinf(V)
-////						   - ( ionicModel.dinf(V) - states[4])
-////						   * std::exp(-dt/ ionicModel.TAU_D(V));
-////			rStates.at (5) = ionicModel.finf(V)
-////						   - ( ionicModel.finf(V) - states[5])
-////						   * std::exp(-dt/ ionicModel.TAU_F(V));
-////			rStates.at (6) = ionicModel.f2inf(V)
-////						   - ( ionicModel.f2inf(V) - states[6])
-////						   * std::exp(-dt/ ionicModel.tf2(V));
-////			rStates.at (7) = ionicModel.f2inf(states[16])
-////						   - ( ionicModel.f2inf(states[16]) - states[7])
-////						   * std::exp(-dt/ ionicModel.tf2(states[16]));
-////			rStates.at (8) = ionicModel.rinf(V)
-////						   - ( ionicModel.rinf(V) - states[8])
-////						   * std::exp(-dt/ ionicModel.tr(V));
-////			rStates.at (9) = ionicModel.sinf(V)
-////						   - ( ionicModel.sinf(V) - states[9])
-////						   * std::exp(-dt/ ionicModel.ts(V));
-////			rStates.at (10) = ionicModel.Xr1inf(V)
-////						   - ( ionicModel.Xr1inf(V) - states[10])
-////						   * std::exp(-dt/ ionicModel.tXr1(V));
-////			rStates.at (11) = ionicModel.Xr2inf(V)
-////						   - ( ionicModel.Xr2inf(V) - states[11])
-////						   * std::exp(-dt/ ionicModel.tXr2(V));
-////			rStates.at (12) = ionicModel.Xsinf(V)
-////						   - ( ionicModel.Xsinf(V) - states[12])
-////						   * std::exp(-dt/ ionicModel.tXs(V));
-//
-//        	ionicModel.computeGatingVariablesWithRushLarsen(states, dt);
-//			rStates.at (13) = rStates.at (13)  + dt * rRhs.at (13);
-//			rStates.at (14) = rStates.at (14)  + dt * rRhs.at (14);
-//
-////			Real cabufc = ionicModel.CaBuf( states[15]  );
-////			Real dCai = dt * ionicModel.dCai(V, Nai, Cai, Casr, Cass);
-////			Real bc = ionicModel.getBufc() - cabufc - dCai - Cai + ionicModel.getKbufc();
-////			Real cc = ionicModel.getKbufc() * ( cabufc + dCai + Cai);
-////			rStates.at(15) = std::sqrt( bc * bc + 4. * cc ) / 2;
-////
-//			states[15] = ionicModel.solveCai(V,Nai,Cai,Casr,Cass,dt);
-////			Real cassbufc = ionicModel. CaSSBuf( Cass );
-////			Real dCass = dt * ionicModel.dCaSS(V, Cai, Casr, Cass, Rprime, d, f, f2, fCass);
-////			Real bcss = ionicModel.getBufss() - cassbufc - dCass - Cass + ionicModel.getKbufss();
-////			Real ccss = ionicModel.getKbufss() * ( cassbufc + dCass + Cass);
-////			rStates.at(16) = ( std::sqrt( bcss * bcss + 4. * ccss ) - bcss )/ 2;
-////
-//			states[16] = ionicModel.solveCaSS(Cai,Casr,Cass,Rprime,V,d,f,f2,fCass,dt);
-////			Real CaCSQN = ionicModel.CaCSQN( Casr );
-////			Real dCasr = dt * ionicModel.dCaSR(V, Cai, Casr, Cass, Rprime);
-////			Real bcsr = ionicModel.getBufsr() - CaCSQN - dCasr - Casr + ionicModel.getKbufsr();
-////			Real ccsr = ionicModel.getKbufsr() * ( CaCSQN + dCasr + Casr);
-////			rStates.at(17) = ( std::sqrt( bcsr * bcsr + 4. * ccsr ) - bcsr ) / 2;
-//			states[17] = ionicModel.solveCaSR(Cai, Casr, Cass, Rprime, dt);
-//
-//			rStates.at (18) = rStates.at (18)  + dt * rRhs.at (18);
-//    	}
-//        else
-//        {
 
+        ionicModel.solveOneStep(states,dt);
 
 //		rStates.at (0) = rStates.at (0)  + dt * rRhs.at (0);
 //        ionicModel.computeGatingVariablesWithRushLarsen( states, dt);
@@ -397,9 +366,10 @@ Int main ( Int argc, char** argv )
 //				rStates.at (j+offset) = rStates.at (j+offset)  + dt * rRhs.at (j+offset);
 //
 //			}
-//        }
 
-        ionicModel.solveOneStep(states,dt);
+                //std::vector<Real> BErhs   ( xb.computeBackwardEuler( XbStates, Ca, vel, dt ) );
+        //XbStates.at (2) = BErhs.at (2);
+
         Real FLR;
         Real I4f = (gammaf+1.0) * (gammaf+1.0);
     	if(  I4f > 0.87277 && I4f < 1.334)
@@ -426,69 +396,70 @@ Int main ( Int argc, char** argv )
     		FLR = 0.0;
     	}
 
-    	Cai = Cai / 1e-4;
+
+        //vel = 0;
+        Ca = Cai * 1000;
+        Real Bi = 1.0 / ( 1.0 + Bufc * Kbufc / (Ca + Kbufc) / (Ca + Kbufc) );
+    	xb.computeRhs( XbStates, Ca, vel, XbRhs, FLR );
+
+
+    	std::vector<Real> XbRhs2 (xb.Size(), 0);
+    	std::vector<Real> Xb2 (xb.Size(), 0);
+
+    	Xb2[0] = XbStates.at (0)  + dt * XbRhs.at (0);
+    	Xb2[1] = XbStates.at (1)  + dt * XbRhs.at (1);
+    	Xb2[2] = XbStates.at (2)  + dt * XbRhs.at (2);
+    	xb.computeRhs( Xb2, Ca, vel, XbRhs2, FLR );
+
+        XbStates.at (0) = XbStates.at (0)  + 0.5 * dt * ( XbRhs.at (0) + XbRhs2.at (0) ) ;
+        XbStates.at (1) = XbStates.at (1)  + 0.5 * dt * ( XbRhs.at (1) + XbRhs2.at (1) ) ;
+        XbStates.at (2) = XbStates.at (2)  + 0.5 * dt * ( XbRhs.at (2) + XbRhs2.at (2) ) ;
+
+
+
+    	//Cai = Cai / 1e-3;
 
     	Real Pa;
-    	if(Cai < Cai_diast)
+    	if(Ca < Cai_diast)
     	{
     		Pa = 0.0;
+    		//Pa = alpha * ( XbStates[1] + XbStates[2] );
+
     	}
     	else
     	{
-    		Pa = alpha * FLR * ( Cai - Cai_diast) * ( Cai - Cai_diast);
+    		Real C50=std::pow(10, 6-5.33);
+    		//Pa = alpha * FLR * std::pow( Cai - Cai_diast, pwr2);// * ( Cai - Cai_diast);
+    		Pa = - alpha * alpha * alpha * alpha * FLR * std::pow( Cai , pwr2) / ( std::pow( Cai , pwr2) + std::pow( C50 , pwr2));// * ( Cai - Cai_diast);
+    		    		//Pa = alpha * ( XbStates[1] + XbStates[2] );
     	}
     	//std::cout << "\n\ntime: " << t << "\n alpha: " << alpha << ", FLR: " << FLR<< ", Cai-Cai_d: " << Cai-Cai_diast  << ", Pa: " << Pa;
     	Real dW = - 2.0 / ( gammaf + 1.0 );
     	Real dW0= - 2.0 / ( gamma_f_initial + 1.0 );
     	//std::cout << "\ndW: " << dW << ", dW0: " << dW0;
-    	Real activeViscosity = eta * Cai * Cai * Cai * Cai * Cai * Cai * Cai * Cai;
-    	Real dgammaf = (Pa + dW0 - dW) / activeViscosity;
-    	//std::cout << "\neta: " << activeViscosity << ", dgf: " << dgammaf << ", gamma_f: " << gammaf;
+    	Real activeViscosity = eta;// * std::pow(Ca, pwr);// * Cai * Cai * Cai * Cai;
+    	//PARAM: power: 3, 3, eta =50000, alpha = -50
+    	//Real dCa2 = std::pow( ionicModel.dCai(V, Nai, Cai, Casr, Cass), pwr );
+    	//Real f = std::exp( - ( ( 1000. * ( t / 1000 - std::floor(t/1000)  ) )
+    	//				* ( 1000. * ( t / 1000 - std::floor(t/1000) ) ) ) / 50 );
+    	//f = f * (1 - Cai_diast) + Cai_diast;
+
+
+//    	if( f < 0.5)
+//    	{
+//    		Real activeViscosity = eta / f / f / 4.0;  ;
+//    	}
+//    	else
+//    	{
+//    		f = 1.0;
+//    	}
+		//Real activeViscosity = eta /  f;
+
+    	dgammaf = (Pa + dW0 - dW) / activeViscosity;
+    	vel = dgammaf;
+    	//std::cout << "\neta: " << activeViscosity << ", dCa2: " << dCa2 << ", gamma_f: " << gammaf;
     	gammaf = gammaf + dt * dgammaf;
 
-
-//
-////        V = states[0];
-//        states[0] = ionicModel.solveV(V,m,h,j,d,f,f2,fCass,r,s,Xr1,Xr2,Xs,Nai,Ki,Cai,Cass,Iapp,dt);
-//        //        m = states[1];
-//        states[1] = ionicModel.solveM(V, m, dt);
-////    	h = states[2];
-//        states[2] = ionicModel.solveH(V, h, dt);
-//		//        j = states[3];
-//        states[3] = ionicModel.solveJ(V, j, dt);
-////        d = states[4];
-//        states[4] = ionicModel.solveD(V, d, dt);
-//
-//        //        f = states[5];
-//        states[5] = ionicModel.solveF(V,f,dt);
-////        f2 = states[6];
-//        states[6] = ionicModel.solveF2(V,f2,dt);
-////        fCass = states[7];
-//        states[7] =  ionicModel.solveFCaSS(V,fCass,dt);
-////        r = states[8];
-//        states[8] =  ionicModel.solveR(V,r,dt);
-////        s = states[9];
-//        states[9] = ionicModel.solveS(V,s,dt);
-////        Xr1 = states[10];
-//        states[10] =  ionicModel.solveXr1(V,Xr1,dt);
-////        Xr2 = states[11];
-//        states[11] =  ionicModel.solveXr2(V,Xr2,dt);
-////        Xs = states[12];
-//        states[12] =  ionicModel.solveXs(V,Xs,dt);
-//
-////        Nai = states[13];
-//        states[13] =  ionicModel.solveNai(V,m,h,j,Nai,Cai,dt);
-////        Ki = states[14];
-//        states[14] = ionicModel.solveKi(V,r,s,Xr1,Xr2,Xs,Nai,Ki,Iapp,dt);
-//        //        Cai = states[15];
-//        states[15] = ionicModel.solveCai(V,Nai,Cai,Casr,Cass,dt);
-////        Cass = states[16];
-//        states[16] = ionicModel.solveCaSS(Cai,Casr,Cass,Rprime,V,d,f,f2,fCass, dt);
-////        Casr = states[17];
-//		states[17] = ionicModel.solveCaSR(Cai,Casr,Cass,Rprime,dt);
-////        Rprime = states[18];
-//        states[18] = ionicModel.solveRR(Casr,Cass,Rprime,dt);
-//
 
         //********************************************//
         // Writes solution on file.                   //
@@ -496,13 +467,20 @@ Int main ( Int argc, char** argv )
 
         t = t + dt;
         if( iter % savestep == 0  ){
-        output << t << ", ";
+        output << t << "\t";
         for ( int it (0); it <= ionicModel.Size() - 1; it++)
         {
-            output << rStates.at (it) << ", ";
+            output << rStates.at (it) << "\t";
         }
+        output << dgammaf << "\t";
         output << gammaf << "\n";
 
+        XbOutput << XbStates[0] << "\t";
+        XbOutput << XbStates[1] << "\t";
+        XbOutput << XbStates[2] << "\t";
+    	XbOutput << Pa << "\t";
+        XbOutput << dgammaf << "\t";
+        XbOutput << gammaf << "\n";
 
 
         ///********************************
@@ -523,20 +501,33 @@ Int main ( Int argc, char** argv )
         ipK = ionicModel.IpK(V,Ki);
         ipCa = ionicModel.IpCa(Cai);
 
-        output2 << t << ", ";
-         output2 << itot << ", ";
-         output2 << iK1 << ", ";
-         output2 << ito << ", ";
-         output2 << iKr << ", ";
-         output2 << iKs << ", ";
-         output2 << iCaL << ", ";
-         output2 << iNa << ", ";
-         output2 << ibNa << ", ";
-         output2 << iNaCa << ", ";
-         output2 << ibCa << ", ";
-         output2 << ipK << ", ";
+        output2 << t << "\t";
+         output2 << itot << "\t";
+         output2 << iK1 << "\t";
+         output2 << ito << "\t";
+         output2 << iKr << "\t";
+         output2 << iKs << "\t";
+         output2 << iCaL << "\t";
+         output2 << iNa << "\t";
+         output2 << ibNa << "\t";
+         output2 << iNaCa << "\t";
+         output2 << ibCa << "\t";
+         output2 << ipK << "\t";
          output2 << ipCa << "\n";
 
+//         std::cout << t << "\t";
+//          std::cout << itot << "\t";
+//          std::cout << iK1 << "\t";
+//          std::cout << ito << "\t";
+//          std::cout << iKr << "\t";
+//          std::cout << iKs << "\t";
+//          std::cout << iCaL << "\t";
+//          std::cout << iNa << "\t";
+//          std::cout << ibNa << "\t";
+//          std::cout << iNaCa << "\t";
+//          std::cout << ibCa << "\t";
+//          std::cout << ipK << "\t";
+//          std::cout << ipCa << "\n";
         }
 
 
@@ -555,6 +546,7 @@ Int main ( Int argc, char** argv )
     // Close exported file.                       //
     //********************************************//
     output.close();
+    XbOutput.close();
     output2.close();
 
     //! Finalizing Epetra communicator

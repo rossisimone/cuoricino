@@ -211,7 +211,7 @@ public:
     //@{
 
     //Compute the rhs on a single node or for the 0D case
-    void computeRhs ( const std::vector<Real>& v, const Real& Ca, const Real& vel,  std::vector<Real>& rhs);
+    void computeRhs ( const std::vector<Real>& v, const Real& Ca, const Real& vel,  std::vector<Real>& rhs, Real FLR = 1000.);
 
     //Compute the rhs on a mesh/ 3D case
     void computeRhs ( const std::vector<vectorPtr_Type>& v, const VectorEpetra& Ca, const VectorEpetra& vel, std::vector<vectorPtr_Type>& rhs );
@@ -347,10 +347,20 @@ XbNegroniLascano96& XbNegroniLascano96::operator= ( const XbNegroniLascano96& Xb
 void XbNegroniLascano96::computeRhs (    const   std::vector<Real>&  v,
                                          const   Real& Ca,
                                          const   Real& vel,
-                                         std::vector<Real>& rhs )
+                                         std::vector<Real>& rhs,
+                                         Real FLR )
 {
+
 	Real length ( 1.05 );
-    Real TCaEff = v[0] * std::exp( - M_R * ( length - M_La ) * ( length - M_La ) );
+	Real TCaEff;
+	if( FLR > 10 )
+	{
+	    TCaEff = v[0] * std::exp( - M_R * ( length - M_La ) * ( length - M_La ) );
+	}
+	else
+	{
+	    TCaEff = v[0] * FLR;
+	}
 
     Real Qb  = M_Y1 * Ca * ( M_Tt - v[0] - v[1] - v[2] ) - M_Z1 * v[0];
     Real Qa  = M_Y2 * TCaEff - M_Z2 * v[1];
@@ -364,6 +374,11 @@ void XbNegroniLascano96::computeRhs (    const   std::vector<Real>&  v,
     rhs[0] = Qb - Qa;
     rhs[1] = Qa - Qr - Qd2;
     rhs[2] = Qr - Qd - Qd1;
+//    std::cout << "\n***** xb rhs ****";
+//    std::cout << "\nQb: " << Qb << ", Qa: " << Qa << ", Qr: " << Qr;
+//    std::cout << "\nQd: " << Qd << ", Qd1: " << Qd1 << ", Qd2: " << Qd2;
+//    std::cout << "\nrhs[0]: " << rhs[0] << ", rhs[1]: " << rhs[1] << ", rhs[2]: " << rhs[2];
+//    std::cout << "\n*****************\n";
 
 
 }
