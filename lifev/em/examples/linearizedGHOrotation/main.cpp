@@ -67,7 +67,7 @@ Real d0(const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real& /*
 
 Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& Z, const ID& /*i*/)
 {
-	if( X < 0.05 ) return 1.0;
+	if( X > 0.95 ) return 1.0;
 	else return  0.;
 }
 
@@ -500,12 +500,7 @@ int main (int argc, char** argv)
      MPI_Barrier(MPI_COMM_WORLD);
      dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *solidFibers , 0);
      HeartUtility::normalize(*solidFibers);
-
-     //     if ( comm->MyPID() == 0 )
-//     {
-//         std::cout << "\nnorm Inf of the fibers after interpolation: " << solidFibers -> normInf() << std::endl;
-//     }
-
+     
      MPI_Barrier(MPI_COMM_WORLD);
 
 
@@ -523,9 +518,10 @@ int main (int argc, char** argv)
 //     HeartUtility::setupFibers(*solidFibers, fvec);
      solid.material() -> setFiberVector( *solidFibers );
 
-     Real sx = parameterList.get ("sheet_X", 1.0);
-     Real sy = parameterList.get ("sheet_Y", 0.0);
-     Real sz = parameterList.get ("sheet_Z", 0.0);;
+
+     Real sx = 1.0;//parameterList.get ("sheet_X", 1.0);
+     Real sy = 0.0;//parameterList.get ("sheet_Y", 0.0);
+     Real sz = 0.0;//parameterList.get ("sheet_Z", 0.0);;
      solid.material()->setupSheetVector(sx, sy, sz);
 
      if ( comm->MyPID() == 0 )
@@ -533,7 +529,7 @@ int main (int argc, char** argv)
          std::cout << "\nset fibers" << std::endl;
      }
 
-
+//     solid.material() -> setFiberVector( *solidFibers );
 
 //     monodomain -> setupFibers();
 
@@ -620,10 +616,13 @@ int main (int argc, char** argv)
      vectorPtr_Type solidGammas( new vector_Type( solidGammaf -> map() ) );
      vectorPtr_Type solidGamman( new vector_Type( solidGammaf -> map() ) );
      Int gcase = parameterList.get ("case", 0);
+     if ( comm->MyPID() == 0 )
+     {
+         std::cout << "\ncase: " << gcase << std::endl;
+     }
      if(gcase == 1)
      {
 		 Real gfactor = parameterList.get ("gfactor", 3.0);
-		 cout << "\ngfactor: " << gfactor;
 		 *solidGamman = gfactor * *solidGammaf;
 		 solid.material() -> setGamman(*solidGamman);
 		 *solidGammas = 1.0;
@@ -648,10 +647,6 @@ int main (int argc, char** argv)
      }
      else
      {
-         if ( comm->MyPID() == 0 )
-         {
-             std::cout << "\n\n\nWHY AM I HERE????????????????????/\n????????????????????????\n?????????????????????????\n" << std::endl;
-         }
 		 *solidGammas = 1.0;
 		 *solidGammas /= (1.0 + *solidGammaf);
 		 EpetraSqrt(*solidGammas);
@@ -674,9 +669,7 @@ int main (int argc, char** argv)
 			 gammas = solidGammas;
 		 }
      }
-     cout << "\nmin of gamma s: " << solidGammas -> minValue();
-     cout << "\nmax of gamma s: " << solidGammas -> maxValue();
-     cout << "\n" ;
+
      //==================================================================//
      //==================================================================//
      //					SETUP INTERPOLATION								//
@@ -970,12 +963,21 @@ int main (int argc, char** argv)
   	//				Initializing solid
   	//===========================================================
   	//===========================================================
+	if ( comm->MyPID() == 0 )
+		{
+			std::cout << "\nContractile fraction: " << solid.data() -> contractileFraction() << std::endl;
+		}
+	solid.data() -> showMe();
+	solid.material() -> showMyParameters();
+
     if(parameterList.get("pressure_ramp", false) == true){
+
+
+    	Real ramp_dt = parameterList.get("ramp_timestep", 0.1);
 		if ( comm->MyPID() == 0 )
 		{
-			std::cout << "\nSTARTING PRESSURE RAMP!\n" << std::endl;
+			std::cout << "\nSTARTING PRESSURE RAMP!\n" << ramp_dt << "\n" << std::endl;
 		}
-    	Real ramp_dt = parameterList.get("ramp_timestep", 0.1);
     	for(Real pseudot(0); pseudot < 1; ){
     		pseudot += ramp_dt;
     		if ( comm->MyPID() == 0 )
@@ -1040,6 +1042,7 @@ int main (int argc, char** argv)
         Real dt_min = 0.01;
 
 
+		Real Ca_diastolic = dataFile( "solid/physics/Ca_diastolic", 0.02155 );
 
 
      for( Real t(0.0); t< monodomain -> endTime(); )
@@ -1096,7 +1099,9 @@ int main (int argc, char** argv)
 			}
 
 
-			  //if( monodomain -> globalSolution().at(3) -> normInf() >= 0.0216)
+			  if( monodomain -> globalSolution().at(3) -> normInf() >= Ca_diastolic
+					  ||
+				   emDisp -> normInf() >=  1e-7)
 			  {
 
 					if ( comm->MyPID() == 0 )
@@ -1180,19 +1185,18 @@ int main (int argc, char** argv)
 //						BOOST_AUTO_TPL(dW0, value(-1.0) * ( psi_iso_e_i + psi_f_e_i ) * I4fiso_i ) ;
 	//					BOOST_AUTO_TPL(dW, value(-1.0) * ( psi_iso_e + psi_f_e ) * I4fiso * pow(gf + value(1.0), -3) );
 						BOOST_AUTO_TPL(dW0, value(-2.0) * I4fiso_i) ;
-						BOOST_AUTO_TPL(dW, value(-2.0) * I4fiso * pow(gf + value(1.0), -3) );
+						BOOST_AUTO_TPL(dW, value(2.0) * I4fiso * ( value(3.0) * gf + value(-6.0) * gf * gf + value(10.0) * gf * gf * gf + value(-15.0) * gf * gf * gf * gf  + value(21.0) * gf * gf * gf * gf * gf) );
 
 
 						BOOST_AUTO_TPL(Ca,    value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) );
 						BOOST_AUTO_TPL(Ca2, Ca * Ca );
 
-						Real Ca_diastolic = dataFile( "solid/physics/Ca_diastolic", -0.02155 );
-						BOOST_AUTO_TPL(dCa, Ca + value(Ca_diastolic) );
+						BOOST_AUTO_TPL(dCa, ( Ca - value(Ca_diastolic) ) );
 					//    Real alpha1 = -2.5;
 						Real active_coefficient = dataFile( "solid/physics/active_coefficient", -2.5 );
 					//	BOOST_AUTO_TPL(coeff, a * Jm23 * pow( eval(EXP, ( I1iso + value(-3.0) ) ), B )/*+ value(2.0) * af * eval( H, I4feisom1)*/ );
 						//BOOST_AUTO_TPL(Pa, value(active_coefficient) * psi_iso_e  * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) + dW0 );
-						BOOST_AUTO_TPL(Pa, value(active_coefficient) * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) + dW0 );
+						BOOST_AUTO_TPL(Pa, value(active_coefficient) * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) );
 						//BOOST_AUTO_TPL(Pa, value(active_coefficient) * psi_iso_e  * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) + dW0 );
 
 						//BOOST_AUTO_TPL(Pag, value(active_coefficient) * a * eval(H, dCa) * eval(H, dCa) * eval(flg, value( aETFESpace, *gammaf ) ) + dW0 );
@@ -1238,31 +1242,35 @@ int main (int argc, char** argv)
 
 					linearSolver.solve(gammaf);
 			  }
-			  //else *gammaf *= 0.0;
+			  else *gammaf *= 0.0;
 
-				if( gammaf -> maxValue() > 0.0)
-				{
-					int d = gammaf -> epetraVector().MyLength();
-					int size =  gammaf -> size();
-					for(int l(0); l < d; l++)
-					{
-						if ( comm->MyPID() == 0 )
-						{
-							std::cout << "\n*****************************************************";
-							std::cout << "\nChanging the gamma back to zero: " ;
-							std::cout << "\n*****************************************************";
-
-						}
-						int m1 = gammaf -> blockMap().GID(l);
-						//cout << m1 << "\t" << size << "\n";
-						if( (*gammaf)[m1] > 0)
-						{
-							(*gammaf)[m1] = 0.0;
-						}
-						std::cout << "\n";
-
-					}
-				}
+//				if( gammaf -> maxValue() > 0.0)
+//				{
+//					std::cout << "\n*****************************************************";
+//					std::cout << "\nCannot be positive: " ;
+//					std::cout << "\n*****************************************************";
+//					return 0;
+//					int d = gammaf -> epetraVector().MyLength();
+//					int size =  gammaf -> size();
+//					for(int l(0); l < d; l++)
+//					{
+//						if ( comm->MyPID() == 0 )
+//						{
+//							std::cout << "\n*****************************************************";
+//							std::cout << "\nChanging the gamma back to zero: " ;
+//							std::cout << "\n*****************************************************";
+//
+//						}
+//						int m1 = gammaf -> blockMap().GID(l);
+//						//cout << m1 << "\t" << size << "\n";
+//						if( (*gammaf)[m1] > 0)
+//						{
+//							(*gammaf)[m1] = 0.0;
+//						}
+//						std::cout << "\n";
+//
+//					}
+//				}
 
 
 			  if ( k % iter == 0)
@@ -1357,10 +1365,14 @@ int main (int argc, char** argv)
 					*solidDisp = solid.displacement();
 					if(parameterList.get("time_prestretch",false))
 					{
-						if( monodomain -> globalSolution().at(3)-> minValue() < 0.0216)
+						if( monodomain -> globalSolution().at(3)-> maxValue() < Ca_diastolic)
+						{
+							(*emDisp0) = (*emDisp);
+						}
+						else if( monodomain -> globalSolution().at(3)-> minValue() < Ca_diastolic)
 						{
 							int d = monodomain -> globalSolution().at(3) -> epetraVector().MyLength();
-							int size =  monodomain -> globalSolution().at(3) -> size();
+//							int size =  monodomain -> globalSolution().at(3) -> size();
 							for(int l(0); l < d; l++)
 							{
 								if ( comm->MyPID() == 0 )
@@ -1372,11 +1384,11 @@ int main (int argc, char** argv)
 								}
 								int m1 = monodomain -> globalSolution().at(3) -> blockMap().GID(l);
 								//cout << m1 << "\t" << size << "\n";
-								if( (*(monodomain -> globalSolution().at(3)))[m1] <= 0.0216)
+								if( (*(monodomain -> globalSolution().at(3)))[m1] <= Ca_diastolic)
 								{
 									std::cout << "\nchanging at: " << m1 ;
-									int m2 = solid.displacementPtr() -> blockMap().GID(l + size);
-									int m3 = solid.displacementPtr() -> blockMap().GID(l + 2 * size);
+									int m2 = solid.displacementPtr() -> blockMap().GID(l + d);
+									int m3 = solid.displacementPtr() -> blockMap().GID(l + 2 * d);
 									std::cout << "\n" << (*emDisp0)[m1] << " has become: ";
 									(*emDisp0)[m1] = (*emDisp)[m1];
 									std::cout << (*emDisp0)[m1] << "\n";
@@ -1419,7 +1431,7 @@ int main (int argc, char** argv)
 					  }
 			  }
 
-		  cout << "\n\n save every " << saveIter << "iteration\n";
+		  //cout << "\n\n save every " << saveIter << "iteration\n";
 		  if ( k % saveIter == 0)
 		  {
 			  monodomain -> exportSolution(expElectro, t);

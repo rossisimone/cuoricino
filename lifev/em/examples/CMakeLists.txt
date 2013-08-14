@@ -15,4 +15,5 @@ ADD_SUBDIRECTORIES(
   example_laplacian
   example_sheet
   linearizedGHO
+  linearizedGHOrotation
 )
