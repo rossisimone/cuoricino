@@ -535,9 +535,9 @@ int main ( int argc, char** argv )
 //		Real cy = 0.699986220544843;
 //		Real cz = -0.283825038876930;
 
-		Real cx = -0.621212547989018;
-		Real cy = 0.707524185876277;
-		Real cz = -0.336904284064634;
+		Real cx = 0.0;
+		Real cy = 0.0;
+		Real cz = 1.0;
 
 
 	    if ( Comm->MyPID() == 0 )
@@ -693,6 +693,9 @@ int main ( int argc, char** argv )
 			Real s01 = (*rbSheet)[i];
 			Real s02 = (*rbSheet)[j];
 			Real s03 = (*rbSheet)[k];
+			Real f01 = (*rbFiber)[i];
+			Real f02 = (*rbFiber)[j];
+			Real f03 = (*rbFiber)[k];
 
 			Real R11 = std::cos(teta) + s01 * s01 * ( 1 - std::cos(teta) );
 			Real R12 = s01 * s02 *  ( 1 - std::cos(teta) ) - s03 * std::sin(teta);
@@ -706,9 +709,43 @@ int main ( int argc, char** argv )
 			Real R32 = s03 * s02 *  ( 1 - std::cos(teta) ) + s01 * std::sin(teta);
 			Real R33 = std::cos(teta) + s03 * s03 * ( 1 - std::cos(teta) );
 
-			(*rbFiber) [i] = R11 * (*rbFiber) [i] + R12 * (*rbFiber) [j] + R13 * (*rbFiber) [k];
-			(*rbFiber) [j] = R21 * (*rbFiber) [i] + R22 * (*rbFiber) [j] + R23 * (*rbFiber) [k];
-			(*rbFiber) [k] = R31 * (*rbFiber) [i] + R32 * (*rbFiber) [j] + R33 * (*rbFiber) [k];
+			Real ca = std::cos(teta);
+			Real sa = std::sin(teta);
+//			(*rbFiber) [i] = R11 * (*rbFiber) [i] + R12 * (*rbFiber) [j] + R13 * (*rbFiber) [k];
+//			(*rbFiber) [j] = R21 * (*rbFiber) [i] + R22 * (*rbFiber) [j] + R23 * (*rbFiber) [k];
+//			(*rbFiber) [k] = R31 * (*rbFiber) [i] + R32 * (*rbFiber) [j] + R33 * (*rbFiber) [k];
+//
+//
+//			(*rbFiber) [i]=s01*scalarp+(f01*(s02*s02+s03*s03)-s01*(s02*f02+s03*f03))*ca+(-s03*f02+s02*f03)*sa;
+//			(*rbFiber) [j]=s02*scalarp+(f02*(s01*s01+s03*s03)-s02*(s01*f01+s03*f03))*ca+(s03*f01-s01*f03)*sa;
+//			(*rbFiber) [k]=s03*scalarp+(f03*(s01*s01+s02*s02)-s03*(s01*f01+s02*f02))*ca+(-s02*f01+s01*f02)*sa;
+
+
+			Real W11 = 0.0;
+			Real W12 = -s03;
+			Real W13 = s02;
+			Real W21 = s03;
+			Real W22 = 0.0;
+			Real W23 = -s01;
+			Real W31 = -s02;
+			Real W32 = s01;
+			Real W33 = 0.0;
+			Real sa2 = 2.0*std::sin(0.5*teta)*std::sin(0.5*teta);
+
+			R11 = 1.0 + sa * W11 + sa2 * ( W11 * W11 + W12 * W21 + W13 * W31);
+			R12 = 1.0 + sa * W12 + sa2 * ( W11 * W12 + W12 * W22 + W13 * W32);
+			R13 = 1.0 + sa * W13 + sa2 * ( W11 * W13 + W12 * W23 + W13 * W33);
+			R21 = 1.0 + sa * W21 + sa2 * ( W21 * W11 + W22 * W21 + W23 * W31);
+			R22 = 1.0 + sa * W22 + sa2 * ( W21 * W12 + W22 * W22 + W23 * W32);
+			R23 = 1.0 + sa * W23 + sa2 * ( W21 * W13 + W22 * W23 + W23 * W33);
+			R31 = 1.0 + sa * W31 + sa2 * ( W31 * W11 + W32 * W21 + W33 * W31);
+			R32 = 1.0 + sa * W32 + sa2 * ( W31 * W12 + W32 * W22 + W33 * W32);
+			R33 = 1.0 + sa * W33 + sa2 * ( W31 * W13 + W32 * W23 + W33 * W33);
+
+			(*rbFiber) [i] = R11 * f01 + R12 * f02 + R13 * f03;
+			(*rbFiber) [j] = R21 * f01 + R22 * f02 + R23 * f03;
+			(*rbFiber) [k] = R31 * f01 + R32 * f02 + R33 * f03;
+
 
 
 		}

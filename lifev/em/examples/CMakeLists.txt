@@ -14,4 +14,5 @@ ADD_SUBDIRECTORIES(
   example_CalciumDependentActivation
   example_laplacian
   example_sheet
+  linearizedGHO
 )
