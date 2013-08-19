@@ -661,6 +661,8 @@ int main ( int argc, char** argv )
 		HeartUtility::normalize(*rbFiber);
 
         exporter2.postProcess (2);
+        Real epi_angle = parameterList.get ("epi_angle", -60.0);
+        Real endo_angle = parameterList.get ("endo_angle", 60.0);
 
 	    if ( Comm->MyPID() == 0 )
 	    {
@@ -678,8 +680,8 @@ int main ( int argc, char** argv )
                       + (*projection) [k] * (*rbFiber) [k];
 
 
-			Real epi_angle =  -50.0;
-			Real endo_angle =  50.0;
+//			Real epi_angle =  -50.0;
+//			Real endo_angle =  50.0;
 			Real p = 3.14159265358979;
 			Real teta1 = p * epi_angle / 180; //67.5 degrees
 			Real teta2 = p * endo_angle / 180;
@@ -731,16 +733,16 @@ int main ( int argc, char** argv )
 			Real W32 = s01;
 			Real W33 = 0.0;
 			Real sa2 = 2.0*std::sin(0.5*teta)*std::sin(0.5*teta);
-
-			R11 = 1.0 + sa * W11 + sa2 * ( W11 * W11 + W12 * W21 + W13 * W31);
-			R12 = 1.0 + sa * W12 + sa2 * ( W11 * W12 + W12 * W22 + W13 * W32);
-			R13 = 1.0 + sa * W13 + sa2 * ( W11 * W13 + W12 * W23 + W13 * W33);
-			R21 = 1.0 + sa * W21 + sa2 * ( W21 * W11 + W22 * W21 + W23 * W31);
-			R22 = 1.0 + sa * W22 + sa2 * ( W21 * W12 + W22 * W22 + W23 * W32);
-			R23 = 1.0 + sa * W23 + sa2 * ( W21 * W13 + W22 * W23 + W23 * W33);
-			R31 = 1.0 + sa * W31 + sa2 * ( W31 * W11 + W32 * W21 + W33 * W31);
-			R32 = 1.0 + sa * W32 + sa2 * ( W31 * W12 + W32 * W22 + W33 * W32);
-			R33 = 1.0 + sa * W33 + sa2 * ( W31 * W13 + W32 * W23 + W33 * W33);
+//
+			R11 = 1.0 + sa * W11 + sa2 * ( s01 * s01 - 1.0 );
+			R12 = 0.0 + sa * W12 + sa2 * ( s01 * s02 );
+			R13 = 0.0 + sa * W13 + sa2 * ( s01 * s03 );
+			R21 = 0.0 + sa * W21 + sa2 * ( s02 * s01 );
+			R22 = 1.0 + sa * W22 + sa2 * ( s02 * s02 - 1.0 );
+			R23 = 0.0 + sa * W23 + sa2 * ( s02 * s03 );
+			R31 = 0.0 + sa * W31 + sa2 * ( s03 * s01 );
+			R32 = 0.0 + sa * W32 + sa2 * ( s03 * s02 );
+			R33 = 1.0 + sa * W33 + sa2  * ( s03 * s03 - 1.0 );
 
 			(*rbFiber) [i] = R11 * f01 + R12 * f02 + R13 * f03;
 			(*rbFiber) [j] = R21 * f01 + R22 * f02 + R23 * f03;
@@ -758,7 +760,22 @@ int main ( int argc, char** argv )
         exporter.postProcess (1);
         exporter.closeFile();
 
-
+        ExporterHDF5< mesh_Type > exporterFibers;
+        exporterFibers.setMeshProcId ( meshPart, Comm -> MyPID() );
+        exporterFibers.setPostDir(problemFolder);
+        std::string outputFiberFileName = parameterList.get ("output_fiber_filename", "FiberDirection");
+        exporterFibers.setPrefix (outputFiberFileName);
+        exporterFibers.addVariable ( ExporterData<mesh_Type>::VectorField,  "fibers", sFESpace, rbFiber, UInt (0) );
+        exporterFibers.postProcess (0);
+        exporterFibers.closeFile();
+        ExporterHDF5< mesh_Type > exporterSheets;
+        exporterSheets.setMeshProcId ( meshPart, Comm -> MyPID() );
+        exporterSheets.setPostDir(problemFolder);
+        std::string outputSheetsFileName = parameterList.get ("output_sheets_filename", "SheetsDirection");
+        exporterSheets.setPrefix (outputSheetsFileName);
+        exporterSheets.addVariable ( ExporterData<mesh_Type>::VectorField,  "sheets", sFESpace, rbSheet, UInt (0) );
+        exporterSheets.postProcess (0);
+        exporterSheets.closeFile();
 
 
     // ---------------------------------------------------------------

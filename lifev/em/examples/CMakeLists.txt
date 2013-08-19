@@ -16,4 +16,5 @@ ADD_SUBDIRECTORIES(
   example_sheet
   linearizedGHO
   linearizedGHOrotation
+  linearizedGHOventricle
 )
