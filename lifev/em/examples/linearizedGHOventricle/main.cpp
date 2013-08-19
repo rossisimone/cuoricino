@@ -1558,7 +1558,7 @@ int main (int argc, char** argv)
 								std::cout <<  newPressure <<", Variation %: " << dp / pressure << " \n";
 							}
 							endoVec = -newPressure;
-							pEndo.reset( ( new BCVectorBase (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
+							pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
 							solidBC -> handler() -> modifyBC(10, *pEndo);
 						}
 					 }
