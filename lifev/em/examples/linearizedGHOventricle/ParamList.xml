@@ -12,17 +12,22 @@
     <Parameter name="longitudinalDiffusion" type="double" value="1.33417721518987"  /><!-- k Ohm ^-1 cm ^ -1-->
     <Parameter name="transversalDiffusion" type="double" value ="0.176061776061776"  /><!--k Ohm ^-1 cm ^ -1-->
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="solid_mesh_name" type="string" value="cube2r.mesh"  />
-    <Parameter name="solid_mesh_path" type="string" value="/home/srossi/meshes/cubic_meshes/"  />
-    <Parameter name="solid_fiber_file" type="string" value="idealHeart_structure_fiber"  />
+    <Parameter name="solid_mesh_name" type="string" value="freeform.mesh"  />
+    <Parameter name="solid_mesh_path" type="string" value="/usr/scratch/srossi/meshes/deformed_lv/undeformed/"  />
+    <Parameter name="solid_fiber_file" type="string" value="fibers-60+60"  />
     <Parameter name="c2f" type="string" value="RBFhtpVectorial"  />
     <Parameter name="f2c" type="string" value="RBFhtp"  />
-    <Parameter name="mesh_name" type="string" value="cube2r.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/home/srossi/meshes/cubic_meshes/"  />
-    <Parameter name="fiber_file" type="string" value="idealHeart_electro_fiber"  />
+    <Parameter name="mesh_name" type="string" value="freeform.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/deformed_lv/undeformed/"  />
+    <Parameter name="fiber_file" type="string" value="fibers-60+60"  />
+    <Parameter name="solid_fiber_field" type="string" value="fibers"  />
+    <Parameter name="solid_sheets_file" type="string" value="SheetsDirection"  />
+    <Parameter name="solid_sheets_field" type="string" value="sheets"  />
     <Parameter name="two_way" type="bool" value="true"/>
     <Parameter name="pressure_ramp" type="bool" value="true"/>
-    <Parameter name="ramp_timestep" type="double" value="0.025"  />
+    <Parameter name="pressure" type="double" value="-10000.0"/>
+    <Parameter name="ramp_timestep" type="double" value="0.5"  />
+    <Parameter name="debug" type="bool" value="true"/>
     <Parameter name="case" type="int" value="1"/>
     <Parameter name="subiter" type="int" value="1"  />
     <Parameter name="fiber_X" type="double" value="1.0"  />

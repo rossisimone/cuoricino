@@ -22,7 +22,7 @@
 #include <lifev/core/interpolation/RBFhtp.hpp>
 #include <lifev/core/interpolation/RBFhtpVectorial.hpp>
 #include <lifev/core/mesh/MeshLoadingUtility.hpp>
-
+#include <lifev/core/mesh/MeshTransformer.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
 #include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
@@ -145,8 +145,95 @@ Real rescalingGamma(const Real&, const Real& x, const Real&, const Real& , const
 }
 
 
+void createPositionVector(const RegionMesh<LinearTetra>& mesh,  VectorEpetra& positionVector)
+{
+	Int nLocalDof = positionVector.epetraVector().MyLength();
+	Int nComponentLocalDof = nLocalDof / 3;
+	for (int k(0); k < nComponentLocalDof; k++)
+	{
+		UInt iGID = positionVector.blockMap().GID(k);
+		UInt jGID = positionVector.blockMap().GID(k + nComponentLocalDof);
+		UInt kGID = positionVector.blockMap().GID(k + 2 * nComponentLocalDof);
+
+		positionVector[iGID] = mesh.point(iGID).x();
+		positionVector[jGID] = mesh.point(iGID).y();
+		positionVector[kGID] = mesh.point(iGID).z();
+	}
 
 
+}
+
+Real ComputeVolume( const RegionMesh<LinearTetra>& fullMesh, VectorEpetra positionVector, const VectorEpetra& disp, int bdFlag)
+{
+	positionVector += disp;
+	Real xMin(0.);
+	Real xMax(0.);
+	Real yMin(0.);
+	Real yMax(0.);
+	Real zMin(0.);
+	Real zMax(0.);
+	Int nLocalDof = positionVector.epetraVector().MyLength();
+	Int nComponentLocalDof = nLocalDof / 3;
+
+	for (int k(0); k < nComponentLocalDof; k++)
+	{
+		UInt iGID = positionVector.blockMap().GID(k);
+		UInt jGID = positionVector.blockMap().GID(k + nComponentLocalDof);
+		UInt kGID = positionVector.blockMap().GID(k + 2 * nComponentLocalDof);
+		if( fullMesh.point ( iGID ).markerID() == bdFlag )
+		{
+			if(positionVector[iGID] > xMax) xMax = positionVector[iGID];
+			if(positionVector[iGID] < xMin) xMin = positionVector[iGID];
+			if(positionVector[jGID] > yMax) yMax = positionVector[jGID];
+			if(positionVector[jGID] < yMin) yMin = positionVector[jGID];
+			if(positionVector[kGID] > zMax) zMax = positionVector[kGID];
+			if(positionVector[kGID] < zMin) zMin = positionVector[kGID];
+
+		}
+	}
+	Real xDiameter = (xMax - xMin );
+	Real yDiameter = (yMax - yMin );
+
+//	Real p = 3.14159265358979;
+//	Real Volume;
+//	if(xDiameter > yDiameter) Volume = p * xDiameter * xDiameter / 4.0 * (zMax - zMin) / 3.0;
+//	else Volume = p * yDiameter * xDiameter / 4.0 * (zMax - zMin) / 3.0;
+	Real Volume = xDiameter * yDiameter * (zMax - zMin) / 2;
+	return Volume;
+}
+
+
+Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp, Real dt = 1.0 )
+{
+	Real pressure;
+	if( dp > 0 )
+	{
+		if(pn < 127000)
+		{
+			Real Cp = - 900.0 / 1333.22; // ml / mmHG -> ml / ( dyne / cm^2)
+			pressure = pn + dV / Cp;
+		}
+		else
+		{
+			Real R = 750 * 1333.22; //mmHg ms / ml
+			Real C = 0.2 / 1333.22; //ml / mmHg
+			pressure = ( R / ( C * R + dt ) ) * ( pn - dV );
+		}
+	}
+	else if( dp < 0 && dV < 0)
+	{
+			Real R = 750 * 1333.22; //mmHg ms / ml
+			Real C = 0.2 / 1333.22; //ml / mmHg
+			pressure = ( R / ( C * R + dt ) ) * ( pn - dV );
+	}
+	else
+	{
+		Real Cp = - 900.0 / 1333.22; // ml / mmHG -> ml / ( dyne / cm^2)
+		pressure = pn + dV / Cp;
+	}
+
+	return pressure;
+}
 
 int main (int argc, char** argv)
 {
@@ -580,7 +667,16 @@ int main (int argc, char** argv)
 
 
      monodomain -> exportFiberDirection(problemFolder);
-     //********************************************//
+     boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterSheets;
+     exporterSheets.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, parameterList.get ("StructureOutputFile", "SheetsDirection") ) );
+
+       //      exporter->setPostDir ( "./" );
+             exporterSheets -> setPostDir ( problemFolder );
+       exporterSheets->setMeshProcId ( localSolidMesh, comm->MyPID() );
+       exporterSheets->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "sheets", dFESpace, solidSheets, UInt (0) );
+       exporterSheets->postProcess(0);
+       exporterSheets->closeFile();
+       //********************************************//
      // Create the global matrix: mass + stiffness in ELECTROPHYSIOLOGY //
      //********************************************//
      if ( comm->MyPID() == 0 )
@@ -840,6 +936,23 @@ int main (int argc, char** argv)
 
       matrixPtr_Type mass(new matrix_Type( monodomain -> massMatrixPtr() -> map() ) ) ;
 
+
+
+
+     	boost::shared_ptr<FLRelationshipGamma> flg (new FLRelationshipGamma);
+     	boost::shared_ptr<FLRelationship> fl (new FLRelationship);
+
+     	boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
+
+     	boost::shared_ptr<Exp> EXP(new Exp);
+     	boost::shared_ptr<Exp2> EXP2(new Exp2);
+     	boost::shared_ptr<Psi4f> psi4f (new Psi4f);
+     	boost::shared_ptr<ShowValue> sv(new ShowValue);
+
+      MatrixSmall<3,3> Id;
+      Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
+      Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
+      Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
   	{
   		using namespace ExpressionAssembly;
 
@@ -927,20 +1040,6 @@ int main (int argc, char** argv)
 
 
 
-   	boost::shared_ptr<FLRelationshipGamma> flg (new FLRelationshipGamma);
-   	boost::shared_ptr<FLRelationship> fl (new FLRelationship);
-
-   	boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
-
-   	boost::shared_ptr<Exp> EXP(new Exp);
-   	boost::shared_ptr<Exp2> EXP2(new Exp2);
-   	boost::shared_ptr<Psi4f> psi4f (new Psi4f);
-   	boost::shared_ptr<ShowValue> sv(new ShowValue);
-
-    MatrixSmall<3,3> Id;
-    Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
-    Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
-    Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
 
    	vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
     solidFESpacePtr_Type emDispFESpace ( new solidFESpace_Type ( monodomain -> localMeshPtr(), "P1", 3, comm) );
@@ -967,20 +1066,38 @@ int main (int argc, char** argv)
 
 
 
-	//===========================================================
+
+    //===========================================================
+    //===========================================================
+    // CREATE POSITION VECTOR
+    //===========================================================
+    //===========================================================
+    vectorPtr_Type referencePosition( new vector_Type( solidDisp -> map() ) );
+    createPositionVector(*fullSolidMesh, *referencePosition);
+    Real fluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10);
+	if ( comm->MyPID() == 0 )
+		{
+			std::cout << "\nInitial fluid volume: " << fluidVolume << std::endl;
+		}
+
+    //===========================================================
   	//===========================================================
   	//				Initializing solid
   	//===========================================================
   	//===========================================================
     vector_Type endoVec (0.0 * (*solidDisp) , Repeated);
 //    vector_Type pressure (aFESpace->map(), Repeated);
-    Real pressure = -100.0;
+    Real pressure = parameterList.get("pressure", 0.0);
+    vectorPtr_Type savePressure( new vector_Type(endoVec, Unique) );
+    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "pressure", dFESpace, savePressure, UInt (0) );
 
     boost::shared_ptr<BCVector> pEndo( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) );
 
-    solidBC -> handler() -> addBC("Endocadium", 10, Natural, Full, *pEndo, 3);
-//    solidBC -> handler() -> addBC
+	if(parameterList.get("debug", false)){
 
+    solidBC -> handler() -> addBC("Endocardium", 10, Natural, Full, *pEndo, 3);
+//    solidBC -> handler() -> addBC
+	}
 	if ( comm->MyPID() == 0 )
 		{
 			std::cout << "\nContractile fraction: " << solid.data() -> contractileFraction() << std::endl;
@@ -1003,17 +1120,26 @@ int main (int argc, char** argv)
     			std::cout << "\nPRESSURE RAMP: " << pseudot;
     		}
     		solid.data() -> dataTime() -> setTime(pseudot);
+    		if(parameterList.get("debug", false)){
     		endoVec = (pressure * pseudot);
     		pEndo.reset( ( new BCVectorBase (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
     	    solidBC -> handler() -> modifyBC(10, *pEndo);
+    		}
+//    		if ( comm->MyPID() == 0 )
+//    		{
+//    			std::cout << "\nnorm displacement: " << solid.displacement().norm2();
+//    			std::cout << "\nnorm gammaf: " << solid.material() -> gammaf() -> norm2();
+//    			std::cout << "\nnorm gamman: " << solid.material() -> gamman() -> norm2();
+//    			std::cout << "\nnorm gammas: " << solid.material() -> gammas() -> norm2();
+//    		}
     		solidBC -> handler() -> showMe();
     		solid.iterate ( solidBC -> handler() );
-    	    exporter->postProcess ( pseudot );
+
 
 		}
     }
     *solidDisp = solid.displacement();
-    exporter->postProcess ( 2 );
+    exporter->postProcess ( 0 );
 
 
 	  if(true){
@@ -1078,6 +1204,12 @@ int main (int argc, char** argv)
 
 		Real Ca_diastolic = dataFile( "solid/physics/Ca_diastolic", 0.02155 );
 
+		Real p0 = 0;
+		Real pnm1 = pressure;
+		Real dp = pressure - p0;
+		Real V0 = fluidVolume;
+		Real dV = fluidVolume;
+		bool isoPV = true;
 
      for( Real t(0.0); t< monodomain -> endTime(); )
 	 {
@@ -1392,11 +1524,82 @@ int main (int argc, char** argv)
 
 					}
 
-					solid.iterate ( solidBC -> handler() );
+					 dV = 2 * fluidVolume;
+					 if(pressure > 127000) isoPV = false;
+					 if(isoPV)
+					 {
+						while( dV / fluidVolume > 1e-3 )
+						{
+							solid.iterate ( solidBC -> handler() );
+							*solidDisp = solid.displacement();
+
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout << "\nComputing Volume of Fluid: ... ";
+							}
+							Real newFluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10);
+							dV = newFluidVolume - fluidVolume;
+							fluidVolume = newFluidVolume;
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout <<  newFluidVolume <<", Variation %: " << dV / fluidVolume << " \n";
+							}
+
+
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout << "\nComputing pressure: ... ";
+							}
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp);
+							dp = newPressure - pressure;
+							pressure = newPressure;
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout <<  newPressure <<", Variation %: " << dp / pressure << " \n";
+							}
+							endoVec = newPressure;
+							pEndo.reset( ( new BCVectorBase (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
+							solidBC -> handler() -> modifyBC(10, *pEndo);
+						}
+					 }
+					 else
+					 {
+							solid.iterate ( solidBC -> handler() );
+							*solidDisp = solid.displacement();
+
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout << "\nComputing Volume of Fluid: ... ";
+							}
+							Real newFluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10);
+							dV = newFluidVolume - fluidVolume;
+							fluidVolume = newFluidVolume;
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout <<  newFluidVolume <<", Variation %: " << dV / fluidVolume << " \n";
+							}
+
+
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout << "\nComputing pressure: ... ";
+							}
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp);
+							dp = newPressure - pressure;
+							pressure = newPressure;
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout <<  newPressure <<", Variation %: " << dp / pressure << " \n";
+							}
+							endoVec = newPressure;
+							pEndo.reset( ( new BCVectorBase (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
+							solidBC -> handler() -> modifyBC(10, *pEndo);
+					 }
+					    savePressure.reset( new vector_Type(endoVec, Unique) );
 
 					//        timeAdvance->shiftRight ( solid.displacement() );
 
-					*solidDisp = solid.displacement();
+
 					if(parameterList.get("time_prestretch",false))
 					{
 						if( monodomain -> globalSolution().at(3)-> maxValue() < Ca_diastolic)
