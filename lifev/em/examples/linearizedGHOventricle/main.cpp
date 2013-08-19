@@ -1122,7 +1122,7 @@ int main (int argc, char** argv)
     		solid.data() -> dataTime() -> setTime(pseudot);
     		if(parameterList.get("debug", false)){
     		endoVec = -(pressure * pseudot);
-    		pEndo.reset( ( new BCVectorBase (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
+    		pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
     	    solidBC -> handler() -> modifyBC(10, *pEndo);
     		}
 //    		if ( comm->MyPID() == 0 )
@@ -1217,10 +1217,10 @@ int main (int argc, char** argv)
 		  k++;
 
 
-		    if ( comm->MyPID() == 0 )
-		    {
-		        std::cout << "\nSolve REACTION step with ROS3P!\n" << std::endl;
-		    }
+//		    if ( comm->MyPID() == 0 )
+//		    {
+//		        std::cout << "\nSolve REACTION step with ROS3P!\n" << std::endl;
+//		    }
 		    LifeChrono timer;
 		    timer.start();
 		    if(meth == 1.0) monodomain -> solveOneReactionStepROS3P(dt_min);
@@ -1592,7 +1592,7 @@ int main (int argc, char** argv)
 								std::cout <<  newPressure <<", Variation %: " << dp / pressure << " \n";
 							}
 							endoVec = -newPressure;
-							pEndo.reset( ( new BCVectorBase (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
+							pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
 							solidBC -> handler() -> modifyBC(10, *pEndo);
 					 }
 					    savePressure.reset( new vector_Type(endoVec, Unique) );
