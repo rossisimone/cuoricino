@@ -1121,7 +1121,7 @@ int main (int argc, char** argv)
     		}
     		solid.data() -> dataTime() -> setTime(pseudot);
     		if(parameterList.get("debug", false)){
-    		endoVec = (pressure * pseudot);
+    		endoVec = -(pressure * pseudot);
     		pEndo.reset( ( new BCVectorBase (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
     	    solidBC -> handler() -> modifyBC(10, *pEndo);
     		}
@@ -1557,7 +1557,7 @@ int main (int argc, char** argv)
 							{
 								std::cout <<  newPressure <<", Variation %: " << dp / pressure << " \n";
 							}
-							endoVec = newPressure;
+							endoVec = -newPressure;
 							pEndo.reset( ( new BCVectorBase (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
 							solidBC -> handler() -> modifyBC(10, *pEndo);
 						}
@@ -1591,7 +1591,7 @@ int main (int argc, char** argv)
 							{
 								std::cout <<  newPressure <<", Variation %: " << dp / pressure << " \n";
 							}
-							endoVec = newPressure;
+							endoVec = -newPressure;
 							pEndo.reset( ( new BCVectorBase (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
 							solidBC -> handler() -> modifyBC(10, *pEndo);
 					 }

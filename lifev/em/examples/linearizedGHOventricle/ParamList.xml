@@ -26,7 +26,7 @@
     <Parameter name="two_way" type="bool" value="true"/>
     <Parameter name="pressure_ramp" type="bool" value="true"/>
     <Parameter name="pressure" type="double" value="-10000.0"/>
-    <Parameter name="ramp_timestep" type="double" value="0.5"  />
+    <Parameter name="ramp_timestep" type="double" value="0.01"  />
     <Parameter name="debug" type="bool" value="true"/>
     <Parameter name="case" type="int" value="1"/>
     <Parameter name="subiter" type="int" value="1"  />
