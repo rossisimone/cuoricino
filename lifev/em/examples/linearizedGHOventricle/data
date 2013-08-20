@@ -48,7 +48,7 @@ lawType     = nonlinear
 viscosity = 0.0002;
 active_coefficient = -3.0;
 Ca_diastolic = 0.02156;
-
+ 
 
 [../boundary_conditions]
 #    list = 'Epi Endo1 Endo2'
@@ -103,7 +103,7 @@ Ca_diastolic = 0.02156;
         flag       = 10
         mode       = Normal
         component  = 1
-		function  = '-100.0'
+	function  = '-100.0'
 
         [../]
 
@@ -139,7 +139,7 @@ abstol  	= 1.e-7
 [../solver]
 solver          = cg
 scaling         = none
-output          = all 			# none
+output          = none 			# none
 conv            = rhs
 max_iter        = 500
 reuse           = true
@@ -148,9 +148,42 @@ kspace          = 800
 tol             = 1.e-10    		# AztecOO tolerance
 
 [../prec]
-prectype        = Ifpack #Ifpack	 		# Ifpack or ML
+prectype        = Ifpack	 		# Ifpack or ML
 displayList     = true
 xmlName         = ParamList.xml #xmlParameters.xml
+
+[./ML] 
+
+    	default_parameter_list = NSSA  # Domain-decomposition
+	prec_type =  MGV               # Multigrid, single V-cycle
+	max_levels = 10
+    	inc_or_dec = increasing
+
+    		[./energy_minimization]
+		enable = true
+		type   = 3
+
+		[../repartition]
+		enable              = 1
+                max_min_ratio       = 1.3
+                min_per_proc        = 500
+                partitioner         = ParMETIS #Zoltan: to be implemented
+
+                [../aggregation]
+                threshold            = 0.01
+                nodes_per_aggregate = 32
+
+                [../coarse]
+                max_size            = 10
+                type                = 'self' 
+
+                [../smoother]
+                type        = 'symmetric Gauss-Seidel'           # Gauss-Seidel smoother
+                sweeps      = 1
+                pre_or_post = both
+                [../] #smoother
+
+        [../] # ML
 
 [./ifpack]
 overlap  	= 1
