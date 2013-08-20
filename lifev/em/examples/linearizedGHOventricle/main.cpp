@@ -163,7 +163,11 @@ void createPositionVector(const RegionMesh<LinearTetra>& mesh,  VectorEpetra& po
 
 }
 
-Real ComputeVolume( const RegionMesh<LinearTetra>& fullMesh, VectorEpetra positionVector, const VectorEpetra& disp, int bdFlag)
+Real ComputeVolume( const RegionMesh<LinearTetra> fullMesh,
+							VectorEpetra positionVector,
+					  const VectorEpetra& disp,
+					  int bdFlag,
+					  boost::shared_ptr<Epetra_Comm>  comm)
 {
 	positionVector += disp;
 	Real xMin(0.);
@@ -191,15 +195,42 @@ Real ComputeVolume( const RegionMesh<LinearTetra>& fullMesh, VectorEpetra positi
 
 		}
 	}
-	Real xDiameter = (xMax - xMin );
-	Real yDiameter = (yMax - yMin );
+
 
 //	Real p = 3.14159265358979;
 //	Real Volume;
 //	if(xDiameter > yDiameter) Volume = p * xDiameter * xDiameter / 4.0 * (zMax - zMin) / 3.0;
 //	else Volume = p * yDiameter * xDiameter / 4.0 * (zMax - zMin) / 3.0;
-	Real Volume = xDiameter * yDiameter * (zMax - zMin) / 2;
-	return Volume;
+	int numProc = comm -> NumProc();
+	Real xMinGlobal(0.);
+	Real xMaxGlobal(0.);
+	Real yMinGlobal(0.);
+	Real yMaxGlobal(0.);
+	Real zMinGlobal(0.);
+	Real zMaxGlobal(0.);
+
+	if(numProc == 1)
+	{
+		Real xDiameter = (xMax - xMin );
+		Real yDiameter = (yMax - yMin );
+		Real Volume = xDiameter * yDiameter * (zMax - zMin) / 2;
+		return Volume;
+	}
+	else
+	{
+		comm -> MaxAll(&xMax, &xMaxGlobal,1);
+		comm -> MinAll(&xMin, &xMinGlobal,1);
+		comm -> MaxAll(&yMax, &yMaxGlobal,1);
+		comm -> MinAll(&yMin, &yMinGlobal,1);
+		comm -> MaxAll(&zMax, &zMaxGlobal,1);
+		comm -> MinAll(&zMin, &zMinGlobal,1);
+
+		Real xDiameter = (xMaxGlobal - xMinGlobal );
+		Real yDiameter = (yMaxGlobal - yMinGlobal );
+		Real Volume = xDiameter * yDiameter * (zMaxGlobal - zMinGlobal) / 2;
+		return Volume;
+	}
+
 }
 
 
@@ -1074,10 +1105,10 @@ int main (int argc, char** argv)
     //===========================================================
     vectorPtr_Type referencePosition( new vector_Type( solidDisp -> map() ) );
     createPositionVector(*fullSolidMesh, *referencePosition);
-    Real fluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10);
-	if ( comm->MyPID() == 0 )
+    Real fluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+ 	//if ( comm->MyPID() == 0 )
 		{
-			std::cout << "\nInitial fluid volume: " << fluidVolume << std::endl;
+			std::cout << "\nInitial fluid volume: " << fluidVolume << " in processor" << comm->MyPID() << std::endl;
 		}
 
     //===========================================================
@@ -1546,7 +1577,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing Volume of Fluid: ... ";
 							}
-							Real newFluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10);
+							Real newFluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
 							dV = newFluidVolume - fluidVolume;
 							fluidVolume = newFluidVolume;
 							if ( comm->MyPID() == 0 )
@@ -1580,7 +1611,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing Volume of Fluid: ... ";
 							}
-							Real newFluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10);
+							Real newFluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
 							dV = newFluidVolume - fluidVolume;
 							fluidVolume = newFluidVolume;
 							if ( comm->MyPID() == 0 )
