@@ -668,7 +668,7 @@ int main (int argc, char** argv)
 
      monodomain -> exportFiberDirection(problemFolder);
      boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterSheets;
-     exporterSheets.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, parameterList.get ("StructureOutputFile", "SheetsDirection") ) );
+     exporterSheets.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, "SheetsDirection" ) );
 
        //      exporter->setPostDir ( "./" );
              exporterSheets -> setPostDir ( problemFolder );
@@ -1086,7 +1086,7 @@ int main (int argc, char** argv)
   	//===========================================================
   	//===========================================================
     boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterRamp;
-    exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, parameterList.get ("StructureOutputFile", "SheetsDirection") ) );
+    exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, "RampOutput" ) );
     exporterRamp -> setPostDir ( problemFolder );
     exporterRamp->setMeshProcId ( localSolidMesh, comm->MyPID() );
     exporterRamp->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "ramp displacement", dFESpace, solidDisp, UInt (0) );
