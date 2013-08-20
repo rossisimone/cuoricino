@@ -1140,14 +1140,14 @@ int main (int argc, char** argv)
 //    		}
 //    		solidBC -> handler() -> showMe();
     		solid.iterate ( solidBC -> handler() );
-    	      exporterRamp->postProcess(pseudot);
-
+    	    exporterRamp->postProcess(pseudot);
+    	    *solidDisp = solid.displacement();
 
 
 		}
 	      exporterRamp->closeFile();
     }
-    *solidDisp = solid.displacement();
+
     exporter->postProcess ( 0 );
 
 
