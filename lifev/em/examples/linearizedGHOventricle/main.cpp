@@ -234,10 +234,10 @@ Real ComputeVolume( const RegionMesh<LinearTetra> fullMesh,
 }
 
 
-Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp, Real dt = 1.0 )
+Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_temporal, Real dt = 1.0 )
 {
 	Real pressure;
-	if( dp > 0 )
+	if( dp_temporal > 0 )
 	{
 		if(pn < 127000)
 		{
@@ -248,14 +248,15 @@ Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp, Real dt = 1.0 )
 		{
 			Real R = 750 * 1333.22; //mmHg ms / ml
 			Real C = 0.2 / 1333.22; //ml / mmHg
-			pressure = ( R / ( C * R + dt ) ) * ( pn - dV );
+			pressure = ( R / ( C * R + dt ) ) * ( pn - dV_temporal );
+
 		}
 	}
-	else if( dp < 0 && dV < 0)
+	else if( dp_temporal < 0 && dV_temporal < 0)
 	{
 			Real R = 750 * 1333.22; //mmHg ms / ml
 			Real C = 0.2 / 1333.22; //ml / mmHg
-			pressure = ( R / ( C * R + dt ) ) * ( pn - dV );
+			pressure = ( R / ( C * R + dt ) ) * ( pn - dV_temporal );
 	}
 	else
 	{
@@ -1125,7 +1126,7 @@ int main (int argc, char** argv)
     vector_Type endoVec (0.0 * (*solidDisp) , Repeated);
 //    vector_Type pressure (aFESpace->map(), Repeated);
     Real pressure = parameterList.get("pressure", 0.0);
-    vectorPtr_Type savePressure( new vector_Type(endoVec, Unique) );
+    vectorPtr_Type savePressure( &endoVec );
     exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "pressure", dFESpace, savePressure, UInt (0) );
 
     boost::shared_ptr<BCVector> pEndo( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) );
@@ -1242,7 +1243,11 @@ int main (int argc, char** argv)
 		Real pnm1 = pressure;
 		Real dp = pressure - p0;
 		Real V0 = fluidVolume;
-		Real dV = fluidVolume;
+		fluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+		Real dV = fluidVolume - V0;
+		Real dV_temporal(dV);
+		Real dp_temporal(dp);
+
 		bool isoPV = true;
 
      for( Real t(0.0); t< monodomain -> endTime(); )
@@ -1559,10 +1564,12 @@ int main (int argc, char** argv)
 					}
 
 					 dV = 2 * fluidVolume;
+					 V0 = fluidVolume;
+					 p0 = pressure;
 					 if(pressure > 127000) isoPV = false;
 					 if(isoPV)
 					 {
-						while( dV / fluidVolume > 1e-3 )
+						while( dV / V0 > 1e-3 )
 						{
 							solid.iterate ( solidBC -> handler() );
 							*solidDisp = solid.displacement();
@@ -1584,7 +1591,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing pressure: ... ";
 							}
-							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp);
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal);
 							dp = newPressure - pressure;
 							pressure = newPressure;
 							if ( comm->MyPID() == 0 )
@@ -1595,6 +1602,8 @@ int main (int argc, char** argv)
 							pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
 							solidBC -> handler() -> modifyBC(10, *pEndo);
 						}
+						dV_temporal = fluidVolume  - V0;
+						dp_temporal = pressure - p0;
 					 }
 					 else
 					 {
@@ -1618,7 +1627,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing pressure: ... ";
 							}
-							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp);
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal);
 							dp = newPressure - pressure;
 							pressure = newPressure;
 							if ( comm->MyPID() == 0 )
@@ -1628,6 +1637,9 @@ int main (int argc, char** argv)
 							endoVec = -newPressure;
 							pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
 							solidBC -> handler() -> modifyBC(10, *pEndo);
+
+							dV_temporal = fluidVolume  - V0;
+							dp_temporal = pressure - p0;
 					 }
 					    savePressure.reset( new vector_Type(endoVec, Unique) );
 
