@@ -1118,6 +1118,7 @@ int main (int argc, char** argv)
   	//===========================================================
   	//===========================================================
     boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterRamp;
+
     exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, "RampOutput" ) );
     exporterRamp -> setPostDir ( problemFolder );
     exporterRamp->setMeshProcId ( localSolidMesh, comm->MyPID() );
@@ -1172,8 +1173,10 @@ int main (int argc, char** argv)
 //    		}
 //    		solidBC -> handler() -> showMe();
     		solid.iterate ( solidBC -> handler() );
+
     	    exporterRamp->postProcess(pseudot);
     	    *solidDisp = solid.displacement();
+
 
 
 		}
