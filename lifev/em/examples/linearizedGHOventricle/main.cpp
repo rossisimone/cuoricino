@@ -1085,6 +1085,12 @@ int main (int argc, char** argv)
   	//				Initializing solid
   	//===========================================================
   	//===========================================================
+    boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterRamp;
+    exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, parameterList.get ("StructureOutputFile", "SheetsDirection") ) );
+    exporterRamp -> setPostDir ( problemFolder );
+    exporterRamp->setMeshProcId ( localSolidMesh, comm->MyPID() );
+    exporterRamp->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "ramp displacement", dFESpace, solidDisp, UInt (0) );
+
     vector_Type endoVec (0.0 * (*solidDisp) , Repeated);
 //    vector_Type pressure (aFESpace->map(), Repeated);
     Real pressure = parameterList.get("pressure", 0.0);
@@ -1102,8 +1108,8 @@ int main (int argc, char** argv)
 		{
 			std::cout << "\nContractile fraction: " << solid.data() -> contractileFraction() << std::endl;
 		}
-	solid.data() -> showMe();
-	solid.material() -> showMyParameters();
+//	solid.data() -> showMe();
+//	solid.material() -> showMyParameters();
 
     if(parameterList.get("pressure_ramp", false) == true){
 
@@ -1132,11 +1138,14 @@ int main (int argc, char** argv)
 //    			std::cout << "\nnorm gamman: " << solid.material() -> gamman() -> norm2();
 //    			std::cout << "\nnorm gammas: " << solid.material() -> gammas() -> norm2();
 //    		}
-    		solidBC -> handler() -> showMe();
+//    		solidBC -> handler() -> showMe();
     		solid.iterate ( solidBC -> handler() );
+    	      exporterRamp->postProcess(pseudot);
+
 
 
 		}
+	      exporterRamp->closeFile();
     }
     *solidDisp = solid.displacement();
     exporter->postProcess ( 0 );
