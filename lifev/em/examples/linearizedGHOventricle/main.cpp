@@ -1304,10 +1304,10 @@ int main (int argc, char** argv)
 				   emDisp -> normInf() >=  1e-7)
 			  {
 
-					if ( comm->MyPID() == 0 )
-					{
-						std::cout << "\nI SHALL SOLVE THE ACTIVATION EQUATION!\n" << std::endl;
-					}
+//					if ( comm->MyPID() == 0 )
+//					{
+//						std::cout << "\nI SHALL SOLVE THE ACTIVATION EQUATION!\n" << std::endl;
+//					}
 
 					{
 						using namespace ExpressionAssembly;
@@ -1356,7 +1356,7 @@ int main (int argc, char** argv)
 						Real B = dataFile( "solid/physics/b_activation", 0. );
 						Real Af = dataFile( "solid/physics/af", 0. );
 						Real Bf = dataFile( "solid/physics/bf", 0. );
-						cout << "\n\nparameters: a: " << A << ", af: " << Af << ", b: " << B << ", bf: " << Bf << "\n\n";
+						//cout << "\n\nparameters: a: " << A << ", af: " << Af << ", b: " << B << ", bf: " << Bf << "\n\n";
 						BOOST_AUTO_TPL(a, value( A ) );
 						BOOST_AUTO_TPL(b, value(  B ) );
 						BOOST_AUTO_TPL(af, value( Af ) );
@@ -1417,13 +1417,13 @@ int main (int argc, char** argv)
 
 					}
 					timer.stop();
-			        for(int pid(0); pid < 4; pid++)
-			        {
-							if ( comm->MyPID() == pid )
-							{
-									std::cout << "\nDone in " << timer.diff() << std::endl;
-							}
-			        }
+//			        for(int pid(0); pid < 4; pid++)
+//			        {
+//							if ( comm->MyPID() == pid )
+//							{
+//									std::cout << "\nDone in " << timer.diff() << std::endl;
+//							}
+//			        }
 					timer.reset();
 
 					*rhsActivation *= 0;
