@@ -37,7 +37,7 @@ gammaf		= 0.0
 a			= 4960
 af			= 151930
 as			= 32830
-afs			= 6620
+afs			= 0 #6620
 b			= 7.209
 bf			= 20.417
 bs			= 11.176
@@ -48,7 +48,7 @@ lawType     = nonlinear
 viscosity = 0.0005;
 active_coefficient = -3.0;
 Ca_diastolic = 0.02156;
-
+ 
 
 [../boundary_conditions]
 #    list = 'Epi Endo1 Endo2'
@@ -61,30 +61,44 @@ Ca_diastolic = 0.02156;
         flag       = 100
         mode       = Full
         component  = 3
-		function  = '[0.0, 0.0, 0.0]'
+	function  = '[0.0, 0.0, 0.0]'
 
         [../Epi]
         type       = Robin
         flag       = 20
         mode       = Normal
         component  = 1
-		function   = '0.0'
-		RobinAlpha = 5000 
+	function   = '0.0'
+	
+            [./RobinAlpha]
+            function = '5000' 
+
+            [../RobinBeta]
+            function = ' 0' 
+
+            [../]
 
         [../Base]
         type       = Robin
         flag       = 99
         mode       = Normal
         component  = 1
-		function   = '0.0'
-		RobinAlpha = 5000 
+	function   = '0.0'
+
+            [./RobinAlpha]
+            function = '5000' 
+
+            [../RobinBeta]
+            function = '0' 
+
+            [../]
         
         [../Endo]
         type       = Natural
         flag       = 10
         mode       = Normal
         component  = 1
-		function  = '-100.0'
+	function  = '-100.0'
 
         [../]
 
@@ -120,7 +134,7 @@ abstol  	= 1.e-7
 [../solver]
 solver          = cg
 scaling         = none
-output          = all 			# none
+output          = none 			# none
 conv            = rhs
 max_iter        = 500
 reuse           = true
@@ -129,28 +143,77 @@ kspace          = 800
 tol             = 1.e-10    		# AztecOO tolerance
 
 [../prec]
-prectype        = Ifpack #Ifpack	 		# Ifpack or ML
+prectype        = Ifpack	 		# Ifpack or ML
 displayList     = true
 xmlName         = ParamList.xml #xmlParameters.xml
 
+[./ML] 
+
+    	default_parameter_list = NSSA  # Domain-decomposition
+	prec_type =  MGV               # Multigrid, single V-cycle
+	max_levels = 10
+    	inc_or_dec = increasing
+
+    		[./energy_minimization]
+		enable = true
+		type   = 3
+
+		[../repartition]
+		enable              = 1
+                max_min_ratio       = 1.3
+                min_per_proc        = 500
+                partitioner         = ParMETIS #Zoltan: to be implemented
+
+                [../aggregation]
+                threshold            = 0.01
+                nodes_per_aggregate = 32
+
+                [../coarse]
+                max_size            = 10
+                type                = 'self' 
+
+                [../smoother]
+                type        = 'symmetric Gauss-Seidel'           # Gauss-Seidel smoother
+                sweeps      = 1
+                pre_or_post = both
+                [../] #smoother
+
+        [../] # ML
+
 [./ifpack]
-overlap  	= 3
+overlap  	= 1
 
-[./fact]
-ilut_level-of-fill 	= 1
-drop_tolerance          = 1.e-5
-relax_value             = 0
+            [./relaxation]
+            type                   = Jacobi
+            sweeps                 = 2
+            damping_factor         = 1.
+            min_diagonal_value     = 0
+            zero_starting_solution = true
 
-[../amesos]
-solvertype 		=  Amesos_Umfpack 	# Amesos_KLU or Amesos_Umfpack
+            [../partitioner]
+            type                   = metis
+            overlap                = 1
+            local_parts            = 1
+            root_node              = 0
+            use_symmetric_graph    = true
 
-[../partitioner]
-overlap 		= 4
+            [../amesos]
+            solvertype             = Amesos_Superludist # Amesos_KLU or Amesos_Umfpack
 
+            [../fact]
+            level-of-fill          = 5
+            ilut_level-of-fill     = 5
+            absolute_threshold     = 0
+            relative_threshold     = 1
+            relax_value            = 0
+            drop_tolerance         = 1.e-10
 
-[../schwarz]
-reordering_type 	= none 			# metis, rcm, none
-filter_singletons 	= true
+            [../schwarz]
+            combine_mode           = 0             # 0=Add, 1=Zero, 2=Insert, 3=Average, 4=AbsMax
+            compute_condest        = false
+            reordering_type        = none          #none, metis, rcm
+            filter_singletons      = true
+
 
 [../]
 [../]
