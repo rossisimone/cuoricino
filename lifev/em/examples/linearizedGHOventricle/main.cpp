@@ -1182,12 +1182,6 @@ int main (int argc, char** argv)
     exporter->postProcess ( 0 );
 
 
-	  if(true){
-		  return 0;
-		  exporter->closeFile();
-	  }
-
-
 	if(usingDifferentMeshes)
 	{
 		if(solid.displacementPtr() -> normInf() > 0)

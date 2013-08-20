@@ -4,7 +4,7 @@
     <Parameter name="membraneCapacitance" type="double" value="1.00"/><!-- mu F cm ^ -2 -->
     <Parameter name="timeStep" type="double" value="0.02"  />
     <Parameter name="save_step" type="double" value="1."  />
-    <Parameter name="endTime" type="double" value="0.0"  />
+    <Parameter name="endTime" type="double" value="450.0"  />
     <Parameter name="time_prestretch" type="bool" value="false"  />
     <Parameter name="initial_gamma_f" type="double" value="-0.00"  />
     <Parameter name="meth" type="double" value="0.0"  />
@@ -26,7 +26,7 @@
     <Parameter name="two_way" type="bool" value="true"/>
     <Parameter name="pressure_ramp" type="bool" value="true"/>
     <Parameter name="pressure" type="double" value="10000.0"/>
-    <Parameter name="ramp_timestep" type="double" value="0.005"  />
+    <Parameter name="ramp_timestep" type="double" value="0.1"  />
     <Parameter name="debug" type="bool" value="true"/>
     <Parameter name="case" type="int" value="1"/>
     <Parameter name="subiter" type="int" value="1"  />
