@@ -1,6 +1,7 @@
 INCLUDE(TribitsAddExecutableAndTest)
 INCLUDE(AddSubdirectories)
 
-ADD_SUBDIRECTORIES(	 
+ADD_SUBDIRECTORIES(
+	benchmark	 
 	test_monodomain
 )

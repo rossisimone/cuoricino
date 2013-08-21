@@ -3,7 +3,7 @@ INCLUDE(TribitsAddExecutableAndTest)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
-TRIBITS_ADD_EXECUTABLE_AND_TEST(
+TRIBITS_ADD_EXECUTABLE(
   benchmark
   SOURCES main.cpp
 )
@@ -15,6 +15,6 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(data_benchmark_data
 )
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(mesh_benchmark
-  SOURCE_FILES benchmark_05mm.mesh NiedererBM11.mesh
+  SOURCE_FILES NiedererBM11.mesh
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/lifev/electrophysiology/data/mesh/inria/
 )
