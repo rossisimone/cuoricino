@@ -249,7 +249,7 @@ Int main ( Int argc, char** argv )
 
     int iter(0);
 
-    bool FE( list.get("FE", false ) );
+
 
     for ( Real t = 0; t < TF; )
     {
@@ -378,9 +378,9 @@ Int main ( Int argc, char** argv )
         ionicModel.computeGatingVariablesWithRushLarsen( states, dt);
 
         int offset = 1 + ionicModel.numberOfGatingVariables();
-        for ( int j (0); j < ( ionicModel.Size() - offset ); j++)
+        for ( int index (0); index < ( ionicModel.Size() - offset ); index++)
 			{
-				rStates.at (j+offset) = rStates.at (j+offset)  + dt * rRhs.at (j+offset);
+				rStates.at (index+offset) = rStates.at (index+offset)  + dt * rRhs.at (index+offset);
 
 			}
 //        }
@@ -436,9 +436,9 @@ Int main ( Int argc, char** argv )
         t = t + dt;
         if( iter % savestep == 0  ){
         output << t << "\t";
-        for ( int j (0); j < ionicModel.Size() - 1; j++)
+        for ( int index (0); index < ionicModel.Size() - 1; index++)
         {
-            output << rStates.at (j) << "\t";
+            output << rStates.at (index) << "\t";
         }
         output << rStates.at ( ionicModel.Size() - 1 ) << "\n";
 

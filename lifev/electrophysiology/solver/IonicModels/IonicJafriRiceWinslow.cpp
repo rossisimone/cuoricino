@@ -463,7 +463,6 @@
 		Real cCa4     ( v[26] );
 		Real oCa      ( v[27] );
 		Real y        ( v[28] );
-		Real cLTrpnCa ( v[29] );
 		Real cHTrpnCa ( v[30] );
 
 
@@ -971,7 +970,6 @@
         Real constINaK = M_INaK * fNak * ( 1.0 / ( 1.0 + std::pow( M_KmNai / cNa, 1.5) ) );
         Real iCaMax    = M_PCa * 4 * ( V * M_F * M_F ) / ( M_R * M_T ) * ( 0.001 * std::exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 0.341 * M_CaO )
                             / ( std::exp( 2 * ( V * M_F ) / ( M_R * M_T ) ) - 1.0 );
-		Real iCa       = y * ( o + oCa ) * iCaMax;
 		Real constInsCa = 1.0 / ( 1.0 + std::pow(M_KmNsCa / cCa, 3) );
 		Real pK        = M_PK / ( 1.0 + iCaMax / M_ICaHalf );
 		Real constICaK = pK * y * ( o + oCa ) * ( V * M_F * M_F ) / ( M_R * M_T );

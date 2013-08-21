@@ -638,10 +638,7 @@ Real IonicTenTusscher06::computeLocalPotentialRhs ( const std::vector<Real>& v)
     Real Ki = v[14];
     Real Cai = v[15];
     Real Cass = v[16];
-    Real Casr = v[17];
-    Real Rprime = v[18];
 
-    //V
     dPotential = -Itot(V, m, h, j, d, f, f2, fCass, r, s, Xr1, Xr2, Xs, Nai, Ki, Cai, Cass );
 
     return dPotential;

@@ -239,7 +239,6 @@ void IonicLuoRudyI::computeGatingVariablesWithRushLarsen ( std::vector<Real>& v,
     Real d = v[4];
     Real f = v[5];
     Real X = v[6];
-    Real Ca = v[7];
 
     v[1] = minf(V) - ( minf(V) - m ) * std::exp(- dt / tm(V) );
     v[2] = hinf(V) - ( hinf(V) - h ) * std::exp(- dt / th(V) );

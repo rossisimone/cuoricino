@@ -179,7 +179,7 @@ public:
 
     virtual void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs) = 0;
 
-    virtual void computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt ) {}
+    virtual void computeGatingVariablesWithRushLarsen ( std::vector<Real>& /*v*/, const Real /*dt*/ ) {}
 
     //Compute the rhs on a mesh/ 3D case
     virtual void computeGatingRhs ( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );

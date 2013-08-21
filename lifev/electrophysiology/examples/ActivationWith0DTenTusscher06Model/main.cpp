@@ -130,7 +130,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing rhs..." ;
     std::vector<Real> rhs (ionicModel.Size(), 0);
-    std::vector<Real>& rRhs = rhs;
+
     std::cout << " Done! "  << endl;
 
 
@@ -174,7 +174,7 @@ Int main ( Int argc, char** argv )
 
     Real vel  ( 0.0 );
     Real Ca   ( 0.0 );
-    Real X    ( 1.05 );
+
     Real dgammaf=vel;
 
     std::ofstream XbOutput ("XbOutput.txt");
@@ -190,9 +190,9 @@ Int main ( Int argc, char** argv )
 
     Real gammaf( list.get("gfi",0.) );
     Real gamma_f_initial = gammaf;
-    Real l0 = 1.95;
+
 	Real alpha( list.get("alpha",1.0) );
-	Real pwr( list.get("power",2.0) );
+
 	Real pwr2( list.get("power2",2.0) );
 	Real eta( list.get("eta",100.0) );
 	Real Cai_diast =  1.1703 / 10;
@@ -399,7 +399,7 @@ Int main ( Int argc, char** argv )
 
         //vel = 0;
         Ca = Cai * 1000;
-        Real Bi = 1.0 / ( 1.0 + Bufc * Kbufc / (Ca + Kbufc) / (Ca + Kbufc) );
+
     	xb.computeRhs( XbStates, Ca, vel, XbRhs, FLR );
 
 

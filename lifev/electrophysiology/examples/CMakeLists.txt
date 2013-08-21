@@ -16,11 +16,8 @@ ADD_SUBDIRECTORIES(
   0DFoxModel
   ActivationWith0DTenTusscher06Model
   FiberInterpolation
-  basic_example
   ETA_MonodomainSolver
   XbNegroniLascano96
-  IonicAlievPanfilov
-  IonicFitzHughNagumo
   IonicRogersMcCulloch_pacingECG
   IonicRogersMcCullochSpiral
   IonicMinimalModel
@@ -28,6 +25,4 @@ ADD_SUBDIRECTORIES(
   IonicFox
   IonicFox_pacingECG
   Restart
-  RosenbrockTest
-  CreateIdealizedFiberAndSheetDirection
 )

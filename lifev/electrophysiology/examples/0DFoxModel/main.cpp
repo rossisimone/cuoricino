@@ -171,7 +171,7 @@ Int main ( Int argc, char** argv )
 
     int iter(0);
     int savedt( parameterList.get( "savedt", 1.0) / dt );
-    Real ICa (0.);
+
 
     for ( Real t = 0; t < TF; )
     {

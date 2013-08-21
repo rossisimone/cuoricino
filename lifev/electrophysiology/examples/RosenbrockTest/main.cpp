@@ -110,12 +110,12 @@ using std::endl;
 using namespace LifeV;
 
 
-Real Stimulus1 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus1 (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
     return 80.0 * ( 0.5 + 0.5 * ( std::tanh ( - 300 * ( ( x - 0.4 ) * ( x - 0.6 ) + ( y - 0.4 ) * ( y - 0.6 ) ) ) ) );
 }
 
-Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if ( x<= 0.1 )
     	return 80.0;
@@ -125,7 +125,7 @@ Real Stimulus2 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, 
     	return 0.0;
 }
 
-Real Stimulus3 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Stimulus3 (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
     if ( y<= 0.1 )
     	return 80.0;
@@ -135,7 +135,7 @@ Real Stimulus3 (const Real& t, const Real& x, const Real& y, const Real& /*z*/, 
     	return 0.0;
 }
 
-Real Cut (const Real& t, const Real& x, const Real& y, const Real& /*z*/, const ID& /*i*/)
+Real Cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
     if ( y<= 4.5 )
     	return 1.0;
