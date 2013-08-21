@@ -119,16 +119,16 @@ Int main ( Int argc, char** argv )
 
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
-    unknowns[0] = - 84.1638;
-    unknowns[1] = 0.0328302;
-    unknowns[2] = 0.988354;
-    unknowns[3] = 0.992540;
-    unknowns[4] = 0.000928836;
-    unknowns[5] = 10.2042;
-    unknowns[6] = 143.727;
-    unknowns[7] = 5.4;
-    unknowns[8] = 9.94893e-5;
-    unknowns[9] = 1.243891;
+    unknowns[0]  = -86.1638;
+    unknowns[1]  = 3.28302e-2;
+    unknowns[2]  = 0.988354;
+    unknowns[3]  = 0.99254;
+    unknowns[4]  = 9.28836e-4;
+    unknowns[5]  = 10.2042;
+    unknowns[6]  = 143.727;
+    unknowns[7]  = 5.4;
+    unknowns[8]  = 9.94893e-5;
+    unknowns[9]  = 1.24891;
     unknowns[10] = 1.36058e-4;
     unknowns[11] = 1.17504;
     unknowns[12] = 0.762527;
@@ -140,7 +140,7 @@ Int main ( Int argc, char** argv )
     unknowns[18] = 1.535e-9;
     unknowns[19] = 1.63909e-14;
     unknowns[20] = 6.56337e-20;
-    unknowns[21] = 9.84546e-21;
+    unknowns[21] = 9084546e-21;
     unknowns[22] = 2.72826e-3;
     unknowns[23] = 6.99215e-7;
     unknowns[24] = 6.71989e-11;
@@ -148,8 +148,8 @@ Int main ( Int argc, char** argv )
     unknowns[26] = 4.59752e-20;
     unknowns[27] = 0.0;
     unknowns[28] = 0.998983;
-    unknowns[29] = 0.00635;
-    unknowns[30] = 0.13598;
+    unknowns[29] = 6.349973e-3;
+    unknowns[30] = 135.9813e-3;
     cout << " Done!" << endl;
 
 
@@ -213,7 +213,7 @@ Int main ( Int argc, char** argv )
 
     	if ( t >= timeSt && t <= timeSt + 0.5 )
     	{
-    		Iapp = 0.516289;
+    		Iapp = - 0.516289;
     	  	if ( t >= timeSt + 0.5 - dt && t <= timeSt + 0.5 )
 
     			timeSt = timeSt + stInt;
@@ -267,7 +267,7 @@ Int main ( Int argc, char** argv )
 
         for(int j(0); j <= 30; ++j)
         {
-    		if ( ( j <= 4 ) || ( j >= 12 ) )
+//    		if ( ( j <= 4 ) || ( j >= 12 ) )
     			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
 
 //    		if( j == 0 || j >= 12 )
