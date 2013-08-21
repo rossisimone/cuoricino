@@ -26,7 +26,7 @@
 
 /*!
     @file
-    @brief Rosenbrock method with variable change
+    @brief Rosenbrock method with change of variables
 
     @author Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
     @maintainer Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
@@ -69,193 +69,166 @@ namespace LifeV
 class RosenbrockTransformed
 {
 public:
-	RosenbrockTransformed(){};
+    RosenbrockTransformed() {};
 
-	RosenbrockTransformed(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
-						  const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat, UInt order);
+    RosenbrockTransformed (Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
+                           const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat, UInt order);
 
-	virtual ~RosenbrockTransformed(){};
+    virtual ~RosenbrockTransformed() {};
 
-	template<typename RightHandSide>
-	void solve(RightHandSide& Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init);
+    template<typename RightHandSide>
+    void solve (RightHandSide& Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init);
 
-	template<typename RightHandSide>
-	void solve(boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init);
+    template<typename RightHandSide>
+    void solve (boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init);
 
-	template<typename RightHandSide>
-	void solve(RightHandSide& Fun, VectorStandard& y0, Real t0, Real TF, Real& dt_init);
+    template<typename RightHandSide>
+    void solve (RightHandSide& Fun, VectorStandard& y0, Real t0, Real TF, Real& dt_init);
 
-	template<typename RightHandSide>
-	void solve(boost::shared_ptr<RightHandSide> Fun, VectorStandard& y, Real t0, Real TF, Real& dt);
+    template<typename RightHandSide>
+    void solve (boost::shared_ptr<RightHandSide> Fun, VectorStandard& y, Real t0, Real TF, Real& dt);
 
 
 protected:
 
-	void initMembers();
-	void setMethod(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
-				   const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat, UInt order);
+    void initMembers();
+    void setMethod (Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
+                    const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat, UInt order);
 
-	template<typename RightHandSide>
-	void computeStages(MatrixStandard& U, const VectorStandard& y, VectorStandard& ytmp, VectorStandard& rhs, VectorStandard& Utmp,
-					   boost::shared_ptr<RightHandSide> Fun, Real dt, MatrixStandard& Lsys, MatrixStandard& Usys,
-					   MatrixStandard& Psys, MatrixStandard& Qsys);
-	bool computeError(const MatrixStandard& U, VectorStandard& Utmp, Real& err_n, Real& err_n_1,
-					  Real fac_max, Real& dt, Real& dt_old, Real Trem, Real ynorm, bool& rejected);
+    template<typename RightHandSide>
+    void computeStages (MatrixStandard& U, const VectorStandard& y, VectorStandard& ytmp, VectorStandard& rhs, VectorStandard& Utmp,
+                        boost::shared_ptr<RightHandSide> Fun, Real dt, MatrixStandard& Lsys, MatrixStandard& Usys,
+                        MatrixStandard& Psys, MatrixStandard& Qsys);
+    bool computeError (const MatrixStandard& U, VectorStandard& Utmp, Real& err_n, Real& err_n_1,
+                       Real fac_max, Real& dt, Real& dt_old, Real Trem, Real ynorm, bool& rejected);
 
 
-	MatrixStandardSolver M_solver;
-	UInt 			 M_s;
-	Real 			 M_g;
-	MatrixStandard   M_A;
-	MatrixStandard   M_C;
-	VectorStandard   M_gammai;
-	VectorStandard   M_a;
-	VectorStandard   M_m;
-	VectorStandard   M_mdiff;
-	Real 			 M_S;
-	Real			 M_D;
-	Real			 M_p;
-	Real			 M_p_1;
-	Real			 M_absTol;
-	Real			 M_relTol;
+    MatrixStandardSolver M_solver;
+    UInt             M_s;
+    Real             M_g;
+    MatrixStandard   M_A;
+    MatrixStandard   M_C;
+    VectorStandard   M_gammai;
+    VectorStandard   M_a;
+    VectorStandard   M_m;
+    VectorStandard   M_mdiff;
+    Real             M_S;
+    Real             M_D;
+    Real             M_p;
+    Real             M_p_1;
+    Real             M_absTol;
+    Real             M_relTol;
 
 };
 
 
 template<typename RightHandSide>
-void RosenbrockTransformed::solve(RightHandSide& Fun, VectorStandard& y0, Real t0, Real TF, Real& dt_init)
+void RosenbrockTransformed::solve (RightHandSide& Fun, VectorStandard& y0, Real t0, Real TF, Real& dt_init)
 {
-	boost::shared_ptr<RightHandSide> FunPtr(new RightHandSide(Fun));
+    boost::shared_ptr<RightHandSide> FunPtr (new RightHandSide (Fun) );
 
-	solve(FunPtr, y0, t0, TF, dt_init);
+    solve (FunPtr, y0, t0, TF, dt_init);
 }
 
 template<typename RightHandSide>
-void RosenbrockTransformed::solve(RightHandSide& Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
+void RosenbrockTransformed::solve (RightHandSide& Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
 {
-	boost::shared_ptr<RightHandSide> FunPtr(new RightHandSide(Fun));
+    boost::shared_ptr<RightHandSide> FunPtr (new RightHandSide (Fun) );
 
-	VectorStandard y0LU(y0);
-	solve(FunPtr, y0LU, t0, TF, dt_init);
-	y0 = y0LU;
+    VectorStandard y0LU (y0);
+    solve (FunPtr, y0LU, t0, TF, dt_init);
+    y0 = y0LU;
 }
 
 template<typename RightHandSide>
-void RosenbrockTransformed::solve( boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
+void RosenbrockTransformed::solve ( boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
 {
-	VectorStandard y0LU(y0);
-	solve(Fun, y0LU, t0, TF, dt_init);
-	y0 = y0LU;
+    VectorStandard y0LU (y0);
+    solve (Fun, y0LU, t0, TF, dt_init);
+    y0 = y0LU;
 }
 
 template<typename RightHandSide>
-void RosenbrockTransformed::solve( boost::shared_ptr<RightHandSide> Fun, VectorStandard& y, Real t0, Real TF, Real& dt)
+void RosenbrockTransformed::solve ( boost::shared_ptr<RightHandSide> Fun, VectorStandard& y, Real t0, Real TF, Real& dt)
 {
-	//ofstream output("test_ros3p_VectorStandard.txt");
 
-	Real t(t0);						//time t_k
-	Real dt_old(dt);
+    Real t (t0);                        // time t_k
+    Real dt_old (dt);
 
-	UInt n= y.size();
-	MatrixStandard U(n, M_s);
-	MatrixStandard I(n);
-	MatrixStandard Psys(n,n),Qsys(n,n),Usys(n,n),Lsys(n,n);
-	MatrixStandard B(n);			//Linear system matrix
-	VectorStandard ytmp(y);				//temporary variable
-	VectorStandard Utmp(y);
-	VectorStandard rhs(y);					//rhs will be the right hand side
-	Real err_n;							//error at step n
-	Real err_n_1;						//error at step n-1
-	Real fac_max = 5.0;					//maximal value for this factor, dt(k+1) < dt(k)*fac_max
-	Int k = 1;							//iteration counter
-	bool rejected = false;					//used to know if a step is rejected two times consecutively
+    UInt n = y.size();
+    MatrixStandard U (n, M_s);
+    MatrixStandard I (n);
+    MatrixStandard Psys (n, n), Qsys (n, n), Usys (n, n), Lsys (n, n);
+    MatrixStandard B (n);               // Linear system matrix
+    VectorStandard ytmp (y);            // temporary variable
+    VectorStandard Utmp (y);
+    VectorStandard rhs (y);             // rhs will be the right hand side
+    Real err_n;                         // error at step n
+    Real err_n_1;                       // error at step n-1
+    Real fac_max = 5.0;                 // maximal value for this factor, dt(k+1) < dt(k)*fac_max
+    Int k = 1;                          // iteration counter
+    bool rejected = false;              // used to know if a step is rejected two times consecutively
 
-	//output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
+    // First step, to set err_n_1
 
-	//First step, to set err_n_1
-	//cout<<"Begin of iteration k = 0\n";
+    B = I / (dt * M_g);
+    B -= Fun->getJac (y);
+    M_solver.LU (B, Psys, Qsys, Lsys, Usys, I);
+    computeStages<RightHandSide> (U, y, ytmp, rhs, Utmp, Fun, dt, Lsys, Usys, Psys, Qsys);
 
-	B = I/(dt*M_g);
-	B -= Fun->getJac(y);
-	M_solver.LU(B, Psys, Qsys, Lsys, Usys, I);
-	computeStages<RightHandSide>(U, y, ytmp, rhs, Utmp, Fun, dt, Lsys, Usys, Psys, Qsys);
+    U.times (M_m, ytmp);
+    y += ytmp ;
+    U.times (M_mdiff, Utmp);
+    err_n_1 = Utmp.norm2();
+    t += dt;
 
-	U.times(M_m, ytmp);
-	y += ytmp ;
-	U.times(M_mdiff, Utmp);
-	err_n_1 = Utmp.norm2();
-	t += dt;
+    while (t < TF)
+    {
 
-	/*
-	cout<<"t(k) = "<<t-dt<<"\n";
-	cout<<"dt(k) = "<<dt<<"\n";
-	cout<<"err_n_1 = "<<err_n_1<<"\n";
-	cout<<"dt(k+1) = "<<dt<<"\n";
-	cout<<"Iteration 0 finished."<<"\n\n";
-	 */
+        U *= 0.0;
+        B = I / (dt * M_g);
+        B -=  Fun->getJac (y);
+        M_solver.LU (B, Psys, Qsys, Lsys, Usys, I);// Computing the inverse, which will be used s times
+        computeStages<RightHandSide> (U, y, ytmp, rhs, Utmp, Fun, dt, Lsys, Usys, Psys, Qsys);
 
-	//output << t << " " << y[0] << " " << y[1] << " " << dt << " " <<rejected<<"\n";
+        if ( computeError (U, Utmp, err_n, err_n_1, fac_max, dt, dt_old, TF - t, y.norm2(), rejected) )
+        {
+            rejected = true;
+            continue;
+        }
+        else
+        {
+            U.times (M_m, ytmp);
+            y += ytmp;
+            t += dt;                    // updating the time
+            k++;
 
-	while (t < TF)
-	{
-		/*
-		cout<<"Begin of iteration k = "<<k<<"\n";
-		cout<<"t("<<k<<") = "<<t<<"\n";
-		cout<<"dt("<<k<<") = "<<dt<<"\n";
-		*/
+            rejected = false;
+        }
 
-		U *= 0.0;
-		B = I/(dt*M_g);
-		B -=  Fun->getJac(y);
-		M_solver.LU(B, Psys, Qsys, Lsys, Usys, I);								//Computing the inverse, which will be used s times
-		computeStages<RightHandSide>(U, y, ytmp, rhs, Utmp, Fun, dt, Lsys, Usys, Psys, Qsys);
+    }
 
-		if( computeError(U, Utmp, err_n, err_n_1, fac_max, dt, dt_old, TF-t, y.norm2(), rejected) )
-		{
-			rejected = true;
-			continue;
-		}
-		else
-		{
-			U.times(M_m, ytmp);
-			y += ytmp;
-			t += dt;									//upgrading the time
-			k++;
-
-
-			//cout<<"dt("<<k<<") = "<<dt<<"\n";
-			//cout<<"Iteration "<<k-1<<" finished."<<"\n\n";
-
-
-			//output << t << " " << y[0] << " " << y[1] << " " <<dt<< " " << rejected <<"\n";
-
-			rejected = false;
-		}
-
-	}
-
-	//output.close();
 }
 
 template<typename RightHandSide>
-void RosenbrockTransformed::computeStages(MatrixStandard& U, const VectorStandard& y, VectorStandard& ytmp, VectorStandard& rhs, VectorStandard& Utmp,
-		   boost::shared_ptr<RightHandSide> Fun, Real dt, MatrixStandard& Lsys, MatrixStandard& Usys,
-		   MatrixStandard& Psys, MatrixStandard& Qsys)
+void RosenbrockTransformed::computeStages (MatrixStandard& U, const VectorStandard& y, VectorStandard& ytmp, VectorStandard& rhs, VectorStandard& Utmp,
+                                           boost::shared_ptr<RightHandSide> Fun, Real dt, MatrixStandard& Lsys, MatrixStandard& Usys,
+                                           MatrixStandard& Psys, MatrixStandard& Qsys)
 {
-	for (UInt i = 0; i<M_s; i++)
-	{
-		U.times(M_A.getLine(i), Utmp);
-		ytmp = y + Utmp;											//ytmp = y0 + sum_{j=1}^{i-1} A(i,j)*U(:,j)
-		U.times(M_C.getLine(i), Utmp);				//Utmp = sum_{j=1}^{i-1} C(i,j)*U(:,j)/dt
-		Utmp /= dt;
-		Fun->computeRhs( ytmp, rhs);
-		Utmp += rhs;
-		Psys.times(Utmp, rhs);
-		M_solver.solveL(Lsys, rhs);
-		M_solver.solveU(Usys, rhs);
-		Qsys.times(rhs, Utmp);
-		U.setCol(i,Utmp);
-	}
+    for (UInt i = 0; i < M_s; i++)
+    {
+        U.times (M_A.getLine (i), Utmp);
+        ytmp = y + Utmp;                // ytmp = y0 + sum_{j=1}^{i-1} A(i,j) * U(:,j)
+        U.times (M_C.getLine (i), Utmp);// Utmp = sum_{j=1}^{i-1} C(i,j) * U(:,j) / dt
+        Utmp /= dt;
+        Fun->computeRhs ( ytmp, rhs);
+        Utmp += rhs;
+        Psys.times (Utmp, rhs);
+        M_solver.solveL (Lsys, rhs);
+        M_solver.solveU (Usys, rhs);
+        Qsys.times (rhs, Utmp);
+        U.setCol (i, Utmp);
+    }
 }
 
 

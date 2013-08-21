@@ -26,13 +26,13 @@
 
 /*!
     @file
-    @brief Base utilities operating on meshes
+    @brief Utilities
 
-    @contributor Tiziano Passerini <tiziano@mathcs.emory.edu>
-    @maintainer Tiziano Passerini <tiziano@mathcs.emory.edu>
+    @contributor Simone Rossi <simone.rossi@epfl.ch>
+    @maintainer Simone Rossi <simone.rossi@epfl.ch>
 
-    This file contains a set of base utilities used to test mesh entities or
-    operate on them
+    This file contains a set of base utilities used to read vectorial data (mainly fiber
+    and sheet directions) from different formats to VectorEpetra objects.
  */
 
 #ifndef HEARTUTILITY_H
@@ -57,265 +57,331 @@ namespace LifeV
 namespace HeartUtility
 {
 
-template<typename Mesh> inline void importFibers(  boost::shared_ptr<VectorEpetra> fiberVector, const std::string& name, boost::shared_ptr< Mesh > localMesh  )
+//! HeartUtility - A string parser grammar based on \c boost::spirit::qi
+/*!
+ *  @author(s) Simone Rossi
+ *
+ *  \c HeartUtility contains methods for reading vectorial data  from different formats to VectorEpetra objects.
+ *
+ */
+
+//! @name Methods
+//@{
+
+//! Read fiber vector field from HDF5 file
+/*!
+ * @param fiberVector VectorEpetra object for storing the vector field
+ * @param fileName    Name of the HDF5 file to read from
+ * @param localMesh   Pointer to the mesh
+ */
+template<typename Mesh> inline void importFibers (  boost::shared_ptr<VectorEpetra> fiberVector, const std::string& fileName, boost::shared_ptr< Mesh > localMesh  )
 {
-    typedef Mesh                         mesh_Type;
-    typedef ExporterData<mesh_Type> 						   exporterData_Type;
-    typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > > filterPtr_Type;
-    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >  hdf5Filter_Type;
-    typedef boost::shared_ptr<hdf5Filter_Type>                  hdf5FilterPtr_Type;
+    typedef Mesh                                                                          mesh_Type;
+    typedef ExporterData<mesh_Type>                                                       exporterData_Type;
+    typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > >  filterPtr_Type;
+    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >                                hdf5Filter_Type;
+    typedef boost::shared_ptr<hdf5Filter_Type>                                            hdf5FilterPtr_Type;
 
 
-    boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
-    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > fiberSpace( new FESpace< mesh_Type, MapEpetra > ( localMesh, "P1", 3, comm ) );
+    boost::shared_ptr<Epetra_Comm> comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > fiberSpace ( new FESpace< mesh_Type, MapEpetra > ( localMesh, "P1", 3, comm ) );
 
     exporterData_Type impData (exporterData_Type::VectorField, "fibers.00000", fiberSpace,
                                fiberVector, UInt (0), exporterData_Type::UnsteadyRegime);
 
-    //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
     filterPtr_Type importer ( new hdf5Filter_Type() );
     importer -> setMeshProcId ( localMesh, comm -> MyPID() );
-    importer-> setPrefix (name);
+    importer -> setPrefix (fileName);
     importer -> readVariable (impData);
     importer -> closeFile();
 
 }
 
-template<typename Mesh> inline void importScalarField(  boost::shared_ptr<VectorEpetra> vector, const std::string& fileName, const std::string& fieldName, boost::shared_ptr< Mesh > localMesh  )
+//! Read scalar field from HDF5 file
+/*!
+ * @param vector      VectorEpetra object for storing the scalar field
+ * @param fileName    Name of the HDF5 file to read from
+ * @param fieldName   Name of the scalar field in the HDF5 file
+ * @param localMesh   Pointer to the mesh
+ */
+template<typename Mesh> inline void importScalarField (  boost::shared_ptr<VectorEpetra> vector, const std::string& fileName, const std::string& fieldName, boost::shared_ptr< Mesh > localMesh  )
 {
-    typedef Mesh                         mesh_Type;
-    typedef ExporterData<mesh_Type> 						   exporterData_Type;
+    typedef Mesh                                                                         mesh_Type;
+    typedef ExporterData<mesh_Type>                                                      exporterData_Type;
     typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > > filterPtr_Type;
-    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >  hdf5Filter_Type;
-    typedef boost::shared_ptr<hdf5Filter_Type>                  hdf5FilterPtr_Type;
+    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >                               hdf5Filter_Type;
+    typedef boost::shared_ptr<hdf5Filter_Type>                                           hdf5FilterPtr_Type;
 
 
     boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
-    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > feSpace( new FESpace< mesh_Type, MapEpetra > ( localMesh, "P1", 1, comm ) );
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > feSpace ( new FESpace< mesh_Type, MapEpetra > ( localMesh, "P1", 1, comm ) );
 
-    exporterData_Type impData (exporterData_Type::ScalarField, fieldName+".00000", feSpace,
+    exporterData_Type impData (exporterData_Type::ScalarField, fieldName + ".00000", feSpace,
                                vector, UInt (0), exporterData_Type::UnsteadyRegime);
 
-    //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
     filterPtr_Type importer ( new hdf5Filter_Type() );
     importer -> setMeshProcId ( localMesh, comm -> MyPID() );
-    importer-> setPrefix (fileName);
+    importer -> setPrefix (fileName);
     importer -> readVariable (impData);
     importer -> closeFile();
 
 }
 
-template<typename Mesh> inline void importVectorField(  boost::shared_ptr<VectorEpetra> vector, const std::string& fileName, const std::string& fieldName, boost::shared_ptr< Mesh > localMesh  )
+//! Read vector field from HDF5 file
+/*!
+ * @param vector      VectorEpetra object for storing the scalar field
+ * @param fileName    Name of the HDF5 file to read from
+ * @param fieldName   Name of the vector field in the HDF5 file
+ * @param localMesh   Pointer to the mesh
+ */
+template<typename Mesh> inline void importVectorField (  boost::shared_ptr<VectorEpetra> vector, const std::string& fileName, const std::string& fieldName, boost::shared_ptr< Mesh > localMesh  )
 {
-    typedef Mesh                         mesh_Type;
-    typedef ExporterData<mesh_Type> 						   exporterData_Type;
+    typedef Mesh                                                                         mesh_Type;
+    typedef ExporterData<mesh_Type>                                                      exporterData_Type;
     typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > > filterPtr_Type;
-    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >  hdf5Filter_Type;
-    typedef boost::shared_ptr<hdf5Filter_Type>                  hdf5FilterPtr_Type;
+    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >                               hdf5Filter_Type;
+    typedef boost::shared_ptr<hdf5Filter_Type>                                           hdf5FilterPtr_Type;
 
 
     boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
-    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > feSpace( new FESpace< mesh_Type, MapEpetra > ( localMesh, "P1", 3, comm ) );
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > feSpace ( new FESpace< mesh_Type, MapEpetra > ( localMesh, "P1", 3, comm ) );
 
-    exporterData_Type impData (exporterData_Type::VectorField, fieldName+".00000", feSpace,
+    exporterData_Type impData (exporterData_Type::VectorField, fieldName + ".00000", feSpace,
                                vector, UInt (0), exporterData_Type::UnsteadyRegime);
 
-    //    filterPtr_Type importer( new hdf5Filter_Type(dataFile, name) );
     filterPtr_Type importer ( new hdf5Filter_Type() );
     importer -> setMeshProcId ( localMesh, comm -> MyPID() );
-    importer-> setPrefix (fileName);
+    importer -> setPrefix (fileName);
     importer -> readVariable (impData);
     importer -> closeFile();
 
 }
 
-//format 0: fibers saved as  (fx, fy, fz) in each row
-//format 1: fibers saved as fx in each row for all the mesh
-//							fy in each row for all the mesh
-//							fz in each row for all the mesh
-inline void importFibersFromTextFile( boost::shared_ptr<VectorEpetra> fiberVector, std::string filename, std::string filepath, int format = 0 )
+//! Read fiber field from text file
+/*!
+ * @param fiberVector VectorEpetra object for storing the vector field
+ * @param fileName    Name of the HDF5 file to read from
+ * @param filePath    Path of the HDF5 file to read from
+ * @param format      The fibers can be in the text file in two different formats:
+ *
+ * format 0 = fibers saved as (fx, fy, fz) in each row
+ *
+ * format 1 = fibers saved as fx in each row for all the mesh
+ *                            fy in each row for all the mesh
+ *                            fz in each row for all the mesh
+ */
+inline void importFibersFromTextFile ( boost::shared_ptr<VectorEpetra> fiberVector, std::string fileName, std::string filePath, int format = 0 )
 {
     typedef VectorEpetra                                    vector_Type;
     typedef boost::shared_ptr<vector_Type>                  vectorPtr_Type;
 
-    std::ifstream fibers ( (filepath+filename).c_str() );
+    std::ifstream fibers ( (filePath + fileName).c_str() );
 
-	UInt NumGlobalElements =  fiberVector -> size();
-	std::vector<Real> fiber_global_vector (NumGlobalElements);
+    UInt NumGlobalElements =  fiberVector -> size();
+    std::vector<Real> fiber_global_vector (NumGlobalElements);
 
-	//Importing fibers
-	for ( UInt i = 0; i < NumGlobalElements; ++i)
-	{
-		fibers >> fiber_global_vector[i];
-		if( fiber_global_vector[i] == 0 )
-		{
-			cout << "\nzero component!!!! \t";
-			cout << "in: " << filepath  + filename << "\n";
+    // Importing fibers
+    for ( UInt i = 0; i < NumGlobalElements; ++i)
+    {
+        fibers >> fiber_global_vector[i];
+        if ( fiber_global_vector[i] == 0 )
+        {
+            cout << "\nzero component!!!! \t";
+            cout << "in: " << filePath  + fileName << "\n";
 
-		}
-	}
-	int n = (*fiberVector).epetraVector().MyLength();
-	int d = n / 3;
-	int i (0);
-	int j (0);
-	int k (0);
-	int offset = (*fiberVector).size() / 3;
-	//std::cout << "\nAssigning fibers to the vector epetra...";
+        }
+    }
+    int n = (*fiberVector).epetraVector().MyLength();
+    int d = n / 3;
+    int i (0);
+    int j (0);
+    int k (0);
+    int offset = (*fiberVector).size() / 3;
 
     for (int l = 0; l < d; ++l)
-	{
-		i = (*fiberVector).blockMap().GID (l);
-		j = (*fiberVector).blockMap().GID (l + d);
-		k = (*fiberVector).blockMap().GID (l + 2 * d);
-		if( format == 0 )
-		{
-			(*fiberVector) [i] = fiber_global_vector[3 * i];
-			(*fiberVector) [j] = fiber_global_vector[3 * i + 1];
-			(*fiberVector) [k] = fiber_global_vector[3 * i + 2];
-		}
-		else
-		{
+    {
+        i = (*fiberVector).blockMap().GID (l);
+        j = (*fiberVector).blockMap().GID (l + d);
+        k = (*fiberVector).blockMap().GID (l + 2 * d);
+        if ( format == 0 )
+        {
+            (*fiberVector) [i] = fiber_global_vector[3 * i];
+            (*fiberVector) [j] = fiber_global_vector[3 * i + 1];
+            (*fiberVector) [k] = fiber_global_vector[3 * i + 2];
+        }
+        else
+        {
 
-			(*fiberVector) [i] = fiber_global_vector[ i ];
-			(*fiberVector) [j] = fiber_global_vector[ i + offset ];
-			(*fiberVector) [k] = fiber_global_vector[ i + 2 * offset ];
-		}
+            (*fiberVector) [i] = fiber_global_vector[ i ];
+            (*fiberVector) [j] = fiber_global_vector[ i + offset ];
+            (*fiberVector) [k] = fiber_global_vector[ i + 2 * offset ];
+        }
 
-		//normalizing
-		Real norm = std::sqrt( (*fiberVector) [i] * (*fiberVector) [i] + (*fiberVector) [j] * (*fiberVector) [j] + (*fiberVector) [k] * (*fiberVector) [k] );
-		if( norm != 0 )
-		{
-			(*fiberVector) [i] = (*fiberVector) [i] / norm;
-			(*fiberVector) [j] = (*fiberVector) [j] / norm;
-			(*fiberVector) [k] = (*fiberVector) [k] / norm;
-		}
-		else
-		{
-			std::cout << "\n\nThe fiber vector in the node: " << i << " has component:";
-			std::cout << "\nx: " << fiber_global_vector [i];
-			std::cout << "\ny: " << fiber_global_vector [i + offset];
-			std::cout << "\nz: " << fiber_global_vector [i + 2 * offset];
-			std::cout << "\nI will put it to: (f_x, f_y, f_z) = (1, 0, 0)\n\n";
+        //normalizing
+        Real norm = std::sqrt ( (*fiberVector) [i] * (*fiberVector) [i] + (*fiberVector) [j] * (*fiberVector) [j] + (*fiberVector) [k] * (*fiberVector) [k] );
+        if ( norm != 0 )
+        {
+            (*fiberVector) [i] = (*fiberVector) [i] / norm;
+            (*fiberVector) [j] = (*fiberVector) [j] / norm;
+            (*fiberVector) [k] = (*fiberVector) [k] / norm;
+        }
+        else
+        {
+            std::cout << "\n\nThe fiber vector in the node: " << i << " has component:";
+            std::cout << "\nx: " << fiber_global_vector [i];
+            std::cout << "\ny: " << fiber_global_vector [i + offset];
+            std::cout << "\nz: " << fiber_global_vector [i + 2 * offset];
+            std::cout << "\nI will put it to: (f_x, f_y, f_z) = (1, 0, 0)\n\n";
 
-			(*fiberVector) [i] = 1.;
-			(*fiberVector) [j] = 0.;
-			(*fiberVector) [k] = 0.;
-		}
+            (*fiberVector) [i] = 1.;
+            (*fiberVector) [j] = 0.;
+            (*fiberVector) [k] = 0.;
+        }
 
 
 
-	}
+    }
 
-	fiber_global_vector.clear();
+    fiber_global_vector.clear();
 
 
 }
 
-
-inline void setupFibers ( VectorEpetra& vec, VectorSmall<3>& fibers)
+//! Setup fiber field from unidirectional VectorSmall object
+/*!
+ * @param fiberVector    VectorEpetra object for storing the vector field
+ * @param fiberDirection Direction of fiber vectors as a VectorSmall
+ */
+inline void setupFibers ( VectorEpetra& fiberVector, VectorSmall<3>& fiberDirection)
 {
-    int n1 = vec.epetraVector().MyLength();
+    int n1 = fiberVector.epetraVector().MyLength();
     int d1 = n1 / 3;
-    vec *= 0;
+    fiberVector *= 0;
     int i (0);
     int j (0);
     int k (0);
 
     for ( int l (0); l < d1; l++)
     {
-        i = vec.blockMap().GID (l);
-        j = vec.blockMap().GID (l + d1);
-        k = vec.blockMap().GID (l + 2 * d1);
-        vec [i] = fibers[0];
-        vec [j] = fibers[1];
-        vec [k] = fibers[2];
+        i = fiberVector.blockMap().GID (l);
+        j = fiberVector.blockMap().GID (l + d1);
+        k = fiberVector.blockMap().GID (l + 2 * d1);
+        fiberVector [i] = fiberDirection[0];
+        fiberVector [j] = fiberDirection[1];
+        fiberVector [k] = fiberDirection[2];
     }
 
 }
 
-inline void setupFibers ( VectorEpetra& vec, std::vector<Real>& fibers)
+//! Setup fiber field from unidirectional std::vector object
+/*!
+ * @param fiberVector    VectorEpetra object for storing the vector field
+ * @param fiberDirection Direction of fiber vectors as a VectorSmall
+ */
+inline void setupFibers ( VectorEpetra& fiberVector, std::vector<Real>& fiberDirection)
 {
-	VectorSmall<3> fiberVectorSmall;
-	fiberVectorSmall[0]=fibers.at(0);
-	fiberVectorSmall[1]=fibers.at(1);
-	fiberVectorSmall[2]=fibers.at(2);
-	setupFibers(vec, fiberVectorSmall);
+    VectorSmall<3> fiberVectorSmall;
+    fiberVectorSmall[0] = fiberDirection.at (0);
+    fiberVectorSmall[1] = fiberDirection.at (1);
+    fiberVectorSmall[2] = fiberDirection.at (2);
+    setupFibers (fiberVector, fiberVectorSmall);
 }
 
-inline void setupFibers ( VectorEpetra& vec, Real fx, Real fy, Real fz)
+//! Setup fiber field from three real components
+/*!
+ * @param fiberVector VectorEpetra object for storing the vector field
+ * @param fx          First component of vector
+ * @param fy          Second component of vector
+ * @param fz          Third component of vector
+ */
+inline void setupFibers ( VectorEpetra& fiberVector, Real fx, Real fy, Real fz)
 {
-	VectorSmall<3> fiberVectorSmall;
-	fiberVectorSmall[0] = fx;
-	fiberVectorSmall[1] = fy;
-	fiberVectorSmall[2] = fz;
-	setupFibers(vec, fiberVectorSmall);
+    VectorSmall<3> fiberVectorSmall;
+    fiberVectorSmall[0] = fx;
+    fiberVectorSmall[1] = fy;
+    fiberVectorSmall[2] = fz;
+    setupFibers (fiberVector, fiberVectorSmall);
 }
 
-inline void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, std::vector<UInt> flags)
+inline void setValueOnBoundary ( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, std::vector<UInt> flags)
 {
 
-	for( int j (0); j < vec.epetraVector().MyLength() ; ++j )
-	{
-		for ( UInt k(0); k < flags.size(); k++ )
-		{
-			if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flags.at(k) )
-			{
-				if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
-				{
-					(vec) ( vec.blockMap().GID (j) ) = value;
-				}
-			}
-		}
+    for ( int j (0); j < vec.epetraVector().MyLength() ; ++j )
+    {
+        for ( UInt k (0); k < flags.size(); k++ )
+        {
+            if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flags.at (k) )
+            {
+                if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
+                {
+                    (vec) ( vec.blockMap().GID (j) ) = value;
+                }
+            }
+        }
     }
 }
 
-inline void setValueOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, UInt flag)
+inline void setValueOnBoundary ( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, UInt flag)
 {
 
-	for( Int j (0); j < vec.epetraVector().MyLength() ; ++j )
-	{
-		if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flag )
-		{
-			if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
-			{
-				(vec) ( vec.blockMap().GID (j) ) = value;
-			}
-		}
+    for ( Int j (0); j < vec.epetraVector().MyLength() ; ++j )
+    {
+        if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flag )
+        {
+            if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
+            {
+                (vec) ( vec.blockMap().GID (j) ) = value;
+            }
+        }
     }
 }
 
-inline void rescaleVector( VectorEpetra& vec, Real min, Real max, Real scaleFactor = 1.0 )
+//! Rescale a scalar field to be between requested bounds
+/*!
+ * @param vector      VectorEpetra object that contains the scalar field
+ * @param minValue    Minimum value
+ * @param maxValue    Maximum value
+ * @param scaleFactor Additional scaling factor (defaults to 1)
+ */
+inline void rescaleVector ( VectorEpetra& vector, Real minValue, Real maxValue, Real scaleFactor = 1.0 )
 {
-	vec -= min;
-	//cout << "\n\nmax - min:" << max - min << "\n\n";
-	//assert((max-min)==0 && "\nRescaling is going to divide by zero!\n");
-	vec *= ( scaleFactor / ( max - min ) );
+    vector -= minValue;
+    vector *= ( scaleFactor / ( maxValue - minValue ) );
 }
 
-inline void rescaleVector( VectorEpetra& vec, Real scaleFactor = 1.0 )
+//! Rescale a scalar field by a constant factor
+/*!
+ * @param vector      VectorEpetra object that contains the scalar field
+ * @param scaleFactor Additional scaling factor (defaults to 1)
+ */
+inline void rescaleVector ( VectorEpetra& vector, Real scaleFactor = 1.0 )
 {
-	Real max = vec.maxValue();
-	Real min = vec.minValue();
-	rescaleVector( vec, min, max, scaleFactor);
+    Real max = vector.maxValue();
+    Real min = vector.minValue();
+    rescaleVector ( vector, min, max, scaleFactor);
 }
 
-inline void rescaleVectorOnBoundary( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, UInt flag, Real scaleFactor = 1.0 )
+inline void rescaleVectorOnBoundary ( VectorEpetra& vector, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, UInt flag, Real scaleFactor = 1.0 )
 {
-	for( Int j (0); j < vec.epetraVector().MyLength() ; ++j )
-	{
-		if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flag )
-		{
-			if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
-			{
-				(vec) ( vec.blockMap().GID (j) ) *= scaleFactor;
-			}
-		}
+    for ( Int j (0); j < vector.epetraVector().MyLength() ; ++j )
+    {
+        if ( fullMesh -> point ( vector.blockMap().GID (j) ).markerID() == flag )
+        {
+            if ( vector.blockMap().LID ( vector.blockMap().GID (j) ) != -1 )
+            {
+                (vector) ( vector.blockMap().GID (j) ) *= scaleFactor;
+            }
+        }
     }
 }
 
-inline void normalize( VectorEpetra& vec )
+//! Normalizes a vector field to unit length
+/*!
+ * @param vector      VectorEpetra object that contains the vector field
+ */
+inline void normalize ( VectorEpetra& vector )
 {
-    int n1 = vec.epetraVector().MyLength();
+    int n1 = vector.epetraVector().MyLength();
     int d1 = n1 / 3;
     int i (0);
     int j (0);
@@ -323,27 +389,29 @@ inline void normalize( VectorEpetra& vec )
 
     for ( int l (0); l < d1; l++)
     {
-        i = vec.blockMap().GID (l);
-        j = vec.blockMap().GID (l + d1);
-        k = vec.blockMap().GID (l + 2 * d1);
-		Real norm = std::sqrt( vec[i] * vec[i] + vec[j] * vec[j] + vec[k] * vec[k] );
-		if( norm != 0 )
-		{
-			(vec) [i] = (vec) [i] / norm;
-			(vec) [j] = (vec) [j] / norm;
-			(vec) [k] = (vec) [k] / norm;
-		}
-		else
-		{
-			std::cout << "\n\nThe fiber vector in the node: " << i << " has component:";
-			std::cout << "\nx: " <<  vec[i];
-			std::cout << "\ny: " <<  vec[j];
-			std::cout << "\nz: " <<  vec[k];
-			std::cout << "\nI will put it to: (v_x, v_y, v_z) = (1, 0, 0)\n\n";
-		}
+        i = vector.blockMap().GID (l);
+        j = vector.blockMap().GID (l + d1);
+        k = vector.blockMap().GID (l + 2 * d1);
+        Real norm = std::sqrt ( vector[i] * vector[i] + vector[j] * vector[j] + vector[k] * vector[k] );
+        if ( norm != 0 )
+        {
+            (vector) [i] = (vector) [i] / norm;
+            (vector) [j] = (vector) [j] / norm;
+            (vector) [k] = (vector) [k] / norm;
+        }
+        else
+        {
+            std::cout << "\n\nThe fiber vector in the node: " << i << " has component:";
+            std::cout << "\nx: " <<  vector[i];
+            std::cout << "\ny: " <<  vector[j];
+            std::cout << "\nz: " <<  vector[k];
+            std::cout << "\nI will put it to: (v_x, v_y, v_z) = (1, 0, 0)\n\n";
+        }
 
     }
 }
+
+//@}
 
 } // namespace HeartUtility
 

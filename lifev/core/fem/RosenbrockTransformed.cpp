@@ -40,69 +40,79 @@
 namespace LifeV
 {
 
-RosenbrockTransformed::RosenbrockTransformed(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
-												const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat,
-												UInt order)
-:M_g(g), M_A(A), M_C(C), M_gammai(gammai), M_a(a), M_m(m), M_mdiff(m-mhat), M_p(order)
+RosenbrockTransformed::RosenbrockTransformed (Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
+                                              const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat,
+                                              UInt order)
+    : M_g (g), M_A (A), M_C (C), M_gammai (gammai), M_a (a), M_m (m), M_mdiff (m - mhat), M_p (order)
 {
-	initMembers();
+    initMembers();
 }
 
 
 void RosenbrockTransformed::initMembers()
 {
-	M_s = M_m.size();
-	M_D = 1.5;
-	M_S = 0.95;
-	M_absTol = 0.0000001;
-	M_relTol = 0.0000001;
-	M_p_1 = 1.0/M_p;
+    M_s = M_m.size();
+    M_D = 1.5;
+    M_S = 0.95;
+    M_absTol = 0.0000001;
+    M_relTol = 0.0000001;
+    M_p_1 = 1.0 / M_p;
 }
 
-void RosenbrockTransformed::setMethod(Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
-		   	   	   	   	   	   	   	   	 const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat, UInt order)
+void RosenbrockTransformed::setMethod (Real g, const MatrixStandard& A, const MatrixStandard& C, const VectorStandard& gammai,
+                                       const VectorStandard& a, const VectorStandard& m, const VectorStandard& mhat, UInt order)
 {
-	M_g = g;
-	M_A = A;
-	M_C = C;
-	M_gammai = gammai;
-	M_a = a;
-	M_m = m;
-	M_mdiff = m - mhat;
-	M_p = (double)(order);
+    M_g = g;
+    M_A = A;
+    M_C = C;
+    M_gammai = gammai;
+    M_a = a;
+    M_m = m;
+    M_mdiff = m - mhat;
+    M_p = (double) (order);
 }
 
 
-bool RosenbrockTransformed::computeError(const MatrixStandard& U, VectorStandard& Utmp, Real& err_n, Real& err_n_1,
-					  Real fac_max, Real& dt, Real& dt_old, Real Trem, Real ynorm, bool& rejected)
+bool RosenbrockTransformed::computeError (const MatrixStandard& U, VectorStandard& Utmp, Real& err_n, Real& err_n_1,
+                                          Real fac_max, Real& dt, Real& dt_old, Real Trem, Real ynorm, bool& rejected)
 {
-	Real Tol = M_absTol + M_relTol * ynorm;			//Tol = atol + rtol*|y_k|
-	Real fac;
-	U.times(M_mdiff, Utmp);				//difference with the embedded method
-	err_n = Utmp.norm2();					//norm of the error
-	if (err_n == 0.0)							//here we set fac, where dt(k+1) = fac*dt(k)
-		fac = fac_max;							//if the actual error is zero we set fac to its maximal value
-	else if (err_n_1 == 0.0)					//if the previous error was zero and the actual is not then fac~1
-		fac = M_S;
-	else										//formula to compute fac, takes in account Tol, errors and time steps
-		fac = M_S * std::pow( (Tol*err_n_1)/(err_n*err_n) , M_p_1 ) * ( dt / dt_old ) ;
+    Real Tol = M_absTol + M_relTol * ynorm; // Tol = atol + rtol*|y_k|
+    Real fac;
+    U.times (M_mdiff, Utmp);                // difference with the embedded method
+    err_n = Utmp.norm2();                   // norm of the error
+    if (err_n == 0.0)                       // here we set fac, where dt(k+1) = fac*dt(k)
+    {
+        fac = fac_max;                      // if the actual error is zero we set fac to its maximal value
+    }
+    else if (err_n_1 == 0.0)                // if the previous error was zero and the actual is not then fac~1
+    {
+        fac = M_S;
+    }
+    else                                    // formula to compute fac, takes in account Tol, errors and time steps
+    {
+        fac = M_S * std::pow ( (Tol * err_n_1) / (err_n * err_n) , M_p_1 ) * ( dt / dt_old ) ;
+    }
 
-	if (err_n > Tol)							//the step is rejected
-	{
-		if (rejected)						//if it is the second time that it is rejected we
-			dt /= M_D;							//divide the time step by
-		else									//else dt = dt*fac, if the previous step has not grown too much then
-			dt *= fac;							//fac<1, if fac>1 it will be rejected one more time and dt will be
-													//divided by 10.
-		return true;							//this timestep has been rejected
-	}
-	else
-	{
-		err_n_1 = err_n;
-		dt_old = dt;
-		dt = min<Real>( Trem, min<Real>( fac, fac_max )*dt );	// dt(k+1) = min( TF-t, fac*dt(k), fac_max*dt(k) )
-		return false;
-	}
+    if (err_n > Tol)                        // the step is rejected
+    {
+        if (rejected)                       // if it is the second time that it is rejected we
+        {
+            dt /= M_D;                      // divide the time step by M_D
+        }
+        else                                // else dt = dt*fac, if the previous step has not grown too much then
+        {
+            dt *= fac;                      // fac<1, if fac>1 it will be rejected one more time and dt will be divided by 10.
+        }
+
+        return true;                        // this timestep has been rejected
+    }
+    else
+    {
+        err_n_1 = err_n;
+        dt_old = dt;
+        dt = min<Real> ( Trem, min<Real> ( fac, fac_max ) * dt ); // dt(k+1) = min( TF-t, fac*dt(k), fac_max*dt(k) )
+        return false;
+    }
 }
 
 } //namespace LifeV
