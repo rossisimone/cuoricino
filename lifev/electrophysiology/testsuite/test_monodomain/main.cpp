@@ -26,9 +26,9 @@
 
 /*!
     @file
-    @brief 0D test with the Negroni Lascano model of 1996.
+    @brief Test for ElectroETAMonodomainSolver and IonicMinimalModel
 
-    @date 01−2013
+    @date 08−2013
     @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
@@ -50,8 +50,6 @@
 //Tell the compiler to restore the warning previously silented
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
-
-
 
 #include <fstream>
 #include <string>
@@ -88,8 +86,6 @@ using namespace LifeV;
 
 Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& /*i*/)
 {
-//    return 1;
-//	return std::exp(-2 * (x*x+y*y+z*z) / (0.15 * 0.15));
 
     Real pacingSite_X = 0.0;
     Real pacingSite_Y = 0.0;
@@ -106,7 +102,7 @@ Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, 
     }
 }
 
-    Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
     {
 
     Real pacingSite_X = 0.0;
@@ -151,11 +147,10 @@ Int main ( Int argc, char** argv )
                                     const Real& /*z*/,
                                     const ID&   /*i*/ ) >   function_Type;
 
-    typedef ElectroETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
-    typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
-    typedef VectorEpetra				vector_Type;
-    typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
-
+    typedef ElectroETAMonodomainSolver< mesh_Type, IonicMinimalModel > monodomainSolver_Type;
+    typedef boost::shared_ptr< monodomainSolver_Type >                 monodomainSolverPtr_Type;
+    typedef VectorEpetra				                               vector_Type;
+    typedef boost::shared_ptr<vector_Type>                             vectorPtr_Type;
 
     LifeChrono chronoinitialsettings;
 
@@ -242,7 +237,6 @@ Int main ( Int argc, char** argv )
     splitting -> initializePotential();
 
     HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 6 );
- //   HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 45 );
 
     function_Type f = &smoothing;
     vectorPtr_Type smoother( new vector_Type( splitting -> potentialPtr() -> map() ) );
@@ -278,7 +272,6 @@ Int main ( Int argc, char** argv )
 
     boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
 	std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
-//    HeartUtility::importFibers( fiber, nm, splitting -> localMeshPtr() );
     HeartUtility::setupFibers ( *fiber, 0.0, 0.0, 1.0 );
     splitting -> setFiberPtr(fiber);
 
@@ -295,7 +288,6 @@ Int main ( Int argc, char** argv )
     }
 
     splitting -> setupLumpedMassMatrix();
-//    splitting -> setupMassMatrix();
     splitting -> setupStiffnessMatrix();
     splitting -> setupGlobalMatrix();
     if ( Comm->MyPID() == 0 )
@@ -319,11 +311,6 @@ Int main ( Int argc, char** argv )
     {
         cout << "\nstart solving:  " ;
     }
-
-    Real saveStep = monodomainList.get ("saveStep", 1.0);
-
-//    splitting   -> solveSplitting ( exporterSplitting, saveStep );
-
 
     monodomainSolver_Type::vectorPtr_Type dtVec ( new VectorEpetra ( splitting->feSpacePtr() -> map(), LifeV::Unique ) );
     ExporterHDF5<mesh_Type> Exp;
@@ -435,7 +422,7 @@ Int main ( Int argc, char** argv )
 
     Real returnValue;
 
-    if (std::abs(normSolution - 3.35648) > 1e-4 )
+    if (std::abs(normSolution - 3.39112) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
