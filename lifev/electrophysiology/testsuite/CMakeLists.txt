@@ -11,4 +11,5 @@ ADD_SUBDIRECTORIES(
 	test_0DMinimalModel
 	test_0DFitzHughNagumoModel
 	test_0DFoxModel
+	test_0DTenTusscher06Model
 )

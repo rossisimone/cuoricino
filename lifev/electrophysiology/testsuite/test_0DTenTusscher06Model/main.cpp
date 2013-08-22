@@ -247,7 +247,7 @@ Int main ( Int argc, char** argv )
     int pacingstepstart( ( list.get("pacingstep",1000.) / dt ) );
     int pacingstepstop( ( list.get("pacingstep",1001.) / dt ) );
 
-    int iter(0);
+    int iter(1);
 
 
 
@@ -498,5 +498,16 @@ Int main ( Int argc, char** argv )
 
     //! Finalizing Epetra communicator
     MPI_Finalize();
-    return ( EXIT_SUCCESS );
+
+    Real returnValue;
+
+    if (std::abs( ibCa + 0.139198 ) > 1e-4 )
+    {
+        returnValue = EXIT_FAILURE; // Norm of solution did not match
+    }
+    else
+    {
+        returnValue = EXIT_SUCCESS;
+    }
+    return ( returnValue );
 }

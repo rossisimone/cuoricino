@@ -3,7 +3,6 @@ INCLUDE(TribitsAddExecutableAndTest)
 INCLUDE(AddSubdirectories)
 
 ADD_SUBDIRECTORIES(
-  0DTenTusscher06Model
   0DNegroniLascanoModel
   0DNegroniLascanoModelJafriRiceWinslow
   ActivationWith0DTenTusscher06Model
