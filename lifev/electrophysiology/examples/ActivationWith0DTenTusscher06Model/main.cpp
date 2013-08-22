@@ -165,8 +165,6 @@ Int main ( Int argc, char** argv )
 //    XbStates.at (1) = 8.0;
 //    XbStates.at (2) = 1.0;
 //    XbStates.at (3) = 0.021553043080281;
-    Real Bufc = ionicModel.getBufc();
-    Real Kbufc = ionicModel.getKbufc();
 
 
     std::cout << "Initializing Xb rhs..." ;

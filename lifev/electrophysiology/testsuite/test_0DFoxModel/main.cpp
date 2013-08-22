@@ -242,5 +242,14 @@ Int main ( Int argc, char** argv )
 
     //! Finalizing Epetra communicator
     MPI_Finalize();
-    return ( EXIT_SUCCESS );
+    Real returnValue;
+    if (std::abs(unknowns.at(10) - 0.990976) > 1e-4 )
+    {
+        returnValue = EXIT_FAILURE; // Norm of solution did not match
+    }
+    else
+    {
+        returnValue = EXIT_SUCCESS;
+    }
+    return ( returnValue );
    }

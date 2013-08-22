@@ -79,7 +79,7 @@ using namespace std;
 using namespace LifeV;
 
 
-void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
+void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output, Real& valueToTest);
 
 void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
 					const Real& I, std::ofstream& output, UInt meth);
@@ -162,8 +162,10 @@ Int main ( Int argc, char** argv )
     LifeChrono chrono;
     chrono.start();
 
+    Real valueToTest;
+
     if ( FHNParameterList.get ("meth", 1.0) == 0.0 )
-        EulerExplicit (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
+        EulerExplicit (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output, valueToTest);
     else
         ROS3PFunction (dt, TF, model, S, D, FHNParameterList.get ("Iapp", 2000.0), output, FHNParameterList.get ("meth", 1.0));
 
@@ -178,10 +180,21 @@ Int main ( Int argc, char** argv )
 
     //! Finalizing Epetra communicator
     MPI_Finalize();
-    return ( EXIT_SUCCESS );
+
+    Real returnValue;
+
+    if (std::abs(valueToTest - 0.0431251) > 1e-4 )
+    {
+        returnValue = EXIT_FAILURE; // Norm of solution did not match
+    }
+    else
+    {
+        returnValue = EXIT_SUCCESS;
+    }
+    return ( returnValue );
 }
 
-void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output)
+void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output, Real& valueToTest)
 {
     std::vector<Real> unknowns ( model.Size(), 0.0);
     unknowns.at(0) = 98.999200000000002;
@@ -234,6 +247,8 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
         //********************************************//
         t = t + dt;
     }
+
+    valueToTest = unknowns.at (1);
 }
 
 void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,

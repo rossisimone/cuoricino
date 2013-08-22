@@ -540,7 +540,7 @@ Int main ( Int argc, char** argv )
    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
    int control = 0;
    int iter((Savedt / timeStep)+ 1e-9);
-   int nbTimeStep (1);
+
    int k(0);
 
    for (Real t = initialTime; t < endTime;){

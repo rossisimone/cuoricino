@@ -26,13 +26,13 @@
 
 /*!
     @file
-    @brief 0D test with the Mitchell-Schaeffer model
+    @brief 0D test with the minimal model
 
-    @date 04−2013
-    @author Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
+    @date 01−2013
+    @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
-    @mantainer Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
+    @mantainer Simone Rossi <simone.rossi@epfl.ch>
  */
 
 // Tell the compiler to ignore specific kind of warnings:
@@ -57,7 +57,7 @@
 
 #include <lifev/core/array/MatrixEpetra.hpp>
 
-#include <lifev/electrophysiology/solver/IonicModels/IonicMitchellSchaeffer.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -85,9 +85,9 @@ Int main ( Int argc, char** argv )
     // in the execution directory.                //
     //********************************************//
 
-    std::cout << "Importing parameters list...";
-    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "MitchellSchaefferParameters.xml" ) );
-    std::cout << " Done!" << endl;
+    //std::cout << "Importing parameters list...";
+    // Teuchos::ParameterList NLParameterList = *( Teuchos::getParametersFromXmlFile( "NegroniLascano96Parameters.xml" ) );
+    //std::cout << " Done!" << endl;
 
 
     //********************************************//
@@ -96,8 +96,8 @@ Int main ( Int argc, char** argv )
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
-    std::cout << "Building Constructor for MitchellSchaeffer Model with parameters ... ";
-    IonicMitchellSchaeffer  model ( ParameterList );
+    std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
+    IonicMinimalModel  ionicModel;
     std::cout << " Done!" << endl;
 
 
@@ -105,7 +105,7 @@ Int main ( Int argc, char** argv )
     // Show the parameters of the model as well as//
     // other informations  about the object.      //
     //********************************************//
-    model.showMe();
+    ionicModel.showMe();
 
 
     //********************************************//
@@ -116,8 +116,12 @@ Int main ( Int argc, char** argv )
     // the vector states                          //
     //********************************************//
     std::cout << "Initializing solution vector...";
-    std::vector<Real> unknowns (model.Size(), 0 );
-    unknowns[1] = 1;
+    std::vector<Real> states (ionicModel.Size(), 0);
+    states.at (0) = 1.0;
+    states.at (1) = 1.0;
+    states.at (2) = 1.0;
+    states.at (3) = 0.021553043080281;
+    std::vector<Real>& rStates = states;
     std::cout << " Done!" << endl;
 
 
@@ -129,7 +133,8 @@ Int main ( Int argc, char** argv )
     // the differential equation.                 //
     //********************************************//
     std::cout << "Initializing rhs..." ;
-    std::vector<Real> rhs (model.Size(), 0);
+    std::vector<Real> rhs (ionicModel.Size(), 0);
+    std::vector<Real>& rRhs = rhs;
     std::cout << " Done! "  << endl;
 
 
@@ -147,7 +152,7 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (400);
+    Real TF (500);
     Real dt (0.02);
 
 
@@ -158,7 +163,7 @@ Int main ( Int argc, char** argv )
     string filename = "output.txt";
     std::ofstream output ("output.txt");
 
-
+    cout << "Potential: " << rStates.at (0) << endl;
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
@@ -170,34 +175,35 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if ( t > 1 && t < 2 )
-        {
-        	Iapp = 0.1;
-        }
-        else
-        {
-            Iapp = 0;
-        }
-
+        //if( t > 10 && t < 11 ) Iapp = 4.0;
+        //else Iapp = 0;
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.setAppliedCurrent(Iapp);
-        model.computeRhs ( unknowns, rhs);
-
-        //********************************************//
-        // Writes solution on file.                   //
-        //********************************************//
-        output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << "\n";
+        ionicModel.setAppliedCurrent(Iapp);
+        ionicModel.computeRhs ( states, rhs);
 
         //********************************************//
         // Use forward Euler method to advance the    //
         // solution in time.                          //
         //********************************************//
-        unknowns.at (0) = unknowns.at (0)  + dt * rhs.at (0);
-        unknowns.at (1) = unknowns.at (1)  + dt * rhs.at (1);
+
+        for ( int j (0); j < ionicModel.Size(); j++)
+        {
+            rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
+        }
+
+        //********************************************//
+        // Writes solution on file.                   //
+        //********************************************//
+        output << t << ", ";
+        for ( int j (0); j < ionicModel.Size() - 1; j++)
+        {
+            output << rStates.at (j) << ", ";
+        }
+        output << rStates.at ( ionicModel.Size() - 1 ) << "\n";
 
         //********************************************//
         // Update the time.                           //
@@ -213,5 +219,15 @@ Int main ( Int argc, char** argv )
 
     //! Finalizing Epetra communicator
     MPI_Finalize();
-    return ( EXIT_SUCCESS );
+    Real returnValue;
+
+    if (std::abs(rStates.at ( ionicModel.Size() - 2 ) - 0.750031) > 1e-4 )
+    {
+        returnValue = EXIT_FAILURE; // Norm of solution did not match
+    }
+    else
+    {
+        returnValue = EXIT_SUCCESS;
+    }
+    return ( returnValue );
 }
