@@ -273,7 +273,7 @@ void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
 
     Real Jfi   = - V * Heaviside ( U - M_tetav ) * ( U - M_tetav ) * ( M_uu - U ) / M_taufi;
     Real Jso   = ( U - M_uo ) * ( 1.0 - Heaviside ( U - M_tetaw )  ) / tauo + Heaviside ( U - M_tetaw ) / tauso;
-    Real Jsi   = - Heaviside ( U - M_tetaw ) * W * W / M_tausi;
+    Real Jsi   = - Heaviside ( U - M_tetaw ) * W * S / M_tausi;
 
     rhs[0] = - ( Jfi + Jso + Jsi );
     rhs[1] = ( 1.0 - Heaviside ( U - M_tetav ) ) * ( vinf - V ) / tauvm - Heaviside ( U - M_tetav ) * V / M_tauvp;
@@ -289,14 +289,14 @@ Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real U = v[0];
     Real V = v[1];
     Real W = v[2];
-    //Real S = v[3];
+    Real S = v[3];
 
     Real tauso = M_tauso1 + ( M_tauso2 - M_tauso1 ) * ( 1.0 + std::tanh ( M_kso * ( U - M_uso ) ) ) / 2.0;
     Real tauo  = ( 1.0 - Heaviside ( U - M_tetao ) ) * M_tauo1 + Heaviside ( U - M_tetao ) * M_tauo2;
 
     Real Jfi   = - V * Heaviside ( U - M_tetav ) * ( U - M_tetav ) * ( M_uu - U ) / M_taufi;
     Real Jso   = ( U - M_uo ) * ( 1.0 - Heaviside ( U - M_tetaw )  ) / tauo + Heaviside ( U - M_tetaw ) / tauso;
-    Real Jsi   = - Heaviside ( U - M_tetaw ) * W * W / M_tausi;
+    Real Jsi   = - Heaviside ( U - M_tetaw ) * W * S / M_tausi;
 
     dPotential = - ( Jfi + Jso + Jsi );
 
