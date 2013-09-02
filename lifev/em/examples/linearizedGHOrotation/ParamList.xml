@@ -4,7 +4,7 @@
     <Parameter name="membraneCapacitance" type="double" value="1.00"/><!-- mu F cm ^ -2 -->
     <Parameter name="timeStep" type="double" value="0.02"  />
     <Parameter name="save_step" type="double" value="1."  />
-    <Parameter name="endTime" type="double" value="0.02"  />
+    <Parameter name="endTime" type="double" value="500.0"  />
     <Parameter name="time_prestretch" type="bool" value="false"  />
     <Parameter name="initial_gamma_f" type="double" value="-0.00"  />
     <Parameter name="meth" type="double" value="0.0"  />
@@ -12,19 +12,20 @@
     <Parameter name="longitudinalDiffusion" type="double" value="1.33417721518987"  /><!-- k Ohm ^-1 cm ^ -1-->
     <Parameter name="transversalDiffusion" type="double" value ="0.176061776061776"  /><!--k Ohm ^-1 cm ^ -1-->
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="solid_mesh_name" type="string" value="cube2r.mesh"  />
-    <Parameter name="solid_mesh_path" type="string" value="/home/srossi/meshes/cubic_meshes/"  />
+    <Parameter name="solid_mesh_name" type="string" value="cube4r.mesh"  />
+    <Parameter name="solid_mesh_path" type="string" value="/scratch/srossi/meshes/cubic_meshes/"  />
     <Parameter name="solid_fiber_file" type="string" value="idealHeart_structure_fiber"  />
     <Parameter name="c2f" type="string" value="RBFhtpVectorial"  />
     <Parameter name="f2c" type="string" value="RBFhtp"  />
-    <Parameter name="mesh_name" type="string" value="cube2r.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/home/srossi/meshes/cubic_meshes/"  />
+    <Parameter name="mesh_name" type="string" value="cube4r.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/scratch/srossi/meshes/cubic_meshes/"  />
     <Parameter name="fiber_file" type="string" value="idealHeart_electro_fiber"  />
     <Parameter name="two_way" type="bool" value="true"/>
     <Parameter name="pressure_ramp" type="bool" value="true"/>
     <Parameter name="ramp_timestep" type="double" value="0.025"  />
     <Parameter name="case" type="int" value="1"/>
     <Parameter name="subiter" type="int" value="1"  />
+    <Parameter name="gfactor" type="double" value="4.0" />
     <Parameter name="fiber_X" type="double" value="1.0"  />
     <Parameter name="fiber_Y" type="double" value="0.0"  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />
@@ -44,7 +45,7 @@
 
 		<!-- Trilinos parameters -->
 		<ParameterList name="Trilinos: AztecOO List">
-    		<Parameter name="solver" type="string" value="cg"/>
+    		<Parameter name="solver" type="string" value="gmres"/>
 	    	<Parameter name="conv" type="string" value="rhs"/>
     		<Parameter name="scaling" type="string" value="none"/>
 	    	<Parameter name="output" type="string" value="all"/>

@@ -45,8 +45,8 @@ bfs			= 9.466
 bulk		= 3500000
 solidType 	= GAHO #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
 lawType     = nonlinear
-viscosity = 0.0005;
-active_coefficient = -2.0;
+viscosity = 0.00025;
+active_coefficient = -3.0;
 Ca_diastolic = 0.02156;
 
 
@@ -111,7 +111,7 @@ Ca_diastolic = 0.02156;
         flag       = 600
         mode       = Full
         component  = 3
-		function  = '[-16000.0 * t, 0.0, 0.0]'
+		function  = '[-26000.0 * t, 0.0, 0.0]'
 
         [../]
 
