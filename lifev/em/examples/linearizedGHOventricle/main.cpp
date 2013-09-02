@@ -234,15 +234,15 @@ Real ComputeVolume( const RegionMesh<LinearTetra> fullMesh,
 }
 
 
-Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_temporal, Real dt = 1.0 )
+Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_temporal, Real Cp, Real dt = 1.0 )
 {
 	Real pressure;
 	if( dp_temporal > 0 )
 	{
 		if(pn < 127000)
 		{
-			Real Cp = - 900.0 / 1333.22; // ml / mmHG -> ml / ( dyne / cm^2)
-			pressure = pn + dV / Cp;
+			//Real Cp = - 5e-3; // ml / mmHG -> ml / ( dyne / cm^2)
+			pressure = pn + dV_temporal / Cp;
 		}
 		else
 		{
@@ -260,11 +260,12 @@ Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_t
 	}
 	else
 	{
-		Real Cp = - 900.0 / 1333.22; // ml / mmHG -> ml / ( dyne / cm^2)
+		//Real Cp = - 5e-3; // ml / mmHG -> ml / ( dyne / cm^2)
 		pressure = pn + dV / Cp;
 	}
 
 	return pressure;
+//	return 0.0;
 }
 
 int main (int argc, char** argv)
@@ -356,6 +357,8 @@ int main (int argc, char** argv)
 
     std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = parameterList.get ("mesh_path", "./");
+
+    Real Cp = parameterList.get ("Cp", 1e-5);
 
 //    meshPtr_Type mesh ( new mesh_Type ( comm ) );
 //    meshPtr_Type fullMesh ( new mesh_Type ( comm ) );
@@ -1594,7 +1597,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing pressure: ... ";
 							}
-							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal);
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal, Cp);
 							dp = newPressure - pressure;
 							pressure = newPressure;
 							if ( comm->MyPID() == 0 )
@@ -1630,7 +1633,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing pressure: ... ";
 							}
-							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal);
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal, Cp);
 							dp = newPressure - pressure;
 							pressure = newPressure;
 							if ( comm->MyPID() == 0 )
