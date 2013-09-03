@@ -1113,43 +1113,39 @@ int main (int argc, char** argv)
     //===========================================================
     vectorPtr_Type referencePosition( new vector_Type( solidDisp -> map() ) );
     vectorPtr_Type position( new vector_Type( solidDisp -> map() ) );
-    vectorPtr_Type positionR( new vector_Type( solidDisp -> map(), Repeated ) );
+    vectorPtr_Type intergralR( new vector_Type( dETFESpace->map(), Repeated ) );
+    vectorPtr_Type intergralR2( new vector_Type( monodomain -> potentialPtr() -> map() ) );
+    vectorPtr_Type oneVec( new vector_Type( dETFESpace->map() ) );
+    *oneVec = 1.0;
     createPositionVector(*fullSolidMesh, *referencePosition);
     Real fluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
 	{
-//	  	*position = *referencePosition;
-//	  	*position += *solidDisp;
-//	  	using namespace ExpressionAssembly;
-//
-//	  	BOOST_AUTO_TPL(I,      value(Id) );
-//	  	BOOST_AUTO_TPL(vE1,      value(E1) );
-//	  	BOOST_AUTO_TPL(Grad_u, grad( dETFESpace, *solidDisp, 0) );
-//	    BOOST_AUTO_TPL(x,     value(dETFESpace, *position ) );
-//	  	BOOST_AUTO_TPL(F,      ( Grad_u + I ) );
-//	  	BOOST_AUTO_TPL(FmT,    minusT(F) );
-//	  	BOOST_AUTO_TPL(J,       det(F) );
-//	  	BOOST_AUTO_TPL(x1,     dot(x, vE1) );
-//
-//	  	integrate ( boundary ( monodomain -> localMeshPtr(), 10),
-//				monodomain -> feSpacePtr() -> qr() ,
-//				J  //* x1 * dot(vE1, FmT * Nface)
-//		) >> fluidVolume;
-//		integrate ( elements ( monodomain -> localMeshPtr() ),
-//					monodomain -> feSpacePtr() -> qr() ,
-//					value(1.0)
-//				) >> fluidVolume;
-//    	QuadratureBoundary myBDQR (buildTetraBDQR (quadRuleTria4pt) );
-//        integrate ( boundary (monodomain -> localMeshPtr(), 10),
-//        		    myBDQR,
-//                    dETFESpace,
-//                    dETFESpace,
-//                    value (1.0) * dot ( phi_j, Nface ) * dot ( phi_i, Nface )
-//                  ) >> positionR;
-//        positionR -> globalAssemble();
+	  	*position = *referencePosition;
+	  	*position += *solidDisp;
+	  	using namespace ExpressionAssembly;
+
+	  	BOOST_AUTO_TPL(I,      value(Id) );
+	  	BOOST_AUTO_TPL(vE1,      value(E1) );
+	  	BOOST_AUTO_TPL(Grad_u, grad( dETFESpace, *solidDisp, 0) );
+	    BOOST_AUTO_TPL(x,     value(dETFESpace, *position ) );
+	  	BOOST_AUTO_TPL(F,      ( Grad_u + I ) );
+	  	BOOST_AUTO_TPL(FmT,    minusT(F) );
+	  	BOOST_AUTO_TPL(J,       det(F) );
+	  	BOOST_AUTO_TPL(x1,     dot(x, vE1) );
+
+    	QuadratureBoundary myBDQR (buildTetraBDQR (quadRuleTria4pt) );
+        integrate ( boundary (monodomain -> localMeshPtr(), 10),
+        		    myBDQR,
+        		    dETFESpace,
+                    J * x1 * dot( dot(phi_i, vE1) * phi_i, FmT * Nface)
+                  ) >> intergralR;
+
+        intergralR -> globalAssemble();
 //        *position = *positionR;
 //        for
 //        fluidVolume = position ->
 
+        fluidVolume =  oneVec -> dot(*intergralR);
 	}
  	//if ( comm->MyPID() == 0 )
 		{
