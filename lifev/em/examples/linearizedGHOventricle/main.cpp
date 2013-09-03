@@ -163,7 +163,101 @@ void createPositionVector(const RegionMesh<LinearTetra>& mesh,  VectorEpetra& po
 
 }
 
-Real ComputeVolume( const RegionMesh<LinearTetra> fullMesh,
+void createPositionXVector(const RegionMesh<LinearTetra>& mesh,  VectorEpetra& positionVector)
+{
+	Int nLocalDof = positionVector.epetraVector().MyLength();
+	Int nComponentLocalDof = nLocalDof / 3;
+	for (int k(0); k < nComponentLocalDof; k++)
+	{
+		UInt iGID = positionVector.blockMap().GID(k);
+		positionVector[iGID] = mesh.point(iGID).x();
+	}
+
+
+}
+
+void computeX( VectorEpetra& positionVector )
+{
+	Int nLocalDof = positionVector.epetraVector().MyLength();
+	Int nComponentLocalDof = nLocalDof / 3;
+	for (int k(0); k < nComponentLocalDof; k++)
+	{
+		UInt iGID = positionVector.blockMap().GID(k);
+		UInt jGID = positionVector.blockMap().GID(k + nComponentLocalDof);
+		UInt kGID = positionVector.blockMap().GID(k + 2 * nComponentLocalDof);
+
+		positionVector[jGID] = 0.0;
+		positionVector[kGID] = 0.0;
+	}
+
+
+}
+
+template<typename space> Real ComputeVolume(     const boost::shared_ptr<RegionMesh<LinearTetra> > localMesh,
+						VectorEpetra positionVector,
+						const VectorEpetra& disp,
+						const boost::shared_ptr<ETFESpace<RegionMesh<LinearTetra>, MapEpetra, 3, 1> > ETFESpace,
+						const boost::shared_ptr< space > dETFESpace,
+						int bdFlag,
+						boost::shared_ptr<Epetra_Comm>  comm)
+{
+
+	Real fluidVolume;
+
+    MatrixSmall<3,3> Id;
+    Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
+    Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
+    Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
+    VectorSmall<3> E1;
+    E1(0) = 1.;
+    E1(1) = 0.;
+    E1(2) = 0.;
+
+	Int nLocalDof = positionVector.epetraVector().MyLength();
+	for (int k(0); k < nLocalDof; k++)
+	{
+		UInt iGID = positionVector.blockMap().GID(k);
+
+		positionVector[iGID] += disp[iGID];
+	}
+
+	boost::shared_ptr<VectorEpetra> intergral( new VectorEpetra( positionVector.map() ) );
+
+	{
+	  	using namespace ExpressionAssembly;
+
+	  	BOOST_AUTO_TPL(I,      value(Id) );
+	  	BOOST_AUTO_TPL(vE1,      value(E1) );
+	  	BOOST_AUTO_TPL(Grad_u, grad( dETFESpace, disp, 0) );
+	    BOOST_AUTO_TPL(x,     value( ETFESpace, positionVector ) );
+	  	BOOST_AUTO_TPL(F,      ( Grad_u + I ) );
+	  	BOOST_AUTO_TPL(FmT,    minusT(F) );
+	  	BOOST_AUTO_TPL(J,       det(F) );
+	  	BOOST_AUTO_TPL(x1,     dot(x, vE1) );
+
+    	QuadratureBoundary myBDQR (buildTetraBDQR (quadRuleTria4pt) );
+
+        *intergral *= 0.0;
+        integrate ( boundary ( localMesh, bdFlag),
+        		    myBDQR,
+        		    ETFESpace,
+        		    value(-1.0) * J * dot( vE1, FmT * Nface ) *phi_i
+                  ) >> intergral;
+
+        intergral -> globalAssemble();
+//        *position = *positionR;
+//        for
+//        fluidVolume = position ->
+
+        fluidVolume =  positionVector.dot(*intergral);
+		{
+			std::cout << "\nInitial fluid volume: " << fluidVolume << " in processor" << comm->MyPID() << std::endl;
+		}
+        return fluidVolume;
+	}
+}
+
+Real ComputeCubicVolume( const RegionMesh<LinearTetra> fullMesh,
 							VectorEpetra positionVector,
 					  const VectorEpetra& disp,
 					  int bdFlag,
@@ -1111,47 +1205,17 @@ int main (int argc, char** argv)
     // CREATE POSITION VECTOR
     //===========================================================
     //===========================================================
-    vectorPtr_Type referencePosition( new vector_Type( solidDisp -> map() ) );
-    vectorPtr_Type position( new vector_Type( solidDisp -> map() ) );
-    vectorPtr_Type intergralR( new vector_Type( dETFESpace->map(), Repeated ) );
-    vectorPtr_Type intergralR2( new vector_Type( monodomain -> potentialPtr() -> map() ) );
-    vectorPtr_Type oneVec( new vector_Type( dETFESpace->map() ) );
-    *oneVec = 1.0;
-    createPositionVector(*fullSolidMesh, *referencePosition);
-    Real fluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
-	{
-	  	*position = *referencePosition;
-	  	*position += *solidDisp;
-	  	using namespace ExpressionAssembly;
-
-	  	BOOST_AUTO_TPL(I,      value(Id) );
-	  	BOOST_AUTO_TPL(vE1,      value(E1) );
-	  	BOOST_AUTO_TPL(Grad_u, grad( dETFESpace, *solidDisp, 0) );
-	    BOOST_AUTO_TPL(x,     value(dETFESpace, *position ) );
-	  	BOOST_AUTO_TPL(F,      ( Grad_u + I ) );
-	  	BOOST_AUTO_TPL(FmT,    minusT(F) );
-	  	BOOST_AUTO_TPL(J,       det(F) );
-	  	BOOST_AUTO_TPL(x1,     dot(x, vE1) );
-
-    	QuadratureBoundary myBDQR (buildTetraBDQR (quadRuleTria4pt) );
-        integrate ( boundary (monodomain -> localMeshPtr(), 10),
-        		    myBDQR,
-        		    dETFESpace,
-                    J * x1 * dot( dot(phi_i, vE1) * phi_i, FmT * Nface)
-                  ) >> intergralR;
-
-        intergralR -> globalAssemble();
-//        *position = *positionR;
-//        for
-//        fluidVolume = position ->
-
-        fluidVolume =  oneVec -> dot(*intergralR);
-	}
- 	//if ( comm->MyPID() == 0 )
-		{
-			std::cout << "\nInitial fluid volume: " << fluidVolume << " in processor" << comm->MyPID() << std::endl;
-		}
-		return 0;
+//    vectorPtr_Type referencePosition( new vector_Type( solidDisp -> map() ) );
+    vectorPtr_Type referencePositionX( new vector_Type( monodomain -> potentialPtr() -> map() ) );
+//    vectorPtr_Type position( new vector_Type( solidDisp -> map() ) );
+//    vectorPtr_Type intergralR( new vector_Type( dETFESpace->map() ) );
+//    vectorPtr_Type intergralR2( new vector_Type( monodomain -> potentialPtr() -> map() ) );
+//    vectorPtr_Type oneVec( new vector_Type( dETFESpace->map() ) );
+//    *oneVec = 1.0;
+//    createPositionVector(*fullSolidMesh, *referencePosition);
+    createPositionXVector(*fullSolidMesh, *referencePositionX);
+    Real fluidVolume; //= ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+    fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);
     //===========================================================
   	//===========================================================
   	//				Initializing solid
@@ -1286,13 +1350,13 @@ int main (int argc, char** argv)
 		Real pnm1 = pressure;
 		Real dp = pressure - p0;
 		Real V0 = fluidVolume;
-		fluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+		fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);
 		Real dV = fluidVolume - V0;
 		Real dV_temporal(dV);
 		Real dp_temporal(dp);
 
 		bool isoPV = true;
-
+		return 0;
      for( Real t(0.0); t< monodomain -> endTime(); )
 	 {
 		  t = t + monodomain -> timeStep();
@@ -1621,7 +1685,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing Volume of Fluid: ... ";
 							}
-							Real newFluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+							Real newFluidVolume = 1;//ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
 							dV = newFluidVolume - fluidVolume;
 							fluidVolume = newFluidVolume;
 							if ( comm->MyPID() == 0 )
@@ -1657,7 +1721,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing Volume of Fluid: ... ";
 							}
-							Real newFluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+							Real newFluidVolume = 1.0;//ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
 							dV = newFluidVolume - fluidVolume;
 							fluidVolume = newFluidVolume;
 							if ( comm->MyPID() == 0 )
