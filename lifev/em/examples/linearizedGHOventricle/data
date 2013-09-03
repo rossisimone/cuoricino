@@ -27,17 +27,17 @@ save       = 1
 
 [./physics]
 density   	= 0 #1.2
-material_flag   = 1000 #101 #1000
+material_flag   = 0 #1000 #101 #1000
 young     	= 1478.08
 poisson   	= 0.49
 #bulk		= 2.46e+4 #1.3333e+8
 alpha 		= 2.684564e+6
-gamma		= 1.0
+gamma		= 0.0
 gammaf		= 0.0
 a			= 4960
 af			= 151930
 as			= 32830
-afs			= 6620
+afs			= 0 #6620
 b			= 7.209
 bf			= 20.417
 bs			= 11.176
@@ -46,72 +46,64 @@ bulk		= 3500000
 solidType 	= GAHO #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
 lawType     = nonlinear
 viscosity = 0.0002;
-active_coefficient = -4.0;
+active_coefficient = -3.0;
 Ca_diastolic = 0.02156;
 
 
 [../boundary_conditions]
 #    list = 'Epi Endo1 Endo2'
 #	list = 'symm0 symm1 symm2'
-	list = 'epi1 epi2 endo'	
+#	list = 'Apex Epi Endo Base'	
+	list = 'Apex Epi Base'	
 
-        [./epi1]
-        type       = EssentialVertices
-        flag       = 111
-        mode       = Full
-        component  = 3
-		function  = '[0.0, 0.0, 0.0]'
-
-        [../epi2]
-        type       = Essential
+        [./Apex]
+        type       = Robin
         flag       = 100
-        mode       = Component
-        component  = 0
-		function  = '0.0'
-        
-        [../epi3]
-        type       = EssentialVertices
-        flag       = 111
-        mode       = Full
-        component  = 3
-		function  = '[0.0, 0.0, 0.0]'
-
-
-        [../symm0]
-        type       = Essential
-        flag       = 100
-        mode       = Component
-        component  = 0
-	function  = '0.0'
-
-
-        [../symm1]
-        type       = Essential
-        flag       = 300
-        mode       = Component
+        mode       = Normal
         component  = 1
-	function  = '0.0'
 
-        [../symm2]
-        type       = Essential
-        flag       = 200
-        mode       = Component
-        component  = 2
-	function  = '0.0'
+            [./RobinAlpha]
+            function = ' 50.00 * 1000' # D
 
-        [../Endo1]
-        type       = EssentialVertices
-        flag       = 10000
-        mode       = Component
+            [../RobinBeta]
+            function = '0' # D
+
+            [../]
+
+        [../Epi]
+        type       = Robin
+        flag       = 20
+        mode       = Normal
         component  = 1
-		function  = '0.0'
+
+            [./RobinAlpha]
+            function = ' 5.00 * 1000' # D
+
+            [../RobinBeta]
+            function = '0' # D
+
+            [../]
+
+        [../Base]
+        type       = Robin
+        flag       = 99
+        mode       = Normal
+        component  = 1
+
+            [./RobinAlpha]
+            function = ' 5.00 * 1000' # D
+
+            [../RobinBeta]
+            function = '0' # D
+
+            [../]
         
-        [../endo]
+        [../Endo]
         type       = Natural
-        flag       = 600
-        mode       = Full
-        component  = 3
-		function  = '[-26000.0 * t, 0.0, 0.0]'
+        flag       = 10
+        mode       = Normal
+        component  = 1
+		function  = '-100.0'
 
         [../]
 
@@ -145,7 +137,7 @@ abstol  	= 1.e-7
 
 
 [../solver]
-solver          = gmres
+solver          = cg
 scaling         = none
 output          = all 			# none
 conv            = rhs

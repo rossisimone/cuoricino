@@ -988,6 +988,10 @@ int main (int argc, char** argv)
       Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
       Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
       Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
+      VectorSmall<3> E1;
+      E1(0) = 1.;
+      E1(1) = 0.;
+      E1(2) = 0.;
   	{
   		using namespace ExpressionAssembly;
 
@@ -1108,13 +1112,50 @@ int main (int argc, char** argv)
     //===========================================================
     //===========================================================
     vectorPtr_Type referencePosition( new vector_Type( solidDisp -> map() ) );
+    vectorPtr_Type position( new vector_Type( solidDisp -> map() ) );
+    vectorPtr_Type positionR( new vector_Type( solidDisp -> map(), Repeated ) );
     createPositionVector(*fullSolidMesh, *referencePosition);
     Real fluidVolume = ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+	{
+//	  	*position = *referencePosition;
+//	  	*position += *solidDisp;
+//	  	using namespace ExpressionAssembly;
+//
+//	  	BOOST_AUTO_TPL(I,      value(Id) );
+//	  	BOOST_AUTO_TPL(vE1,      value(E1) );
+//	  	BOOST_AUTO_TPL(Grad_u, grad( dETFESpace, *solidDisp, 0) );
+//	    BOOST_AUTO_TPL(x,     value(dETFESpace, *position ) );
+//	  	BOOST_AUTO_TPL(F,      ( Grad_u + I ) );
+//	  	BOOST_AUTO_TPL(FmT,    minusT(F) );
+//	  	BOOST_AUTO_TPL(J,       det(F) );
+//	  	BOOST_AUTO_TPL(x1,     dot(x, vE1) );
+//
+//	  	integrate ( boundary ( monodomain -> localMeshPtr(), 10),
+//				monodomain -> feSpacePtr() -> qr() ,
+//				J  //* x1 * dot(vE1, FmT * Nface)
+//		) >> fluidVolume;
+//		integrate ( elements ( monodomain -> localMeshPtr() ),
+//					monodomain -> feSpacePtr() -> qr() ,
+//					value(1.0)
+//				) >> fluidVolume;
+//    	QuadratureBoundary myBDQR (buildTetraBDQR (quadRuleTria4pt) );
+//        integrate ( boundary (monodomain -> localMeshPtr(), 10),
+//        		    myBDQR,
+//                    dETFESpace,
+//                    dETFESpace,
+//                    value (1.0) * dot ( phi_j, Nface ) * dot ( phi_i, Nface )
+//                  ) >> positionR;
+//        positionR -> globalAssemble();
+//        *position = *positionR;
+//        for
+//        fluidVolume = position ->
+
+	}
  	//if ( comm->MyPID() == 0 )
 		{
 			std::cout << "\nInitial fluid volume: " << fluidVolume << " in processor" << comm->MyPID() << std::endl;
 		}
-
+		return 0;
     //===========================================================
   	//===========================================================
   	//				Initializing solid

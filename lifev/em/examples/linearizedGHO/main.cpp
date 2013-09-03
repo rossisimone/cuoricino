@@ -1157,7 +1157,7 @@ int main (int argc, char** argv)
 						Real B = dataFile( "solid/physics/b_activation", 0. );
 						Real Af = dataFile( "solid/physics/af", 0. );
 						Real Bf = dataFile( "solid/physics/bf", 0. );
-						cout << "\n\nparameters: a: " << A << ", af: " << Af << ", b: " << B << ", bf: " << Bf << "\n\n";
+						//cout << "\n\nparameters: a: " << A << ", af: " << Af << ", b: " << B << ", bf: " << Bf << "\n\n";
 						BOOST_AUTO_TPL(a, value( A ) );
 						BOOST_AUTO_TPL(b, value(  B ) );
 						BOOST_AUTO_TPL(af, value( Af ) );
