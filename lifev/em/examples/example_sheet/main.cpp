@@ -531,13 +531,15 @@ int main ( int argc, char** argv )
 
 		HeartUtility::normalize(*rbSheet);
 
-//		Real cx = -0.655333989927163;
-//		Real cy = 0.699986220544843;
-//		Real cz = -0.283825038876930;
+		//human biventricular
+		Real cx = -0.655333989927163;
+		Real cy = 0.699986220544843;
+		Real cz = -0.283825038876930;
 
-		Real cx = 0.0;
-		Real cy = 0.0;
-		Real cz = 1.0;
+		//idealized
+//		Real cx = 0.0;
+//		Real cy = 0.0;
+//		Real cz = 1.0;
 
 
 	    if ( Comm->MyPID() == 0 )
