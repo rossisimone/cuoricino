@@ -32,6 +32,7 @@
 
 #include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 #include <sys/stat.h>
+#include <fstream>
 
 using namespace LifeV;
 
@@ -250,8 +251,10 @@ template<typename space> Real ComputeVolume(     const boost::shared_ptr<RegionM
 //        fluidVolume = position ->
 
         fluidVolume =  positionVector.dot(*intergral);
+
+	if( comm->MyPID() == 0 )
 		{
-			std::cout << "\nInitial fluid volume: " << fluidVolume << " in processor" << comm->MyPID() << std::endl;
+			std::cout << "\nFluid volume: " << fluidVolume << " in processor " << comm->MyPID() << std::endl;
 		}
         return fluidVolume;
 	}
@@ -328,38 +331,29 @@ Real ComputeCubicVolume( const RegionMesh<LinearTetra> fullMesh,
 }
 
 
-Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_temporal, Real Cp, Real dt = 1.0 )
+Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_temporal, Real Cp, Int phase = 0, Real dt = 1.0 )
 {
 	Real pressure;
-	if( dp_temporal > 0 )
+
+	switch(phase)
 	{
-		if(pn < 127000)
-		{
-			//Real Cp = - 5e-3; // ml / mmHG -> ml / ( dyne / cm^2)
+		case 0:
 			pressure = pn + dV_temporal / Cp;
-		}
-		else
-		{
-			Real R = 750 * 1333.22; //mmHg ms / ml
+			break;
+		case 1:	
+                        Real R = 750 * 1333.22; //mmHg ms / ml
 			Real C = 0.2 / 1333.22; //ml / mmHg
-			pressure = ( R / ( C * R + dt ) ) * ( pn - dV_temporal );
-
-		}
-	}
-	else if( dp_temporal < 0 && dV_temporal < 0)
-	{
-			Real R = 750 * 1333.22; //mmHg ms / ml
-			Real C = 0.2 / 1333.22; //ml / mmHg
-			pressure = ( R / ( C * R + dt ) ) * ( pn - dV_temporal );
-	}
-	else
-	{
-		//Real Cp = - 5e-3; // ml / mmHG -> ml / ( dyne / cm^2)
-		pressure = pn + dV / Cp;
-	}
-
+			pressure = ( 1.0 / ( C + dt / R ) ) * ( C * pn - dV_temporal );
+			break;
+		case 3: 		
+			pressure = pn + dV_temporal / Cp;
+			break;
+		default:
+			std::cout << "\nThis case is not yet available\n I'm not gonna change the pressure.\n";
+			pressure = pn;
+			break;
+	}	
 	return pressure;
-//	return 0.0;
 }
 
 int main (int argc, char** argv)
@@ -1231,9 +1225,13 @@ int main (int argc, char** argv)
     vector_Type endoVec (0.0 * (*solidDisp) , Repeated);
 //    vector_Type pressure (aFESpace->map(), Repeated);
     Real pressure = parameterList.get("pressure", 0.0);
-    vectorPtr_Type savePressure( &endoVec );
-    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "pressure", dFESpace, savePressure, UInt (0) );
-
+    vectorPtr_Type savePressure( new vector_Type( endoVec.map() )  );
+    vectorPtr_Type saveVolume( new vector_Type( endoVec.map()) );
+	*saveVolume = fluidVolume;
+	   *savePressure = -pressure;
+    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "pressure", aFESpace, savePressure, UInt (0) );
+    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "volume", aFESpace, saveVolume, UInt (0) );
+	
     boost::shared_ptr<BCVector> pEndo( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) );
 
 	if(parameterList.get("debug", false)){
@@ -1281,7 +1279,7 @@ int main (int argc, char** argv)
     	    exporterRamp->postProcess(pseudot);
     	    *solidDisp = solid.displacement();
 
-
+		fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);
 
 		}
 	      exporterRamp->closeFile();
@@ -1349,14 +1347,26 @@ int main (int argc, char** argv)
 		Real p0 = 0;
 		Real pnm1 = pressure;
 		Real dp = pressure - p0;
-		Real V0 = fluidVolume;
+		
 		fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);
+		Real V0 = fluidVolume;
 		Real dV = fluidVolume - V0;
 		Real dV_temporal(dV);
 		Real dp_temporal(dp);
 
 		bool isoPV = true;
-		return 0;
+		Real res;
+		std::string outputPV="/"+problemFolder+"/pv.txt";
+		const char * pvOutputFile = outputPV.c_str();
+		std::ofstream pv(pvOutputFile);
+		if(  comm->MyPID() == 0 ){
+		std::string outputPV="/"+problemFolder+"/pv.txt";
+		const char * pvOutputFile = outputPV.c_str();
+		pv << "Pressure, Volume";
+		pv << "\n" << pressure << ", " << fluidVolume;
+		}
+
+	Int pv_phase(0);
      for( Real t(0.0); t< monodomain -> endTime(); )
 	 {
 		  t = t + monodomain -> timeStep();
@@ -1670,27 +1680,56 @@ int main (int argc, char** argv)
 
 					}
 
-					 dV = 2 * fluidVolume;
-					 V0 = fluidVolume;
+					 res = 2 * fluidVolume;
+					 //
 					 p0 = pressure;
-					 if(pressure > 127000) isoPV = false;
+					 if( pv_phase == 0 && pressure > 127000) 
+					{	
+						isoPV = false;
+						pv_phase = 1;
+					}	
+					if( pv_phase == 1 && dV_temporal )					 
+					{	
+						isoPV = true;
+						pv_phase = 2;
+					}	
+						if ( comm->MyPID() == 0 )
+						{
+						std::cout  << "\nisoPV: " << isoPV << " \n";
+						}
 					 if(isoPV)
 					 {
-						while( dV / V0 > 1e-3 )
+						if ( comm->MyPID() == 0 )
 						{
+						std::cout  << "\nEntering in the loop (dV / V): " << dV / V0 << " \n";
+						}
+						int iter(0); 
+						while( res > 1e-3 )
+						{
+							iter++;
+
+					if ( comm->MyPID() == 0 )
+					{
+						std::cout << "\n*****************************************************";
+						std::cout << "\nITERATION: "<< iter;
+						std::cout << "\n*****************************************************\n";
+
+					}
+
 							solid.iterate ( solidBC -> handler() );
 							*solidDisp = solid.displacement();
 
 							if ( comm->MyPID() == 0 )
 							{
-								std::cout << "\nComputing Volume of Fluid: ... ";
+								std::cout << "\nisoPV: Initial Volume of Fluid: ... " <<  fluidVolume;
 							}
-							Real newFluidVolume = 1;//ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
-							dV = newFluidVolume - fluidVolume;
-							fluidVolume = newFluidVolume;
+							fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);
+							//Real newFluidVolume = 1;//ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+							dV = fluidVolume - V0;
+							//fluidVolume = newFluidVolume;
 							if ( comm->MyPID() == 0 )
 							{
-								std::cout <<  newFluidVolume <<", Variation %: " << dV / fluidVolume << " \n";
+								std::cout  << "\nVariation %: " << dV / V0 << " \n";
 							}
 
 
@@ -1698,7 +1737,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing pressure: ... ";
 							}
-							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal, Cp);
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV, Cp);
 							dp = newPressure - pressure;
 							pressure = newPressure;
 							if ( comm->MyPID() == 0 )
@@ -1708,25 +1747,32 @@ int main (int argc, char** argv)
 							endoVec = -newPressure;
 							pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
 							solidBC -> handler() -> modifyBC(10, *pEndo);
+
+							res = std::abs(dV) / V0;
+							if ( comm->MyPID() == 0 )
+							{
+								std::cout <<  "\nresidual: " << res <<"\n";
+							}
 						}
 						dV_temporal = fluidVolume  - V0;
 						dp_temporal = pressure - p0;
 					 }
 					 else
 					 {
+							Real Vn = fluidVolume;
 							solid.iterate ( solidBC -> handler() );
 							*solidDisp = solid.displacement();
 
 							if ( comm->MyPID() == 0 )
 							{
-								std::cout << "\nComputing Volume of Fluid: ... ";
+								std::cout << "\nno isoPV: Computing Volume of Fluid: ... ";
 							}
-							Real newFluidVolume = 1.0;//ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
-							dV = newFluidVolume - fluidVolume;
-							fluidVolume = newFluidVolume;
+							fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);//Real newFluidVolume = 1.0;//ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+							dV = fluidVolume - V0;
+							//fluidVolume = newFluidVolume;
 							if ( comm->MyPID() == 0 )
 							{
-								std::cout <<  newFluidVolume <<", Variation %: " << dV / fluidVolume << " \n";
+								std::cout <<  fluidVolume <<", Variation %: " << dV / fluidVolume << " \n";
 							}
 
 
@@ -1734,7 +1780,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing pressure: ... ";
 							}
-							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal, Cp);
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal, Cp, pv_phase);
 							dp = newPressure - pressure;
 							pressure = newPressure;
 							if ( comm->MyPID() == 0 )
@@ -1745,15 +1791,17 @@ int main (int argc, char** argv)
 							pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
 							solidBC -> handler() -> modifyBC(10, *pEndo);
 
-							dV_temporal = fluidVolume  - V0;
+							dV_temporal = fluidVolume  - Vn;
 							dp_temporal = pressure - p0;
 					 }
-					    savePressure.reset( new vector_Type(endoVec, Unique) );
+
+					    *savePressure = -pressure;
+						*saveVolume = fluidVolume;
 
 					//        timeAdvance->shiftRight ( solid.displacement() );
 
 
-					if(parameterList.get("time_prestretch",false))
+					/*if(parameterList.get("time_prestretch",false))
 					{
 						if( monodomain -> globalSolution().at(3)-> maxValue() < Ca_diastolic)
 						{
@@ -1789,7 +1837,7 @@ int main (int argc, char** argv)
 
 							}
 						}
-					}
+					}*/
 					if(usingDifferentMeshes)
 					{
 						if(solid.displacementPtr() -> normInf() > 0)
@@ -1812,7 +1860,7 @@ int main (int argc, char** argv)
 					  {
 							if ( comm->MyPID() == 0 )
 							{
-								std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING!\n" << std::endl;
+								std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TWO WAY COUPLING!\n" << std::endl;
 							}
 
 							 monodomain -> setupStiffnessMatrix();
@@ -1821,6 +1869,10 @@ int main (int argc, char** argv)
 					  }
 			  }
 
+							if ( comm->MyPID() == 0 )
+							{
+			pv << "\n" << pressure << ", " << fluidVolume;
+	}
 		  //cout << "\n\n save every " << saveIter << "iteration\n";
 		  if ( k % saveIter == 0)
 		  {
@@ -1829,8 +1881,8 @@ int main (int argc, char** argv)
 			  exporter->postProcess ( t );
 		  }
 
-		  emDisp -> spy("interpolatedDisplacement");
-		  solid.displacementPtr() -> spy("displacement");
+		  //emDisp -> spy("interpolatedDisplacement");
+		  //solid.displacementPtr() -> spy("displacement");
 
 //	      if ( comm->MyPID() == 0 )
 //	      {
@@ -1842,8 +1894,11 @@ int main (int argc, char** argv)
 
 
       }
-
-
+	if ( comm->MyPID() == 0 )
+	{
+			pv.close();
+	}
+	
       expElectro.closeFile();
       expGammaf.closeFile();
 
