@@ -195,7 +195,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_activationType        = activationTypeMap[dataFile ( "electrophysiology/activation_type", "TransverselyIsotropic" )];
     M_orthotropicActivationAnisotropyRatio = dataFile ( "electrophysiology/anisotropy_ratio", 3. );
 
-    M_preloadInTime         = dataFile ("solid/physics/preload", 0);
+  //  M_preloadInTime         = dataFile ("solid/physics/preload", 0);
     typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >          FESpace_Type;
     typedef boost::shared_ptr<FESpace_Type>                        FESpacePtr_Type;
 
@@ -241,7 +241,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
 
         M_activationOperator -> globalAssemble();
         M_activationSolver->setOperator ( M_activationOperator );
-        M_preloadVector.reset ( new vector_Type ( M_fiber -> map() ) );
+        //M_preloadVector.reset ( new vector_Type ( M_fiber -> map() ) );
     }
 
     //==============================================================
@@ -384,29 +384,29 @@ MultiscaleModelFSI3DActivated::updateModel()
 {
     super::updateModel();
 
-    if (M_preloadInTime)
-    {
-        if ( M_monodomain -> globalSolution().at (3)-> minValue() < 0.02158)
-        {
-            int d = M_monodomain -> globalSolution().at (3) -> epetraVector().MyLength();
-            int size =  M_monodomain -> globalSolution().at (3) -> size();
-            for (int l (0); l < d; l++)
-            {
-                int m1 = M_monodomain -> globalSolution().at (3) -> blockMap().GID (l);
-
-                if ( (* (M_monodomain -> globalSolution().at (3) ) ) [m1] <= 0.02158)
-                {
-                    int m2 = super::solver() -> solid().displacementPtr() -> blockMap().GID (l + size);
-                    int m3 = super::solver() -> solid().displacementPtr() -> blockMap().GID (l + 2 * size);
-
-                    (*M_preloadVector) [m1] = (* (super::solver() -> solid().displacementPtr() ) ) [m1];
-                    (*M_preloadVector) [m2] = (* (super::solver() -> solid().displacementPtr() ) ) [m2];
-                    (*M_preloadVector) [m3] = (* (super::solver() -> solid().displacementPtr() ) ) [m3];
-                }
-
-            }
-        }
-    }
+//    if (M_preloadInTime)
+//    {
+//        if ( M_monodomain -> globalSolution().at (3)-> minValue() < 0.02158)
+//        {
+//            int d = M_monodomain -> globalSolution().at (3) -> epetraVector().MyLength();
+//            int size =  M_monodomain -> globalSolution().at (3) -> size();
+//            for (int l (0); l < d; l++)
+//            {
+//                int m1 = M_monodomain -> globalSolution().at (3) -> blockMap().GID (l);
+//
+//                if ( (* (M_monodomain -> globalSolution().at (3) ) ) [m1] <= 0.02158)
+//                {
+//                    int m2 = super::solver() -> solid().displacementPtr() -> blockMap().GID (l + size);
+//                    int m3 = super::solver() -> solid().displacementPtr() -> blockMap().GID (l + 2 * size);
+//
+//                    (*M_preloadVector) [m1] = (* (super::solver() -> solid().displacementPtr() ) ) [m1];
+//                    (*M_preloadVector) [m2] = (* (super::solver() -> solid().displacementPtr() ) ) [m2];
+//                    (*M_preloadVector) [m3] = (* (super::solver() -> solid().displacementPtr() ) ) [m3];
+//                }
+//
+//            }
+//        }
+//    }
 }
 
 void
@@ -521,78 +521,49 @@ MultiscaleModelFSI3DActivated::solveModel()
 
 
                     {
-                        using namespace ExpressionAssembly;
+						using namespace ExpressionAssembly;
 
 
-                        BOOST_AUTO_TPL (I,      value (Id) );
-                        BOOST_AUTO_TPL (Grad_u, grad ( M_monodomainDisplacementETFESpace, *M_displacementMonodomain, 0) );
-                        BOOST_AUTO_TPL (F,      ( Grad_u + I ) );
-                        BOOST_AUTO_TPL (FmT,    minusT (F) );
-                        BOOST_AUTO_TPL (J,       det (F) );
-                        BOOST_AUTO_TPL (Jm23,    pow (J, -2. / 3) );
-                        BOOST_AUTO_TPL (I1,     dot (F, F) );
+						BOOST_AUTO_TPL (I,      value (Id) );
+						BOOST_AUTO_TPL (Grad_u, grad ( M_monodomainDisplacementETFESpace, *M_displacementMonodomain, 0) );
+						BOOST_AUTO_TPL (F,      ( Grad_u + I ) );
+						BOOST_AUTO_TPL (J,       det (F) );
+						BOOST_AUTO_TPL (Jm23,    pow (J, -2. / 3) );
 
-                        // Fibres
-                        BOOST_AUTO_TPL (f0,     value ( M_monodomainDisplacementETFESpace, * ( M_monodomain -> fiberPtr() ) ) );
-                        BOOST_AUTO_TPL (f,      F * f0 );
-                        BOOST_AUTO_TPL (I4f,    dot (f, f) );
+						// Fibres
+						BOOST_AUTO_TPL (f0,     value ( M_monodomainDisplacementETFESpace, * ( M_monodomain -> fiberPtr() ) ) );
+						BOOST_AUTO_TPL (f,      F * f0 );
+						BOOST_AUTO_TPL (I4f,    dot (f, f) );
+						BOOST_AUTO_TPL (I4fiso,  Jm23 * I4f);
 
-                        //BOOST_AUTO_TPL(s0,     value(M_monodomain -> ETFESpacePtr(), *(super::solver() -> solid().material() -> sheetVectorPtr() ) ) );
-                        //BOOST_AUTO_TPL(I4s,    dot(F * s0, F * s0));
 
-                        //BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
-                        BOOST_AUTO_TPL (I4fiso,  Jm23 * I4f);
-                        //BOOST_AUTO_TPL(I4siso,  Jm23 * I4s);
+						// shortenings
+					   BOOST_AUTO_TPL (gf,  value (M_activationETFESpace, *M_gammaf) );
+					   BOOST_AUTO_TPL(gs,  value(M_activationETFESpace, *M_gammas));
+					   BOOST_AUTO_TPL(gn,  value(M_activationETFESpace, *M_gamman));
 
-                        // shortenings
-                        BOOST_AUTO_TPL (gf,  value (M_activationETFESpace, *M_gammaf) );
-                        //BOOST_AUTO_TPL(gs,  value(M_activationETFESpace, *M_gammas));
-                        //BOOST_AUTO_TPL(gn,  value(M_activationETFESpace, *M_gamman));
+						// Fibres
+						BOOST_AUTO_TPL(dW, value(2.0) * I4fiso * ( value(3.0) * gf + value(-6.0) * gf * gf + value(10.0) * gf * gf * gf + value(-15.0) * gf * gf * gf * gf  + value(21.0) * gf * gf * gf * gf * gf) );
 
-                        //BOOST_AUTO_TPL(dI1edI1,   value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  )    );
-                        //BOOST_AUTO_TPL(dI1edI4f,  value(1.0) / (   (gf + value(1.0))  *  (gf + value(1.0))  ) -  value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  ) );
-                        //BOOST_AUTO_TPL(dI1edI4s,  value(1.0) / (   (gs + value(1.0))  *  (gs + value(1.0))  ) -  value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  ) );
-                        //BOOST_AUTO_TPL(dI4fedI4f, value(1.0) / (   (gf + value(1.0)) *   (gf + value(1.0))  )    );
+						BOOST_AUTO_TPL (Ca,    value ( M_activationETFESpace, * ( M_monodomain -> globalSolution().at (3)  ) ) );
+						BOOST_AUTO_TPL(Ca2, Ca * Ca );
 
-                        //BOOST_AUTO_TPL(I1eiso,   dI1edI1 * I1iso + dI1edI4f * I4fiso + dI1edI4s * I4siso);
-                        //BOOST_AUTO_TPL(I4feiso,  dI4fedI4f * I4fiso);
-                        //BOOST_AUTO_TPL(I4feisom1, ( I4feiso - value(1.0) ) );
+						Real viscosity = 0.00025;
+						Real active_coefficient = -3.0;
+						Real Ca_diastolic = 0.02155;
+						BOOST_AUTO_TPL(dCa, ( Ca - value(Ca_diastolic) ) );
+						BOOST_AUTO_TPL(Pa, value(active_coefficient) * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) );
+						BOOST_AUTO_TPL(beta, value(viscosity ) );
+						BOOST_AUTO_TPL(gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );
 
-                        //initial
-                        BOOST_AUTO_TPL (Grad_u_i, grad (M_monodomainDisplacementETFESpace, *M_preloadVector, 0) );
-                        BOOST_AUTO_TPL (F_i,      ( Grad_u_i + I ) );
-                        BOOST_AUTO_TPL (J_i,       det (F_i) );
-                        BOOST_AUTO_TPL (Jm23_i,    pow (J_i, -2. / 3) );
-                        // Fibres
-                        BOOST_AUTO_TPL (f_i,      F_i * f0 );
-                        BOOST_AUTO_TPL (I4f_i,    dot (f_i, f_i) );
-                        BOOST_AUTO_TPL (I4fiso_i,  Jm23_i * I4f_i);
-
-                        BOOST_AUTO_TPL (dW0, value (-2.0) * I4fiso_i) ;
-                        BOOST_AUTO_TPL (dW, value (-2.0) * I4fiso * pow (gf + value (1.0), -3) );
-
-                        BOOST_AUTO_TPL (Ca,    value ( M_activationETFESpace, * ( M_monodomain -> globalSolution().at (3)  ) ) );
-                        BOOST_AUTO_TPL (Ca2, Ca * Ca );
-
-                        Real Ca_diastolic = -0.02155;
-                        //dataFile( "solid/physics/Ca_diastolic", -0.02155 );
-                        BOOST_AUTO_TPL (dCa, Ca + value (Ca_diastolic) );
-                        Real active_coefficient = -2.5;
-                        //dataFile( "solid/physics/active_coefficient", -2.5 );
-                        BOOST_AUTO_TPL (Pa, value (active_coefficient) * eval (H, dCa) * eval (H, dCa) * eval (fl, I4fiso) + dW0 );
-                        Real betaA = 0.0005;
-                        //dataFile( "solid/physics/viscosity", 0.0005 );
-                        BOOST_AUTO_TPL (beta, value ( betaA ) );
-
-                        BOOST_AUTO_TPL (gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );
-
-                        {
+    					{
                             integrate ( elements ( M_monodomain -> localMeshPtr() ),
                                         M_monodomain -> feSpacePtr() -> qr() ,
                                         M_monodomain -> ETFESpacePtr(),
                                         gamma_dot * phi_i
                                       ) >> tmpRhsActivation;
-                        }
+
+    					}
 
                         *rhsActivation *= 0;
                         *rhsActivation = ( (*M_activationOperator) * ( *M_gammaf ) );
@@ -603,20 +574,20 @@ MultiscaleModelFSI3DActivated::solveModel()
 
                     }
 
-                    if ( M_gammaf -> maxValue() > 0.0)
-                    {
-                        int d = M_gammaf -> epetraVector().MyLength();
-                        int size =  M_gammaf -> size();
-                        for (int l (0); l < d; l++)
-                        {
-                            int m1 = M_gammaf -> blockMap().GID (l);
-                            if ( (*M_gammaf) [m1] > 0)
-                            {
-                                (*M_gammaf) [m1] = 0.0;
-                            }
-
-                        }
-                    }
+//                    if ( M_gammaf -> maxValue() > 0.0)
+//                    {
+//                        int d = M_gammaf -> epetraVector().MyLength();
+//                        int size =  M_gammaf -> size();
+//                        for (int l (0); l < d; l++)
+//                        {
+//                            int m1 = M_gammaf -> blockMap().GID (l);
+//                            if ( (*M_gammaf) [m1] > 0)
+//                            {
+//                                (*M_gammaf) [m1] = 0.0;
+//                            }
+//
+//                        }
+//                    }
 
 
                 }
