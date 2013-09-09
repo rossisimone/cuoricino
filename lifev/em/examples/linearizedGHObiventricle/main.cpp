@@ -66,10 +66,20 @@ Real d0(const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real& /*
     return  0.;
 }
 
-Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& Z, const ID& /*i*/)
+Real initialStimulus(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& /*i*/)
 {
-	if( X > 0.95 ) return 1.0;
-	else return  0.;
+	Real nx = 0.634709388205124;
+	Real ny = -0.715471794571893;
+	Real nz = 0.291965928999176;
+	Real x0 = 11.7459118826775;
+	Real y0 = 9.96923035282421;
+	Real z0 = 14.7264615540727;
+	Real x1 = 14.97121791714;
+	Real y1 = 6.22138875501107;
+	Real z1 = 16.2257405087125;
+	if( nx * ( X - x0 ) + ny * ( Y - y0 ) + nz * ( Z - z0 ) < 0 ) return 0.0;
+	else if( nx * ( X - x1 ) + ny * ( Y - y1 ) + nz * ( Z - z1 ) > 0 ) return 0.0;
+	else return  1.0;
 }
 
 Real initialV0left(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& /*Z*/, const ID& /*i*/)
@@ -433,12 +443,18 @@ int main (int argc, char** argv)
 //		std::cout << "Norm Inf variable " << i  << " = " <<  (  *( monodomain -> globalSolution().at(i) ) ).normInf() << std::endl;
 //		}
 
+		function_Type f = &initialStimulus;
+		monodomain -> setPotentialFromFunction(f);
+		
+	        vectorPtr_Type aux( new vector_Type( ( monodomain -> globalSolution().at(3) ) -> map() ) );
 
-		HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 1 );
-		HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 2 );
-		HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 4 );
-		//function_Type Vlid = &initialVlid;
-		//monodomain -> setPotentialFromFunction( Vlid );
+		bool lbbb = parameterList.get ("lbbb", false);
+		if(lbbb==false)	HeartUtility::setValueOnBoundary( *aux, monodomain -> fullMeshPtr(), 1.0, 1 );
+		HeartUtility::setValueOnBoundary( *aux, monodomain -> fullMeshPtr(), 1.0, 2 );
+		HeartUtility::setValueOnBoundary( *aux, monodomain -> fullMeshPtr(), 1.0, 4 );
+		*aux *= *(monodomain -> globalSolution().at(0));
+		monodomain -> setPotentialPtr(aux);
+		
 
     }
 
@@ -471,6 +487,19 @@ int main (int argc, char** argv)
         cout << "\nsolve system:  " ;
     }
 
+
+    //********************************************//
+    // Activation time						      //
+    //********************************************//
+    vectorPtr_Type activationTimeVector( new vector_Type( monodomain -> potentialPtr() -> map() ) );
+    *activationTimeVector = -1.0;
+
+    ExporterHDF5< RegionMesh <LinearTetra> > activationTimeExporter;
+    activationTimeExporter.setMeshProcId(monodomain -> localMeshPtr(), monodomain -> commPtr() ->MyPID());
+    activationTimeExporter.addVariable(ExporterData<mesh_Type>::ScalarField, "Activation Time",
+    				monodomain -> feSpacePtr(), activationTimeVector, UInt(0));
+    activationTimeExporter.setPrefix("ActivationTime");
+    activationTimeExporter.setPostDir(problemFolder);
   	//===========================================================
   	//===========================================================
   	//				SOLID MECHANICS
@@ -1204,11 +1233,15 @@ int main (int argc, char** argv)
     		}
     		solid.data() -> dataTime() -> setTime(pseudot);
     		if(parameterList.get("debug", false)){
+
+		endoVec = -(pressure / 2.0 * pseudot);
+	 	pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
+    	    solidBC -> handler() -> modifyBC(2, *pEndo);
+    	    solidBC -> handler() -> modifyBC(4, *pEndo);
     		endoVec = -(pressure * pseudot);
     		pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
     	    solidBC -> handler() -> modifyBC(1, *pEndo);
-    	    solidBC -> handler() -> modifyBC(2, *pEndo);
-    	    solidBC -> handler() -> modifyBC(4, *pEndo);
+
     		}
 //    		if ( comm->MyPID() == 0 )
 //    		{
@@ -1730,6 +1763,7 @@ int main (int argc, char** argv)
 		  //cout << "\n\n save every " << saveIter << "iteration\n";
 		  if ( k % saveIter == 0)
 		  {
+			  monodomain -> registerActivationTime(*activationTimeVector, t, 1.0);
 			  monodomain -> exportSolution(expElectro, t);
 			  expGammaf.postProcess(t);
 			  exporter->postProcess ( t );
@@ -1745,6 +1779,9 @@ int main (int argc, char** argv)
       expGammaf.closeFile();
 
       exporter -> closeFile();
+
+    activationTimeExporter.postProcess(0);
+    activationTimeExporter.closeFile();
 
 
 

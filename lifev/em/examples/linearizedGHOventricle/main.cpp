@@ -331,9 +331,11 @@ Real ComputeCubicVolume( const RegionMesh<LinearTetra> fullMesh,
 }
 
 
-Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_temporal, Real Cp, Int phase = 0, Real dt = 1.0 )
+Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_temporal, Real Cp, Int phase = 0, Real t = 0.0, Real dt = 1.0 )
 {
 	Real pressure;
+        Real R = 150 * 1333.22; //mmHg ms / ml
+	Real C = 0.9 / 1333.22; //ml / mmHg
 
 	switch(phase)
 	{
@@ -341,12 +343,17 @@ Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_t
 			pressure = pn + dV_temporal / Cp;
 			break;
 		case 1:	
-                        Real R = 750 * 1333.22; //mmHg ms / ml
-			Real C = 0.2 / 1333.22; //ml / mmHg
-			pressure = ( 1.0 / ( C + dt / R ) ) * ( C * pn - dV_temporal );
+			pressure = pn - ( pn * dt / C / R + dV_temporal / C );
 			break;
-		case 3: 		
+		case 2:
 			pressure = pn + dV_temporal / Cp;
+			break;
+		case 3:	
+			R = 100 * 1333;
+			C = 0.2 / 1333; 
+			pressure = pn + ( pn * dt / C / R - dV_temporal / C );
+//			if(t > 250)pressure = 12000 + 0.35 * (t-250.0) * (t-250.0);
+//			else pressure = pn;
 			break;
 		default:
 			std::cout << "\nThis case is not yet available\n I'm not gonna change the pressure.\n";
@@ -447,7 +454,7 @@ int main (int argc, char** argv)
     std::string meshPath = parameterList.get ("mesh_path", "./");
 
     Real Cp = parameterList.get ("Cp", 1e-5);
-
+    Real pvtol = parameterList.get ("pvtol", 1e-3);
 //    meshPtr_Type mesh ( new mesh_Type ( comm ) );
 //    meshPtr_Type fullMesh ( new mesh_Type ( comm ) );
 //    MeshUtility::fillWithFullMesh (mesh, fullMesh, meshName, meshPath);
@@ -1284,7 +1291,7 @@ int main (int argc, char** argv)
 		}
 	      exporterRamp->closeFile();
     }
-
+    *saveVolume = fluidVolume;
     exporter->postProcess ( 0 );
 
 
@@ -1672,31 +1679,48 @@ int main (int argc, char** argv)
 						std::cout << "\nSOLVING STATIC MECHANICS!\n" << std::endl;
 					}
 
-					if ( comm->MyPID() == 0 )
-					{
-						std::cout << "\n*****************************************************";
-						std::cout << "\nWE ARE AT TIME: "<< t;
-						std::cout << "\n*****************************************************";
 
-					}
 
 					 res = 2 * fluidVolume;
 					 //
 					 p0 = pressure;
-					 if( pv_phase == 0 && pressure > 127000) 
+					 if( pv_phase == 0 && pressure > 100000) 
 					{	
 						isoPV = false;
 						pv_phase = 1;
 					}	
-					if( pv_phase == 1 && dV_temporal )					 
+					if( pv_phase == 1 && dV_temporal > 0 )					 
 					{	
 						isoPV = true;
 						pv_phase = 2;
+						V0 = fluidVolume;
+					}
+					if( pv_phase == 2 && pressure < 12000 )					 
+					{	
+						isoPV = false;
+						pv_phase = 3;
+					}
+					if( pv_phase == 3 && dV_temporal < 0 )					 
+					{	
+						isoPV = true;
+						pv_phase = 0;
+						V0 = fluidVolume;
 					}	
 						if ( comm->MyPID() == 0 )
 						{
 						std::cout  << "\nisoPV: " << isoPV << " \n";
 						}
+
+
+
+					if ( comm->MyPID() == 0 )
+					{
+						std::cout << "\n*****************************************************";
+						std::cout << "\nWE ARE AT TIME: "<< t << ", PV PHASE: " << pv_phase;
+						std::cout << "\n*****************************************************";
+
+					}
+
 					 if(isoPV)
 					 {
 						if ( comm->MyPID() == 0 )
@@ -1704,14 +1728,14 @@ int main (int argc, char** argv)
 						std::cout  << "\nEntering in the loop (dV / V): " << dV / V0 << " \n";
 						}
 						int iter(0); 
-						while( res > 1e-3 )
+						while( res > pvtol )
 						{
 							iter++;
 
 					if ( comm->MyPID() == 0 )
 					{
 						std::cout << "\n*****************************************************";
-						std::cout << "\nITERATION: "<< iter;
+						std::cout << "\nITERATION: "<< iter << ", TIME: " << t ;
 						std::cout << "\n*****************************************************\n";
 
 					}
@@ -1721,10 +1745,12 @@ int main (int argc, char** argv)
 
 							if ( comm->MyPID() == 0 )
 							{
-								std::cout << "\nisoPV: Initial Volume of Fluid: ... " <<  fluidVolume;
+								std::cout << "\nisoPV: Initial Volume of Fluid: ... " <<  V0;
 							}
+							Real Vn = fluidVolume;
 							fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);
 							//Real newFluidVolume = 1;//ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
+						
 							dV = fluidVolume - V0;
 							//fluidVolume = newFluidVolume;
 							if ( comm->MyPID() == 0 )
@@ -1737,7 +1763,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing pressure: ... ";
 							}
-							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV, Cp);
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV, Cp, pv_phase);
 							dp = newPressure - pressure;
 							pressure = newPressure;
 							if ( comm->MyPID() == 0 )
@@ -1753,6 +1779,9 @@ int main (int argc, char** argv)
 							{
 								std::cout <<  "\nresidual: " << res <<"\n";
 							}
+
+							if(pressure > 100000) break;
+							if(pressure < 12000) break;
 						}
 						dV_temporal = fluidVolume  - V0;
 						dp_temporal = pressure - p0;
@@ -1768,7 +1797,7 @@ int main (int argc, char** argv)
 								std::cout << "\nno isoPV: Computing Volume of Fluid: ... ";
 							}
 							fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);//Real newFluidVolume = 1.0;//ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
-							dV = fluidVolume - V0;
+							dV = fluidVolume - Vn;
 							//fluidVolume = newFluidVolume;
 							if ( comm->MyPID() == 0 )
 							{
@@ -1780,7 +1809,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nComputing pressure: ... ";
 							}
-							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal, Cp, pv_phase);
+							Real newPressure = evaluatePressure(fluidVolume, dV, pressure, dp_temporal, dV_temporal, Cp, pv_phase, t);
 							dp = newPressure - pressure;
 							pressure = newPressure;
 							if ( comm->MyPID() == 0 )
