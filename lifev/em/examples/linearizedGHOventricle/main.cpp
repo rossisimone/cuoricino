@@ -34,6 +34,9 @@
 #include <sys/stat.h>
 #include <fstream>
 
+#include <lifev/em/solver/EMSolver.hpp>
+#include <lifev/em/solver/EMActiveStrainSolver.hpp>
+
 using namespace LifeV;
 
 void EpetraPow ( VectorEpetra& vector, const Real p )

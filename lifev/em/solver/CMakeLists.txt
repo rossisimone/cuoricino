@@ -1,10 +1,10 @@
 SET(solver_HEADERS
+  solver/EMActiveStrainSolver.hpp
   solver/EMSolver.hpp
   solver/EMETAFunctors.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES
-	solver/EMSolver.cpp
 CACHE INTERNAL "")
 
 
