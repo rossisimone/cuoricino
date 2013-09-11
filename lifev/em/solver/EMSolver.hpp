@@ -276,7 +276,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
     M_solidPtr -> setDataFromGetPot (dataFile);
 
     //activation
-    M_activationPtr.reset( new activeStrain_Type(parameterList, comm) );
+    M_activationPtr.reset( new activeStrain_Type(parameterList, dataFile, comm) );
 
     //    solidFESpacePtr_Type aFESpace ( new solidFESpace_Type (M_monodomainPtr -> localMeshPtr(), dOrder, 1, comm) );
 //    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (M_monodomainPtr -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );

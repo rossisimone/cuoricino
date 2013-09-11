@@ -613,11 +613,11 @@ MultiscaleModelFSI3DActivated::solveModel()
         }
 
         *M_gammafSolid *= ( M_gammafSolid -> operator <= (0.0) );
-        if (M_rescalingVector)
-        {
-            *M_gammafSolid /= 0.3;
-            *M_gammafSolid *= *M_rescalingVector;
-        }
+//        if (M_rescalingVector)
+//        {
+//            *M_gammafSolid /= 0.3;
+//            *M_gammafSolid *= *M_rescalingVector;
+//        }
 
         super::solver() -> solid().material() -> setGammaf ( *M_gammafSolid );
         switch (M_activationType)

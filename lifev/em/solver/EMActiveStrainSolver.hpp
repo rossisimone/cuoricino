@@ -224,6 +224,7 @@ public:
 
     EMActiveStrainSolver( Teuchos::ParameterList parameterList, GetPot& dataFile, commPtr_Type comm );	//!Empty Constructor
 
+    EMActiveStrainSolver( Teuchos::ParameterList parameterList, GetPot& dataFile, meshPtr_Type mesh, commPtr_Type comm );	//!Empty Constructor
 
     void setupMassMatrix();
 
@@ -275,7 +276,7 @@ public:
 
 private:
 	void init( Teuchos::ParameterList parameterList, commPtr_Type comm );
-	void init( mesh_Type& mesh, commPtr_Type comm );
+	void init( Teuchos::ParameterList parameterList, mesh_Type& mesh, commPtr_Type comm );
 
 	//	   solidFESpacePtr_Type dFESpace ( new solidFESpace_Type (localSolidMesh, dOrder, 3, comm) );
 //	    solidFESpacePtr_Type aFESpace ( new solidFESpace_Type (monodomain -> localMeshPtr(), dOrder, 1, comm) );
@@ -315,12 +316,59 @@ EMActiveStrainSolver<Mesh>::EMActiveStrainSolver():
 
 template<typename Mesh>
 EMActiveStrainSolver<Mesh>::EMActiveStrainSolver(  Teuchos::ParameterList parameterList, GetPot& dataFile, commPtr_Type comm )
+{
+	if(comm->MyPID()==0)
 	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Active Strain Solver Constructor";
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing ... ";
+	}
 	init(parameterList, comm);
-    setupMassMatrix();
-    setupLinearSolver(dataFile, comm);
+
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\t Done. \n";
+		std::cout << "\t Setting up matrix, preconditioner and linear solver ... ";
+
+	}
+	setupMassMatrix();
+	setupLinearSolver(dataFile, comm);
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\t Done.";
+
 	}
 
+}
+
+template<typename Mesh>
+EMActiveStrainSolver<Mesh>::EMActiveStrainSolver(  Teuchos::ParameterList parameterList, GetPot& dataFile, meshPtr_Type mesh, commPtr_Type comm )
+{
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Active Strain Solver Constructor";
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing ... ";
+	}
+	init(parameterList, comm);
+
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\t Done. \n";
+		std::cout << "\t Setting up matrix, preconditioner and linear solver ... ";
+
+	}
+	setupMassMatrix();
+	setupLinearSolver(dataFile, comm);
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\t Done.";
+
+	}
+
+}
 
 //////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////
@@ -360,7 +408,7 @@ void EMActiveStrainSolver<Mesh>::setupMassMatrix()
   	{
   		using namespace ExpressionAssembly;
 
-  		integrate( elements( M_meshPtr() ),
+  		integrate( elements( M_meshPtr ),
   					M_FESpacePtr -> qr(),
   					M_ETFESpacePtr,
   					M_ETFESpacePtr,
@@ -488,19 +536,25 @@ void EMActiveStrainSolver<Mesh>::setupRhs( const vector_Type& disp, solidETFESpa
 template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::init( Teuchos::ParameterList parameterList, commPtr_Type comm)
 {
-    std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n=========================================="
+		std::cout << "\n==========================================\n"
+	}
+	std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = parameterList.get ("mesh_path", "./");
     meshPtr_Type fullMesh;
    	MeshUtility::fillWithFullMesh (M_meshPtr, fullMesh,  meshName,  meshPath );
+
    	std::string activationModelType = parameterList.get( "activation_type", "Orthotropic" );
    	setActivationType( activationModelType );
     M_orthotropicActivationAnisotropyRatio = parameterList.get ("active_orthtropic_ratio", 4.0);
 	M_activeViscosity  = parameterList.get ("active_orthtropic_ratio", 4000.0);//(5000.0),
-	M_CaDiastolic  = parameterList.get ("active_orthtropic_ratio", 0.02155);//(0.02155),
-	M_activeCoefficient  = parameterList.get ("active_orthtropic_ratio", -4.0); //(-4.0),
+	M_CaDiastolic  = parameterList.get ("Ca_diastolic", 0.02155);//(0.02155),
+	M_activeCoefficient  = parameterList.get ("active_coefficient", -4.0); //(-4.0),
     M_ETFESpacePtr.reset( new scalarETFESpace_Type (M_meshPtr,  &feTetraP1, comm) );
-	M_solidETFESpacePtr.reset( new solidETFESpacePtr_Type(M_meshPtr, &feTetraP1, comm) );
-	M_FESpacePtr.reset( new FESpacePtr_Type(M_meshPtr, "P1", 1, comm));
+	M_solidETFESpacePtr.reset( new solidETFESpace_Type(M_meshPtr, &feTetraP1, comm) );
+	M_FESpacePtr.reset( new FESpace_Type(M_meshPtr, "P1", 1, comm));
 
 	M_gammafPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
 	M_gammasPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
