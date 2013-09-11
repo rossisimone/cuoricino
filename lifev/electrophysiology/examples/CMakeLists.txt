@@ -15,5 +15,6 @@ ADD_SUBDIRECTORIES(
   IonicMinimalModel_pacingECG
   IonicFox
   IonicFox_pacingECG
+  MonodomainBiventricle
   Restart
 )
