@@ -60,7 +60,7 @@
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
 
 #include <lifev/structure/solver/StructuralOperator.hpp>
-
+#include <lifev/structure/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
 #include <lifev/em/solver/EMActiveStrainSolver.hpp>
 
 

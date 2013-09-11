@@ -6,6 +6,7 @@ ADD_SUBDIRECTORIES(
   basicExample
   basicExampleHO
   basicExampleGHO
+  example_EMSolver
   exampleGHO_withFiberRotation
   exampleHO_withFiberRotation
   exampleStatic_GAHO

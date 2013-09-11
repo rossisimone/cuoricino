@@ -61,6 +61,7 @@
 #include <lifev/eta/expression/Integrate.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <boost/typeof/typeof.hpp>
+#include <lifev/em/solver/EMETAFunctors.hpp>
 
 
 namespace LifeV {
