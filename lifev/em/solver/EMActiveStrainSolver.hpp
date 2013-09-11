@@ -224,7 +224,7 @@ public:
 
     EMActiveStrainSolver( Teuchos::ParameterList parameterList, GetPot& dataFile, commPtr_Type comm );	//!Empty Constructor
 
-    EMActiveStrainSolver( Teuchos::ParameterList parameterList, GetPot& dataFile, meshPtr_Type mesh, commPtr_Type comm );	//!Empty Constructor
+    EMActiveStrainSolver( Teuchos::ParameterList parameterList, GetPot& dataFile, meshPtr_Type meshPtr, commPtr_Type comm );	//!Empty Constructor
 
     void setupMassMatrix();
 
@@ -243,7 +243,11 @@ public:
 
     void solve();
 
+    void readMeshFromList(Teuchos::ParameterList parameterList);
+
     void exportSolution(Real t = 0.0);
+
+    void showMe( commPtr_Type comm );
     /*!
 	 */
 
@@ -276,7 +280,7 @@ public:
 
 private:
 	void init( Teuchos::ParameterList parameterList, commPtr_Type comm );
-	void init( Teuchos::ParameterList parameterList, mesh_Type& mesh, commPtr_Type comm );
+	void init( Teuchos::ParameterList parameterList, meshPtr_Type mesh, commPtr_Type comm );
 
 	//	   solidFESpacePtr_Type dFESpace ( new solidFESpace_Type (localSolidMesh, dOrder, 3, comm) );
 //	    solidFESpacePtr_Type aFESpace ( new solidFESpace_Type (monodomain -> localMeshPtr(), dOrder, 1, comm) );
@@ -343,7 +347,7 @@ EMActiveStrainSolver<Mesh>::EMActiveStrainSolver(  Teuchos::ParameterList parame
 }
 
 template<typename Mesh>
-EMActiveStrainSolver<Mesh>::EMActiveStrainSolver(  Teuchos::ParameterList parameterList, GetPot& dataFile, meshPtr_Type mesh, commPtr_Type comm )
+EMActiveStrainSolver<Mesh>::EMActiveStrainSolver(  Teuchos::ParameterList parameterList, GetPot& dataFile, meshPtr_Type meshPtr, commPtr_Type comm )
 {
 	if(comm->MyPID()==0)
 	{
@@ -352,7 +356,8 @@ EMActiveStrainSolver<Mesh>::EMActiveStrainSolver(  Teuchos::ParameterList parame
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing ... ";
 	}
-	init(parameterList, comm);
+	M_meshPtr = meshPtr;
+	init(parameterList, meshPtr, comm);
 
 	if(comm->MyPID()==0)
 	{
@@ -405,6 +410,11 @@ void EMActiveStrainSolver<Mesh>::exportSolution(Real t)
 template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::setupMassMatrix()
 {
+	if(!M_massMatrixPtr)std::cout << "\nSCREW YOU 0!!!\n";
+	M_massMatrixPtr.reset(new matrix_Type( M_FESpacePtr -> map() ) ) ;
+	if(!M_FESpacePtr)std::cout << "\nSCREW YOU FESPACE!!!\n";
+	if(!M_ETFESpacePtr)std::cout << "\nSCREW YOU ETFESPACE!!!\n";
+	if(!M_meshPtr)std::cout << "\nSCREW YOU MESH!!!\n";
   	{
   		using namespace ExpressionAssembly;
 
@@ -415,6 +425,7 @@ void EMActiveStrainSolver<Mesh>::setupMassMatrix()
   					phi_i * phi_j ) >> M_massMatrixPtr;
 
   	}
+  	std::cout << "\nMatrix Assembled!!!\n";
   	M_massMatrixPtr -> globalAssemble();
 }
 
@@ -434,7 +445,7 @@ void EMActiveStrainSolver<Mesh>::setupLinearSolver(GetPot& dataFile, commPtr_Typ
 	std::string xmlfile = dataFile("activation/activation_xml_file",
 			"ParamList.xml");
 
-
+	solverParamList = Teuchos::getParametersFromXmlFile(xmlpath + xmlfile);
 	linearSolver_Type linearSolver;
     linearSolver.setCommunicator ( comm );
     linearSolver.setParameters ( *solverParamList );
@@ -538,23 +549,26 @@ void EMActiveStrainSolver<Mesh>::init( Teuchos::ParameterList parameterList, com
 {
 	if(comm->MyPID()==0)
 	{
-		std::cout << "\n=========================================="
-		std::cout << "\n==========================================\n"
+		std::cout << "\n=============================================";
+		std::cout << "\nImporting the mesh for the activation solver";
+		std::cout << "\n=============================================\n";
 	}
-	std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
-    std::string meshPath = parameterList.get ("mesh_path", "./");
-    meshPtr_Type fullMesh;
-   	MeshUtility::fillWithFullMesh (M_meshPtr, fullMesh,  meshName,  meshPath );
+	readMeshFromList(parameterList);
+	init(parameterList, M_meshPtr, comm);
+}
 
+template<typename Mesh>
+void EMActiveStrainSolver<Mesh>::init( Teuchos::ParameterList parameterList, meshPtr_Type meshPtr, commPtr_Type comm)
+{
    	std::string activationModelType = parameterList.get( "activation_type", "Orthotropic" );
    	setActivationType( activationModelType );
     M_orthotropicActivationAnisotropyRatio = parameterList.get ("active_orthtropic_ratio", 4.0);
 	M_activeViscosity  = parameterList.get ("active_orthtropic_ratio", 4000.0);//(5000.0),
 	M_CaDiastolic  = parameterList.get ("Ca_diastolic", 0.02155);//(0.02155),
 	M_activeCoefficient  = parameterList.get ("active_coefficient", -4.0); //(-4.0),
-    M_ETFESpacePtr.reset( new scalarETFESpace_Type (M_meshPtr,  &feTetraP1, comm) );
-	M_solidETFESpacePtr.reset( new solidETFESpace_Type(M_meshPtr, &feTetraP1, comm) );
-	M_FESpacePtr.reset( new FESpace_Type(M_meshPtr, "P1", 1, comm));
+    M_ETFESpacePtr.reset( new scalarETFESpace_Type (meshPtr,  &feTetraP1, comm) );
+	M_solidETFESpacePtr.reset( new solidETFESpace_Type(meshPtr, &feTetraP1, comm) );
+	M_FESpacePtr.reset( new FESpace_Type(meshPtr, "P1", 1, comm));
 
 	M_gammafPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
 	M_gammasPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
@@ -565,7 +579,31 @@ void EMActiveStrainSolver<Mesh>::init( Teuchos::ParameterList parameterList, com
 	M_massMatrixPtr.reset(new matrix_Type( M_FESpacePtr -> map() ) ) ;
 }
 
+template<typename Mesh>
+void EMActiveStrainSolver<Mesh>::readMeshFromList(Teuchos::ParameterList parameterList)
+{
+	std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
+    std::string meshPath = parameterList.get ("mesh_path", "./");
+   	MeshUtility::fillWithMesh (M_meshPtr, meshName,  meshPath );
+}
 
+template<typename Mesh>
+void EMActiveStrainSolver<Mesh>::showMe( commPtr_Type comm )
+{
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t ACTIVE STRAIN SOLVER: infos";
+		std::cout << "\n==========================================";
+
+		std::cout << "\nOrthotropic activation anisotropy ratio: " <<	M_orthotropicActivationAnisotropyRatio;
+		std::cout << "\nActive viscosity: " <<	M_activeViscosity;
+		std::cout << "\nDiastolic calcium: " <<	M_CaDiastolic;
+		std::cout << "\nActive coefficient: " <<	M_activeCoefficient;
+		std::cout << "\n==========================================";
+
+	}
+}
 
 } // namespace LifeV
 

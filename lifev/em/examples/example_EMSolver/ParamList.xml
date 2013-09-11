@@ -13,17 +13,19 @@
     <Parameter name="transversalDiffusion" type="double" value ="0.176061776061776"  /><!--k Ohm ^-1 cm ^ -1-->
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="solid_mesh_name" type="string" value="freeform.mesh"  />
-    <Parameter name="solid_mesh_path" type="string" value="/scratch/srossi/meshes/deformed_lv/undeformed/"  />
+    <Parameter name="solid_mesh_path" type="string" value="/usr/scratch/srossi/meshes/deformed_lv/undeformed/"  />
     <Parameter name="solid_fiber_file" type="string" value="fibers-50+50"  />
     <Parameter name="c2f" type="string" value="RBFhtpVectorial"  />
     <Parameter name="f2c" type="string" value="RBFhtp"  />
     <Parameter name="mesh_name" type="string" value="freeform.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/scratch/srossi/meshes/deformed_lv/undeformed/"  />
+    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/deformed_lv/undeformed/"  />
     <Parameter name="fiber_file" type="string" value="fibers-50+50"  />
     <Parameter name="solid_fiber_field" type="string" value="fibers"  />
     <Parameter name="solid_sheets_file" type="string" value="SheetsDirection"  />
     <Parameter name="solid_sheets_field" type="string" value="sheets"  />
-    <Parameter name="gfactor" type="double" value="4.0" />
+    <Parameter name="active_orthtropic_ratio" type="double" value="4.0" />
+    <Parameter name="Ca_diastolic" type="double" value="0.02155" />
+    <Parameter name="active_coefficient" type="double" value="-4.0" />
     <Parameter name="Cp" type="double" value="-0.67517" />
     <Parameter name="two_way" type="bool" value="true"/>
     <Parameter name="pressure_ramp" type="bool" value="true"/>

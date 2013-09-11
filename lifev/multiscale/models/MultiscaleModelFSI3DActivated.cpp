@@ -539,8 +539,8 @@ MultiscaleModelFSI3DActivated::solveModel()
 
 						// shortenings
 					   BOOST_AUTO_TPL (gf,  value (M_activationETFESpace, *M_gammaf) );
-					   BOOST_AUTO_TPL(gs,  value(M_activationETFESpace, *M_gammas));
-					   BOOST_AUTO_TPL(gn,  value(M_activationETFESpace, *M_gamman));
+//					   BOOST_AUTO_TPL(gs,  value(M_activationETFESpace, *M_gammas));
+//					   BOOST_AUTO_TPL(gn,  value(M_activationETFESpace, *M_gamman));
 
 						// Fibres
 						BOOST_AUTO_TPL(dW, value(2.0) * I4fiso * ( value(3.0) * gf + value(-6.0) * gf * gf + value(10.0) * gf * gf * gf + value(-15.0) * gf * gf * gf * gf  + value(21.0) * gf * gf * gf * gf * gf) );
@@ -548,7 +548,7 @@ MultiscaleModelFSI3DActivated::solveModel()
 						BOOST_AUTO_TPL (Ca,    value ( M_activationETFESpace, * ( M_monodomain -> globalSolution().at (3)  ) ) );
 						BOOST_AUTO_TPL(Ca2, Ca * Ca );
 
-						Real viscosity = 0.00025;
+						Real viscosity = 0.00025*1e-3;
 						Real active_coefficient = -3.0;
 						Real Ca_diastolic = 0.02155;
 						BOOST_AUTO_TPL(dCa, ( Ca - value(Ca_diastolic) ) );
@@ -567,7 +567,7 @@ MultiscaleModelFSI3DActivated::solveModel()
 
                         *rhsActivation *= 0;
                         *rhsActivation = ( (*M_activationOperator) * ( *M_gammaf ) );
-                        *rhsActivation += ( ( M_monodomain -> timeStep() * *tmpRhsActivation ) );
+                        *rhsActivation += ( 1000 * ( M_monodomain -> timeStep() * *tmpRhsActivation ) );
 
                         M_activationSolver -> setRightHandSide (rhsActivation);
                         M_activationSolver -> solve (M_gammaf);
@@ -612,7 +612,7 @@ MultiscaleModelFSI3DActivated::solveModel()
             *M_gammafSolid *= 0.3 / 0.415;
         }
 
-        *M_gammafSolid *= ( M_gammafSolid -> operator <= (0.0) );
+//        *M_gammafSolid *= ( M_gammafSolid -> operator <= (0.0) );
 //        if (M_rescalingVector)
 //        {
 //            *M_gammafSolid /= 0.3;

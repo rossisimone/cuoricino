@@ -210,6 +210,12 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
 {
 	GetPot dataFile (data_file_name);
 	//Initializing monodomain solver
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing Monodomain Solver";
+		std::cout << "\n==========================================";
+	}
 	ionicModelPtr_Type ionicPtr( new IonicModel() );
     std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = parameterList.get ("mesh_path", "./");
@@ -218,6 +224,13 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
 	M_usingDifferentMeshes = false;
 
 	//Initializing structural solver
+
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing Solid Data and Solid mesh";
+		std::cout << "\n==========================================";
+	}
 
 	//Material data
 	M_solidDataPtr.reset( new structureData_Type() );
@@ -263,11 +276,25 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
     solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (localSolidMesh, &feTetraP1, comm) );
 
     //boundary conditions
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Creating BC handler";
+		std::cout << "\n==========================================";
+	}
+
     M_solidBC.reset( new bcInterface_Type() );
     M_solidBC->createHandler();
     M_solidBC->fillHandler ( data_file_name, "solid" );
 
     //setup structural operator
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing Structure Solver";
+		std::cout << "\n==========================================";
+	}
+    M_solidPtr.reset(new structuralOperator_Type() );
     M_solidPtr -> setup (M_solidDataPtr,
             			dFESpace,
             			dETFESpace,
@@ -276,7 +303,14 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
     M_solidPtr -> setDataFromGetPot (dataFile);
 
     //activation
-    M_activationPtr.reset( new activeStrain_Type(parameterList, dataFile, comm) );
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing Activation Solver";
+		std::cout << "\n==========================================";
+	}
+	if(!(M_monodomainPtr -> localMeshPtr()))std::cout << "\nSCREW YOU MESH EM SOLVER!!!\n";
+    M_activationPtr.reset( new activeStrain_Type(parameterList, dataFile, M_monodomainPtr -> localMeshPtr(), comm) );
 
     //    solidFESpacePtr_Type aFESpace ( new solidFESpace_Type (M_monodomainPtr -> localMeshPtr(), dOrder, 1, comm) );
 //    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (M_monodomainPtr -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );

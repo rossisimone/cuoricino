@@ -23,6 +23,7 @@ multimesh  = false
 start      = 0
 save       = 1
 
+
 [solid]
 
 [./physics]
@@ -202,3 +203,8 @@ overlap  	= 1
 [electrophysiology]
 monodomain_xml_path = ./
 monodomain_xml_file = ParamList.xml
+[../]
+
+[activation]
+activation_xml_path = ./
+activation_xml_file = ParamList.xml
