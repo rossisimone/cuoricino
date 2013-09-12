@@ -378,6 +378,11 @@ public:
 		return M_displacementPtr;
 	}
 
+	inline ETFESpaceVectorialPtr_Type displacementETFESpacePtr() const
+	{
+		return M_displacementETFESpacePtr;
+	}
+
 	//@}
 
 	//! @name Set Methods
@@ -904,6 +909,8 @@ private:
     //Create the identity for F
     matrixSmall_Type M_identity;
 
+    ETFESpaceVectorialPtr_Type M_displacementETFESpacePtr;
+//ETFESpaceVectorialPtr_Type spaceVectorial( new ETFESpaceVectorial_Type ( M_localMeshPtr, &feTetraP1, M_commPtr ) );
 //    vectorPtr_Type M_previousPotential;
 
 };
@@ -1132,11 +1139,12 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup(GetPot& dataFile,
 
 	M_ETFESpacePtr.reset(
 			new ETFESpace_Type(M_localMeshPtr, &feTetraP1, M_commPtr));
-	M_feSpacePtr.reset(
-			new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
-					1, M_commPtr));
+//	M_feSpacePtr.reset(
+//			new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
+//					1, M_commPtr));
 	M_feSpacePtr.reset(
 			new feSpace_Type(M_localMeshPtr, M_elementsOrder, 1, M_commPtr));
+	M_displacementETFESpacePtr.reset( new ETFESpaceVectorial_Type ( M_localMeshPtr, &feTetraP1, M_commPtr ) );
 	M_massMatrixPtr.reset(new matrix_Type(M_ETFESpacePtr->map()));
 	M_stiffnessMatrixPtr.reset(new matrix_Type(M_ETFESpacePtr->map()));
 	M_globalMatrixPtr.reset(new matrix_Type(M_ETFESpacePtr->map()));

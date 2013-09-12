@@ -226,6 +226,8 @@ public:
 
     EMActiveStrainSolver( Teuchos::ParameterList parameterList, GetPot& dataFile, meshPtr_Type meshPtr, commPtr_Type comm );	//!Empty Constructor
 
+    virtual ~EMActiveStrainSolver() {};
+
     void setupMassMatrix();
 
     void setupLinearSolver(GetPot& dataFile, commPtr_Type comm);

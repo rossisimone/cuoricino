@@ -510,6 +510,10 @@ public:
     {
         return M_Gamman;
     }
+    inline  scalarETFESpacePtr_Type activationSpace()
+    {
+        return M_activationSpace;
+    }
 
 
     void apply ( const vector_Type& sol, vector_Type& res,

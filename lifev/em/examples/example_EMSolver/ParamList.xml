@@ -14,13 +14,13 @@
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="solid_mesh_name" type="string" value="freeform.mesh"  />
     <Parameter name="solid_mesh_path" type="string" value="/usr/scratch/srossi/meshes/deformed_lv/undeformed/"  />
-    <Parameter name="solid_fiber_file" type="string" value="fibers-50+50"  />
+    <Parameter name="solid_fibers_file" type="string" value="fibers-50+50"  />
     <Parameter name="c2f" type="string" value="RBFhtpVectorial"  />
     <Parameter name="f2c" type="string" value="RBFhtp"  />
     <Parameter name="mesh_name" type="string" value="freeform.mesh"  />
     <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/deformed_lv/undeformed/"  />
-    <Parameter name="fiber_file" type="string" value="fibers-50+50"  />
-    <Parameter name="solid_fiber_field" type="string" value="fibers"  />
+    <Parameter name="fibers_file" type="string" value="fibers-50+50"  />
+    <Parameter name="solid_fibers_field" type="string" value="fibers"  />
     <Parameter name="solid_sheets_file" type="string" value="SheetsDirection"  />
     <Parameter name="solid_sheets_field" type="string" value="sheets"  />
     <Parameter name="active_orthtropic_ratio" type="double" value="4.0" />

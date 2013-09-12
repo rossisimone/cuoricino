@@ -122,6 +122,10 @@ public:
     typedef FESpace< MeshType, MapEpetra >                FESpace_Type;
     typedef boost::shared_ptr<FESpace_Type>               FESpacePtr_Type;
 
+    typedef MeshType										mesh_Type;
+    typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 >                        scalarETFESpace_Type;
+    typedef boost::shared_ptr<ETFESpace< mesh_Type, MapEpetra, 3, 1 > >    scalarETFESpacePtr_Type;
+
     //Vector for vector parameters
     typedef std::vector<std::vector<Real> >           vectorsParameters_Type;
     typedef boost::shared_ptr<vectorsParameters_Type> vectorsParametersPtr_Type;
@@ -325,6 +329,12 @@ public:
     inline virtual void setupFiberVector( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
 
     inline virtual void setupSheetVector( Real& /*sx*/, Real& /*sy*/, Real& /*sz*/ ) {}
+
+    inline  scalarETFESpacePtr_Type activationSpace()
+    {
+    	scalarETFESpacePtr_Type k;
+        return k;
+    }
 
 
     inline virtual MatrixSmall<3, 3>& identity()

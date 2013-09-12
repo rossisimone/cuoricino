@@ -62,6 +62,12 @@
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
 #include <lifev/em/solver/EMActiveStrainSolver.hpp>
+#include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
+#include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
+#include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
+#include <lifev/core/interpolation/RBFrescaledScalar.hpp>
+//#include <lifev/core/interpolation/RBFscalar.hpp>
+#include <lifev/core/interpolation/RBFvectorial.hpp>
 
 
 namespace LifeV {
@@ -109,10 +115,10 @@ public:
 	typedef LinearSolver linearSolver_Type;
 	typedef boost::shared_ptr<LinearSolver> linearSolverPtr_Type;
 
-//    typedef ExporterHDF5< mesh_Type >          exporter_Type;
-//    typedef boost::shared_ptr<exporter_Type>                       exporterPtr_Type;
-	typedef Exporter<mesh_Type> exporter_Type;    //                IOFile_Type;
-	typedef boost::shared_ptr<exporter_Type> exporterPtr_Type; //                IOFilePtr_Type;
+    typedef ExporterHDF5< mesh_Type >          exporter_Type;
+    typedef boost::shared_ptr<exporter_Type>                       exporterPtr_Type;
+//	typedef Exporter<mesh_Type> exporter_Type;    //                IOFile_Type;
+//	typedef boost::shared_ptr<exporter_Type> exporterPtr_Type; //                IOFilePtr_Type;
 
 	typedef LifeV::Preconditioner basePrec_Type;
 	typedef boost::shared_ptr<basePrec_Type> basePrecPtr_Type;
@@ -134,8 +140,8 @@ public:
 	typedef ElectroETAMonodomainSolver<mesh_Type, ionicModel_Type>					monodomainSolver_Type;
 	typedef boost::shared_ptr<monodomainSolver_Type>					monodomainSolverPtr_Type;
 
-    typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >               solidFESpace_Type;
-    typedef boost::shared_ptr<solidFESpace_Type>                        solidFESpacePtr_Type;
+    typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >               FESpace_Type;
+    typedef boost::shared_ptr<FESpace_Type>                        FESpacePtr_Type;
 
     typedef ETFESpace< RegionMesh<LinearTetra>, MapEpetra, 3, 1 >       scalarETFESpace_Type;
     typedef boost::shared_ptr<scalarETFESpace_Type>                      scalarETFESpacePtr_Type;
@@ -158,7 +164,32 @@ public:
     typedef EMActiveStrainSolver<mesh_Type> activeStrain_Type;
     typedef boost::shared_ptr< activeStrain_Type >  activeStrainPtr_Type;
 
+    typedef RBFInterpolation<mesh_Type>           interpolation_Type;
+    typedef boost::shared_ptr<interpolation_Type> interpolationPtr_Type;
+    ///////////////////////////////////////////////////////////////////////////
 
+	inline monodomainSolverPtr_Type    monodomainPtr()        { return 	M_monodomainPtr;}
+	inline bool						usingDifferentMeshes(){ return M_usingDifferentMeshes; }
+	inline structureDataPtr_Type       solidDataPtr()        	{ return M_solidDataPtr; }
+	inline structuralOperatorPtr_Type  solidPtr()             	{ return M_solidPtr; }
+	inline bcInterfacePtr_Type         solidBCPtr()              	{ return M_solidBCPtr; }
+	inline activeStrainPtr_Type 	    activationPtr()     	{ return M_activationPtr;}
+	inline Real		                    monodomainTimeStep() 	{ return M_monodomainTimeStep;}
+	inline Real		                    solidTimeStep()       	{ return M_solidTimeStep; }
+
+	inline void setMonodomainPtr(monodomainSolverPtr_Type p) { M_monodomainPtr = p;}
+	inline void setMonodomainPtr(monodomainSolver_Type& p)   { *M_monodomainPtr = p;}
+	inline void setUsingDifferentMeshes(bool p){  M_usingDifferentMeshes = p; }
+	inline void setSolidDataPtr(structureDataPtr_Type p ) 	{ M_solidDataPtr = p; }
+	inline void setSolidDataPtr(structureData_Type& p ) 	{ *M_solidDataPtr = p; }
+	inline void setSolidPtr(structuralOperatorPtr_Type p)  	{ M_solidPtr = p; }
+	inline void setSolidPtr(structuralOperator_Type& p)  	{ *M_solidPtr = p; }
+	inline void setSolidBCPtr(bcInterfacePtr_Type p)        	{ M_solidBCPtr = p; }
+	inline void setSolidBCPtr(bcInterface_Type& p)        	{ *M_solidBCPtr = p; }
+	inline void setActivationPtr(activeStrainPtr_Type p)   	{ M_activationPtr = p;}
+	inline void setActivationPtr(activeStrain_Type& p)   	{ *M_activationPtr = p;}
+	inline void setMonodomainTimeStep(Real p) 	{ M_monodomainTimeStep = p;}
+	inline void setSolidTimeStep(Real p)       	{ M_solidTimeStep = p; }
 
 
 	//@}
@@ -167,24 +198,115 @@ public:
 	//@{
 	EMSolver();
 
-	EMSolver( 	Teuchos::ParameterList parameterList,
-			    const std::string data_file_name,
-     			commPtr_Type comm );	//!Empty Constructor
+	EMSolver(  Teuchos::ParameterList& parameterList,
+				const std::string data_file_name,
+				commPtr_Type comm );	//!Empty Constructor
 
-	void setup();
+	virtual ~EMSolver() {};
 
-	void update();
-	/*!
+	void setup(Teuchos::ParameterList& parameterList,
+				const std::string data_file_name,
+				commPtr_Type comm,
+				std::string parameterListName = "ParamList.xml");
+
+	void setupMonodomainMatrix(Teuchos::ParameterList& parameterList);
+
+	void updateMonodomainMatrix();
+
+	void setupExporters(commPtr_Type comm, std::string dir = "./");
+
+	void exportSolution(Real time = 0.0);
+
+	void closeExporters();
+
+	//void setupPreloadBC( Teuchos::ParameterList& parameterList );
+
+	void exportSolidFibersDirection(commPtr_Type comm, std::string dir = "./" );
+	void exportMonodomainFibersDirection(std::string dir = "./");
+	void exportSolidSheetsDirection(commPtr_Type comm, std::string dir = "./" );
+	void exportFibersAndSheetsFields(commPtr_Type comm, std::string dir = "./" );
+	void exportActivationTime(commPtr_Type comm, std::string dir = "./" );
+
+	inline void importSolidFibers(Teuchos::ParameterList& parameterList);
+	inline void importSolidSheets(Teuchos::ParameterList& parameterList);
+	inline void importMonodomainFibers(Teuchos::ParameterList& parameterList);
+
+	void setFibersAndSheets(Teuchos::ParameterList& parameterList);
+
+	void setupInterpolants(std::string parameterListName, Teuchos::ParameterList& parameterList, GetPot& dataFile);
+
+	inline void registerActivationTime( Real time, Real threshold = 0.0)
+	{
+		M_monodomainPtr -> registerActivationTime(*M_activationTimePtr, time, threshold);
+	}
+
+	inline void setSolidFibers(vector_Type& fibers)
+	{
+		M_solidPtr -> material() -> setFiberVector(fibers);
+	}
+	inline void setSolidFibers(vectorPtr_Type fibers)
+	{
+		M_solidPtr -> material() -> setFiberVector(*fibers);
+	}
+	inline void setSolidSheets(vector_Type& sheets)
+	{
+		M_solidPtr -> material() -> setSheetVector(sheets);
+	}
+	inline void setSolidSheets(vectorPtr_Type sheets)
+	{
+		M_solidPtr -> material() -> setSheetVector(*sheets);
+	}
+	//monodomain -> setFiberPtr( electroFibers )
+	inline void setMonodomainFibers(vectorPtr_Type fibers)
+	{
+		M_monodomainPtr -> setFiberPtr(fibers);
+	}
+	inline void setMonodomainFibers(vector_Type& fibers)
+	{
+		M_monodomainPtr -> setFiber(fibers);
+	}
+
+
+//	void update();
+
+	inline void  setPotentialOnBoundary(Real value, UInt flag)
+	{
+		HeartUtility::setValueOnBoundary( *(M_monodomainPtr -> potentialPtr() ), M_monodomainPtr -> fullMeshPtr(), value, flag);
+	}
+	inline void  setPotentialFromFunction(function_Type f, Real time = 0.0)
+	{
+		M_monodomainPtr -> setPotentialFromFunction( f, time );
+	}
+
+		/*!
 	 */
-//	ionicModelPtr_Type			M_ionicPtr;
 	monodomainSolverPtr_Type	M_monodomainPtr;
 	bool						M_usingDifferentMeshes;
 	structureDataPtr_Type       M_solidDataPtr;
 	structuralOperatorPtr_Type  M_solidPtr;
-    bcInterfacePtr_Type         M_solidBC;
+    bcInterfacePtr_Type         M_solidBCPtr;
     activeStrainPtr_Type		M_activationPtr;
-    Real						M_monodomainTimestep;
-    Real						M_solidTimestep;
+    Real						M_monodomainTimeStep;
+    Real						M_solidTimeStep;
+    exporterPtr_Type			M_monodomainExporterPtr;
+    exporterPtr_Type			M_solidExporterPtr;
+    exporterPtr_Type			M_activationExporterPtr;
+
+    //Coarse To Fine ( C2F )
+    vectorPtr_Type				M_monodomainDisplacementPtr;
+    interpolationPtr_Type 		M_C2F;
+    //Fine To Coarse ( F2C )
+    vectorPtr_Type 				M_activationSolidPtr;
+    interpolationPtr_Type 		M_F2C;
+    meshPtr_Type				M_fullSolidMesh;
+
+    vectorPtr_Type				M_activationTimePtr;
+
+
+private:
+//    void initSolid();
+//    void initMonodomain();
+//    void initActivation();
 
 };
 
@@ -198,16 +320,33 @@ EMSolver<Mesh, IonicModel>::EMSolver():
 	M_usingDifferentMeshes(false),
 	M_solidDataPtr(),
 	M_solidPtr(),
-	M_solidBC(),
+	M_solidBCPtr(),
 	M_activationPtr(),
-	M_monodomainTimestep(0.01),
-	M_solidTimestep(1.0)
+	M_monodomainTimeStep(0.01),
+	M_solidTimeStep(1.0),
+	M_monodomainExporterPtr(),
+	M_solidExporterPtr(),
+	M_activationExporterPtr(),
+	M_monodomainDisplacementPtr(),
+    M_C2F(),
+    M_activationSolidPtr(),
+    M_F2C(),
+    M_fullSolidMesh(),
+    M_activationTimePtr()
 	{}
 
 template<typename Mesh, typename IonicModel>
-EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
+EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
 		const std::string data_file_name, commPtr_Type comm )
 {
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t EM SOLVER: 'YOU ROCK!!!!' ";
+		std::cout << "\n==========================================";
+	}
+	M_solidTimeStep = parameterList.get("emdt",1.0);
+
 	GetPot dataFile (data_file_name);
 	//Initializing monodomain solver
 	if(comm->MyPID()==0)
@@ -216,11 +355,14 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
 		std::cout << "\n\t Initializing Monodomain Solver";
 		std::cout << "\n==========================================";
 	}
-	ionicModelPtr_Type ionicPtr( new IonicModel() );
+
     std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = parameterList.get ("mesh_path", "./");
+	ionicModelPtr_Type ionicPtr( new IonicModel() );
 	M_monodomainPtr.reset( new monodomainSolver_Type ( meshName, meshPath, dataFile, ionicPtr ) );
 	M_monodomainPtr -> setInitialConditions();
+	M_monodomainPtr-> setParameters ( parameterList );
+
 	M_usingDifferentMeshes = false;
 
 	//Initializing structural solver
@@ -252,26 +394,25 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
     	solidMeshPath   = dataFile ( "solid/pace_discretization/mesh_dir",  "" );
 
 
-    meshPtr_Type fullSolidMesh;
-    meshPtr_Type localSolidMesh;
+    M_fullSolidMesh.reset(new mesh_Type( comm ) );
+    meshPtr_Type localSolidMesh(new mesh_Type( comm ) );
     if( M_usingDifferentMeshes  )
     {
-    	fullSolidMesh.reset(new mesh_Type ( comm ) );
     	localSolidMesh.reset(new mesh_Type ( comm ) );
-    	MeshUtility::fillWithFullMesh (localSolidMesh, fullSolidMesh,  solidMeshName,  solidMeshPath );
+    	MeshUtility::fillWithFullMesh (localSolidMesh, M_fullSolidMesh,  solidMeshName,  solidMeshPath );
     }
     else
     {
-    	fullSolidMesh = M_monodomainPtr -> fullMeshPtr();
+    	M_fullSolidMesh = M_monodomainPtr -> fullMeshPtr();
     	localSolidMesh = M_monodomainPtr -> localMeshPtr();
     }
 
     //FESPACEs
     std::string dOrder =  dataFile ( "solid/space_discretization/order", "P1");
-    solidFESpacePtr_Type dFESpace ( new solidFESpace_Type (localSolidMesh,
-         														dOrder,
-         														3,
-         														localSolidMesh -> comm() ) );
+    FESpacePtr_Type dFESpace ( new FESpace_Type ( localSolidMesh,
+         										   dOrder,
+         										   3,
+         										   localSolidMesh -> comm() ) );
 
     solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (localSolidMesh, &feTetraP1, comm) );
 
@@ -283,9 +424,9 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
 		std::cout << "\n==========================================";
 	}
 
-    M_solidBC.reset( new bcInterface_Type() );
-    M_solidBC->createHandler();
-    M_solidBC->fillHandler ( data_file_name, "solid" );
+    M_solidBCPtr.reset( new bcInterface_Type() );
+    M_solidBCPtr->createHandler();
+    M_solidBCPtr->fillHandler ( data_file_name, "solid" );
 
     //setup structural operator
 	if(comm->MyPID()==0)
@@ -298,7 +439,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
     M_solidPtr -> setup (M_solidDataPtr,
             			dFESpace,
             			dETFESpace,
-            			M_solidBC -> handler(),
+            			M_solidBCPtr -> handler(),
             			comm);
     M_solidPtr -> setDataFromGetPot (dataFile);
 
@@ -309,14 +450,267 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList parameterList,
 		std::cout << "\n\t Initializing Activation Solver";
 		std::cout << "\n==========================================";
 	}
-	if(!(M_monodomainPtr -> localMeshPtr()))std::cout << "\nSCREW YOU MESH EM SOLVER!!!\n";
     M_activationPtr.reset( new activeStrain_Type(parameterList, dataFile, M_monodomainPtr -> localMeshPtr(), comm) );
 
-    //    solidFESpacePtr_Type aFESpace ( new solidFESpace_Type (M_monodomainPtr -> localMeshPtr(), dOrder, 1, comm) );
-//    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (M_monodomainPtr -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
-//    scalarETFESpacePtr_Type aETFESpace ( new scalarETFESpace_Type (M_monodomainPtr -> localMeshPtr(), & (aFESpace->refFE() ), & (aFESpace->fe().geoMap() ), comm) );
+
+    M_activationTimePtr.reset(new vector_Type( M_monodomainPtr -> feSpacePtr() -> map() ) );
+    *M_activationTimePtr = -1.0;
+}
 
 
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::setup(Teuchos::ParameterList& parameterList,
+											const std::string data_file_name,
+											commPtr_Type comm,
+											std::string parameterListName = "ParamList.xml")
+{
+	if(M_usingDifferentMeshes)
+	{
+		M_monodomainDisplacementPtr.reset( new vector_Type ( M_monodomainPtr -> displacementETFESpacePtr() -> map() ) );
+		M_activationSolidPtr.reset( new vector_Type( M_solidPtr -> material() -> activationSpace() -> map() ) );
+		GetPot dataFile(data_file_name);
+    	setupInterpolants(parameterListName, parameterList, dataFile);
+	}
+	else
+	{
+		M_monodomainDisplacementPtr = M_solidPtr -> displacementPtr();
+		M_activationSolidPtr = M_activationPtr -> gammafPtr();
+	}
+
+	setupMonodomainMatrix(parameterList);
+
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::setupMonodomainMatrix(Teuchos::ParameterList& parameterList)
+{
+	bool lumpedMass = parameterList.get ("LumpedMass", true);
+	if(lumpedMass) M_monodomainPtr -> setupLumpedMassMatrix();
+	else M_monodomainPtr -> setupMassMatrix();
+
+	M_monodomainPtr -> setDisplacementPtr( M_monodomainDisplacementPtr );
+	M_monodomainPtr -> setupStiffnessMatrix();
+	M_monodomainPtr -> setupGlobalMatrix();
+}
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::updateMonodomainMatrix()
+{
+	M_monodomainPtr -> setDisplacementPtr( M_monodomainDisplacementPtr );
+	M_monodomainPtr -> setupStiffnessMatrix();
+	M_monodomainPtr -> setupGlobalMatrix();
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string dir)
+{
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Setting up the exporters";
+		std::cout << "\n==========================================";
+	}
+	M_monodomainExporterPtr.reset(new exporter_Type() );
+	M_monodomainPtr -> setupExporter(*M_monodomainExporterPtr, "ElectroOutput", dir);
+	M_activationExporterPtr.reset(new exporter_Type() );
+	M_activationPtr -> setupExporter(*M_activationExporterPtr, comm, dir);
+
+	M_solidExporterPtr.reset(new exporter_Type() );
+	M_solidExporterPtr -> setMeshProcId( M_solidPtr -> mesh(), comm->MyPID());
+	M_solidExporterPtr -> setPrefix( "StructureOutput" );
+	M_solidExporterPtr -> setPostDir ( dir );
+	M_solidExporterPtr -> addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "displacement", M_solidPtr -> dispFESpacePtr(), M_solidPtr -> displacementPtr(), UInt (0) );
+
+
+	if(M_usingDifferentMeshes)
+	{
+		FESpacePtr_Type gfSolidFESpace ( new FESpace_Type ( M_solidPtr -> dispFESpace().mesh(),
+															"P1", 	3,   comm ) );
+		M_solidExporterPtr -> addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField,
+											"gammaf",
+											gfSolidFESpace,
+											M_solidPtr -> material() -> gammaf(),
+											UInt (0) );
+		FESpacePtr_Type displacementMonodomainFESpace ( new FESpace_Type ( M_monodomainPtr -> localMeshPtr(),
+																			"P1", 	3,   comm ) );
+		M_monodomainExporterPtr -> addVariable( ExporterData<RegionMesh<LinearTetra> >::VectorField,
+												"interpolated_displacement",
+												displacementMonodomainFESpace,
+												M_monodomainPtr -> displacementPtr(),
+												UInt (0) );
+	}
+}
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::exportSolution( Real time)
+{
+	M_monodomainExporterPtr -> postProcess(time);
+	M_activationExporterPtr -> postProcess(time);
+	M_solidExporterPtr -> postProcess(time);
+}
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::closeExporters()
+{
+	M_monodomainExporterPtr -> closeFile();
+	M_activationExporterPtr -> closeFile();
+	M_solidExporterPtr -> closeFile();
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::exportSolidFibersDirection(commPtr_Type comm, std::string dir )
+{
+	exporter_Type exp;
+	exp.setMeshProcId( M_solidPtr -> mesh(), comm->MyPID());
+	exp.setPostDir ( dir );
+	exp.setPrefix("SolidFibesrDirection");
+	exp.addVariable(ExporterData<mesh_Type>::VectorField,
+					"solid_fibers",
+					M_solidPtr -> dispFESpacePtr(),
+					M_solidPtr -> material() -> fiberVectorPtr(), UInt(0));
+	exp.postProcess(0);
+	exp.closeFile();
+}
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::exportMonodomainFibersDirection(std::string dir)
+{
+	M_monodomainPtr -> exportFiberDirection(dir);
+}
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::exportSolidSheetsDirection(commPtr_Type comm, std::string dir )
+{
+	exporter_Type exp;
+	exp.setMeshProcId( M_solidPtr -> mesh(), comm->MyPID());
+	exp.setPostDir ( dir );
+	exp.setPrefix("SolidSheetsDirection");
+	exp.addVariable(ExporterData<mesh_Type>::VectorField,
+					"solid_sheets",
+					M_solidPtr -> dispFESpacePtr(),
+					M_solidPtr -> material() -> sheetVectorPtr(), UInt(0));
+	exp.postProcess(0);
+	exp.closeFile();
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::exportFibersAndSheetsFields(commPtr_Type comm, std::string dir )
+{
+	exportSolidSheetsDirection( comm, dir);
+	exportSolidFibersDirection( comm, dir);
+	exportMonodomainFibersDirection(dir);
+}
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::exportActivationTime(commPtr_Type comm, std::string dir )
+{
+	exporter_Type exp;
+	exp.setMeshProcId( M_monodomainPtr -> localMeshPtr(), comm->MyPID());
+	exp.setPostDir ( dir );
+	exp.setPrefix("ActivationTime");
+	exp.addVariable(ExporterData<mesh_Type>::ScalarField,
+					"activation_time",
+					M_monodomainPtr -> feSpacePtr(),
+					M_activationTimePtr, UInt(0));
+	exp.postProcess(0);
+	exp.closeFile();
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::importSolidFibers(Teuchos::ParameterList& parameterList)
+{
+	std::string solidFibersFile = parameterList.get ("solid_fibers_file", "");
+	std::string solidFibersField = parameterList.get ("solid_fibers_field", "");
+    HeartUtility::importVectorField( M_solidPtr -> material() -> fiberVectorPtr(),
+    		                         solidFibersFile,
+    		                         solidFibersField,
+    		                         M_solidPtr -> mesh() );
+}
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::importSolidSheets(Teuchos::ParameterList& parameterList)
+{
+	std::string solidSheetsFile = parameterList.get ("solid_sheets_file", "");
+	std::string solidSheetsField = parameterList.get ("solid_sheets_field", "");
+    HeartUtility::importVectorField( M_solidPtr -> material() -> sheetVectorPtr(),
+    		                         solidSheetsFile,
+    		                         solidSheetsField,
+    		                         M_solidPtr -> mesh() );
+}
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::importMonodomainFibers(Teuchos::ParameterList& parameterList)
+{
+	std::string fibersFile = parameterList.get ("fibers_file", "");
+	std::string fibersField = parameterList.get ("fibers_field", "");
+	vectorPtr_Type monodomainFibers(new vector_Type( M_monodomainPtr -> displacementETFESpacePtr() -> map() ) );
+	HeartUtility::importFibers(monodomainFibers, fibersFile, M_monodomainPtr -> localMeshPtr() );
+//    HeartUtility::importVectorField( monodomainFibers,
+//    		                         fibersFile,
+//    		                         fibersField,
+//    		                         M_monodomainPtr -> localMeshPtr() );
+    setMonodomainFibers(monodomainFibers);
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::setFibersAndSheets(Teuchos::ParameterList& parameterList)
+{
+	std::cout << "\nImporting Solid Fibers\n\n";
+	this->importSolidFibers(parameterList);
+
+	std::cout << "\nImporting Solid Sheets\n\n";
+	importSolidSheets(parameterList);
+
+	std::cout << "\nImporting Monodomain Fibers\n\n";
+	importMonodomainFibers(parameterList);
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName, Teuchos::ParameterList& parameterList, GetPot& dataFile)
+{
+	Teuchos::RCP< Teuchos::ParameterList > belosList = Teuchos::rcp ( new Teuchos::ParameterList );
+	belosList = Teuchos::getParametersFromXmlFile ( parameterListName );
+
+	int nFlags = 1;
+	std::vector<int> flags (nFlags);
+	flags[0] = -1;
+
+	std::string c2f = parameterList.get ("c2f", "RBFrescaledVectorial");
+	M_C2F.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( c2f ) );
+	M_C2F->setup( M_fullSolidMesh,
+				  M_solidPtr -> mesh(),
+				  M_monodomainPtr -> fullMeshPtr(),
+				  M_monodomainPtr -> localMeshPtr(),
+				  flags);
+	M_C2F -> setRadius( 2.0 * (double) MeshUtility::MeshStatistics::computeSize (* (M_fullSolidMesh) ).maxH );
+	M_C2F -> setupRBFData ( M_solidPtr -> displacementPtr(), M_monodomainDisplacementPtr, dataFile, belosList);
+	if(c2f == "RBFvectorial") M_C2F->setBasis("TPS");
+	M_C2F->buildOperators();
+	M_C2F->interpolate();
+	M_C2F->solution (M_monodomainDisplacementPtr);
+
+
+
+	std::string f2c = parameterList.get ("f2c", "RBFrescaledScalar");
+	M_F2C.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( f2c ) );
+	M_F2C->setup( M_monodomainPtr -> fullMeshPtr(),
+				  M_monodomainPtr -> localMeshPtr(),
+				  M_fullSolidMesh,
+				  M_solidPtr -> mesh(),
+				  flags);
+	//WARNING
+	std::cout<< "\nWARNING!!! Setting the Radius of interpolation using the full monodomain mesh.";
+	std::cout<< "\nWARNING!!! You shoul use the full activation mesh, but it's not coded yet...";
+
+	M_F2C -> setRadius( (double) MeshUtility::MeshStatistics::computeSize (* ( M_monodomainPtr -> fullMeshPtr()) ).maxH );
+	M_F2C -> setupRBFData ( M_activationPtr -> gammafPtr(), M_activationSolidPtr , dataFile, belosList);
+	M_F2C -> buildOperators();
+	M_F2C->interpolate();
+	M_F2C->solution (M_activationSolidPtr);
 
 }
 

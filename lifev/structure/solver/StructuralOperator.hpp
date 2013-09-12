@@ -164,6 +164,7 @@ public:
     typedef StructuralConstitutiveLawData                 data_Type;
 
     typedef RegionMesh<LinearTetra >                      mesh_Type;
+    typedef  boost::shared_ptr<mesh_Type>                 meshPtr_Type;
     typedef std::vector< mesh_Type::element_Type* >       vectorVolumes_Type;
     typedef std::vector< UInt >                           vectorIndexes_Type;
 
@@ -528,6 +529,10 @@ public:
     {
         return *M_dispFESpace;
     }
+    FESpacePtr_Type dispFESpacePtr()
+    {
+        return M_dispFESpace;
+    }
 
     //! Get the ETFESpace object
     ETFESpace_Type& dispETFESpace()
@@ -664,6 +669,11 @@ public:
     const timeAdvancePtr_Type& timeAdvancePtr() const
     {
         return M_timeAdvance;
+    }
+
+    inline meshPtr_Type mesh() const
+    {
+    	return M_dispFESpace -> mesh();
     }
 
     //@}
