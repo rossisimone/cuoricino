@@ -432,63 +432,49 @@ int main(int argc, char** argv) {
 			"--file");
 	GetPot dataFile(data_file_name);
 
-	////Creating the EM solver
-	if (comm->MyPID() == 0) {
-		std::cout << "\nConstructor for the EM Solver ...";
-	}
+
 	emSolverPtr_Type emSolverPtr( new emSolver_Type(parameterList, data_file_name, comm));
-	if (comm->MyPID() == 0) {
-		std::cout << " Done!" << endl;
-	}
 
-	if (comm->MyPID() == 0) {
-		std::cout << "\nSetting value of the potential...";
-	}
 	emSolverPtr -> setPotentialOnBoundary(1.0, 10);
-	if (comm->MyPID() == 0) {
-		std::cout << " Done!" << endl;
-	}
 
-	if (comm->MyPID() == 0) {
-		std::cout << "\nImporting  fibers and sheets...";
-	}
 	emSolverPtr -> setFibersAndSheets(parameterList);
-	if (comm->MyPID() == 0) {
-		std::cout << " Done!" << endl;
-	}
 
-	if (comm->MyPID() == 0) {
-		std::cout << "\nCreating interpolators and matrices...";
-	}
 	emSolverPtr -> setup(parameterList, data_file_name, comm);
 
-	if (comm->MyPID() == 0) {
-		std::cout << " Done!" << endl;
-	}
-
-	if (comm->MyPID() == 0) {
-		std::cout << "\nExporting:";
-	}
-	if (comm->MyPID() == 0) {
-		std::cout << "\nFibers and sheets...";
-	}
 	emSolverPtr -> exportFibersAndSheetsFields( comm, problemFolder);
-	if (comm->MyPID() == 0) {
-		std::cout << " Done!" << endl;
-	}
-
-	if (comm->MyPID() == 0) {
-		std::cout << "\nSolutions...";
-	}
 
 	emSolverPtr -> setupExporters(comm, problemFolder);
 
 	emSolverPtr -> registerActivationTime(0.0, 0.2);
 
-	emSolverPtr -> preloadRamp(comm, 0.5);
+	emSolverPtr -> preloadRamp(0.5);
+
+	int iter(0);
+    int reactionSubiter = parameterList.get("subiter",1);
+	for(Real time = 0.0; time < emSolverPtr -> M_monodomainPtr -> endTime(); )
+	{
+		iter++;
+		Real electroStep = iter * (emSolverPtr -> M_monodomainPtr -> timeStep());
+
+		emSolverPtr -> updateMonodomain();
+		while( time < electroStep )
+		{
+			//solve reaction step subiter times
+			for(int j(0); j<reactionSubiter; j++)
+				emSolverPtr -> M_monodomainPtr -> solveOneReactionStepFE(reactionSubiter);
+			//solve diffusion step
+			emSolverPtr -> solveOneDiffusionStep();
+
+			//active strain
+			emSolverPtr -> solveOneActivationStep();
+		}
+
+		emSolverPtr -> updateSolid();
+		emSolverPtr -> solveSolid();
+		emSolverPtr -> exportSolution(comm, time);
+	}
 
 
-	emSolverPtr -> exportSolution(comm);
 
 	emSolverPtr -> exportActivationTime(comm, problemFolder);
 
@@ -631,99 +617,7 @@ int main(int argc, char** argv) {
 //    solidaFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( resc ), *rescaling , 0);
 //  //  vectorPtr_Type emDisp0(new vector_Type( emDisp -> map() ) );
 
-	//===========================================================
-	//===========================================================
-	// CREATE POSITION VECTOR
-	//===========================================================
-	//===========================================================
-////    vectorPtr_Type referencePosition( new vector_Type( solidDisp -> map() ) );
-//    vectorPtr_Type referencePositionX( new vector_Type( monodomain -> potentialPtr() -> map() ) );
-////    vectorPtr_Type position( new vector_Type( solidDisp -> map() ) );
-////    vectorPtr_Type intergralR( new vector_Type( dETFESpace->map() ) );
-////    vectorPtr_Type intergralR2( new vector_Type( monodomain -> potentialPtr() -> map() ) );
-////    vectorPtr_Type oneVec( new vector_Type( dETFESpace->map() ) );
-////    *oneVec = 1.0;
-////    createPositionVector(*fullSolidMesh, *referencePosition);
-//    createPositionXVector(*fullSolidMesh, *referencePositionX);
-//    Real fluidVolume; //= ComputeVolume(*fullSolidMesh, *referencePosition, *solidDisp, 10, comm);
-//    fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);
-//    //===========================================================
-//  	//===========================================================
-//  	//				Initializing solid
-//  	//===========================================================
-//  	//===========================================================
-//    boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterRamp;
-//
-//    exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, "RampOutput" ) );
-//    exporterRamp -> setPostDir ( problemFolder );
-//    exporterRamp->setMeshProcId ( localSolidMesh, comm->MyPID() );
-//    exporterRamp->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "ramp displacement", dFESpace, solidDisp, UInt (0) );
-//
-//    vector_Type endoVec (0.0 * (*solidDisp) , Repeated);
-////    vector_Type pressure (aFESpace->map(), Repeated);
-//    Real pressure = parameterList.get("pressure", 0.0);
-//    vectorPtr_Type savePressure( new vector_Type( endoVec.map() )  );
-//    vectorPtr_Type saveVolume( new vector_Type( endoVec.map()) );
-//	*saveVolume = fluidVolume;
-//	   *savePressure = -pressure;
-//    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "pressure", aFESpace, savePressure, UInt (0) );
-//    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "volume", aFESpace, saveVolume, UInt (0) );
-//
-//    boost::shared_ptr<BCVector> pEndo( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) );
-//
-//	if(parameterList.get("debug", false)){
-//
-//    solidBC -> handler() -> addBC("Endocardium", 10, Natural, Full, *pEndo, 3);
-////    solidBC -> handler() -> addBC
-//	}
-//	if ( comm->MyPID() == 0 )
-//		{
-//			std::cout << "\nContractile fraction: " << solid.data() -> contractileFraction() << std::endl;
-//		}
-////	solid.data() -> showMe();
-////	solid.material() -> showMyParameters();
-//
-//    if(parameterList.get("pressure_ramp", false) == true){
-//
-//
-//    	Real ramp_dt = parameterList.get("ramp_timestep", 0.1);
-//		if ( comm->MyPID() == 0 )
-//		{
-//			std::cout << "\nSTARTING PRESSURE RAMP!\n" << ramp_dt << "\n" << std::endl;
-//		}
-//    	for(Real pseudot(0); pseudot < 1; ){
-//    		pseudot += ramp_dt;
-//    		if ( comm->MyPID() == 0 )
-//    		{
-//    			std::cout << "\nPRESSURE RAMP: " << pseudot;
-//    		}
-//    		solid.data() -> dataTime() -> setTime(pseudot);
-//    		if(parameterList.get("debug", false)){
-//    		endoVec = -(pressure * pseudot);
-//    		pEndo.reset( ( new BCVector (endoVec, dFESpace -> dof().numTotalDof(), 1) ) );
-//    	    solidBC -> handler() -> modifyBC(10, *pEndo);
-//    		}
-////    		if ( comm->MyPID() == 0 )
-////    		{
-////    			std::cout << "\nnorm displacement: " << solid.displacement().norm2();
-////    			std::cout << "\nnorm gammaf: " << solid.material() -> gammaf() -> norm2();
-////    			std::cout << "\nnorm gamman: " << solid.material() -> gamman() -> norm2();
-////    			std::cout << "\nnorm gammas: " << solid.material() -> gammas() -> norm2();
-////    		}
-////    		solidBC -> handler() -> showMe();
-//    		solid.iterate ( solidBC -> handler() );
-//
-//    	    exporterRamp->postProcess(pseudot);
-//    	    *solidDisp = solid.displacement();
-//
-//		fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);
-//
-//		}
-//	      exporterRamp->closeFile();
-//    }
-//    *saveVolume = fluidVolume;
-//    exporter->postProcess ( 0 );
-//
+
 //
 //	if(usingDifferentMeshes)
 //	{

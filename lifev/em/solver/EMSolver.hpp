@@ -235,6 +235,19 @@ public:
 
 	void updateMonodomainMatrix();
 
+	void updateMonodomain();
+
+	void updateSolid();
+
+	void solveOneDiffusionStep();
+
+	void solveOneActivationStep();
+
+	inline void solveSolid()
+	{
+		M_solidPtr -> iterate ( M_solidBCPtr -> handler() );
+	}
+
 	void setupExporters(commPtr_Type comm, std::string dir = "./");
 
 	void exportSolution(commPtr_Type comm, Real time = 0.0);
@@ -243,7 +256,7 @@ public:
 
 	void setupPreloadBC( GetPot& dataFile, map_Type map );
 
-	void preloadRamp(commPtr_Type comm, Real dt = 0.1);
+	void preloadRamp( Real dt = 0.1);
 
 	void createReferencePositionVector();
 
@@ -339,10 +352,10 @@ public:
 
     //Coarse To Fine ( C2F )
     vectorPtr_Type				M_monodomainDisplacementPtr;
-    interpolationPtr_Type 		M_C2F;
+    interpolationPtr_Type 		M_C2FPtr;
     //Fine To Coarse ( F2C )
     vectorPtr_Type 				M_activationSolidPtr;
-    interpolationPtr_Type 		M_F2C;
+    interpolationPtr_Type 		M_F2CPtr;
     meshPtr_Type				M_fullSolidMesh;
 
     vectorPtr_Type				M_activationTimePtr;
@@ -395,9 +408,9 @@ EMSolver<Mesh, IonicModel>::EMSolver():
 	M_solidExporterPtr(),
 	M_activationExporterPtr(),
 	M_monodomainDisplacementPtr(),
-    M_C2F(),
+    M_C2FPtr(),
     M_activationSolidPtr(),
-    M_F2C(),
+    M_F2CPtr(),
     M_fullSolidMesh(),
     M_activationTimePtr(),
     M_lvPressure(0.0),
@@ -567,6 +580,8 @@ void EMSolver<Mesh, IonicModel>::setup(Teuchos::ParameterList& parameterList,
 		M_activationSolidPtr = M_activationPtr -> gammafPtr();
 	}
 
+	M_monodomainPtr -> setDisplacementPtr( M_monodomainDisplacementPtr );
+	M_solidPtr -> material() -> setGammaf(*M_activationSolidPtr);
 	setupMonodomainMatrix(parameterList);
 
 	createReferencePositionVector();
@@ -593,6 +608,59 @@ void EMSolver<Mesh, IonicModel>::updateMonodomainMatrix()
 	M_monodomainPtr -> setupStiffnessMatrix();
 	M_monodomainPtr -> setupGlobalMatrix();
 }
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::updateMonodomain()
+{
+	if(M_usingDifferentMeshes)
+	{
+	M_C2FPtr -> updateRhs( M_solidPtr -> displacementPtr() );
+	M_C2FPtr -> interpolate();
+	M_C2FPtr -> solution(  M_monodomainDisplacementPtr );
+	}
+	updateMonodomainMatrix();
+}
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::updateSolid()
+{
+	if(M_usingDifferentMeshes)
+	{
+	M_F2CPtr -> updateRhs( M_activationPtr -> gammafPtr() );
+	M_F2CPtr -> interpolate();
+	M_F2CPtr -> solution(  M_activationSolidPtr );
+	}
+
+	M_solidPtr -> material() -> setGammaf( *M_activationSolidPtr );
+
+	M_activationPtr -> computeGammasAndGamman(M_solidPtr -> material() -> gammaf(),
+			                                  M_solidPtr -> material() -> gammas(),
+			                                  M_solidPtr -> material() -> gamman() );
+}
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::solveOneDiffusionStep()
+{
+	*(M_monodomainPtr -> rhsPtrUnique()) *= 0.0;
+	  M_monodomainPtr -> updateRhs();
+	  M_monodomainPtr -> solveOneDiffusionStepBE();
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::solveOneActivationStep()
+{
+	M_activationPtr -> setupRhs(*M_monodomainDisplacementPtr,
+								M_monodomainPtr -> displacementETFESpacePtr(),
+								*(M_monodomainPtr -> globalSolution().at(3)),
+								M_monodomainPtr -> ETFESpacePtr(),
+								M_monodomainPtr -> timeStep() );
+	M_activationPtr -> solve();
+}
+
+
+
 
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string dir)
@@ -739,15 +807,12 @@ void EMSolver<Mesh, IonicModel>::setupPreloadBC( GetPot& dataFile, map_Type map 
 		}
 }
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::preloadRamp( commPtr_Type comm, Real dt  )
+void EMSolver<Mesh, IonicModel>::preloadRamp( Real dt  )
 {
-
-	if(comm->MyPID()==0)
-	{
-		std::cout << "\n==========================================";
-		std::cout << "\n\t Starting Preload Ramp";
-		std::cout << "\n==========================================";
-	}
+	M_solidPtr -> displayer().leaderPrint("\n==========================================");
+	M_solidPtr -> displayer().leaderPrint("\n\t Starting Preload Ramp ");
+	M_solidPtr -> displayer().leaderPrint("\n==========================================");
+	M_solidPtr -> displayer().leaderPrint("\n");
 
 	if(M_lvFlags.empty() == false || M_rvFlags.empty() == false)
 	{
@@ -755,13 +820,15 @@ void EMSolver<Mesh, IonicModel>::preloadRamp( commPtr_Type comm, Real dt  )
 		for(Real t(0.0); t < 1; )
 		{
 			t += dt;
-			if(comm->MyPID()==0)
-			{
-				std::cout << "\n==========================================";
-				std::cout << "\n Ramp Time: " << t << ", timestep: " << dt;
-				std::cout << "\n==========================================";
-				std::cout << "\n";
-			}
+
+
+			M_solidPtr -> displayer().leaderPrint("\n==========================================");
+			M_solidPtr -> displayer().leaderPrint("\nRamp Time: ", t);
+			M_solidPtr -> displayer().leaderPrint("\ntimestep: ", dt);
+			M_solidPtr -> displayer().leaderPrint("\n==========================================");
+			M_solidPtr -> displayer().leaderPrint("\n");
+
+
 			Real lvp = t * M_lvPreloadPressure;
 			Real rvp = t * M_rvPreloadPressure;
 			int numLVFlags = M_lvFlags.size();
@@ -777,7 +844,7 @@ void EMSolver<Mesh, IonicModel>::preloadRamp( commPtr_Type comm, Real dt  )
 				M_bcVectorPtrs[i].reset( new bcVector_Type (*aux, M_solidPtr -> dispFESpacePtr() -> dof().numTotalDof(), 1) );
 				M_solidBCPtr -> handler() -> modifyBC(M_rvFlags[i - numLVFlags], *(M_bcVectorPtrs[i]));
 			}
-			M_solidPtr -> iterate ( M_solidBCPtr -> handler() );
+			solveSolid();
 		}
 	}
 }
@@ -811,7 +878,8 @@ void EMSolver<Mesh, IonicModel>::setupBC( const std::string data_file_name, map_
 //	UInt pippo = dataFile.vector_variable_size ( ( "/" + "/" + subSection + "/list" ).data() )
 	if(lvFlagsNumber == 0)
 	{
-		std::cout << "\nWARNING: You have not set the LV Flags!\n";
+
+		M_solidPtr -> displayer().leaderPrint("\nWARNING: You have not set the LV Flags!\n");
 	}
 	else
 	{
@@ -823,7 +891,7 @@ void EMSolver<Mesh, IonicModel>::setupBC( const std::string data_file_name, map_
 	UInt rvFlagsNumber = dataFile.vector_variable_size ( "solid/boundary_conditions/rv_flags" );
 	if(rvFlagsNumber == 0)
 	{
-		std::cout << "\nWARNING: You have not set the RV Flags!\n";
+		M_solidPtr -> displayer().leaderPrint("\nWARNING: You have not set the RV Flags!\n");
 	}
 	else
 	{
@@ -955,37 +1023,38 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 	flags[0] = -1;
 
 	std::string c2f = parameterList.get ("c2f", "RBFrescaledVectorial");
-	M_C2F.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( c2f ) );
-	M_C2F->setup( M_fullSolidMesh,
+	M_C2FPtr.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( c2f ) );
+	M_C2FPtr->setup( M_fullSolidMesh,
 				  M_solidPtr -> mesh(),
 				  M_monodomainPtr -> fullMeshPtr(),
 				  M_monodomainPtr -> localMeshPtr(),
 				  flags);
-	M_C2F -> setRadius( 2.0 * (double) MeshUtility::MeshStatistics::computeSize (* (M_fullSolidMesh) ).maxH );
-	M_C2F -> setupRBFData ( M_solidPtr -> displacementPtr(), M_monodomainDisplacementPtr, dataFile, belosList);
-	if(c2f == "RBFvectorial") M_C2F->setBasis("TPS");
-	M_C2F->buildOperators();
-	M_C2F->interpolate();
-	M_C2F->solution (M_monodomainDisplacementPtr);
+	M_C2FPtr -> setRadius( 2.0 * (double) MeshUtility::MeshStatistics::computeSize (* (M_fullSolidMesh) ).maxH );
+	M_C2FPtr -> setupRBFData ( M_solidPtr -> displacementPtr(), M_monodomainDisplacementPtr, dataFile, belosList);
+	if(c2f == "RBFvectorial") M_C2FPtr->setBasis("TPS");
+	M_C2FPtr->buildOperators();
+	M_C2FPtr->interpolate();
+	M_C2FPtr->solution (M_monodomainDisplacementPtr);
 
 
 
 	std::string f2c = parameterList.get ("f2c", "RBFrescaledScalar");
-	M_F2C.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( f2c ) );
-	M_F2C->setup( M_monodomainPtr -> fullMeshPtr(),
+	M_F2CPtr.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( f2c ) );
+	M_F2CPtr->setup( M_monodomainPtr -> fullMeshPtr(),
 				  M_monodomainPtr -> localMeshPtr(),
 				  M_fullSolidMesh,
 				  M_solidPtr -> mesh(),
 				  flags);
 	//WARNING
-	std::cout<< "\nWARNING!!! Setting the Radius of interpolation using the full monodomain mesh.";
-	std::cout<< "\nWARNING!!! You shoul use the full activation mesh, but it's not coded yet...";
+	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! Setting the Radius of interpolation using the full monodomain mesh.");
+	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! You shoul use the full activation mesh, but it's not coded yet...");
 
-	M_F2C -> setRadius( (double) MeshUtility::MeshStatistics::computeSize (* ( M_monodomainPtr -> fullMeshPtr()) ).maxH );
-	M_F2C -> setupRBFData ( M_activationPtr -> gammafPtr(), M_activationSolidPtr , dataFile, belosList);
-	M_F2C -> buildOperators();
-	M_F2C->interpolate();
-	M_F2C->solution (M_activationSolidPtr);
+
+	M_F2CPtr -> setRadius( (double) MeshUtility::MeshStatistics::computeSize (* ( M_monodomainPtr -> fullMeshPtr()) ).maxH );
+	M_F2CPtr -> setupRBFData ( M_activationPtr -> gammafPtr(), M_activationSolidPtr , dataFile, belosList);
+	M_F2CPtr -> buildOperators();
+	M_F2CPtr->interpolate();
+	M_F2CPtr->solution (M_activationSolidPtr);
 
 }
 

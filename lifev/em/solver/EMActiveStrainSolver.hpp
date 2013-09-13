@@ -62,7 +62,7 @@
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <boost/typeof/typeof.hpp>
 #include <lifev/em/solver/EMETAFunctors.hpp>
-
+#include <lifev/em/util/EMUtility.hpp>
 
 namespace LifeV {
 
@@ -156,13 +156,14 @@ public:
 	//@}
 
 
-	enum activationType { Orthotropic, TransverselyIsotropic };
-	activationType 				M_activationType;
+	enum activation_Type { Orthotropic, TransverselyIsotropic };
+	activation_Type 				M_activationType;
 
 
 
 	////getters
 	inline vectorPtr_Type	gammafPtr() { return M_gammafPtr; }
+	inline vector_Type&  	gammaf() { return *M_gammafPtr; }
 	inline vectorPtr_Type	gammasPtr() { return M_gammasPtr; }
 	inline 	vectorPtr_Type	gammanPtr() { return M_gammanPtr; }
 
@@ -172,7 +173,7 @@ public:
 	inline 	solidETFESpacePtr_Type 	solidETFESpacePtr()	{ return M_solidETFESpacePtr; }
 	inline 	FESpacePtr_Type 	FESpacePtr()		{ return M_FESpacePtr; }
 
-	inline 	activationType 		activationType() { return M_activationType; }
+	inline 	activation_Type 		activationType() { return M_activationType; }
 	inline 	Real 	orthotropicActivationAnisotropyRatio()	{ return M_orthotropicActivationAnisotropyRatio; }
 	inline 	Real 	activeViscosity()	{ return M_activeViscosity; }
 	inline 	Real	CaDiastolic()		{ return M_CaDiastolic; }
@@ -200,7 +201,7 @@ public:
 
 	inline 	void setActivationType( std::string p)
 	{
-		std::map< std::string, int > activationTypeMap;
+		std::map< std::string, activation_Type > activationTypeMap;
 	    activationTypeMap["TransverselyIsotropic"] = TransverselyIsotropic;
 	    activationTypeMap["Orthotropic"]           = Orthotropic;
 	    M_activationType   = activationTypeMap[p];
@@ -239,6 +240,11 @@ public:
     void computeGammasAndGamman();
 
     void computeGammasAndGamman(const vector_Type& gammaf, vector_Type& gammas, vector_Type& gamman);
+
+    inline void computeGammasAndGamman(const vectorPtr_Type gammaf, vectorPtr_Type gammas, vectorPtr_Type gamman)
+    {
+    	computeGammasAndGamman(*gammaf, *gammas, *gamman);
+    }
 
     void setupRhs( const vector_Type& disp, solidETFESpacePtr_Type solidETFESpacePtr,
     		const vector_Type& calcium, scalarETFESpacePtr_Type ETFESpacePtr, Real dt);
@@ -477,13 +483,7 @@ void EMActiveStrainSolver<Mesh>::computeGammasAndGamman(const vector_Type& gamma
 		 gammas = 1.0;
 		 gammas /= (1.0 + gammaf);
 		 //Computing the square root
-		 Int size = gammas.epetraVector().MyLength();
-		 for(int j(0); j < size; j++ )
-		 {
-		     int gid = gammas.blockMap().GID(j);
-			 gammas[gid] = std::sqrt(gammas[gid]);
-		 }
-
+		EMUtility::EpetraSqrt(gammas);
 		gammas -= 1.0;
 		gamman = gammas;
 		break;
@@ -495,6 +495,7 @@ template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::setupRhs( const vector_Type& disp, solidETFESpacePtr_Type solidETFESpacePtr,
 		const vector_Type& calcium, scalarETFESpacePtr_Type ETFESpacePtr, Real dt)
 {
+	*M_rhsRepeatedPtr *= 0.0;
 
 	{
 			using namespace ExpressionAssembly;

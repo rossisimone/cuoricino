@@ -57,13 +57,21 @@ namespace LifeV
 namespace EMUtility
 {
 
-//! HeartUtility - A string parser grammar based on \c boost::spirit::qi
+//! EMUtility -
 /*!
  *  @author(s) Simone Rossi
  *
- *  \c HeartUtility contains methods for reading vectorial data  from different formats to VectorEpetra objects.
  *
  */
+void EpetraSqrt( VectorEpetra& vec)
+{
+	Int size = vec.epetraVector().MyLength();
+	for(int j(0); j < size; j++ )
+	{
+		int gid = vec.blockMap().GID(j);
+     	vec[gid] = std::sqrt(vec[gid]);
+	}
+}
 
 
 //@}
