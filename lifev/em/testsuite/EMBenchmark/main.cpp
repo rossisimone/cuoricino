@@ -37,320 +37,35 @@
 
 using namespace LifeV;
 
-void EpetraPow(VectorEpetra& vector, const Real p) {
-	Int size = vector.epetraVector().MyLength();
 
-	for (int j(0); j < size; j++) {
-		int gid = vector.blockMap().GID(j);
-		vector[gid] = std::pow(vector[gid], p);
-	}
-}
-void EpetraSqrt(VectorEpetra& vector) {
-	Int size = vector.epetraVector().MyLength();
+Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+{
 
-	for (int j(0); j < size; j++) {
-		int gid = vector.blockMap().GID(j);
-		vector[gid] = std::sqrt(vector[gid]);
-	}
-}
+    Real pacingSite_X = 0.0;
+    Real pacingSite_Y = 0.0;
+    Real pacingSite_Z = 0.0;
+    Real stimulusRadius = 0.15;
+    Real stimulusValue = 10;
 
-Real bcZero(const Real& /*t*/, const Real& /*X*/, const Real& /*Y*/,
-		const Real& /*Z*/, const ID& /*i*/) {
-	return 0.;
-}
-Real d0(const Real& /*t*/, const Real& /*X*/, const Real& /*Y*/,
-		const Real& /*Z*/, const ID& /*i*/) {
-	return 0.;
-}
+    Real returnValue;
 
-Real initialVlid(const Real& /*t*/, const Real& X, const Real& /*Y*/,
-		const Real& Z, const ID& /*i*/) {
-	if (X > 0.95)
-		return 1.0;
-	else
-		return 0.;
+    if ( std::abs( x - pacingSite_X ) <= stimulusRadius
+    		 &&
+    	 std::abs( z - pacingSite_Z ) <= stimulusRadius
+    	 	 &&
+    	 std::abs( y - pacingSite_Y ) <= stimulusRadius
+    	 	 &&
+    	 t <= 2)
+    {
+    	returnValue = stimulusValue;
+    }
+    else{
+        returnValue = 0.;
+    }
+
+    return returnValue;
 }
 
-Real initialV0left(const Real& /*t*/, const Real& X, const Real& /*Y*/,
-		const Real& /*Z*/, const ID& /*i*/) {
-	if (X == 0)
-		return 1.0;
-	else
-		return 0.;
-}
-
-Real fiberRotationRing(const Real& /*t*/, const Real& X, const Real& Y,
-		const Real&/*Z*/, const ID& i) {
-	Real R = std::sqrt(X * X + Y * Y);
-	//Real teta = std::atan( Y / X );
-	Real fz = 0.0;
-	Real fx = Y / R;
-	Real fy = -X / R;
-	Real sx = X / R;
-	Real sy = Y / R;
-	Real m = -1.9040;
-	Real q = 3.5224;
-	Real theta = m * R + q;
-
-//	f01a f001*cos(teta)+f001*s01^2*(1-cos(teta))+s01*s02*f002*(1-cos(teta))
-//	f02a s01*s02*f001*(1-cos(teta))+f002*cos(teta)+f002*s02^2*(1-cos(teta))
-//	f03a s01*f002*sin(teta)-s02*f001*sin(teta)
-
-	switch (i) {
-	case 0:
-		return fx * std::cos(theta) + fx * sx * sx * (1.0 - std::cos(theta))
-				+ sx * sy * fy * (1.0 - std::cos(theta));
-		break;
-	case 1:
-		return sx * sy * fy * (1.0 - std::cos(theta)) + fy * std::cos(theta)
-				+ fy * sy * sy * (1.0 - std::cos(theta));
-		break;
-	case 2:
-		return sx * fy * std::sin(theta) - sy * fx * std::sin(theta);
-		break;
-	default:
-		ERROR_MSG("This entry is not allowed: ud_functions.hpp")
-		;
-		return 0.;
-		break;
-	}
-
-}
-
-static Real f0fun(const Real&, const Real& x, const Real&, const Real&,
-		const ID& comp) {
-	Real p = 3.14159265358979;
-	Real alpha = -2.0 * p / 3. * x + p / 3.;
-
-	Real compx = 0.0;
-	Real compy = std::cos(alpha);
-	Real compz = std::sin(alpha);
-
-//    compx = 0.0;
-//    compy = 0.0;
-//    compz = 1.0;
-	if (comp == 0)
-		return compx;
-	else if (comp == 1)
-		return compy;
-	else
-		return compz;
-}
-
-Real rescalingGamma(const Real&, const Real& x, const Real&, const Real&,
-		const ID& /*comp*/) {
-	Real r = (1 - x);
-	Real p = 3.14159265358979;
-	Real alpha = -2.0 * p / 3. * x + p / 3.;
-	Real circumferentialShortening = (0.05 - 0.2) * r + 0.2;
-	Real max_gamma = circumferentialShortening / std::cos(alpha);
-	return max_gamma;
-}
-
-void createPositionVector(const RegionMesh<LinearTetra>& mesh,
-		VectorEpetra& positionVector) {
-	Int nLocalDof = positionVector.epetraVector().MyLength();
-	Int nComponentLocalDof = nLocalDof / 3;
-	for (int k(0); k < nComponentLocalDof; k++) {
-		UInt iGID = positionVector.blockMap().GID(k);
-		UInt jGID = positionVector.blockMap().GID(k + nComponentLocalDof);
-		UInt kGID = positionVector.blockMap().GID(k + 2 * nComponentLocalDof);
-
-		positionVector[iGID] = mesh.point(iGID).x();
-		positionVector[jGID] = mesh.point(iGID).y();
-		positionVector[kGID] = mesh.point(iGID).z();
-	}
-
-}
-
-void createPositionXVector(const RegionMesh<LinearTetra>& mesh,
-		VectorEpetra& positionVector) {
-	Int nLocalDof = positionVector.epetraVector().MyLength();
-	Int nComponentLocalDof = nLocalDof / 3;
-	for (int k(0); k < nComponentLocalDof; k++) {
-		UInt iGID = positionVector.blockMap().GID(k);
-		positionVector[iGID] = mesh.point(iGID).x();
-	}
-
-}
-
-void computeX(VectorEpetra& positionVector) {
-	Int nLocalDof = positionVector.epetraVector().MyLength();
-	Int nComponentLocalDof = nLocalDof / 3;
-	for (int k(0); k < nComponentLocalDof; k++) {
-		UInt iGID = positionVector.blockMap().GID(k);
-		UInt jGID = positionVector.blockMap().GID(k + nComponentLocalDof);
-		UInt kGID = positionVector.blockMap().GID(k + 2 * nComponentLocalDof);
-
-		positionVector[jGID] = 0.0;
-		positionVector[kGID] = 0.0;
-	}
-
-}
-
-template<typename space> Real ComputeVolume(
-		const boost::shared_ptr<RegionMesh<LinearTetra> > localMesh,
-		VectorEpetra positionVector, const VectorEpetra& disp,
-		const boost::shared_ptr<
-				ETFESpace<RegionMesh<LinearTetra>, MapEpetra, 3, 1> > ETFESpace,
-		const boost::shared_ptr<space> dETFESpace, int bdFlag,
-		boost::shared_ptr<Epetra_Comm> comm) {
-
-	Real fluidVolume;
-
-	MatrixSmall<3, 3> Id;
-	Id(0, 0) = 1.;
-	Id(0, 1) = 0., Id(0, 2) = 0.;
-	Id(1, 0) = 0.;
-	Id(1, 1) = 1., Id(1, 2) = 0.;
-	Id(2, 0) = 0.;
-	Id(2, 1) = 0., Id(2, 2) = 1.;
-	VectorSmall<3> E1;
-	E1(0) = 1.;
-	E1(1) = 0.;
-	E1(2) = 0.;
-
-	Int nLocalDof = positionVector.epetraVector().MyLength();
-	for (int k(0); k < nLocalDof; k++) {
-		UInt iGID = positionVector.blockMap().GID(k);
-
-		positionVector[iGID] += disp[iGID];
-	}
-
-	boost::shared_ptr<VectorEpetra> intergral(
-			new VectorEpetra(positionVector.map()));
-
-	{
-		using namespace ExpressionAssembly;
-
-		BOOST_AUTO_TPL(I, value(Id));
-		BOOST_AUTO_TPL(vE1, value(E1));
-		BOOST_AUTO_TPL(Grad_u, grad(dETFESpace, disp, 0));
-		BOOST_AUTO_TPL(x, value(ETFESpace, positionVector));
-		BOOST_AUTO_TPL(F, (Grad_u + I));
-		BOOST_AUTO_TPL(FmT, minusT(F));
-		BOOST_AUTO_TPL(J, det(F));
-		BOOST_AUTO_TPL(x1, dot(x, vE1));
-
-		QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria4pt));
-
-		*intergral *= 0.0;
-		integrate(boundary(localMesh, bdFlag), myBDQR, ETFESpace,
-				value(-1.0) * J * dot(vE1, FmT * Nface) * phi_i) >> intergral;
-
-		intergral->globalAssemble();
-//        *position = *positionR;
-//        for
-//        fluidVolume = position ->
-
-		fluidVolume = positionVector.dot(*intergral);
-
-		if (comm->MyPID() == 0) {
-			std::cout << "\nFluid volume: " << fluidVolume << " in processor "
-					<< comm->MyPID() << std::endl;
-		}
-		return fluidVolume;
-	}
-}
-
-Real ComputeCubicVolume(const RegionMesh<LinearTetra> fullMesh,
-		VectorEpetra positionVector, const VectorEpetra& disp, int bdFlag,
-		boost::shared_ptr<Epetra_Comm> comm) {
-	positionVector += disp;
-	Real xMin(0.);
-	Real xMax(0.);
-	Real yMin(0.);
-	Real yMax(0.);
-	Real zMin(0.);
-	Real zMax(0.);
-	Int nLocalDof = positionVector.epetraVector().MyLength();
-	Int nComponentLocalDof = nLocalDof / 3;
-
-	for (int k(0); k < nComponentLocalDof; k++) {
-		UInt iGID = positionVector.blockMap().GID(k);
-		UInt jGID = positionVector.blockMap().GID(k + nComponentLocalDof);
-		UInt kGID = positionVector.blockMap().GID(k + 2 * nComponentLocalDof);
-		if (fullMesh.point(iGID).markerID() == bdFlag) {
-			if (positionVector[iGID] > xMax)
-				xMax = positionVector[iGID];
-			if (positionVector[iGID] < xMin)
-				xMin = positionVector[iGID];
-			if (positionVector[jGID] > yMax)
-				yMax = positionVector[jGID];
-			if (positionVector[jGID] < yMin)
-				yMin = positionVector[jGID];
-			if (positionVector[kGID] > zMax)
-				zMax = positionVector[kGID];
-			if (positionVector[kGID] < zMin)
-				zMin = positionVector[kGID];
-
-		}
-	}
-
-//	Real p = 3.14159265358979;
-//	Real Volume;
-//	if(xDiameter > yDiameter) Volume = p * xDiameter * xDiameter / 4.0 * (zMax - zMin) / 3.0;
-//	else Volume = p * yDiameter * xDiameter / 4.0 * (zMax - zMin) / 3.0;
-	int numProc = comm->NumProc();
-	Real xMinGlobal(0.);
-	Real xMaxGlobal(0.);
-	Real yMinGlobal(0.);
-	Real yMaxGlobal(0.);
-	Real zMinGlobal(0.);
-	Real zMaxGlobal(0.);
-
-	if (numProc == 1) {
-		Real xDiameter = (xMax - xMin);
-		Real yDiameter = (yMax - yMin);
-		Real Volume = xDiameter * yDiameter * (zMax - zMin) / 2;
-		return Volume;
-	} else {
-		comm->MaxAll(&xMax, &xMaxGlobal, 1);
-		comm->MinAll(&xMin, &xMinGlobal, 1);
-		comm->MaxAll(&yMax, &yMaxGlobal, 1);
-		comm->MinAll(&yMin, &yMinGlobal, 1);
-		comm->MaxAll(&zMax, &zMaxGlobal, 1);
-		comm->MinAll(&zMin, &zMinGlobal, 1);
-
-		Real xDiameter = (xMaxGlobal - xMinGlobal);
-		Real yDiameter = (yMaxGlobal - yMinGlobal);
-		Real Volume = xDiameter * yDiameter * (zMaxGlobal - zMinGlobal) / 2;
-		return Volume;
-	}
-
-}
-
-Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal,
-		Real dV_temporal, Real Cp, Int phase = 0, Real t = 0.0, Real dt = 1.0) {
-	Real pressure;
-	Real R = 150 * 1333.22; //mmHg ms / ml
-	Real C = 0.9 / 1333.22; //ml / mmHg
-
-	switch (phase) {
-	case 0:
-		pressure = pn + dV_temporal / Cp;
-		break;
-	case 1:
-		pressure = pn - (pn * dt / C / R + dV_temporal / C);
-		break;
-	case 2:
-		pressure = pn + dV_temporal / Cp;
-		break;
-	case 3:
-		R = 100 * 1333;
-		C = 0.2 / 1333;
-		pressure = pn + (pn * dt / C / R - dV_temporal / C);
-//			if(t > 250)pressure = 12000 + 0.35 * (t-250.0) * (t-250.0);
-//			else pressure = pn;
-		break;
-	default:
-		std::cout
-				<< "\nThis case is not yet available\n I'm not gonna change the pressure.\n";
-		pressure = pn;
-		break;
-	}
-	return pressure;
-}
 
 int main(int argc, char** argv) {
 

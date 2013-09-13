@@ -144,12 +144,12 @@ public:
     typedef StructuralOperator< RegionMesh<LinearTetra> > structuralOperator_Type;
     typedef boost::shared_ptr< structuralOperator_Type > structuralOperatorPtr_Type;
 
-
-    typedef BCHandler                                          bc_Type;
-    typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
-    typedef StructuralOperator< RegionMesh<LinearTetra> >		physicalSolver_Type;
-    typedef BCInterface3D< bc_Type, physicalSolver_Type >      bcInterface_Type;
-    typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
+//
+//    typedef BCHandler                                          bc_Type;
+//    typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
+//    typedef StructuralOperator< RegionMesh<LinearTetra> >		physicalSolver_Type;
+//    typedef BCInterface3D< bc_Type, physicalSolver_Type >      bcInterface_Type;
+//    typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
 
     typedef ExporterHDF5< RegionMesh <LinearTetra> >		exporter_Type;
     typedef boost::shared_ptr< exporter_Type >             exporterPtr_Type;

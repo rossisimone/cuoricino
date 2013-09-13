@@ -1,4 +1,3 @@
-
 INCLUDE(TribitsPackageMacros)
 INCLUDE(TribitsAddOptionAndDefine)
 INCLUDE(TribitsLibraryMacros)
@@ -44,7 +43,7 @@ TRIBITS_ADD_LIBRARY(
   SOURCES ${SOURCES}
 )
 
-#TRIBITS_ADD_TEST_DIRECTORIES(testsuite)
+TRIBITS_ADD_TEST_DIRECTORIES(testsuite)
 TRIBITS_ADD_EXAMPLE_DIRECTORIES(examples)
 
 #

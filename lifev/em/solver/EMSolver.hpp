@@ -69,6 +69,8 @@
 //#include <lifev/core/interpolation/RBFscalar.hpp>
 #include <lifev/core/interpolation/RBFvectorial.hpp>
 
+#include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
+
 
 namespace LifeV {
 
@@ -565,7 +567,7 @@ template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::setup(Teuchos::ParameterList& parameterList,
 											const std::string data_file_name,
 											commPtr_Type comm,
-											std::string parameterListName = "ParamList.xml")
+											std::string parameterListName )
 {
 	if(M_usingDifferentMeshes)
 	{
