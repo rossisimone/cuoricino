@@ -338,7 +338,7 @@ Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_t
 {
 	Real pressure;
         Real R = 150 * 1333.22; //mmHg ms / ml
-	Real C = 0.9 / 1333.22; //ml / mmHg
+	Real C = 1 / 1333.22; //ml / mmHg
 
 	switch(phase)
 	{
@@ -352,9 +352,10 @@ Real evaluatePressure(Real Volume, Real dV, Real pn, Real dp_temporal, Real dV_t
 			pressure = pn + dV_temporal / Cp;
 			break;
 		case 3:	
-			R = 100 * 1333;
-			C = 0.2 / 1333; 
-			pressure = pn + ( pn * dt / C / R - dV_temporal / C );
+			pressure = pn;
+//			R = 10.0 * 1333.0;
+//			C = 10.0 / 1333.0; 
+//			pressure = pn - ( pn * dt / C / R - dV_temporal / C );
 //			if(t > 250)pressure = 12000 + 0.35 * (t-250.0) * (t-250.0);
 //			else pressure = pn;
 			break;
@@ -1357,6 +1358,7 @@ int main (int argc, char** argv)
 		Real p0 = 0;
 		Real pnm1 = pressure;
 		Real dp = pressure - p0;
+		Real preload = pressure;
 		
 		fluidVolume =  ComputeVolume( monodomain -> localMeshPtr(), *referencePositionX, *solidDisp, monodomain->ETFESpacePtr(),dETFESpace,10,comm);
 		Real V0 = fluidVolume;
@@ -1698,12 +1700,13 @@ int main (int argc, char** argv)
 						pv_phase = 2;
 						V0 = fluidVolume;
 					}
-					if( pv_phase == 2 && pressure < 12000 )					 
+					if( pv_phase == 2 && pressure<preload )					 
 					{	
 						isoPV = false;
 						pv_phase = 3;
+						pressure = preload;
 					}
-					if( pv_phase == 3 && dV_temporal < 0 )					 
+					if( pv_phase == 3 && dV_temporal < 0 && pressure > preload )					 
 					{	
 						isoPV = true;
 						pv_phase = 0;
@@ -1783,8 +1786,8 @@ int main (int argc, char** argv)
 								std::cout <<  "\nresidual: " << res <<"\n";
 							}
 
-							if(pressure > 100000) break;
-							if(pressure < 12000) break;
+							if( pv_phase == 0 && pressure > 100000) break;
+							if( pv_phase == 2 && pressure < preload) break;
 						}
 						dV_temporal = fluidVolume  - V0;
 						dp_temporal = pressure - p0;
