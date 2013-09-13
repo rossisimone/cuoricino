@@ -28,7 +28,7 @@
     <Parameter name="active_coefficient" type="double" value="-4.0" />
     <Parameter name="Cp" type="double" value="-0.67517" />
     <Parameter name="two_way" type="bool" value="true"/>
-    <Parameter name="pressure_ramp" type="bool" value="true"/>
+    <Parameter name="lv_pv" type="bool" value="true"/>
     <Parameter name="pressure" type="double" value="20000.0"/>
     <Parameter name="ramp_timestep" type="double" value="0.025"  />
     <Parameter name="debug" type="bool" value="true"/>

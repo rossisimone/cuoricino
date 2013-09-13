@@ -384,29 +384,6 @@ MultiscaleModelFSI3DActivated::updateModel()
 {
     super::updateModel();
 
-//    if (M_preloadInTime)
-//    {
-//        if ( M_monodomain -> globalSolution().at (3)-> minValue() < 0.02158)
-//        {
-//            int d = M_monodomain -> globalSolution().at (3) -> epetraVector().MyLength();
-//            int size =  M_monodomain -> globalSolution().at (3) -> size();
-//            for (int l (0); l < d; l++)
-//            {
-//                int m1 = M_monodomain -> globalSolution().at (3) -> blockMap().GID (l);
-//
-//                if ( (* (M_monodomain -> globalSolution().at (3) ) ) [m1] <= 0.02158)
-//                {
-//                    int m2 = super::solver() -> solid().displacementPtr() -> blockMap().GID (l + size);
-//                    int m3 = super::solver() -> solid().displacementPtr() -> blockMap().GID (l + 2 * size);
-//
-//                    (*M_preloadVector) [m1] = (* (super::solver() -> solid().displacementPtr() ) ) [m1];
-//                    (*M_preloadVector) [m2] = (* (super::solver() -> solid().displacementPtr() ) ) [m2];
-//                    (*M_preloadVector) [m3] = (* (super::solver() -> solid().displacementPtr() ) ) [m3];
-//                }
-//
-//            }
-//        }
-//    }
 }
 
 void
@@ -436,16 +413,13 @@ MultiscaleModelFSI3DActivated::solveModel()
         Real timeStep = base::globalData() -> dataTime() -> timeStep();
         Real tn       = base::globalData() -> dataTime() -> time() - timeStep;
 
-        M_monodomain -> setInitialTime ( 1000.0 * tn );
-        M_monodomain -> setEndTime ( 1000.0 * (tn + timeStep) );
-
         function_Type stimulus ( boost::bind ( &MultiscaleModelFSI3DActivated::activationFunction, this, _1, _2, _3, _4, _5 ) );
         M_monodomain -> setAppliedCurrentFromFunction ( stimulus, tn );
 
 
-        for(Real tt(1000.0 * tn); tt< 1000.0 * (tn + timeStep); )
+        for(Real tt(tn); tt < tn + timeStep; )
         {
-        	tt += timeStep;
+        	tt += M_monodomain -> timeStep() / 1000.0;
     		M_monodomain -> solveOneSplittingStep();
 
             switch (M_activationModelType)

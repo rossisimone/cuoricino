@@ -436,7 +436,7 @@ int main(int argc, char** argv) {
 	if (comm->MyPID() == 0) {
 		std::cout << "\nConstructor for the EM Solver ...";
 	}
-//	emSolverPtr_Type emSolverPtr( new emSolver_Type(parameterList, data_file_name, comm));
+	emSolverPtr_Type emSolverPtr( new emSolver_Type(parameterList, data_file_name, comm));
 	if (comm->MyPID() == 0) {
 		std::cout << " Done!" << endl;
 	}
@@ -444,7 +444,7 @@ int main(int argc, char** argv) {
 	if (comm->MyPID() == 0) {
 		std::cout << "\nSetting value of the potential...";
 	}
-//	emSolverPtr -> setPotentialOnBoundary(1.0, 10);
+	emSolverPtr -> setPotentialOnBoundary(1.0, 10);
 	if (comm->MyPID() == 0) {
 		std::cout << " Done!" << endl;
 	}
@@ -452,7 +452,7 @@ int main(int argc, char** argv) {
 	if (comm->MyPID() == 0) {
 		std::cout << "\nImporting  fibers and sheets...";
 	}
-//	emSolverPtr -> setFibersAndSheets(parameterList);
+	emSolverPtr -> setFibersAndSheets(parameterList);
 	if (comm->MyPID() == 0) {
 		std::cout << " Done!" << endl;
 	}
@@ -460,7 +460,7 @@ int main(int argc, char** argv) {
 	if (comm->MyPID() == 0) {
 		std::cout << "\nCreating interpolators and matrices...";
 	}
-//	emSolverPtr -> setup(parameterList, data_file_name, comm);
+	emSolverPtr -> setup(parameterList, data_file_name, comm);
 
 	if (comm->MyPID() == 0) {
 		std::cout << " Done!" << endl;
@@ -472,7 +472,7 @@ int main(int argc, char** argv) {
 	if (comm->MyPID() == 0) {
 		std::cout << "\nFibers and sheets...";
 	}
-//	emSolverPtr -> exportFibersAndSheetsFields( comm, problemFolder);
+	emSolverPtr -> exportFibersAndSheetsFields( comm, problemFolder);
 	if (comm->MyPID() == 0) {
 		std::cout << " Done!" << endl;
 	}
@@ -481,39 +481,22 @@ int main(int argc, char** argv) {
 		std::cout << "\nSolutions...";
 	}
 
-//	emSolverPtr -> setupExporters(comm, problemFolder);
-//
-//	emSolverPtr -> exportSolution();
-//
-//	emSolverPtr -> registerActivationTime(0.0, 0.2);
-//
-//	emSolverPtr -> exportActivationTime(comm, problemFolder);
-//
-//	emSolverPtr -> closeExporters();
+	emSolverPtr -> setupExporters(comm, problemFolder);
+
+	emSolverPtr -> registerActivationTime(0.0, 0.2);
+
+	emSolverPtr -> preloadRamp(comm, 0.5);
+
+
+	emSolverPtr -> exportSolution(comm);
+
+	emSolverPtr -> exportActivationTime(comm, problemFolder);
+
+	emSolverPtr -> closeExporters(comm);
 	if (comm->MyPID() == 0) {
-		std::cout << " Done!" << endl;
+		for(int i(0); i < emSolverPtr -> lvFlags().size(); i++)
+		std::cout << "\nFlags " << i << ": " << emSolverPtr -> lvFlags().at(i) ;
 	}
-
-
-	std::ofstream pippo;
-
-    if ( comm->MyPID() == 0 )
-    {
-	std::string outputFile = problemFolder + "/ciccia.txt";
-	pippo.open(outputFile.c_str());
-
-    pippo << "\nCiao!!!! Sono il processore:"<< comm->MyPID();
-    }
-    std::cout << "\n\nCe l'ho fatta?" << pippo.good() << ", proc: " << comm->MyPID() << std::endl;
-
-
-    if ( comm->MyPID() == 0 )
-    {
-
-    pippo << "\n2 Ciao!!!! Sono il processore:"<< comm->MyPID();
-
-	pippo.close();
-    }
 
     //    //********************************************//
 //    // In the parameter list we need to specify   //
@@ -589,30 +572,6 @@ int main(int argc, char** argv) {
 //         cout << "Done! \n" ;
 //     }
 
-//     //==================================================================//
-//     //==================================================================//
-//     //					SETUP Activation								//
-//     //==================================================================//
-//     //==================================================================//
-//
-//     //   vectorPtr_Type gammaf( new vector_Type( monodomain -> globalSolution().at(3) -> map() ) );
-//
-//     if(load4restart)
-//     {
-//     	std::string Gfilename = parameterList.get("Gfilename", "G");
-//     	std::string Gfieldname = parameterList.get("Gfieldname", "G");
-//     	HeartUtility::importScalarField(gammaf,Gfilename,Gfieldname,monodomain -> localMeshPtr() );
-//     }
-//     else *gammaf *= 0;
-//     solid.material() -> setGammaf( *solidGammaf );
-//
-//     vectorPtr_Type solidGammas( new vector_Type( solidGammaf -> map() ) );
-//     vectorPtr_Type solidGamman( new vector_Type( solidGammaf -> map() ) );
-//     Int gcase = parameterList.get ("case", 0);
-//     if ( comm->MyPID() == 0 )
-//     {
-//         std::cout << "\ncase: " << gcase << std::endl;
-//     }
 
 //
 //

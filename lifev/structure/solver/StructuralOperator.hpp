@@ -540,6 +540,11 @@ public:
         return *M_dispETFESpace;
     }
 
+    ETFESpacePtr_Type dispETFESpacePtr()
+    {
+        return M_dispETFESpace;
+    }
+
     //! Get the bCHandler object
     bcHandler_Type const& bcHandler() const
     {
@@ -1475,6 +1480,7 @@ StructuralOperator<Mesh>::evalResidual ( vector_Type& residual, const vector_Typ
     {
         chrono.start();
         *M_rhs = *M_rhsNoBC;
+        M_massMatrix -> globalAssemble();
         residual = *M_massMatrix * solution;
         residual += *M_material->stiffVector();
         vector_Type solRep (solution, Repeated);

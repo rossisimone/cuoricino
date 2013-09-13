@@ -52,6 +52,11 @@ Ca_diastolic = 0.02156;
 
 
 [../boundary_conditions]
+lv_flags = 10
+#rv_flags = #
+lv_preload_pressure = 4000
+rv_preload_pressure = 0
+
 #    list = 'Epi Endo1 Endo2'
 #	list = 'symm0 symm1 symm2'
 #	list = 'Apex Epi Endo Base'	

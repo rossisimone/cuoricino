@@ -166,6 +166,13 @@ public:
 
     typedef RBFInterpolation<mesh_Type>           interpolation_Type;
     typedef boost::shared_ptr<interpolation_Type> interpolationPtr_Type;
+
+    typedef BCVector								bcVector_Type;
+    typedef boost::shared_ptr<bcVector_Type>		bcVectorPtr_Type;
+    typedef std::vector<bcVectorPtr_Type>			bcVectorPtrs_Type;
+
+    typedef MapEpetra								map_Type;
+    typedef boost::shared_ptr<map_Type>				mapPtr_Type;
     ///////////////////////////////////////////////////////////////////////////
 
 	inline monodomainSolverPtr_Type    monodomainPtr()        { return 	M_monodomainPtr;}
@@ -176,6 +183,14 @@ public:
 	inline activeStrainPtr_Type 	    activationPtr()     	{ return M_activationPtr;}
 	inline Real		                    monodomainTimeStep() 	{ return M_monodomainTimeStep;}
 	inline Real		                    solidTimeStep()       	{ return M_solidTimeStep; }
+	inline Real		                    lvPressure() 	{ return M_lvPressure;}
+	inline Real		                    rvPressure()       	{ return M_rvPressure; }
+	inline Real		                    lvVolume()	 	{ return M_lvVolume;}
+	inline Real		                    rvVolume()       	{ return M_rvVolume; }
+	inline std::vector<UInt>	        lvFlags()       	{ return M_lvFlags; }
+	inline std::vector<UInt>	        rvFlags()       	{ return M_rvFlags; }
+	inline bcVectorPtrs_Type	        bcVectorPtrs()       	{ return M_bcVectorPtrs; }
+
 
 	inline void setMonodomainPtr(monodomainSolverPtr_Type p) { M_monodomainPtr = p;}
 	inline void setMonodomainPtr(monodomainSolver_Type& p)   { *M_monodomainPtr = p;}
@@ -190,6 +205,13 @@ public:
 	inline void setActivationPtr(activeStrain_Type& p)   	{ *M_activationPtr = p;}
 	inline void setMonodomainTimeStep(Real p) 	{ M_monodomainTimeStep = p;}
 	inline void setSolidTimeStep(Real p)       	{ M_solidTimeStep = p; }
+	inline void setLVPressure(Real p) 	{ M_lvPressure = p;}
+	inline void setRVPressure(Real p)       	{ M_rvPressure = p; }
+	inline void setLVVolume(Real p)	 	{ M_lvVolume = p;}
+	inline void setRVVolume(Real p)       	{ M_rvVolume = p; }
+	inline void setLVFlags(std::vector<UInt> p)	 	{ M_lvFlags = p;}
+	inline void setRVFlags(std::vector<UInt> p)       { M_rvFlags = p; }
+	inline void setBCVectorPtrs(bcVectorPtrs_Type p)  { M_bcVectorPtrs = p; }
 
 
 	//@}
@@ -215,11 +237,20 @@ public:
 
 	void setupExporters(commPtr_Type comm, std::string dir = "./");
 
-	void exportSolution(Real time = 0.0);
+	void exportSolution(commPtr_Type comm, Real time = 0.0);
 
-	void closeExporters();
+	void closeExporters(commPtr_Type comm);
 
-	//void setupPreloadBC( Teuchos::ParameterList& parameterList );
+	void setupPreloadBC( GetPot& dataFile, map_Type map );
+
+	void preloadRamp(commPtr_Type comm, Real dt = 0.1);
+
+	void createReferencePositionVector();
+
+	void setupBC(const std::string data_file_name, map_Type map  );
+
+	void computeLVVolume(Real nx, Real ny, Real nz);
+	void computeRVVolume(Real nx, Real ny, Real nz);
 
 	void exportSolidFibersDirection(commPtr_Type comm, std::string dir = "./" );
 	void exportMonodomainFibersDirection(std::string dir = "./");
@@ -234,6 +265,20 @@ public:
 	void setFibersAndSheets(Teuchos::ParameterList& parameterList);
 
 	void setupInterpolants(std::string parameterListName, Teuchos::ParameterList& parameterList, GetPot& dataFile);
+
+
+	inline void createLVPositionVector(Real nx, Real ny, Real nz)
+	{
+		 M_lvPositionVectorPtr.reset(new vector_Type( M_solidPtr -> material() -> activationSpace() -> map() ) );
+		 createPositionVector(nx, ny, nz, M_lvFlags, *M_lvPositionVectorPtr);
+	}
+	inline void createRVPositionVector(Real nx, Real ny, Real nz)
+	{
+		 M_rvPositionVectorPtr.reset(new vector_Type( M_solidPtr -> material() -> activationSpace() -> map() ) );
+		 createPositionVector(nx, ny, nz, M_rvFlags, *M_rvPositionVectorPtr );
+	}
+
+	void createPositionVector(Real nx, Real ny, Real nz, std::vector<UInt> flags, vector_Type& vec);
 
 	inline void registerActivationTime( Real time, Real threshold = 0.0)
 	{
@@ -302,6 +347,28 @@ public:
 
     vectorPtr_Type				M_activationTimePtr;
 
+    Real						M_lvPressure;
+    Real						M_rvPressure;
+    Real						M_lvVolume;
+    Real						M_rvVolume;
+    std::ofstream 				M_lvPVexporter;
+    std::ofstream 				M_rvPVexporter;
+    bool						M_lvPV;
+    bool						M_rvPV;
+
+    std::vector<UInt>			M_lvFlags;
+    std::vector<UInt>			M_rvFlags;
+
+    bcVectorPtrs_Type		    M_bcVectorPtrs;
+
+    vectorPtr_Type				M_referencePositionPtr;
+
+    Real						M_lvPreloadPressure;
+    Real						M_rvPreloadPressure;
+
+    vectorPtr_Type				M_lvPositionVectorPtr;//one of the orthogonal vectors with respect  to the normal of the lid
+    vectorPtr_Type				M_rvPositionVectorPtr;//one of the orthogonal vectors with respect  to the normal of the lid
+
 
 private:
 //    void initSolid();
@@ -332,7 +399,21 @@ EMSolver<Mesh, IonicModel>::EMSolver():
     M_activationSolidPtr(),
     M_F2C(),
     M_fullSolidMesh(),
-    M_activationTimePtr()
+    M_activationTimePtr(),
+    M_lvPressure(0.0),
+    M_rvPressure(0.0),
+    M_lvVolume(0.0),
+    M_rvVolume(0.0),
+    M_lvPVexporter(),
+	M_rvPVexporter(),
+	M_lvPV(false),
+	M_rvPV(false),
+	M_bcVectorPtrs(),
+	M_referencePositionPtr(),
+	M_lvPreloadPressure(0.0),
+    M_rvPreloadPressure(0.0),
+    M_lvPositionVectorPtr(),
+    M_rvPositionVectorPtr()
 	{}
 
 template<typename Mesh, typename IonicModel>
@@ -345,7 +426,15 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
 		std::cout << "\n\t EM SOLVER: 'YOU ROCK!!!!' ";
 		std::cout << "\n==========================================";
 	}
+
 	M_solidTimeStep = parameterList.get("emdt",1.0);
+	M_monodomainTimeStep = parameterList.get("dt",0.01);
+    M_lvPressure = parameterList.get("lv_pressure",0.0);
+    M_rvPressure  = parameterList.get("rv_pressure",0.0);
+    M_lvVolume  = 0.0;
+    M_rvVolume  = 0.0;
+    M_lvPV = parameterList.get("lv_pv",false);
+    M_rvPV = parameterList.get("rv_pv",false);
 
 	GetPot dataFile (data_file_name);
 	//Initializing monodomain solver
@@ -422,11 +511,10 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Creating BC handler";
 		std::cout << "\n==========================================";
+		std::cout << "\n";
 	}
+	setupBC( data_file_name, dFESpace -> map() );
 
-    M_solidBCPtr.reset( new bcInterface_Type() );
-    M_solidBCPtr->createHandler();
-    M_solidBCPtr->fillHandler ( data_file_name, "solid" );
 
     //setup structural operator
 	if(comm->MyPID()==0)
@@ -434,6 +522,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Structure Solver";
 		std::cout << "\n==========================================";
+		std::cout << "\n";
 	}
     M_solidPtr.reset(new structuralOperator_Type() );
     M_solidPtr -> setup (M_solidDataPtr,
@@ -449,6 +538,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Activation Solver";
 		std::cout << "\n==========================================";
+		std::cout << "\n";
 	}
     M_activationPtr.reset( new activeStrain_Type(parameterList, dataFile, M_monodomainPtr -> localMeshPtr(), comm) );
 
@@ -478,6 +568,8 @@ void EMSolver<Mesh, IonicModel>::setup(Teuchos::ParameterList& parameterList,
 	}
 
 	setupMonodomainMatrix(parameterList);
+
+	createReferencePositionVector();
 
 }
 
@@ -540,25 +632,208 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 												M_monodomainPtr -> displacementPtr(),
 												UInt (0) );
 	}
+
+	if(M_lvPV)
+	{
+	    if ( comm->MyPID() == 0 )
+	    {
+		std::string outputFile = dir + "/LV_PV.txt";
+		M_lvPVexporter.open( outputFile.c_str() );
+		M_lvPVexporter << "Time" << ", " << "LV_pressure" << ", " << "LV_volume" << "\n";
+	    }
+	}
+	if(M_rvPV)
+	{
+	    if ( comm->MyPID() == 0 )
+	    {
+		std::string outputFile = dir + "/RV_PV.txt";
+		M_rvPVexporter.open( outputFile.c_str() );
+		M_rvPVexporter << "Time" << ", " << "RV_pressure" << ", " << "RV_volume" << "\n";
+	    }
+	}
+
+
 }
 
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::exportSolution( Real time)
+void EMSolver<Mesh, IonicModel>::exportSolution(commPtr_Type comm, Real time)
 {
 	M_monodomainExporterPtr -> postProcess(time);
 	M_activationExporterPtr -> postProcess(time);
 	M_solidExporterPtr -> postProcess(time);
+
+	if(M_lvPV)
+	{
+	    if ( comm->MyPID() == 0 )
+	    {
+		M_lvPVexporter << time << ", " << - M_lvPressure  * 3 / 4 << ", " << M_lvVolume << "\n";
+	    }
+	}
+	if(M_rvPV)
+	{
+	    if ( comm->MyPID() == 0 )
+	    {
+		M_rvPVexporter << time << ", " << - M_rvPressure * 3 / 4 << ", " << M_rvVolume << "\n";
+	    }
+	}
+
 }
 
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::closeExporters()
+void EMSolver<Mesh, IonicModel>::closeExporters(commPtr_Type comm)
 {
 	M_monodomainExporterPtr -> closeFile();
 	M_activationExporterPtr -> closeFile();
 	M_solidExporterPtr -> closeFile();
+	if(M_lvPV)
+	{
+	    if ( comm->MyPID() == 0 )
+	    {
+		M_lvPVexporter.close();
+	    }
+	}
+	if(M_rvPV)
+	{
+	    if ( comm->MyPID() == 0 )
+	    {
+		M_rvPVexporter.close();
+	    }
+	}
 }
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::setupPreloadBC( GetPot& dataFile, map_Type map  )
+{
+
+
+    	M_lvPreloadPressure = dataFile ( "solid/boundary_conditions/lv_preload_pressure", 0.0 );
+		vectorPtr_Type  lvPressureVector(new vector_Type( map, Repeated ) );
+		UInt numTotalDof = 3 * map.mapSize();
+		*lvPressureVector = -M_lvPreloadPressure;
+		if(M_lvFlags.empty() == false)
+		{
+			int numLVFlags = M_lvFlags.size();
+			M_bcVectorPtrs.resize(numLVFlags);
+
+			for(int i(0); i < numLVFlags; i++)
+			{
+				M_bcVectorPtrs.at(i).reset(new bcVector_Type( *lvPressureVector, numTotalDof, 1) );
+			    M_solidBCPtr -> handler() -> addBC("LV_Endocardium", M_lvFlags[i], Natural, Full, *M_bcVectorPtrs[i], 3);
+			}
+		}
+
+		M_rvPreloadPressure = dataFile ( "solid/boundary_conditions/rv_preload_pressure", 0.0 );
+		vectorPtr_Type  rvPressureVector(new vector_Type( map, Repeated ) );
+		*rvPressureVector = -M_rvPreloadPressure;
+		if(M_rvFlags.empty() == false)
+		{
+			int numRVFlags = M_rvFlags.size();
+			for(int i(0); i < numRVFlags; i++)
+			{
+				M_bcVectorPtrs.push_back( *(new bcVectorPtr_Type( new bcVector_Type( *rvPressureVector, numTotalDof, 1) ) ) ); // );
+			    M_solidBCPtr -> handler() -> addBC("RV_Endocardium", M_rvFlags[i], Natural, Full, *(M_bcVectorPtrs.back()), 3);
+			}
+		}
+}
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::preloadRamp( commPtr_Type comm, Real dt  )
+{
+
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Starting Preload Ramp";
+		std::cout << "\n==========================================";
+	}
+
+	if(M_lvFlags.empty() == false || M_rvFlags.empty() == false)
+	{
+	    vectorPtr_Type  aux(new vector_Type( M_solidPtr -> displacementPtr() -> map(), Repeated ) );
+		for(Real t(0.0); t < 1; )
+		{
+			t += dt;
+			if(comm->MyPID()==0)
+			{
+				std::cout << "\n==========================================";
+				std::cout << "\n Ramp Time: " << t << ", timestep: " << dt;
+				std::cout << "\n==========================================";
+				std::cout << "\n";
+			}
+			Real lvp = t * M_lvPreloadPressure;
+			Real rvp = t * M_rvPreloadPressure;
+			int numLVFlags = M_lvFlags.size();
+			for(int i(0); i < numLVFlags; i++)
+			{
+				*aux = -lvp;
+				M_bcVectorPtrs[i].reset( new bcVector_Type (*aux, M_solidPtr -> dispFESpacePtr() -> dof().numTotalDof(), 1) );
+				M_solidBCPtr -> handler() -> modifyBC(M_lvFlags[i], *(M_bcVectorPtrs[i]));
+			}
+			for(int i(numLVFlags); i < numLVFlags+M_rvFlags.size(); i++)
+			{
+				*aux = -rvp;
+				M_bcVectorPtrs[i].reset( new bcVector_Type (*aux, M_solidPtr -> dispFESpacePtr() -> dof().numTotalDof(), 1) );
+				M_solidBCPtr -> handler() -> modifyBC(M_rvFlags[i - numLVFlags], *(M_bcVectorPtrs[i]));
+			}
+			M_solidPtr -> iterate ( M_solidBCPtr -> handler() );
+		}
+	}
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::createReferencePositionVector()
+{
+		M_referencePositionPtr.reset( new vector_Type( M_solidPtr -> displacementPtr() -> map() ) );
+		Int nLocalDof = M_referencePositionPtr -> epetraVector().MyLength();
+		Int nComponentLocalDof = nLocalDof / 3;
+		for (int k(0); k < nComponentLocalDof; k++) {
+			UInt iGID = M_referencePositionPtr -> blockMap().GID(k);
+			UInt jGID = M_referencePositionPtr -> blockMap().GID(k + nComponentLocalDof);
+			UInt kGID = M_referencePositionPtr -> blockMap().GID(k + 2 * nComponentLocalDof);
+
+			(*(M_referencePositionPtr))[iGID] = M_fullSolidMesh -> point(iGID).x();
+			(*(M_referencePositionPtr))[jGID] = M_fullSolidMesh -> point(iGID).y();
+			(*(M_referencePositionPtr))[kGID] = M_fullSolidMesh -> point(iGID).z();
+		}
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::setupBC( const std::string data_file_name, map_Type map   )
+{
+	GetPot dataFile(data_file_name);
+    M_solidBCPtr.reset( new bcInterface_Type() );
+    M_solidBCPtr->createHandler();
+    M_solidBCPtr->fillHandler ( data_file_name, "solid" );
+
+	UInt lvFlagsNumber = dataFile.vector_variable_size( "solid/boundary_conditions/lv_flags"  );
+//	UInt pippo = dataFile.vector_variable_size ( ( "/" + "/" + subSection + "/list" ).data() )
+	if(lvFlagsNumber == 0)
+	{
+		std::cout << "\nWARNING: You have not set the LV Flags!\n";
+	}
+	else
+	{
+		M_lvFlags.resize (lvFlagsNumber);
+		for(UInt i(0); i < lvFlagsNumber; i++)
+		    M_lvFlags[i] =  dataFile ( ( "solid/boundary_conditions/lv_flags" ), -1, i );
+	}
+
+	UInt rvFlagsNumber = dataFile.vector_variable_size ( "solid/boundary_conditions/rv_flags" );
+	if(rvFlagsNumber == 0)
+	{
+		std::cout << "\nWARNING: You have not set the RV Flags!\n";
+	}
+	else
+	{
+		M_rvFlags.resize (rvFlagsNumber);
+		for(UInt i(0); i < rvFlagsNumber; i++)
+		    M_rvFlags[i] =  dataFile ( "solid/boundary_conditions/rv_flags", -1, i );
+	}
+	setupPreloadBC( dataFile, map );
+}
+
 
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::exportSolidFibersDirection(commPtr_Type comm, std::string dir )
@@ -715,6 +990,235 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 }
 
 
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::createPositionVector(Real nx, Real ny, Real nz, std::vector<UInt> flags, vector_Type& vec)
+{
+	Real e1x = 1.0; Real e1y = 0.0;	Real e1z = 0.0;
+	Real e2x = 0.0; Real e2y = 1.0;	Real e2z = 0.0;
+	Real e3x = 0.0; Real e3y = 0.0;	Real e3z = 1.0;
+
+	Real sp = nx * e1x + ny * e1y + nz * e1z;
+	Real t1x, t1y, t1z;
+	if(sp != 1)
+	{
+		t1x = e1x - sp * nx;
+	    t1y = e1y - sp * ny;
+	    t1z = e1z - sp * nz;
+		Real  norm = std::sqrt( t1x * t1x + t1y * t1y + t1z * t1z );
+		t1x = t1x / norm;
+		t1y = t1y / norm;
+		t1z = t1z / norm;
+	}
+	else
+	{
+		t1x = e2x;
+	    t1y = e2y;
+	    t1z = e2z;
+	}
+	Real t1e1 = t1x * e1x + t1y * e1y + t1z * e1z;
+	Real t1e2 = t1x * e2x + t1y * e2y + t1z * e2z;
+	Real t1e3 = t1x * e3x + t1y * e3y + t1z * e3z;
+
+	Int nLocalDof = M_referencePositionPtr -> epetraVector().MyLength();
+	Int nComponentLocalDof = nLocalDof / 3;
+
+	for (int k(0); k < nComponentLocalDof; k++)
+	{
+		UInt iGID = M_referencePositionPtr-> blockMap().GID(k);
+		UInt jGID = M_referencePositionPtr-> blockMap().GID(k + nComponentLocalDof);
+		UInt kGID = M_referencePositionPtr-> blockMap().GID(k + 2 * nComponentLocalDof);
+
+		vec[iGID] = (*(M_referencePositionPtr))[iGID] * t1e1
+				  + (*(M_referencePositionPtr))[jGID] * t1e2
+				  + (*(M_referencePositionPtr))[kGID] * t1e3;
+	}
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::computeLVVolume(Real nx, Real ny, Real nz)
+{
+		MatrixSmall<3, 3> Id;
+		Id(0, 0) = 1.;
+		Id(0, 1) = 0., Id(0, 2) = 0.;
+		Id(1, 0) = 0.;
+		Id(1, 1) = 1., Id(1, 2) = 0.;
+		Id(2, 0) = 0.;
+		Id(2, 1) = 0., Id(2, 2) = 1.;
+
+
+		Real e1x = 1.0; Real e1y = 0.0;	Real e1z = 0.0;
+		Real e2x = 0.0; Real e2y = 1.0;	Real e2z = 0.0;
+		Real e3x = 0.0; Real e3y = 0.0;	Real e3z = 1.0;
+
+		Real sp = nx * e1x + ny * e1y + nz * e1z;
+		Real t1x, t1y, t1z;
+		if(sp != 1)
+		{
+			t1x = e1x - sp * nx;
+			t1y = e1y - sp * ny;
+			t1z = e1z - sp * nz;
+			Real  norm = std::sqrt( t1x * t1x + t1y * t1y + t1z * t1z );
+			t1x = t1x / norm;
+			t1y = t1y / norm;
+			t1z = t1z / norm;
+		}
+		else
+		{
+			t1x = e2x;
+			t1y = e2y;
+			t1z = e2z;
+		}
+
+		Real t1e1 = t1x * e1x + t1y * e1y + t1z * e1z;
+		Real t1e2 = t1x * e2x + t1y * e2y + t1z * e2z;
+		Real t1e3 = t1x * e3x + t1y * e3y + t1z * e3z;
+
+		Int nLocalDof = M_referencePositionPtr -> epetraVector().MyLength();
+		Int nComponentLocalDof = nLocalDof / 3;
+
+		vectorPtr_Type tmp( new vector_Type( *M_lvPositionVectorPtr ) );
+		for (int k(0); k < nComponentLocalDof; k++)
+		{
+			UInt iGID = M_referencePositionPtr-> blockMap().GID(k);
+			UInt jGID = M_referencePositionPtr-> blockMap().GID(k + nComponentLocalDof);
+			UInt kGID = M_referencePositionPtr-> blockMap().GID(k + 2 * nComponentLocalDof);
+
+			(*tmp)[iGID] = (*M_lvPositionVectorPtr)[iGID]
+					  + (*(M_solidPtr -> displacementPtr()))[iGID] * t1e1
+					  + (*(M_solidPtr -> displacementPtr()))[jGID] * t1e2
+					  + (*(M_solidPtr -> displacementPtr()))[kGID] * t1e3;
+		}
+
+
+		VectorSmall<3> E1;
+		E1(0) = t1x;
+		E1(1) = t1y;
+		E1(2) = t1z;
+
+		vectorPtr_Type intergral(new vector_Type( M_lvPositionVectorPtr -> map() ) );
+
+		{
+			using namespace ExpressionAssembly;
+
+			BOOST_AUTO_TPL(I, value(Id));
+			BOOST_AUTO_TPL(vE1, value(E1));
+			BOOST_AUTO_TPL(Grad_u, grad(M_solidPtr -> dispETFESpacePtr(), M_solidPtr -> displacement(), 0));
+			BOOST_AUTO_TPL(x, value(M_solidPtr -> material() -> activationSpace(), *M_lvPositionVectorPtr));
+			BOOST_AUTO_TPL(F, (Grad_u + I));
+			BOOST_AUTO_TPL(FmT, minusT(F));
+			BOOST_AUTO_TPL(J, det(F));
+			BOOST_AUTO_TPL(x1, dot(x, vE1));
+
+			QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria4pt));
+
+			*intergral *= 0.0;
+			for(int i(0); i < M_lvFlags.size(); i++)
+			{
+			integrate(boundary(M_solidPtr->mesh(), M_lvFlags[i]), myBDQR, M_solidPtr -> material() -> activationSpace(),
+					value(-1.0) * J * dot(vE1, FmT * Nface) * phi_i) >> intergral;
+			}
+			intergral->globalAssemble();
+
+			M_lvVolume = M_lvPositionVectorPtr->dot(*intergral);
+
+		}
+}
+
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::computeRVVolume(Real nx, Real ny, Real nz)
+{
+		MatrixSmall<3, 3> Id;
+		Id(0, 0) = 1.;
+		Id(0, 1) = 0., Id(0, 2) = 0.;
+		Id(1, 0) = 0.;
+		Id(1, 1) = 1., Id(1, 2) = 0.;
+		Id(2, 0) = 0.;
+		Id(2, 1) = 0., Id(2, 2) = 1.;
+
+
+		Real e1x = 1.0; Real e1y = 0.0;	Real e1z = 0.0;
+		Real e2x = 0.0; Real e2y = 1.0;	Real e2z = 0.0;
+		Real e3x = 0.0; Real e3y = 0.0;	Real e3z = 1.0;
+
+		Real sp = nx * e1x + ny * e1y + nz * e1z;
+		Real t1x, t1y, t1z;
+		if(sp != 1)
+		{
+			t1x = e1x - sp * nx;
+			t1y = e1y - sp * ny;
+			t1z = e1z - sp * nz;
+			Real  norm = std::sqrt( t1x * t1x + t1y * t1y + t1z * t1z );
+			t1x = t1x / norm;
+			t1y = t1y / norm;
+			t1z = t1z / norm;
+		}
+		else
+		{
+			t1x = e2x;
+			t1y = e2y;
+			t1z = e2z;
+		}
+
+		Real t1e1 = t1x * e1x + t1y * e1y + t1z * e1z;
+		Real t1e2 = t1x * e2x + t1y * e2y + t1z * e2z;
+		Real t1e3 = t1x * e3x + t1y * e3y + t1z * e3z;
+
+		Int nLocalDof = M_referencePositionPtr -> epetraVector().MyLength();
+		Int nComponentLocalDof = nLocalDof / 3;
+
+		vectorPtr_Type tmp( new vector_Type( *M_rvPositionVectorPtr ) );
+		for (int k(0); k < nComponentLocalDof; k++)
+		{
+			UInt iGID = M_referencePositionPtr-> blockMap().GID(k);
+			UInt jGID = M_referencePositionPtr-> blockMap().GID(k + nComponentLocalDof);
+			UInt kGID = M_referencePositionPtr-> blockMap().GID(k + 2 * nComponentLocalDof);
+
+			(*tmp)[iGID] = (*M_rvPositionVectorPtr)[iGID]
+					  + (*(M_solidPtr -> displacementPtr()))[iGID] * t1e1
+					  + (*(M_solidPtr -> displacementPtr()))[jGID] * t1e2
+					  + (*(M_solidPtr -> displacementPtr()))[kGID] * t1e3;
+		}
+
+
+		VectorSmall<3> E1;
+		E1(0) = t1x;
+		E1(1) = t1y;
+		E1(2) = t1z;
+
+		vectorPtr_Type intergral(new vector_Type( M_rvPositionVectorPtr -> map() ) );
+
+		{
+			using namespace ExpressionAssembly;
+
+			BOOST_AUTO_TPL(I, value(Id));
+			BOOST_AUTO_TPL(vE1, value(E1));
+			BOOST_AUTO_TPL(Grad_u, grad(M_solidPtr -> dispETFESpacePtr(), M_solidPtr -> displacement(), 0));
+			BOOST_AUTO_TPL(x, value(M_solidPtr -> material() -> activationSpace(), *M_rvPositionVectorPtr));
+			BOOST_AUTO_TPL(F, (Grad_u + I));
+			BOOST_AUTO_TPL(FmT, minusT(F));
+			BOOST_AUTO_TPL(J, det(F));
+			BOOST_AUTO_TPL(x1, dot(x, vE1));
+
+			QuadratureBoundary myBDQR(buildTetraBDQR(quadRuleTria4pt));
+
+			*intergral *= 0.0;
+			for(int i(0); i < M_rvFlags.size(); i++)
+			{
+			integrate(boundary(M_solidPtr->mesh(), M_rvFlags[i]), myBDQR, M_solidPtr -> material() -> activationSpace(),
+					value(-1.0) * J * dot(vE1, FmT * Nface) * phi_i) >> intergral;
+			}
+			intergral->globalAssemble();
+
+			M_rvVolume = M_rvPositionVectorPtr->dot(*intergral);
+
+		}
+}
+
+
+
+
+//	}
 
 
 } // namespace LifeV
