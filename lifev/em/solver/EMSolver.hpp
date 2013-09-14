@@ -262,7 +262,7 @@ public:
 
 	void createReferencePositionVector();
 
-	void setupBC(const std::string data_file_name, map_Type map  );
+	void setupBC(commPtr_Type comm, const std::string data_file_name, map_Type map  );
 
 	void computeLVVolume(Real nx, Real ny, Real nz);
 	void computeRVVolume(Real nx, Real ny, Real nz);
@@ -528,7 +528,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
 		std::cout << "\n==========================================";
 		std::cout << "\n";
 	}
-	setupBC( data_file_name, dFESpace -> map() );
+	setupBC( comm, data_file_name, dFESpace -> map() );
 
 
     //setup structural operator
@@ -869,7 +869,7 @@ void EMSolver<Mesh, IonicModel>::createReferencePositionVector()
 }
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::setupBC( const std::string data_file_name, map_Type map   )
+void EMSolver<Mesh, IonicModel>::setupBC(commPtr_Type comm,  const std::string data_file_name, map_Type map   )
 {
 	GetPot dataFile(data_file_name);
     M_solidBCPtr.reset( new bcInterface_Type() );
@@ -880,8 +880,8 @@ void EMSolver<Mesh, IonicModel>::setupBC( const std::string data_file_name, map_
 //	UInt pippo = dataFile.vector_variable_size ( ( "/" + "/" + subSection + "/list" ).data() )
 	if(lvFlagsNumber == 0)
 	{
-
-		M_solidPtr -> displayer().leaderPrint("\nWARNING: You have not set the LV Flags!\n");
+		if(comm->MyPID() ==0)
+		std::cout << "\nWARNING: You have not set the LV Flags!\n";
 	}
 	else
 	{
@@ -893,7 +893,8 @@ void EMSolver<Mesh, IonicModel>::setupBC( const std::string data_file_name, map_
 	UInt rvFlagsNumber = dataFile.vector_variable_size ( "solid/boundary_conditions/rv_flags" );
 	if(rvFlagsNumber == 0)
 	{
-		M_solidPtr -> displayer().leaderPrint("\nWARNING: You have not set the RV Flags!\n");
+		if(comm->MyPID() ==0)
+		std::cout << "\nWARNING: You have not set the RV Flags!\n";
 	}
 	else
 	{

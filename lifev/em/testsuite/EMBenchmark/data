@@ -27,14 +27,8 @@ save       = 1
 [solid]
 
 [./physics]
-density   	= 0 #1.2
-material_flag   = 0 #1000 #101 #1000
-young     	= 1478.08
-poisson   	= 0.49
-#bulk		= 2.46e+4 #1.3333e+8
-alpha 		= 2.684564e+6
-gamma		= 0.0
-gammaf		= 0.0
+density   	= 0 
+material_flag   = 0 
 a			= 3330
 af			= 185350
 as			= 25640
@@ -44,7 +38,7 @@ bf			= 15.972
 bs			= 10.446
 bfs			= 11.602
 bulk		= 3500000
-solidType 	= GAHO #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
+solidType 	= GAHO 
 lawType     = nonlinear
 viscosity = 0.00025;
 active_coefficient = -3.0;

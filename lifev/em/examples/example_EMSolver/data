@@ -23,7 +23,6 @@ multimesh  = false
 start      = 0
 save       = 1
 
-
 [solid]
 
 [./physics]
@@ -46,74 +45,41 @@ bfs			= 11.602
 bulk		= 3500000
 solidType 	= GAHO #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
 lawType     = nonlinear
-viscosity = 0.00025;
-active_coefficient = -3.0;
+viscosity = 0.0005;
+active_coefficient = -2.0;
 Ca_diastolic = 0.02156;
 
 
-[../boundary_conditions]
-lv_flags = 10
-#rv_flags = #
-lv_preload_pressure = 4000
-rv_preload_pressure = 0
+   [../boundary_conditions]
+   list = 'symm0 symm1 symm2'
 
-#    list = 'Epi Endo1 Endo2'
-#	list = 'symm0 symm1 symm2'
-#	list = 'Apex Epi Endo Base'	
-	list = 'Apex Epi Base'	
 
-        [./Apex]
-        type       = Robin
-        flag       = 100
-        mode       = Normal
+
+        [./symm0]
+        type       = Essential
+        flag       = 5
+        mode       = Component
+        component  = 0
+	    function  = '0.0'
+
+
+        [../symm1]
+        type       = Essential
+        flag       = 2
+        mode       = Component
         component  = 1
+		function  = '0.0'
 
-            [./RobinAlpha]
-            function = ' 50.00 * 1000' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-        [../Epi]
-        type       = Robin
-        flag       = 20
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 5.00 * 1000' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-        [../Base]
-        type       = Robin
-        flag       = 99
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 1000' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-        
-        [../Endo]
-        type       = Natural
-        flag       = 10
-        mode       = Normal
-        component  = 1
-		function  = '-100.0'
+        [../symm2]
+        type       = Essential
+        flag       = 1
+        mode       = Component
+        component  = 2
+		function  = '0.0'
 
         [../]
 
-  #  [../]
+   # [../]
 
 
 [../time_discretization]
@@ -159,39 +125,23 @@ displayList     = true
 xmlName         = ParamList.xml #xmlParameters.xml
 
 [./ifpack]
-overlap  	= 1
+overlap  	= 3
 
-            [./relaxation]
-            type                   = Jacobi
-            sweeps                 = 2
-            damping_factor         = 1.
-            min_diagonal_value     = 0
-            zero_starting_solution = true
+[./fact]
+ilut_level-of-fill 	= 1
+drop_tolerance          = 1.e-5
+relax_value             = 0
 
-            [../partitioner]
-            type                   = metis
-            overlap                = 1
-            local_parts            = 1
-            root_node              = 0
-            use_symmetric_graph    = true
+[../amesos]
+solvertype 		=  Amesos_Umfpack 	# Amesos_KLU or Amesos_Umfpack
 
-            [../amesos]
-            solvertype             = Amesos_Superludist # Amesos_KLU or Amesos_Umfpack
+[../partitioner]
+overlap 		= 4
 
-            [../fact]
-            level-of-fill          = 5
-            ilut_level-of-fill     = 5
-            absolute_threshold     = 0
-            relative_threshold     = 1
-            relax_value            = 0
-            drop_tolerance         = 1.e-10
 
-            [../schwarz]
-            combine_mode           = 0             # 0=Add, 1=Zero, 2=Insert, 3=Average, 4=AbsMax
-            compute_condest        = false
-            reordering_type        = none          #none, metis, rcm
-            filter_singletons      = true
-
+[../schwarz]
+reordering_type 	= none 			# metis, rcm, none
+filter_singletons 	= true
 
 [../]
 [../]
@@ -208,7 +158,6 @@ overlap  	= 1
 [electrophysiology]
 monodomain_xml_path = ./
 monodomain_xml_file = ParamList.xml
-[../]
 
 [activation]
 activation_xml_path = ./

@@ -330,8 +330,9 @@ public:
 
     inline virtual void setupSheetVector( Real& /*sx*/, Real& /*sy*/, Real& /*sz*/ ) {}
 
-    inline  scalarETFESpacePtr_Type activationSpace()
+    inline  virtual scalarETFESpacePtr_Type activationSpace()
     {
+    	M_displayer->leaderPrint ("\nERROR: them chosen material law does not contain an activation space!!!! You fool!!!\n\n");
     	scalarETFESpacePtr_Type k;
         return k;
     }

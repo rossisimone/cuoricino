@@ -93,6 +93,8 @@
 #include <lifev/core/algorithm/PreconditionerML.hpp>
 #include <lifev/core/algorithm/PreconditionerIfpack.hpp>
 
+#include <boost/typeof/typeof.hpp>
+
 namespace LifeV {
 
 //! monodomainSolver - Class featuring the usual solver for monodomain equations
@@ -1178,6 +1180,11 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup(std::string meshName,
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix() {
+	if(M_localMeshPtr -> comm() -> MyPID() == 0)
+	{
+		std::cout << "\nETA Monodomain Solver: Setting up mass matrix";
+	}
+
 	{
 		using namespace ExpressionAssembly;
 
@@ -1190,6 +1197,11 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix() {
+
+	if(M_localMeshPtr -> comm() -> MyPID() == 0)
+	{
+		std::cout << "\nETA Monodomain Solver: Setting up lumped mass matrix";
+	}
 	{
 		using namespace ExpressionAssembly;
 
@@ -1211,6 +1223,12 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix()
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 		VectorSmall<3> diffusion) {
+	if(M_localMeshPtr -> comm() -> MyPID() == 0)
+	{
+		std::cout << "\nETA Monodomain Solver: Setting up stiffness matrix (only fiber field)";
+	}
+
+
 	{
 		using namespace ExpressionAssembly;
 //
@@ -1248,36 +1266,33 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix( vectorPtr_Type disp )
 {
+	if(M_localMeshPtr -> comm() -> MyPID() == 0)
 	{
-//		boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > Space3D(
-//				new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
-//						3, M_commPtr));
-//
-		ETFESpaceVectorialPtr_Type spaceVectorial( new ETFESpaceVectorial_Type ( M_localMeshPtr, &feTetraP1, M_commPtr ) );
+		std::cout << "\nETA Monodomain Solver: Setting up stiffness matrix  coupling with mechanics";
+	}
+	Real sigmal = M_diffusionTensor[0];
+	Real sigmat = M_diffusionTensor[1];
 
-#define deformationGradientTensor ( grad( spaceVectorial,  *disp) + value(M_identity) )
-#define detDeformationGradientTensor det( deformationGradientTensor )
-#define deformationGradientTensor_T  minusT(deformationGradientTensor)
-#define deformationGradientTensor_1  transpose ( deformationGradientTensor_T )
-#define diffusion rotate( M_ETFESpacePtr, *M_fiberPtr, M_diffusionTensor )
-#define diffusionTensor ( detDeformationGradientTensor *  deformationGradientTensor_1 * diffusion *  deformationGradientTensor_T  )
+
+	ETFESpaceVectorialPtr_Type spaceVectorial( new ETFESpaceVectorial_Type ( M_localMeshPtr, &feTetraP1, M_commPtr ) );
+
+	{
 		using namespace ExpressionAssembly;
 
 		integrate(elements(M_localMeshPtr), M_feSpacePtr -> qr(), M_ETFESpacePtr,
 				M_ETFESpacePtr,
-				dot(
-					diffusionTensor	* grad(phi_i), grad(phi_j) ) )
+				dot( transpose( minusT( (value(M_identity) + grad(spaceVectorial, *disp) ) ) ) *
+						( value(sigmat) * value(M_identity)
+				        + ( value(sigmal) - value(sigmat) )
+				       	 * outerProduct( value(spaceVectorial, *M_fiberPtr), value(spaceVectorial, *M_fiberPtr) ) )
+				       	 * minusT( (value(M_identity) + grad(spaceVectorial, *disp) ) )
+					    * grad(phi_i), grad(phi_j)))
 				>> M_stiffnessMatrixPtr;
 
 	}
+
 	M_stiffnessMatrixPtr->globalAssemble();
 
-#undef deformationGradientTensor
-#undef detDeformationGradientTensor
-#undef deformationGradientTensor_T
-#undef deformationGradientTensor_1
-#undef diffusion
-#undef diffusionTensor
 }
 
 
