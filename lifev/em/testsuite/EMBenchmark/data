@@ -45,65 +45,32 @@ active_coefficient = -3.0;
 Ca_diastolic = 0.02156;
 
 
-[../boundary_conditions]
-lv_flags = 10
-#rv_flags = #
-lv_preload_pressure = 4000
-rv_preload_pressure = 0
+   [../boundary_conditions]
+   list = 'symm0 symm1 symm2'
 
-#    list = 'Epi Endo1 Endo2'
-#	list = 'symm0 symm1 symm2'
-#	list = 'Apex Epi Endo Base'	
-	list = 'Apex Epi Base'	
 
-        [./Apex]
-        type       = Robin
-        flag       = 100
-        mode       = Normal
+
+        [./symm0]
+        type       = Essential
+        flag       = 5
+        mode       = Component
+        component  = 0
+	    function  = '0.0'
+
+
+        [../symm1]
+        type       = Essential
+        flag       = 2
+        mode       = Component
         component  = 1
+		function  = '0.0'
 
-            [./RobinAlpha]
-            function = ' 50.00 * 1000' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-        [../Epi]
-        type       = Robin
-        flag       = 20
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 5.00 * 1000' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-        [../Base]
-        type       = Robin
-        flag       = 99
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 1000' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-        
-        [../Endo]
-        type       = Natural
-        flag       = 10
-        mode       = Normal
-        component  = 1
-		function  = '-100.0'
+        [../symm2]
+        type       = Essential
+        flag       = 1
+        mode       = Component
+        component  = 2
+		function  = '0.0'
 
         [../]
 
@@ -207,3 +174,4 @@ monodomain_xml_file = ParamList.xml
 [activation]
 activation_xml_path = ./
 activation_xml_file = ParamList.xml
+[../]

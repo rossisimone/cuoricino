@@ -1,18 +1,19 @@
 <ParameterList>	<!-- LinearSolver parameters -->
     <Parameter name="surfaceVolumeRatio" type="double" value="1400.0"/><!-- cm ^ -1-->
     <Parameter name="membraneCapacitance" type="double" value="1.00"/><!-- mu F cm ^ -2 -->
-    <Parameter name="timeStep" type="double" value="0.1"  /><!-- ms ^ -1-->
-    <Parameter name="endTime" type="double" value="50.0"  />
-    <Parameter name="saveStep" type="double" value="1.0"  />
-    <Parameter name="reaction_subiter" type="int" value="10"  />
+    <Parameter name="timeStep" type="double" value="0.01"  /><!-- ms ^ -1-->
+    <Parameter name="endTime" type="double" value="5."  />
+    <Parameter name="saveStep" type="double" value="0.01"  />
+    <Parameter name="reaction_subiter" type="int" value="1"  />
     <Parameter name="stimulus_value" type="double" value="80.0"  />
     <Parameter name="longitudinalDiffusion" type="double" value="1.33417721518987"  /><!-- k Ohm ^-1 cm ^ -1-->
     <Parameter name="transversalDiffusion" type="double" value ="0.176061776061776"  /><!--k Ohm ^-1 cm ^ -1-->
+    <Parameter name="Ca_diastolic" type="double" value="0.02156"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <!--Parameter name="ionic_model" type="string" value="TenTusscher06"  /-->
-    <Parameter name="solutionMethod" type="string" value="ICI"  />
-    <Parameter name="LumpedMass" type="bool" value="true"/>
-    <Parameter name="coupling" type="bool" value="false"/>
+    <Parameter name="solutionMethod" type="string" value="SVI"  />
+    <Parameter name="LumpedMass" type="bool" value="false"/>
+    <Parameter name="coupling" type="bool" value="true"/>
 	<Parameter name="mesh_name" type="string" value="benchmark_05mm.mesh"  /> 
     <Parameter name="mesh_path" type="string" value="./"  />
     <Parameter name="solid_mesh_name" type="string" value="benchmark_solid.mesh"  />
@@ -47,4 +48,3 @@
     	</ParameterList>
     </ParameterList>
 </ParameterList>
-

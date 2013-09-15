@@ -185,6 +185,7 @@ int main(int argc, char** argv) {
     fibers[1]=0.0;
     fibers[2]=1.0;
     emSolverPtr -> monodomainPtr() -> setupFibers( fibers );
+    emSolverPtr -> activationPtr() -> setFiberPtr( emSolverPtr -> monodomainPtr() -> fiberPtr() );
 
 
     VectorSmall<3> sheets;

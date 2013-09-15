@@ -286,6 +286,8 @@ public:
 	linearSolver_Type 			M_linearSolver;
     exporterPtr_Type			M_exporterPtr;
 
+    commPtr_Type				M_commPtr;
+
 private:
 	void init( Teuchos::ParameterList parameterList, commPtr_Type comm );
 	void init( Teuchos::ParameterList parameterList, meshPtr_Type mesh, commPtr_Type comm );
@@ -323,7 +325,8 @@ EMActiveStrainSolver<Mesh>::EMActiveStrainSolver():
 	M_fiberPtr(),
 	M_precPtr(),
 	M_linearSolver(),
-	M_exporterPtr()
+	M_exporterPtr(),
+	M_commPtr()
 	{}
 
 template<typename Mesh>
@@ -346,6 +349,7 @@ EMActiveStrainSolver<Mesh>::EMActiveStrainSolver(  Teuchos::ParameterList parame
 	}
 	setupMassMatrix();
 	setupLinearSolver(dataFile, comm);
+	showMe( comm );
 	if(comm->MyPID()==0)
 	{
 		std::cout << "\t Done.";
@@ -375,6 +379,8 @@ EMActiveStrainSolver<Mesh>::EMActiveStrainSolver(  Teuchos::ParameterList parame
 	}
 	setupMassMatrix();
 	setupLinearSolver(dataFile, comm);
+	showMe( comm );
+
 	if(comm->MyPID()==0)
 	{
 		std::cout << "\t Done.";
@@ -405,6 +411,11 @@ void EMActiveStrainSolver<Mesh>::setupExporter(commPtr_Type comm, std::string ou
 template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::solve()
 {
+	if(M_commPtr->MyPID()==0)
+	{
+		std::cout << "\n Active Strain Solver: Solving";
+	}
+
 	M_linearSolver.solve(M_gammafPtr);
 }
 
@@ -418,11 +429,12 @@ void EMActiveStrainSolver<Mesh>::exportSolution(Real t)
 template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::setupMassMatrix()
 {
-	if(!M_massMatrixPtr)std::cout << "\nSCREW YOU 0!!!\n";
+	if(M_commPtr -> MyPID()==0)
+	{
+		std::cout << "\n Active Strain Solver: Assembling Mass Matrix";
+	}
+
 	M_massMatrixPtr.reset(new matrix_Type( M_FESpacePtr -> map() ) ) ;
-	if(!M_FESpacePtr)std::cout << "\nSCREW YOU FESPACE!!!\n";
-	if(!M_ETFESpacePtr)std::cout << "\nSCREW YOU ETFESPACE!!!\n";
-	if(!M_meshPtr)std::cout << "\nSCREW YOU MESH!!!\n";
   	{
   		using namespace ExpressionAssembly;
 
@@ -440,6 +452,10 @@ void EMActiveStrainSolver<Mesh>::setupMassMatrix()
 template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::setupLinearSolver(GetPot& dataFile, commPtr_Type comm)
 {
+	if(comm -> MyPID() ==0)
+	{
+		std::cout<< "\nActive Strain Solver: Setting Activation Linear Solver";
+	}
 	prec_Type* precRawPtr;
 	precRawPtr = new prec_Type;
 	precRawPtr->setDataFromGetPot(dataFile, "prec");
@@ -451,14 +467,14 @@ void EMActiveStrainSolver<Mesh>::setupLinearSolver(GetPot& dataFile, commPtr_Typ
 	std::string xmlpath = dataFile("activation/activation_xml_path",
 			"./");
 	std::string xmlfile = dataFile("activation/activation_xml_file",
-			"ParamList.xml");
+			"pParamList.xml");
 
 	solverParamList = Teuchos::getParametersFromXmlFile(xmlpath + xmlfile);
-	linearSolver_Type linearSolver;
-    linearSolver.setCommunicator ( comm );
-    linearSolver.setParameters ( *solverParamList );
-    linearSolver.setPreconditioner ( M_precPtr );
-	linearSolver.setOperator( M_massMatrixPtr );
+	//linearSolver_Type linearSolver;
+    M_linearSolver.setCommunicator ( comm );
+    M_linearSolver.setParameters ( *solverParamList );
+    M_linearSolver.setPreconditioner ( M_precPtr );
+    M_linearSolver.setOperator( M_massMatrixPtr );
 }
 
 template<typename Mesh>
@@ -495,6 +511,10 @@ template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::setupRhs( const vector_Type& disp, solidETFESpacePtr_Type solidETFESpacePtr,
 		const vector_Type& calcium, scalarETFESpacePtr_Type ETFESpacePtr, Real dt)
 {
+	if(M_commPtr->MyPID()==0)
+	{
+		std::cout << "\n Active Strain Solver: Assembling rhs";
+	}
 	*M_rhsRepeatedPtr *= 0.0;
 
 	{
@@ -540,8 +560,11 @@ void EMActiveStrainSolver<Mesh>::setupRhs( const vector_Type& disp, solidETFESpa
 
 	*M_rhsPtr *= 0;
 	*M_rhsPtr = ( *(M_massMatrixPtr) * ( *M_gammafPtr ) );
+	//M_rhsRepeatedPtr -> globalAssemble();
 	*M_rhsPtr += ( dt  * *M_rhsRepeatedPtr );
 
+//	M_rhsPtr -> globalAssemble();
+//	M_rhsRepeatedPtr.reset( new vector_Type( M_) )
 	M_linearSolver.setRightHandSide(M_rhsPtr);
 }
 ///////////////////////////////////////
@@ -552,9 +575,7 @@ void EMActiveStrainSolver<Mesh>::init( Teuchos::ParameterList parameterList, com
 {
 	if(comm->MyPID()==0)
 	{
-		std::cout << "\n=============================================";
-		std::cout << "\nImporting the mesh for the activation solver";
-		std::cout << "\n=============================================\n";
+		std::cout << "\nActivation Solver: Importing mesh";
 	}
 	readMeshFromList(parameterList);
 	init(parameterList, M_meshPtr, comm);
@@ -563,10 +584,11 @@ void EMActiveStrainSolver<Mesh>::init( Teuchos::ParameterList parameterList, com
 template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::init( Teuchos::ParameterList parameterList, meshPtr_Type meshPtr, commPtr_Type comm)
 {
+	M_commPtr = comm;
    	std::string activationModelType = parameterList.get( "activation_type", "Orthotropic" );
    	setActivationType( activationModelType );
     M_orthotropicActivationAnisotropyRatio = parameterList.get ("active_orthtropic_ratio", 4.0);
-	M_activeViscosity  = parameterList.get ("active_orthtropic_ratio", 4000.0);//(5000.0),
+	M_activeViscosity  = parameterList.get ("active_viscosity", 4000.0);//(5000.0),
 	M_CaDiastolic  = parameterList.get ("Ca_diastolic", 0.02155);//(0.02155),
 	M_activeCoefficient  = parameterList.get ("active_coefficient", -4.0); //(-4.0),
     M_ETFESpacePtr.reset( new scalarETFESpace_Type (meshPtr,  &feTetraP1, comm) );
@@ -576,7 +598,7 @@ void EMActiveStrainSolver<Mesh>::init( Teuchos::ParameterList parameterList, mes
 	M_gammafPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
 	M_gammasPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
 	M_gammanPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
-	M_rhsRepeatedPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
+	M_rhsRepeatedPtr.reset(new vector_Type( M_FESpacePtr -> map(), Repeated ) );
 	M_rhsPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
 
 	M_massMatrixPtr.reset(new matrix_Type( M_FESpacePtr -> map() ) ) ;
