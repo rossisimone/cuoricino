@@ -39,6 +39,8 @@
 
 
 	#include <lifev/electrophysiology/solver/IonicModels/ElectroIonicModel.hpp>
+#include <lifev/core/fem/GradientRecovery.hpp>
+
 
 namespace LifeV
 {
@@ -424,6 +426,139 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
     }
 }
 
+
+void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_Type>& v,
+                                                 std::vector<vectorPtr_Type>& rhs,
+                                                 FESpace<mesh_Type, MapEpetra>& uFESpace,
+                                                 vector_Type& disp,
+                                             	boost::shared_ptr<FESpace<mesh_Type, MapEpetra> >  dispFESPace )
+{
+	//computing Jacobian of deformation
+	vectorPtr_Type dUdx(new vector_Type( disp.map() ) );
+	vectorPtr_Type dUdy(new vector_Type( disp.map() ) );
+	vectorPtr_Type dUdz(new vector_Type( disp.map() ) );
+	*dUdx  = GradientRecovery::ZZGradient(dispFESPace, disp, 0);
+	*dUdy = GradientRecovery::ZZGradient(dispFESPace, disp, 1);
+	*dUdz = GradientRecovery::ZZGradient(dispFESPace, disp, 2);
+
+	vectorPtr_Type J(new vector_Type( rhs[0] -> map(), Repeated ) );
+	int n = J->epetraVector().MyLength();
+	int i(0);
+	int j(0);
+	int k(0);
+	int offset = J->size();
+	for (int p(0); p < n; p++) {
+		i = dUdx->blockMap().GID(p);
+		j = dUdx->blockMap().GID(p + offset);
+		k = dUdx->blockMap().GID(p + 2 * offset);
+
+		(*J)[i] = (*dUdx)[i]
+				* ((*dUdy)[j] * (*dUdz)[k] - (*dUdy)[k] * (*dUdz)[j])
+				- (*dUdy)[i]
+						* ((*dUdx)[j] * (*dUdz)[k] - (*dUdx)[k] * (*dUdz)[j])
+				+ (*dUdz)[i]
+						* ((*dUdx)[j] * (*dUdy)[k] - (*dUdx)[k] * (*dUdy)[j]);
+	}
+
+    std::vector<Real> U (M_numberOfEquations, 0.0);
+    Real I (0.0);
+    Real detF (0.0);
+    ( * ( rhs.at (0) ) ) *= 0.0;
+
+    std::vector<vectorPtr_Type>      URepPtr;
+    for ( int k = 0; k < M_numberOfEquations; k++ )
+    {
+        URepPtr.push_back ( * ( new vectorPtr_Type ( new VectorEpetra (  * ( v.at (k) )     , Repeated ) ) ) );
+    }
+
+    VectorEpetra    IappRep ( uFESpace.map(), Repeated );
+    if(M_appliedCurrentPtr)     IappRep = (*( new VectorEpetra ( *M_appliedCurrentPtr , Repeated ) ) );
+    else IappRep *= 0.0;
+
+
+    std::vector<elvecPtr_Type>      elvecPtr;
+    for ( int k = 0; k < M_numberOfEquations; k++ )
+    {
+        elvecPtr.push_back ( * ( new elvecPtr_Type ( new VectorElemental (  uFESpace.fe().nbFEDof(), 1  ) ) ) );
+    }
+
+    VectorElemental elvec_Iapp ( uFESpace.fe().nbFEDof(), 1 );
+    VectorElemental elvec_Iion ( uFESpace.fe().nbFEDof(), 1 );
+    VectorElemental elvec_detF ( uFESpace.fe().nbFEDof(), 1 );
+
+    for (UInt iVol = 0; iVol < uFESpace.mesh()->numVolumes(); ++iVol)
+    {
+
+        uFESpace.fe().updateJacQuadPt ( uFESpace.mesh()->volumeList ( iVol ) );
+
+
+        for ( int k = 0; k < M_numberOfEquations; k++ )
+        {
+            ( * ( elvecPtr.at (k) ) ).zero();
+        }
+        elvec_Iapp.zero();
+        elvec_Iion.zero();
+        elvec_detF.zero();
+
+        UInt eleIDu = uFESpace.fe().currentLocalId();
+        UInt nbNode = ( UInt ) uFESpace.fe().nbFEDof();
+
+        //! Filling local elvec_u with potential values in the nodes
+        for ( UInt iNode = 0 ; iNode < nbNode ; iNode++ )
+        {
+
+            Int  ig = uFESpace.dof().localToGlobalMap ( eleIDu, iNode );
+
+            for ( int k = 0; k < M_numberOfEquations; k++ )
+            {
+                ( * ( elvecPtr.at (k) ) ).vec() [iNode] = ( * ( URepPtr.at (k) ) ) [ig];
+            }
+
+            elvec_Iapp.vec() [ iNode ] = IappRep[ig];
+            elvec_detF.vec() [ iNode ] = (*J)[ig];
+        }
+
+        //compute the local vector
+        for ( UInt ig = 0; ig < uFESpace.fe().nbQuadPt(); ig++ )
+        {
+
+            for ( int k = 0; k < M_numberOfEquations; k++ )
+            {
+                U.at (k) = 0;
+            }
+            I = 0;
+            detF = 0;
+
+            for ( UInt i = 0; i < uFESpace.fe().nbFEDof(); i++ )
+            {
+
+                for ( int k = 0; k < M_numberOfEquations; k++ )
+                {
+                    U.at (k) +=  ( * ( elvecPtr.at (k) ) ) (i) *  uFESpace.fe().phi ( i, ig );
+                }
+
+                I += elvec_Iapp (i) * uFESpace.fe().phi ( i, ig );
+                detF += elvec_detF(i) * uFESpace.fe().phi ( i, ig );
+            }
+
+
+            for ( UInt i = 0; i < uFESpace.fe().nbFEDof(); i++ )
+            {
+
+                elvec_Iion ( i ) += detF *( computeLocalPotentialRhs (U) + I ) * uFESpace.fe().phi ( i, ig ) * uFESpace.fe().weightDet ( ig );
+
+            }
+
+        }
+
+        //assembly
+        for ( UInt i = 0 ; i < uFESpace.fe().nbFEDof(); i++ )
+        {
+            Int  ig = uFESpace.dof().localToGlobalMap ( eleIDu, i );
+            ( * ( rhs.at (0) ) ).sumIntoGlobalValues (ig,  elvec_Iion.vec() [i] );
+        }
+    }
+}
 
 void ElectroIonicModel::computeGatingVariablesWithRushLarsen ( std::vector<vectorPtr_Type>& v, const Real dt )
 {

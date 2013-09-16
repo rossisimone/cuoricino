@@ -201,6 +201,12 @@ public:
     virtual void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
                                           std::vector<vectorPtr_Type>&        rhs,
                                           FESpace<mesh_Type, MapEpetra>&  uFESpace );
+
+    virtual void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
+                                          std::vector<vectorPtr_Type>&        rhs,
+                                          FESpace<mesh_Type, MapEpetra>&  uFESpace,
+                                          vector_Type& disp,
+                                          boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace);
     //@}
 
     virtual void showMe() = 0;
