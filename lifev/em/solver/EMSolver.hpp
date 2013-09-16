@@ -699,7 +699,7 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 		M_solidExporterPtr -> addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField,
 											"gammaf",
 											gfSolidFESpace,
-											M_solidPtr -> material() -> gammaf(),
+											M_activationSolidPtr,
 											UInt (0) );
 
 		FESpacePtr_Type displacementMonodomainFESpace ( new FESpace_Type ( M_monodomainPtr -> localMeshPtr(),
