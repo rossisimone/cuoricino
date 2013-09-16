@@ -193,7 +193,7 @@ public:
 	inline std::vector<UInt>	        rvFlags()       	{ return M_rvFlags; }
 	inline bcVectorPtrs_Type	        bcVectorPtrs()       	{ return M_bcVectorPtrs; }
 	inline bool	        			oneWayCoupling()       	{ return M_oneWayCoupling; }
-
+	inline vectorPtr_Type				activationSolidPtr()		{ return M_activationSolidPtr;}
 
 	inline void setMonodomainPtr(monodomainSolverPtr_Type p) { M_monodomainPtr = p;}
 	inline void setMonodomainPtr(monodomainSolver_Type& p)   { *M_monodomainPtr = p;}
@@ -695,7 +695,7 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 	if(M_usingDifferentMeshes)
 	{
 		FESpacePtr_Type gfSolidFESpace ( new FESpace_Type ( M_solidPtr -> dispFESpace().mesh(),
-															"P1", 	3,   comm ) );
+															"P1", 	1,   comm ) );
 		M_solidExporterPtr -> addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField,
 											"gammaf",
 											gfSolidFESpace,
@@ -1026,6 +1026,13 @@ void EMSolver<Mesh, IonicModel>::setFibersAndSheets(Teuchos::ParameterList& para
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName, Teuchos::ParameterList& parameterList, GetPot& dataFile)
 {
+
+//	if(M_monodomainPtr -> commPtr() -> MyPID() == 0)
+//	{
+        cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+		std::cout << "\n Activation Solid NORM2: " << M_activationSolidPtr -> norm2();
+        cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+//	}
 	Teuchos::RCP< Teuchos::ParameterList > belosList = Teuchos::rcp ( new Teuchos::ParameterList );
 	belosList = Teuchos::getParametersFromXmlFile ( parameterListName );
 
@@ -1034,6 +1041,10 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 	flags[0] = -1;
 
 	std::string c2f = parameterList.get ("c2f", "RBFrescaledVectorial");
+	if(M_monodomainPtr -> commPtr() -> MyPID() == 0)
+	{
+		std::cout << "\nINTERPOLATION C2F: from coarse to fine using " << c2f;
+	}
 	M_C2FPtr.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( c2f ) );
 	M_C2FPtr->setup( M_fullSolidMesh,
 				  M_solidPtr -> mesh(),
@@ -1050,6 +1061,10 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 
 
 	std::string f2c = parameterList.get ("f2c", "RBFrescaledScalar");
+	if(M_monodomainPtr -> commPtr() -> MyPID() == 0)
+	{
+		std::cout << "\nINTERPOLATION F2C: from fine to coarse using " << f2c;
+	}
 	M_F2CPtr.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( f2c ) );
 	M_F2CPtr->setup( M_monodomainPtr -> fullMeshPtr(),
 				  M_monodomainPtr -> localMeshPtr(),
@@ -1058,14 +1073,22 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 				  flags);
 	//WARNING
 	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! Setting the Radius of interpolation using the full monodomain mesh.");
-	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! You shoul use the full activation mesh, but it's not coded yet...");
+	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! You shoul use the full activation mesh, but it's not coded yet...\n");
 
 
-	M_F2CPtr -> setRadius( (double) MeshUtility::MeshStatistics::computeSize (* ( M_monodomainPtr -> fullMeshPtr()) ).maxH );
+	M_F2CPtr -> setRadius( 1.5 * (double) MeshUtility::MeshStatistics::computeSize (* ( M_monodomainPtr -> fullMeshPtr()) ).maxH );
+	//M_F2CPtr -> setRadius( (double) MeshUtility::MeshStatistics::computeSize (* (M_fullSolidMesh) ).maxH );
 	M_F2CPtr -> setupRBFData ( M_activationPtr -> gammafPtr(), M_activationSolidPtr , dataFile, belosList);
+	//if(c2f == "RBFscalar") M_F2CPtr->setBasis("TPS");
 	M_F2CPtr -> buildOperators();
 	M_F2CPtr->interpolate();
 	M_F2CPtr->solution (M_activationSolidPtr);
+
+
+
+    cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+	std::cout << "\n Activation Solid NORM2: " << M_activationSolidPtr -> norm2();
+    cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
 }
 

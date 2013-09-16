@@ -147,7 +147,8 @@ int main(int argc, char** argv) {
     }
 
 	emSolverPtr_Type emSolverPtr( new emSolver_Type(monodomainList, data_file_name, comm));
-    if ( comm->MyPID() == 0 )
+
+	if ( comm->MyPID() == 0 )
     {
         if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: constructor";
     }
@@ -279,9 +280,31 @@ int main(int argc, char** argv) {
 
     std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
 
+	if(comm -> MyPID() == 0)
+	{
+        cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+		std::cout << "\n Activation  NORM2: " << emSolverPtr -> activationPtr() -> gammafPtr() -> norm2();
+		std::cout << "\n Activation  MAX: " << emSolverPtr -> activationPtr() -> gammafPtr() -> minValue();
+		std::cout << "\n Activation  MIN: " << emSolverPtr -> activationPtr() -> gammafPtr() -> maxValue();
+		std::cout << "\n Activation Solid NORM2: " << emSolverPtr -> activationSolidPtr() -> norm2();
+		std::cout << "\n Activation Solid MAX: " << emSolverPtr -> activationSolidPtr() -> minValue();
+		std::cout << "\n Activation Solid MIN: " << emSolverPtr -> activationSolidPtr() -> maxValue();
+cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+	}
 
     for ( Real t = 0.0; t < TF - dt; )
     {
+    	if(comm -> MyPID() == 0)
+    	{
+            cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+    		std::cout << "\n Activation  NORM2: " << emSolverPtr -> activationPtr() -> gammafPtr() -> norm2();
+    		std::cout << "\n Activation  MAX: " << emSolverPtr -> activationPtr() -> gammafPtr() -> minValue();
+    		std::cout << "\n Activation  MIN: " << emSolverPtr -> activationPtr() -> gammafPtr() -> maxValue();
+    		std::cout << "\n Activation Solid NORM2: " << emSolverPtr -> activationSolidPtr() -> norm2();
+    		std::cout << "\n Activation Solid MAX: " << emSolverPtr -> activationSolidPtr() -> minValue();
+    		std::cout << "\n Activation Solid MIN: " << emSolverPtr -> activationSolidPtr() -> maxValue();
+    cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+    	}
 
     	//register activation time
 		k++;
