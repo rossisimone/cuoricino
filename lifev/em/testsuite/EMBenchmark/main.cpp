@@ -45,7 +45,7 @@ Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real&
     Real pacingSite_Y = 0.0;
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
-    Real stimulusValue = 10;
+    Real stimulusValue = 1;
 
     Real returnValue;
 
@@ -147,6 +147,10 @@ int main(int argc, char** argv) {
     }
 
 	emSolverPtr_Type emSolverPtr( new emSolver_Type(monodomainList, data_file_name, comm));
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: constructor";
+    }
 
 
     if ( comm->MyPID() == 0 )
@@ -166,7 +170,10 @@ int main(int argc, char** argv) {
     function_Type stimulus;
    	stimulus = &PacingProtocolMM;
     emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction(stimulus, 0.0);
-
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: applied current";
+    }
     if ( comm->MyPID() == 0 )
     {
         cout << "Done! \n" ;
@@ -195,26 +202,46 @@ int main(int argc, char** argv) {
     emSolverPtr -> solidPtr() -> material() -> setupFiberVector(fibers[0],fibers[1],fibers[2]);
     emSolverPtr -> solidPtr() -> material() -> setupSheetVector(sheets[0],sheets[1],sheets[2]);
 	emSolverPtr -> exportFibersAndSheetsFields( comm, problemFolder);
-
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: fibers";
+    }
 
     if ( comm->MyPID() == 0 )
     {
         cout << "Done! \n" ;
     }
 
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain";
+    }
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
     emSolverPtr -> setup(monodomainList, data_file_name, comm);
 
-	emSolverPtr -> setupExporters(comm, problemFolder);
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: setup";
+    }
 
+	emSolverPtr -> setupExporters(comm, problemFolder);
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: exporter setup";
+    }
 
     //********************************************//
     // Activation time						      //
     //********************************************//
 	emSolverPtr -> registerActivationTime(0.0, 0.8);
 	emSolverPtr -> exportSolution(comm, 0.0);
+
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: exporters";
+    }
 
     //********************************************//
     // Solving the system                         //
@@ -253,7 +280,7 @@ int main(int argc, char** argv) {
     std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
 
 
-    for ( Real t = 0.0; t < TF; )
+    for ( Real t = 0.0; t < TF - dt; )
     {
 
     	//register activation time
@@ -309,6 +336,10 @@ int main(int argc, char** argv) {
         }
         else
         {
+            if ( comm->MyPID() == 0 )
+            {
+                if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: exporters";
+            }
 			if ( comm->MyPID() == 0 )
 			{
 				cout << "\nSVI: Solving gating variables ";
@@ -330,6 +361,10 @@ int main(int argc, char** argv) {
                 cout << "\n---------------------";
             }
         	emSolverPtr -> solveOneActivationStep();
+            if ( comm->MyPID() == 0 )
+            {
+                if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: activation";
+            }
 
 
         	if( k % solidIter == 0 )

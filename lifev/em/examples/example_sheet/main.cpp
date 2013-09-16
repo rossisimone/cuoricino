@@ -284,12 +284,7 @@ int main ( int argc, char** argv )
 
     *systemMatrix *= 0.0;
 
-    if (verbose)
-    {
-        std::cout << " done! " << std::endl;
-    }
 
-    *systemMatrix *= 0.0;
 
     if (verbose)
     {

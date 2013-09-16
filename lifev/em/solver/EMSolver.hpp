@@ -192,6 +192,7 @@ public:
 	inline std::vector<UInt>	        lvFlags()       	{ return M_lvFlags; }
 	inline std::vector<UInt>	        rvFlags()       	{ return M_rvFlags; }
 	inline bcVectorPtrs_Type	        bcVectorPtrs()       	{ return M_bcVectorPtrs; }
+	inline bool	        			oneWayCoupling()       	{ return M_oneWayCoupling; }
 
 
 	inline void setMonodomainPtr(monodomainSolverPtr_Type p) { M_monodomainPtr = p;}
@@ -214,6 +215,8 @@ public:
 	inline void setLVFlags(std::vector<UInt> p)	 	{ M_lvFlags = p;}
 	inline void setRVFlags(std::vector<UInt> p)       { M_rvFlags = p; }
 	inline void setBCVectorPtrs(bcVectorPtrs_Type p)  { M_bcVectorPtrs = p; }
+	inline void setOneWayCoupling( bool p)       	{ M_oneWayCoupling = p; }
+
 
 
 	//@}
@@ -384,6 +387,8 @@ public:
     vectorPtr_Type				M_lvPositionVectorPtr;//one of the orthogonal vectors with respect  to the normal of the lid
     vectorPtr_Type				M_rvPositionVectorPtr;//one of the orthogonal vectors with respect  to the normal of the lid
 
+    bool 						M_oneWayCoupling;
+
 
 private:
 //    void initSolid();
@@ -428,7 +433,8 @@ EMSolver<Mesh, IonicModel>::EMSolver():
 	M_lvPreloadPressure(0.0),
     M_rvPreloadPressure(0.0),
     M_lvPositionVectorPtr(),
-    M_rvPositionVectorPtr()
+    M_rvPositionVectorPtr(),
+    M_oneWayCoupling(false)
 	{}
 
 template<typename Mesh, typename IonicModel>
@@ -450,6 +456,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
     M_rvVolume  = 0.0;
     M_lvPV = parameterList.get("lv_pv",false);
     M_rvPV = parameterList.get("rv_pv",false);
+    M_oneWayCoupling = parameterList.get("one_way_coupling",false);
 
 	GetPot dataFile (data_file_name);
 	//Initializing monodomain solver
@@ -582,7 +589,7 @@ void EMSolver<Mesh, IonicModel>::setup(Teuchos::ParameterList& parameterList,
 		M_activationSolidPtr = M_activationPtr -> gammafPtr();
 	}
 
-	M_monodomainPtr -> setDisplacementPtr( M_monodomainDisplacementPtr );
+	if(M_oneWayCoupling == false) M_monodomainPtr -> setDisplacementPtr( M_monodomainDisplacementPtr );
 	M_solidPtr -> material() -> setGammaf(*M_activationSolidPtr);
 	setupMonodomainMatrix(parameterList);
 
@@ -593,11 +600,7 @@ void EMSolver<Mesh, IonicModel>::setup(Teuchos::ParameterList& parameterList,
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::setupMonodomainMatrix(Teuchos::ParameterList& parameterList)
 {
-	bool lumpedMass = parameterList.get ("LumpedMass", true);
-	if(lumpedMass) M_monodomainPtr -> setupLumpedMassMatrix();
-	else M_monodomainPtr -> setupMassMatrix();
-
-	M_monodomainPtr -> setDisplacementPtr( M_monodomainDisplacementPtr );
+    M_monodomainPtr -> setupMassMatrix();
 	M_monodomainPtr -> setupStiffnessMatrix();
 	M_monodomainPtr -> setupGlobalMatrix();
 }
@@ -606,9 +609,13 @@ void EMSolver<Mesh, IonicModel>::setupMonodomainMatrix(Teuchos::ParameterList& p
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::updateMonodomainMatrix()
 {
-	M_monodomainPtr -> setDisplacementPtr( M_monodomainDisplacementPtr );
-	M_monodomainPtr -> setupStiffnessMatrix();
-	M_monodomainPtr -> setupGlobalMatrix();
+	if(M_oneWayCoupling == false)
+	{
+    	M_monodomainPtr -> setDisplacementPtr( M_monodomainDisplacementPtr );
+    	M_monodomainPtr -> setupMassMatrix();
+    	M_monodomainPtr -> setupStiffnessMatrix();
+		M_monodomainPtr -> setupGlobalMatrix();
+	}
 }
 
 template<typename Mesh, typename IonicModel>
@@ -694,12 +701,13 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 											gfSolidFESpace,
 											M_solidPtr -> material() -> gammaf(),
 											UInt (0) );
+
 		FESpacePtr_Type displacementMonodomainFESpace ( new FESpace_Type ( M_monodomainPtr -> localMeshPtr(),
-																			"P1", 	3,   comm ) );
+																				"P1", 	3,   comm ) );
 		M_monodomainExporterPtr -> addVariable( ExporterData<RegionMesh<LinearTetra> >::VectorField,
 												"interpolated_displacement",
 												displacementMonodomainFESpace,
-												M_monodomainPtr -> displacementPtr(),
+												M_monodomainDisplacementPtr,
 												UInt (0) );
 	}
 

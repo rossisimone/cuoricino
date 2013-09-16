@@ -386,6 +386,9 @@ public:
 		return M_displacementETFESpacePtr;
 	}
 
+	inline bool lumpedMassMatrix() const {
+		return M_lumpedMassMatrix;
+	}
 	//@}
 
 	//! @name Set Methods
@@ -618,6 +621,11 @@ public:
 		}
 	}
 
+	inline void setLumpedMassMatrix(bool p) const {
+		M_lumpedMassMatrix = p;
+	}
+
+
 	//@}
 
 	//! @name Methods
@@ -729,7 +737,7 @@ public:
 	 */
 	void inline updateRhs() {
 		(*M_rhsPtrUnique) += (*M_massMatrixPtr) * (*M_potentialPtr)
-				* (1.0 / (M_timeStep));
+				* (M_ionicModelPtr -> membraneCapacitance() / (M_timeStep));
 	}
 
 	//! Solves one diffusion step using the BDF2 scheme
@@ -918,6 +926,8 @@ private:
 	matrixSmall_Type M_identity;
 
 	ETFESpaceVectorialPtr_Type M_displacementETFESpacePtr;
+
+	bool 			M_lumpedMassMatrix;
 //ETFESpaceVectorialPtr_Type spaceVectorial( new ETFESpaceVectorial_Type ( M_localMeshPtr, &feTetraP1, M_commPtr ) );
 //    vectorPtr_Type M_previousPotential;
 
@@ -1020,7 +1030,13 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 				solver.M_elementsOrder), M_fiberPtr(
 				new vector_Type(*(solver.M_fiberPtr))
 //				,M_previousPotential( new vectorPtr_Type(*(solver.M_previousPotential)))
-						) {
+						) ,
+						M_lumpedMassMatrix(false){
+	if(M_commPtr -> MyPID() == 0)
+	{
+		std::cout << "\n WARNING!!! ETA Monodomain Solver: you are using the copy constructor! This method is outdated.";
+		std::cout << "\n WARNING!!! ETA Monodomain Solver: Don't count on it, at this moment. Feel free to update  yourself...";
+	}
 
 	setupGlobalSolution(M_ionicModelPtr->Size());
 	copyGlobalSolution(solver.M_globalSolution);
@@ -1030,7 +1046,13 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 
 template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>& ElectroETAMonodomainSolver<Mesh,
-		IonicModel>::operator=(const ElectroETAMonodomainSolver& solver) {
+		IonicModel>::operator=(const ElectroETAMonodomainSolver& solver)
+{
+	if(M_commPtr -> MyPID() == 0)
+	{
+		std::cout << "\n WARNING!!! ETA Monodomain Solver: you are using the assignment operator! This method is outdated.";
+		std::cout << "\n WARNING!!! ETA Monodomain Solver: Don't count on it, at this moment. Feel free to update  yourself...";
+	}
 	M_surfaceVolumeRatio = solver.M_surfaceVolumeRatio;
 	setIonicModel((*solver.M_ionicModelPtr));
 	M_commPtr = solver.M_commPtr;
@@ -1191,30 +1213,40 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup(std::string meshName,
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 
-	if (M_displacementPtr)
-		setupMassMatrix(*M_displacementPtr);
-	else {
-		if (M_localMeshPtr->comm()->MyPID() == 0) {
-			std::cout << "\nETA Monodomain Solver: Setting up mass matrix";
+	if(M_lumpedMassMatrix)
+	{
+		if (M_displacementPtr)
+			setupLumpedMassMatrix(*M_displacementPtr);
+		else
+			setupLumpedMassMatrix();
+	}
+	else
+	{
+		if (M_displacementPtr)
+			setupMassMatrix(*M_displacementPtr);
+		else {
+			if (M_localMeshPtr->comm()->MyPID() == 0) {
+				std::cout << "\nETA Monodomain Solver: Setting up mass matrix";
+			}
+
+			{
+				using namespace ExpressionAssembly;
+
+				integrate(elements(M_localMeshPtr), M_feSpacePtr->qr(),
+						M_ETFESpacePtr, M_ETFESpacePtr, phi_i * phi_j)
+						>> M_massMatrixPtr;
+
+			}
+			M_massMatrixPtr->globalAssemble();
 		}
-
-		{
-			using namespace ExpressionAssembly;
-
-			integrate(elements(M_localMeshPtr), M_feSpacePtr->qr(),
-					M_ETFESpacePtr, M_ETFESpacePtr, phi_i * phi_j)
-					>> M_massMatrixPtr;
-
-		}
-		M_massMatrixPtr->globalAssemble();
 	}
 }
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix(
 		vector_Type& disp) {
-	if (M_localMeshPtr->comm()->MyPID() == 0) {
-		std::cout << "\nETA Monodomain Solver: Setting up mass matrix";
+	if (M_commPtr->MyPID() == 0) {
+		std::cout << "\nETA Monodomain Solver: Setting up mass matrix with coupling with mechanics ";
 	}
 	ETFESpaceVectorialPtr_Type spaceVectorial(
 					new ETFESpaceVectorial_Type(M_localMeshPtr, &feTetraP1,
@@ -1237,6 +1269,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix(
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix() {
 
+	M_lumpedMassMatrix = true;
 	if (M_displacementPtr)
 		setupLumpedMassMatrix(*M_displacementPtr);
 	else {
@@ -1284,16 +1317,23 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix(
 		j = dUdx->blockMap().GID(p + offset);
 		k = dUdx->blockMap().GID(p + 2 * offset);
 
-		(*J)[i] = (*dUdx)[i]
-				* ((*dUdy)[j] * (*dUdz)[k] - (*dUdy)[k] * (*dUdz)[j])
-				- (*dUdy)[i]
-						* ((*dUdx)[j] * (*dUdz)[k] - (*dUdx)[k] * (*dUdz)[j])
-				+ (*dUdz)[i]
-						* ((*dUdx)[j] * (*dUdy)[k] - (*dUdx)[k] * (*dUdy)[j]);
+		Real F11 = 1.0 + (*dUdx)[i];
+		Real F12 =       (*dUdy)[i];
+		Real F13 =       (*dUdz)[i];
+		Real F21 =       (*dUdx)[j];
+		Real F22 = 1.0 + (*dUdy)[j];
+		Real F23 =       (*dUdz)[j];
+		Real F31 =       (*dUdx)[k];
+		Real F32 =       (*dUdy)[k];
+		Real F33 = 1.0 + (*dUdz)[k];
+
+		(*J)[i] = F11 * ( F22 * F33 - F32 * F23 )
+				- F12 * ( F21 * F33 - F31 * F23 )
+				+ F13 * ( F21 * F32 - F31 * F22 );
 	}
 
 	if (M_localMeshPtr->comm()->MyPID() == 0) {
-		std::cout << "\nETA Monodomain Solver: Setting up lumped mass matrix";
+		std::cout << "\nETA Monodomain Solver: Setting up lumped mass matrix coupling with mechanics";
 	}
 	{
 		using namespace ExpressionAssembly;
@@ -1409,7 +1449,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupGlobalMatrix() {
 	(*M_globalMatrixPtr) *= 0;
 	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
 	(*M_globalMatrixPtr) *= 1.0 / M_surfaceVolumeRatio;
-	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * (1. / M_timeStep));
+	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * ( M_ionicModelPtr -> membraneCapacitance() / M_timeStep));
 }
 
 template<typename Mesh, typename IonicModel>
@@ -1513,7 +1553,11 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(
 	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
 
 	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
-		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
+		if(i==0)
+			*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
+					+ ((M_timeStep) / subiterations / M_ionicModelPtr -> membraneCapacitance() ) * (*(M_globalRhs.at(i)));
+		else
+			*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
 				+ ((M_timeStep) / subiterations) * (*(M_globalRhs.at(i)));
 	}
 }
@@ -1524,7 +1568,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepRL(
 	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
 
 	*(M_globalSolution.at(0)) = *(M_globalSolution.at(0))
-			+ ((M_timeStep) / subiterations) * (*(M_globalRhs.at(0)));
+			+ ((M_timeStep) / subiterations / M_ionicModelPtr -> membraneCapacitance() ) * (*(M_globalRhs.at(0)));
 
 	M_ionicModelPtr->superIonicModel::computeGatingVariablesWithRushLarsen(
 			M_globalSolution, M_timeStep / subiterations);
@@ -1702,7 +1746,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsICI() {
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
-	if(M_potentialPtr)
+	if(M_displacementPtr)
 	{
 		if(M_commPtr -> MyPID() == 0)
 		{
@@ -1712,7 +1756,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
 					new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
 							3, M_commPtr));
 		M_ionicModelPtr->superIonicModel::computePotentialRhsSVI(M_globalSolution,
-					M_globalRhs, (*M_feSpacePtr), *M_potentialPtr, vectorialSpace);
+					M_globalRhs, (*M_feSpacePtr), *M_displacementPtr, vectorialSpace);
 	}
 	else
 	{
@@ -1934,6 +1978,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setParameters() {
 	M_endTime = 100.0;
 	M_timeStep = 0.01;
 	M_elementsOrder = "P1";
+	M_lumpedMassMatrix = false;
 
 }
 
@@ -1948,6 +1993,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setParameters(
 	M_endTime = list.get("endTime", 100.0);
 	M_timeStep = list.get("timeStep", 0.01);
 	M_elementsOrder = list.get("elementsOrder", "P1");
+	M_lumpedMassMatrix = list.get ("LumpedMass", false);
 
 }
 
