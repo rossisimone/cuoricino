@@ -222,36 +222,16 @@ int main(int argc, char** argv) {
     //********************************************//
     emSolverPtr -> setup(monodomainList, data_file_name, comm);
 
-    if ( comm->MyPID() == 0 )
-    {
-        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: setup";
-    }
-
 	emSolverPtr -> setupExporters(comm, problemFolder);
-    if ( comm->MyPID() == 0 )
-    {
-        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: exporter setup";
-    }
-
     //********************************************//
     // Activation time						      //
     //********************************************//
 	emSolverPtr -> registerActivationTime(0.0, 0.8);
 	emSolverPtr -> exportSolution(comm, 0.0);
 
-    if ( comm->MyPID() == 0 )
-    {
-        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: exporters";
-    }
-
     //********************************************//
     // Solving the system                         //
     //********************************************//
-    if ( comm->MyPID() == 0 )
-    {
-        cout << "\nstart solving:  " ;
-    }
-
 
     if ( comm->MyPID() == 0 )
     {
@@ -263,49 +243,26 @@ int main(int argc, char** argv) {
     Int reactionSubiter = monodomainList.get ("reaction_subiteration", 100);
     Int solidIter = monodomainList.get ("emdt", 1.0) / dt;
     bool coupling = monodomainList.get ("coupling", false);
-    if ( comm->MyPID() == 0 )
-      {
-        std::cout << "\ndt: " << dt;
-        std::cout << "\nTF: " << TF;
-        std::cout << "\nIter: " << iter;
-        std::cout << "\nsubiter: " << reactionSubiter;
-        std::cout << "\nsolid iterations: " << solidIter;
-        std::cout << "\nSolving coupled problem: " << coupling;
-      }
+//    if ( comm->MyPID() == 0 )
+//      {
+//        std::cout << "\ndt: " << dt;
+//        std::cout << "\nTF: " << TF;
+//        std::cout << "\nIter: " << iter;
+//        std::cout << "\nsubiter: " << reactionSubiter;
+//        std::cout << "\nsolid iterations: " << solidIter;
+//        std::cout << "\nSolving coupled problem: " << coupling;
+//      }
     Int k(0);
 
-    Real timeReac = 0.0;
-    Real timeDiff = 0.0;
-    Real timeReacDiff = 0.0;
+//    Real timeReac = 0.0;
+//    Real timeDiff = 0.0;
+//    Real timeReacDiff = 0.0;
 
     std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
 
-	if(comm -> MyPID() == 0)
-	{
-        cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-		std::cout << "\n Activation  NORM2: " << emSolverPtr -> activationPtr() -> gammafPtr() -> norm2();
-		std::cout << "\n Activation  MAX: " << emSolverPtr -> activationPtr() -> gammafPtr() -> minValue();
-		std::cout << "\n Activation  MIN: " << emSolverPtr -> activationPtr() -> gammafPtr() -> maxValue();
-		std::cout << "\n Activation Solid NORM2: " << emSolverPtr -> activationSolidPtr() -> norm2();
-		std::cout << "\n Activation Solid MAX: " << emSolverPtr -> activationSolidPtr() -> minValue();
-		std::cout << "\n Activation Solid MIN: " << emSolverPtr -> activationSolidPtr() -> maxValue();
-cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-	}
 
     for ( Real t = 0.0; t < TF - dt; )
     {
-    	if(comm -> MyPID() == 0)
-    	{
-            cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-    		std::cout << "\n Activation  NORM2: " << emSolverPtr -> activationPtr() -> gammafPtr() -> norm2();
-    		std::cout << "\n Activation  MAX: " << emSolverPtr -> activationPtr() -> gammafPtr() -> minValue();
-    		std::cout << "\n Activation  MIN: " << emSolverPtr -> activationPtr() -> gammafPtr() -> maxValue();
-    		std::cout << "\n Activation Solid NORM2: " << emSolverPtr -> activationSolidPtr() -> norm2();
-    		std::cout << "\n Activation Solid MAX: " << emSolverPtr -> activationSolidPtr() -> minValue();
-    		std::cout << "\n Activation Solid MIN: " << emSolverPtr -> activationSolidPtr() -> maxValue();
-    cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-    	}
-
     	//register activation time
 		k++;
 		t = t + dt;

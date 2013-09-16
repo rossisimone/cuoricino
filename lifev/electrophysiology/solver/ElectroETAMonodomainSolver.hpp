@@ -1311,11 +1311,10 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix(
 	int i(0);
 	int j(0);
 	int k(0);
-	int offset = J->size();
 	for (int p(0); p < n; p++) {
 		i = dUdx->blockMap().GID(p);
-		j = dUdx->blockMap().GID(p + offset);
-		k = dUdx->blockMap().GID(p + 2 * offset);
+		j = dUdx->blockMap().GID(p + n);
+		k = dUdx->blockMap().GID(p + 2 * n);
 
 		Real F11 = 1.0 + (*dUdx)[i];
 		Real F12 =       (*dUdy)[i];

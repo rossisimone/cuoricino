@@ -442,16 +442,15 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
 	*dUdy = GradientRecovery::ZZGradient(dispFESPace, *D, 1);
 	*dUdz = GradientRecovery::ZZGradient(dispFESPace, *D, 2);
 
-	vectorPtr_Type J(new vector_Type( rhs[0] -> map(), Repeated ) );
-	int n = J->epetraVector().MyLength();
+	vectorPtr_Type J0(new vector_Type( rhs[0] -> map()) );
+	int n = J0->epetraVector().MyLength();
 	int i(0);
 	int j(0);
 	int k(0);
-	int offset = J->size();
 	for (int p(0); p < n; p++) {
 		i = dUdx->blockMap().GID(p);
-		j = dUdx->blockMap().GID(p + offset);
-		k = dUdx->blockMap().GID(p + 2 * offset);
+		j = dUdx->blockMap().GID(p + n);
+		k = dUdx->blockMap().GID(p + 2 * n);
 
 		Real F11 = 1.0 + (*dUdx)[i];
 		Real F12 =       (*dUdy)[i];
@@ -463,11 +462,11 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
 		Real F32 =       (*dUdy)[k];
 		Real F33 = 1.0 + (*dUdz)[k];
 
-		(*J)[i] = F11 * ( F22 * F33 - F32 * F23 )
+		(*J0)[i] = F11 * ( F22 * F33 - F32 * F23 )
 				- F12 * ( F21 * F33 - F31 * F23 )
 				+ F13 * ( F21 * F32 - F31 * F22 );
 	}
-
+	vectorPtr_Type J(new vector_Type( *J0, Repeated ) );
     std::vector<Real> U (M_numberOfEquations, 0.0);
     Real I (0.0);
     Real detF (0.0);
