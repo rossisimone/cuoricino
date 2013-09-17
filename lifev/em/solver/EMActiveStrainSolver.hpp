@@ -212,7 +212,11 @@ public:
 	inline 	void	setCaDiastolic(Real p)		{ M_CaDiastolic = p; }
 	inline 	void	setActiveCoefficient(Real p)	{ M_activeCoefficient = p; }
 
-	inline 	void	setMassMatrixPtr(matrixPtr_Type p )	{ M_massMatrixPtr = p; }
+	inline 	void	setMassMatrixPtr(matrixPtr_Type p )
+	{
+		M_massMatrixPtr = p;
+		M_linearSolver.setOperator(M_massMatrixPtr);
+	}
 	inline 	void 	setRhsPtr(vectorPtr_Type p)	{ M_rhsPtr = p; }
 	inline 	void	setFiberPtr(vectorPtr_Type p )	{ M_fiberPtr = p; }
 	inline 	void	setFiberPtr(vector_Type& p )	{ *M_fiberPtr = p; }
@@ -230,6 +234,8 @@ public:
     virtual ~EMActiveStrainSolver() {};
 
     void setupMassMatrix();
+
+    void setupLumpedMassMatrix();
 
     void setupLinearSolver(GetPot& dataFile, commPtr_Type comm);
 
@@ -347,7 +353,8 @@ EMActiveStrainSolver<Mesh>::EMActiveStrainSolver(  Teuchos::ParameterList parame
 		std::cout << "\t Setting up matrix, preconditioner and linear solver ... ";
 
 	}
-	setupMassMatrix();
+	if(parameterList.get("activationMassLumped", false) ) setupLumpedMassMatrix();
+	else setupMassMatrix();
 	setupLinearSolver(dataFile, comm);
 	showMe( comm );
 	if(comm->MyPID()==0)
@@ -423,6 +430,29 @@ template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::exportSolution(Real t)
 {
 	M_exporterPtr -> postProcess(t);
+}
+
+template<typename Mesh>
+void EMActiveStrainSolver<Mesh>::setupLumpedMassMatrix()
+{
+	if(M_commPtr -> MyPID()==0)
+	{
+		std::cout << "\n Active Strain Solver: Assembling Mass Matrix";
+	}
+
+	M_massMatrixPtr.reset(new matrix_Type( M_FESpacePtr -> map() ) ) ;
+  	{
+  		using namespace ExpressionAssembly;
+
+  		integrate( elements( M_meshPtr ),
+  				    quadRuleTetra4ptNodal,
+  					M_ETFESpacePtr,
+  					M_ETFESpacePtr,
+  					phi_i * phi_j ) >> M_massMatrixPtr;
+
+  	}
+  	std::cout << "\nMatrix Assembled!!!\n";
+  	M_massMatrixPtr -> globalAssemble();
 }
 
 

@@ -40,30 +40,16 @@ using namespace LifeV;
 
 Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
 {
+    Real returnValue = 0;
 
-	//Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
-
-    Real pacingSite_X = 0.0;
-    Real pacingSite_Y = 0.0;
-    Real pacingSite_Z = 0.0;
-    Real stimulusRadius = 0.15;
-    Real stimulusValue =1.;
-    Real stimulusPeriod = 2.;
-
-    Real returnValue;
-
-    if ( std::abs( x - pacingSite_X ) <= stimulusRadius
-    		 &&
-    	 std::abs( z - pacingSite_Z ) <= stimulusRadius
-    	 	 &&
-    	 std::abs( y - pacingSite_Y ) <= stimulusRadius
-    	 	 &&
-    	 t <= stimulusPeriod)
+    if ( t <= 2.0 )
     {
-    	returnValue = stimulusValue;
-    }
-    else{
-        returnValue = 0.;
+        if ( std::abs( x ) <= 0.5 &&
+                        std::abs( y ) <= 0.5 &&
+                        std::abs( z ) <= 0.2 )
+        {
+            returnValue = 10;
+        }
     }
 
     return returnValue;
@@ -191,20 +177,8 @@ int main(int argc, char** argv) {
         cout << "\nSetting fibers:  " ;
     }
 
-    VectorSmall<3> fibers;
-    fibers[0]=0.0;
-    fibers[1]=0.0;
-    fibers[2]=1.0;
-    emSolverPtr -> monodomainPtr() -> setupFibers( fibers );
-    emSolverPtr -> activationPtr() -> setFiberPtr( emSolverPtr -> monodomainPtr() -> fiberPtr() );
+    emSolverPtr -> setFibersAndSheets(monodomainList);
 
-
-    VectorSmall<3> sheets;
-    sheets[0]=0.0;
-    sheets[1]=1.0;
-    sheets[2]=0.0;
-    emSolverPtr -> solidPtr() -> material() -> setupFiberVector(fibers[0],fibers[1],fibers[2]);
-    emSolverPtr -> solidPtr() -> material() -> setupSheetVector(sheets[0],sheets[1],sheets[2]);
 	emSolverPtr -> exportFibersAndSheetsFields( comm, problemFolder);
     if ( comm->MyPID() == 0 )
     {
