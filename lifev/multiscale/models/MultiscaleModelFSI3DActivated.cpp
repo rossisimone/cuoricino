@@ -406,6 +406,7 @@ MultiscaleModelFSI3DActivated::solveModel()
             }
 
             M_monodomain -> setDisplacementPtr ( M_displacementMonodomain );
+            M_monodomain -> setupMassMatrix();
             M_monodomain -> setupStiffnessMatrix();
             M_monodomain -> setupGlobalMatrix();
         }
@@ -416,7 +417,14 @@ MultiscaleModelFSI3DActivated::solveModel()
         function_Type stimulus ( boost::bind ( &MultiscaleModelFSI3DActivated::activationFunction, this, _1, _2, _3, _4, _5 ) );
         M_monodomain -> setAppliedCurrentFromFunction ( stimulus, tn );
 
-
+        if(M_comm -> MyPID() == 0)
+        {
+        	std::cout << "\n*************************************";
+        	std::cout << "\nGloabal timestep: " << timeStep;
+        	std::cout << "\nGloabal time: " << tn;
+        	std::cout << "\nMonodomain timestep: " << M_monodomain -> timeStep();
+        	std::cout << "\n*************************************";
+        }
         for(Real tt(tn); tt < tn + timeStep; )
         {
         	tt += M_monodomain -> timeStep() / 1000.0;
