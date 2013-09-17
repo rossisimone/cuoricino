@@ -37,7 +37,9 @@
 
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
-
+#include <lifev/eta/fem/ETFESpace.hpp>
+#include <lifev/eta/expression/Integrate.hpp>
+#include <boost/typeof/typeof.hpp>
 
 namespace LifeV
 {
@@ -299,7 +301,8 @@ Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real Jsi   = - Heaviside ( U - M_tetaw ) * W * S / M_tausi;
 
     dPotential = - ( Jfi + Jso + Jsi );
-
+//    std::cout.precision(15);
+//    std::cout << "\nValue: " << Jso;
     return dPotential;
 }
 
@@ -308,6 +311,75 @@ void IonicMinimalModel::showMe()
 {
 
     std::cout << "\n\tHi, I'm the minimal model\n\t See you soon\n\n";
+}
+
+
+
+void IonicMinimalModel::computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
+																std::vector<vectorPtr_Type>&        rhs,
+																FESpace<mesh_Type, MapEpetra>&  uFESpace,
+																vector_Type& disp,
+																boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace)
+{
+	typedef ETFESpace<mesh_Type, MapEpetra, 3, 1> ETFESpace_Type;
+	typedef boost::shared_ptr<ETFESpace_Type> ETFESpacePtr_Type;
+
+	typedef ETFESpace<mesh_Type, MapEpetra, 3, 3> ETFESpaceVectorial_Type;
+	typedef boost::shared_ptr<ETFESpaceVectorial_Type> ETFESpaceVectorialPtr_Type;
+
+	*(rhs[0]) *= 0.0;
+
+	if(uFESpace.mapPtr() -> commPtr() -> MyPID() == 0)
+	{
+		std::cout << "\nMinimal Model: Assembling SVI using ETA!";
+	}
+	ETFESpaceVectorialPtr_Type spaceVectorial(
+					new ETFESpaceVectorial_Type(uFESpace.mesh(), &feTetraP1, uFESpace.mapPtr() -> commPtr() ) );
+	ETFESpacePtr_Type spaceScalar(
+					new ETFESpace_Type(uFESpace.mesh(), &feTetraP1, uFESpace.mapPtr() -> commPtr()  ) );
+
+	{
+		using namespace ExpressionAssembly;
+
+		boost::shared_ptr<MMTanhFunctor> tanh (new MMTanhFunctor);
+		boost::shared_ptr<MMHFunctor> H (new MMHFunctor);
+		boost::shared_ptr<MMSV> sv (new MMSV);
+
+		MatrixSmall<3,3> id;
+		id(0, 0) = 1.0;
+		id(0, 1) = 0.0;
+		id(0, 2) = 0.0;
+		id(1, 0) = 0.0;
+		id(1, 1) = 1.0;
+		id(1, 2) = 0.0;
+		id(2, 0) = 0.0;
+		id(2, 1) = 0.0;
+		id(2, 2) = 1.0;
+
+		BOOST_AUTO_TPL(I, value(id));
+		BOOST_AUTO_TPL(Grad_u, grad(spaceVectorial, disp));
+		BOOST_AUTO_TPL(F, (Grad_u + I));
+		BOOST_AUTO_TPL(J, det (F));
+		BOOST_AUTO_TPL(U, value(spaceScalar, *(v[0] ) ) );
+		BOOST_AUTO_TPL(V, value(spaceScalar, *(v[1] ) ) );
+		BOOST_AUTO_TPL(W, value(spaceScalar, *(v[2] ) ) );
+		BOOST_AUTO_TPL(S, value(spaceScalar, *(v[3] ) ) );
+		BOOST_AUTO_TPL(Iapp, value(spaceScalar, *M_appliedCurrentPtr ) );
+
+
+		BOOST_AUTO_TPL(tauso, M_tauso1 + ( M_tauso2 - M_tauso1 ) * ( 1.0 + eval(tanh, M_kso * ( U - M_uso ) ) ) / 2.0);
+		BOOST_AUTO_TPL(tauo, ( 1.0 - eval(H, U - M_tetao ) ) * M_tauo1 + eval(H, U - M_tetao ) * M_tauo2);
+		BOOST_AUTO_TPL(Jfi, value(-1.0) * V * eval(H, U - M_tetav ) * ( U - M_tetav ) * ( M_uu - U ) / M_taufi);
+		BOOST_AUTO_TPL(Jso,  ( U - M_uo ) * ( 1.0 - eval(H, U - M_tetaw )  ) / tauo + eval(H, U - M_tetaw ) / tauso);
+		BOOST_AUTO_TPL(Jsi, value(-1.0) * eval(H, U - M_tetaw ) * W * S / M_tausi);
+
+		integrate( elements( uFESpace.mesh() ), uFESpace.qr(),
+					spaceScalar, J * ( Iapp - ( Jfi + Jso, Jsi )  ) * phi_i )
+				>> rhs.at(0);
+
+	}
+
+	rhs.at(0) -> globalAssemble();
 }
 
 

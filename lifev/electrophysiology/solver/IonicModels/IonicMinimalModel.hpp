@@ -349,6 +349,14 @@ public:
     // compute the rhs with state variable interpolation
     Real computeLocalPotentialRhs ( const std::vector<Real>& v );
 
+
+    //compute SVI with ETA (Yuppi Doo!!!)
+    void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
+                                            std::vector<vectorPtr_Type>&        rhs,
+                                            FESpace<mesh_Type, MapEpetra>&  uFESpace,
+                                            vector_Type& disp,
+                                            boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace);
+
     //! Display information about the model
     void showMe();
 
@@ -397,6 +405,72 @@ private:
     //@}
 
 }; // class IonicMinimalModel
+
+
+
+class MMTanhFunctor
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator() (const VectorSmall<1>& p)
+    {
+        return std::tanh ( p[0] );
+    }
+    return_Type operator() (const Real& p)
+    {
+        return std::tanh ( p );
+    }
+
+
+    MMTanhFunctor() {}
+    MMTanhFunctor (const MMTanhFunctor&) {}
+    ~MMTanhFunctor() {}
+};
+
+class MMHFunctor
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator() (const VectorSmall<1>& p)
+    {
+    	if(p[0] > 0.0) return 1.0;
+    	else return 0.0;
+    }
+    return_Type operator() (const Real& p)
+    {
+    	if(p > 0.0) return 1.0;
+    	else return 0.0;
+    }
+
+
+    MMHFunctor() {}
+    MMHFunctor (const MMHFunctor&) {}
+    ~MMHFunctor() {}
+};
+
+class MMSV
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator() (const VectorSmall<1>& p)
+    {
+        std::cout.precision(15);
+    	std::cout << "\nvalue: " << p[0];
+    }
+    return_Type operator() (const Real& p)
+    {
+        std::cout.precision(15);
+    	std::cout << "\nvalue: " << p;
+    }
+
+
+    MMSV() {}
+    MMSV (const MMSV&) {}
+    ~MMSV() {}
+};
 
 
 

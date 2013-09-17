@@ -1260,7 +1260,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix(
 		BOOST_AUTO_TPL(J, det (F));
 
 		integrate(elements(M_localMeshPtr), M_feSpacePtr->qr(), M_ETFESpacePtr,
-				M_ETFESpacePtr, J * phi_i * phi_j) >> M_massMatrixPtr;
+				M_ETFESpacePtr,  J * phi_i * phi_j) >> M_massMatrixPtr;
 
 	}
 	M_massMatrixPtr->globalAssemble();
@@ -1754,7 +1754,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
 		boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > vectorialSpace(
 					new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
 							3, M_commPtr));
-		M_ionicModelPtr->superIonicModel::computePotentialRhsSVI(M_globalSolution,
+		M_ionicModelPtr -> computePotentialRhsSVI(M_globalSolution,
 					M_globalRhs, (*M_feSpacePtr), *M_displacementPtr, vectorialSpace);
 	}
 	else

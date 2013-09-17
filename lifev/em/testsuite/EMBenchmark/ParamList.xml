@@ -1,10 +1,12 @@
 <ParameterList>	<!-- LinearSolver parameters -->
     <Parameter name="surfaceVolumeRatio" type="double" value="1400.0"/><!-- cm ^ -1-->
     <Parameter name="membraneCapacitance" type="double" value="1.00"/><!-- mu F cm ^ -2 -->
-    <Parameter name="timeStep" type="double" value="0.02"  /><!-- ms ^ -1-->
-    <Parameter name="endTime" type="double" value="0.9"  />
-    <Parameter name="emdt" type="double" value="0.04"  />
-    <Parameter name="saveStep" type="double" value="0.05"  />
+    <Parameter name="timeStep" type="double" value="0.01"  /><!-- ms ^ -1-->
+    <Parameter name="endTime" type="double" value="0.1"  />
+    <Parameter name="emdt" type="double" value="0.5"  />
+    <Parameter name="saveStep" type="double" value="0.01"  />
+    <Parameter name="value" type="double" value="1.0"  />
+    <Parameter name="period" type="double" value="2.0"  />
     <Parameter name="reaction_subiter" type="int" value="1"  />
     <Parameter name="stimulus_value" type="double" value="80.0"  />
     <Parameter name="longitudinalDiffusion" type="double" value="1.33417721518987"  /><!-- k Ohm ^-1 cm ^ -1-->
@@ -15,7 +17,7 @@
     <Parameter name="solutionMethod" type="string" value="SVI"  />
     <Parameter name="LumpedMass" type="bool" value="false"/>
     <Parameter name="coupling" type="bool" value="true"/>
-    <Parameter name="one_way_coupling" type="bool" value="true"/>
+    <Parameter name="one_way_coupling" type="bool" value="false"/>
     <Parameter name="mesh_name" type="string" value="benchmark_05mm.mesh"  /> 
     <Parameter name="mesh_path" type="string" value="./"  />
     <Parameter name="solid_mesh_name" type="string" value="benchmark_solid.mesh"  />

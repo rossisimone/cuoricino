@@ -341,6 +341,23 @@ public:
 		M_monodomainPtr -> setPotentialFromFunction( f, time );
 	}
 
+	inline Real isochoricPressure(Real Cp, Real pn, Real dV)
+	{
+		return (pn + dV / Cp);
+	}
+	inline void isochoricLVPressure(Real Cp)
+	{
+		M_lvPressure = isochoricPressure(Cp, M_lvPressure, M_lvdV);
+	}
+	inline void isochoricRVPressure(Real Cp)
+	{
+		M_rvPressure = isochoricPressure(Cp, M_rvPressure, M_rvdV);
+	}
+	inline Real windkesselPressure(Real R, Real C, Real pn, Real dV, Real dt = 1.0)
+	{
+		return  pn - ( pn * dt / C / R + dV / C );
+	}
+
 		/*!
 	 */
 	monodomainSolverPtr_Type	M_monodomainPtr;
@@ -369,6 +386,8 @@ public:
     Real						M_rvPressure;
     Real						M_lvVolume;
     Real						M_rvVolume;
+    Real						M_lvdV;
+    Real						M_rvdV;
     std::ofstream 				M_lvPVexporter;
     std::ofstream 				M_rvPVexporter;
     bool						M_lvPV;
@@ -1140,6 +1159,8 @@ void EMSolver<Mesh, IonicModel>::createPositionVector(Real nx, Real ny, Real nz,
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::computeLVVolume(Real nx, Real ny, Real nz)
 {
+
+	Real Vn = M_lvVolume;
 		MatrixSmall<3, 3> Id;
 		Id(0, 0) = 1.;
 		Id(0, 1) = 0., Id(0, 2) = 0.;
@@ -1225,12 +1246,15 @@ void EMSolver<Mesh, IonicModel>::computeLVVolume(Real nx, Real ny, Real nz)
 			M_lvVolume = M_lvPositionVectorPtr->dot(*intergral);
 
 		}
+		M_lvdV = M_lvVolume - Vn;
 }
 
 
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::computeRVVolume(Real nx, Real ny, Real nz)
 {
+
+		Real Vn = M_rvVolume;
 		MatrixSmall<3, 3> Id;
 		Id(0, 0) = 1.;
 		Id(0, 1) = 0., Id(0, 2) = 0.;
@@ -1316,6 +1340,7 @@ void EMSolver<Mesh, IonicModel>::computeRVVolume(Real nx, Real ny, Real nz)
 			M_rvVolume = M_rvPositionVectorPtr->dot(*intergral);
 
 		}
+		M_rvdV = M_rvVolume - Vn;
 }
 
 

@@ -41,11 +41,14 @@ using namespace LifeV;
 Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
 {
 
+	//Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
+
     Real pacingSite_X = 0.0;
     Real pacingSite_Y = 0.0;
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
-    Real stimulusValue = 1;
+    Real stimulusValue =1.;
+    Real stimulusPeriod = 0.2;
 
     Real returnValue;
 
@@ -55,7 +58,7 @@ Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real&
     	 	 &&
     	 std::abs( y - pacingSite_Y ) <= stimulusRadius
     	 	 &&
-    	 t <= 2)
+    	 t <= stimulusPeriod)
     {
     	returnValue = stimulusValue;
     }
