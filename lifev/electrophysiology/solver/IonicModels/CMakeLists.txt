@@ -8,6 +8,8 @@ SET( solver_IonicModels_HEADERS
   solver/IonicModels/IonicMinimalModel.hpp
   solver/IonicModels/ElectroIonicModel.hpp
   solver/IonicModels/IonicFox.hpp
+  solver/IonicModels/IonicHodgkinHuxley.hpp
+  solver/IonicModels/IonicNoblePurkinje.hpp
 CACHE INTERNAL "")
 
 SET( solver_IonicModels_SOURCES
@@ -20,6 +22,8 @@ SET( solver_IonicModels_SOURCES
   solver/IonicModels/IonicMinimalModel.cpp
   solver/IonicModels/IonicFox.cpp
   solver/IonicModels/ElectroIonicModel.cpp
+  solver/IonicModels/IonicHodgkinHuxley.cpp
+  solver/IonicModels/IonicNoblePurkinje.cpp
 CACHE INTERNAL "")
 
 

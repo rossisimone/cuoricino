@@ -17,4 +17,6 @@ ADD_SUBDIRECTORIES(
   IonicFox_pacingECG
   MonodomainBiventricle
   Restart
+  MuscularFibers
+  IonicHodgkinHuxley
 )
