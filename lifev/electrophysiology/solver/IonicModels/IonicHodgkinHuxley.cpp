@@ -156,11 +156,11 @@ void IonicHodgkinHuxley::computeGatingRhs ( const   std::vector<Real>&  v,
     Real H = v[3];
 
     Real alpham=0.1*(25.-V)/(std::exp((25.-V)/10.)-1.);
-    Real betam=4.*exp(-V/18.0);
-    Real alphah=0.07*exp(-V/20.);
-    Real betah=1.0/(exp((30.-V)/10.)+1.);
-    Real alphan=0.01*(10.-V)/(exp((10.-V)/10.)-1.);
-    Real betan=0.125*exp(-V/80.0);
+    Real betam=4.*std::exp(-V/18.0);
+    Real alphah=0.07*std::exp(-V/20.);
+    Real betah=1.0/(std::exp((30.-V)/10.)+1.);
+    Real alphan=0.01*(10.-V)/(std::exp((10.-V)/10.)-1.);
+    Real betan=0.125*std::exp(-V/80.0);
 
     rhs[0] = alpham*(1-M)-betam*M;
     rhs[1] = alphan*(1-N)-betan*N;
@@ -176,12 +176,12 @@ void IonicHodgkinHuxley::computeRhs ( const   std::vector<Real>&  v,
     Real N = v[2];
     Real H = v[3];
 
-    Real alpham=0.1*(25.-V)/(exp((25.-V)/10.)-1.);
-    Real betam=4.*exp(-V/18.0);
-    Real alphah=0.07*exp(-V/20.);
-    Real betah=1.0/(exp((30.-V)/10.)+1.);
-    Real alphan=0.01*(10.-V)/(exp((10.-V)/10.)-1.);
-    Real betan=0.125*exp(-V/80.0);
+    Real alpham=0.1*(25.-V)/(std::exp((25.-V)/10.)-1.);
+    Real betam=4.*std::exp(-V/18.0);
+    Real alphah=0.07*std::exp(-V/20.);
+    Real betah=1.0/(std::exp((30.-V)/10.)+1.);
+    Real alphan=0.01*(10.-V)/(std::exp((10.-V)/10.)-1.);
+    Real betan=0.125*std::exp(-V/80.0);
 
     rhs[0] = -M_gK*N*N*N*N*(V-M_vK)-M_gNa*M*M*M*H*(V-M_vNa)-M_gL*(V-M_vL);//+M_appliedCurrent;
     rhs[1] = alpham*(1-M)-betam*M;
@@ -212,12 +212,12 @@ void IonicHodgkinHuxley::computeGatingVariablesWithRushLarsen ( std::vector<Real
     Real N = v[2];
     Real H = v[3];
 
-    Real alpham=0.1*(25.-V)/(exp((25.-V)/10.)-1.);
-    Real betam=4.*exp(-V/18.0);
-    Real alphah=0.07*exp(-V/20.);
-    Real betah=1.0/(exp((30.-V)/10.)+1.);
-    Real alphan=0.01*(10.-V)/(exp((10.-V)/10.)-1.);
-    Real betan=0.125*exp(-V/80.0);
+    Real alpham=0.1*(25.-V)/(std::exp((25.-V)/10.)-1.);
+    Real betam=4.*std::exp(-V/18.0);
+    Real alphah=0.07*std::exp(-V/20.);
+    Real betah=1.0/(std::exp((30.-V)/10.)+1.);
+    Real alphan=0.01*(10.-V)/(std::exp((10.-V)/10.)-1.);
+    Real betan=0.125*std::exp(-V/80.0);
 
     Real taum=alpham + betam;
     Real taun=alphan + betan;
@@ -227,9 +227,9 @@ void IonicHodgkinHuxley::computeGatingVariablesWithRushLarsen ( std::vector<Real
     Real nInf=alphan /(taun);
     Real hInf=alphah /(tauh);
 
-    v[1]=mInf+(v[1]-mInf)*exp(-dt/taum);
-    v[2]=nInf+(v[2]-nInf)*exp(-dt/taun);
-    v[3]=hInf+(v[3]-hInf)*exp(-dt/tauh);
+    v[1]=mInf+(M-mInf)*std::exp(-dt*taum);
+    v[2]=nInf+(N-nInf)*std::exp(-dt*taun);
+    v[3]=hInf+(H-hInf)*std::exp(-dt*tauh);
 
 }
 

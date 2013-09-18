@@ -154,7 +154,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     Real TF (40);
     Real dt (0.005);
-
+    int useRushLarsen(1);
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -175,7 +175,7 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if( t > 20.5 && t < 20.51 ) Iapp = 1000.0;
+        if( t > 20.5 && t < 21 ) Iapp = 380.0;
         else Iapp = 0;
 //        Iapp = 0;
         std::cout << "\r " << t << " ms.       " << std::flush;
@@ -184,17 +184,36 @@ Int main ( Int argc, char** argv )
         // Compute the rhs using the model equations  //
         //********************************************//
         ionicModel.setAppliedCurrent(Iapp);
-        ionicModel.computeRhs ( states, rhs);
-
-        //********************************************//
-        // Use forward Euler method to advance the    //
-        // solution in time.                          //
-        //********************************************//
-
-        for ( int j (0); j < ionicModel.Size(); j++)
+        if(useRushLarsen)
         {
-            rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
+            ionicModel.computeGatingVariablesWithRushLarsen(states,dt);
+            Real RHS=ionicModel.computeLocalPotentialRhs ( states);
+            RHS+=Iapp;
+            //********************************************//
+            // Use forward Euler method to advance the    //
+            // solution in time.                          //
+            //********************************************//
+
+            for ( int j (0); j < 1; j++)
+            {
+                rStates.at (j) = rStates.at (j)  + dt * (RHS);
+            }
         }
+        else
+        {
+            ionicModel.computeRhs ( states, rhs);
+            rhs[0]+=Iapp;
+            //********************************************//
+            // Use forward Euler method to advance the    //
+            // solution in time.                          //
+            //********************************************//
+
+            for ( int j (0); j < ionicModel.Size(); j++)
+            {
+                rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
+            }
+        }
+
 
         //********************************************//
         // Writes solution on file.                   //

@@ -155,7 +155,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     Real TF (4000);
     Real dt (0.005);
-
+    int useRushLarsen(1);
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -185,16 +185,34 @@ Int main ( Int argc, char** argv )
         // Compute the rhs using the model equations  //
         //********************************************//
         ionicModel.setAppliedCurrent(Iapp);
-        ionicModel.computeRhs ( states, rhs);
-
-        //********************************************//
-        // Use forward Euler method to advance the    //
-        // solution in time.                          //
-        //********************************************//
-
-        for ( int j (0); j < ionicModel.Size(); j++)
+        if(useRushLarsen)
         {
-            rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
+            ionicModel.computeGatingVariablesWithRushLarsen(states,dt);
+            Real RHS=ionicModel.computeLocalPotentialRhs ( states);
+            RHS+=Iapp;
+            //********************************************//
+            // Use forward Euler method to advance the    //
+            // solution in time.                          //
+            //********************************************//
+
+            for ( int j (0); j < 1; j++)
+            {
+                rStates.at (j) = rStates.at (j)  + dt * (RHS);
+            }
+        }
+        else
+        {
+            ionicModel.computeRhs ( states, rhs);
+            rhs[0]+=Iapp;
+            //********************************************//
+            // Use forward Euler method to advance the    //
+            // solution in time.                          //
+            //********************************************//
+
+            for ( int j (0); j < ionicModel.Size(); j++)
+            {
+                rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
+            }
         }
 
         //********************************************//

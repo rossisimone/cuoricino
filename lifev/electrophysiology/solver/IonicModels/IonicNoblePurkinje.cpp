@@ -147,7 +147,7 @@ void IonicNoblePurkinje::computeRhs ( const   std::vector<Real>&  v,
     Real gK2 = 1.2*N*N*N*N;
     Real gNa = 400*M*M*M*H+M_gi;
 
-    rhs[0] = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK)+M_appliedCurrent);
+    rhs[0] = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
     rhs[1] = alpham*(1-M)-betam*M;
     rhs[2] = alphan*(1-N)-betan*N;
     rhs[3] = alphah*(1-H)-betah*H;
@@ -174,7 +174,7 @@ Real IonicNoblePurkinje::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real gK2 = 1.2*N*N*N*N;
     Real gNa = 400*M*M*M*H+M_gi;
 
-    dPotential = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK)+M_appliedCurrent);
+    dPotential = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
 
     return dPotential;
 }
@@ -199,9 +199,9 @@ void IonicNoblePurkinje::computeGatingVariablesWithRushLarsen ( std::vector<Real
     Real nInf=alphan /(taun);
     Real hInf=alphah /(tauh);
 
-    v[1]=mInf+(v[1]-mInf)*exp(-dt/taum);
-    v[2]=nInf+(v[2]-nInf)*exp(-dt/taun);
-    v[3]=hInf+(v[3]-hInf)*exp(-dt/tauh);
+    v[1]=mInf+(v[1]-mInf)*exp(-dt*taum);
+    v[2]=nInf+(v[2]-nInf)*exp(-dt*taun);
+    v[3]=hInf+(v[3]-hInf)*exp(-dt*tauh);
 
 }
 
