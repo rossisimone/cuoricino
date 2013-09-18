@@ -81,7 +81,7 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher06.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicHodgkinHuxley.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicNoblePurkinje.hpp>
-
+#include <lifev/electrophysiology/util/ElectrophysiologyUtility.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -340,33 +340,39 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // MESH STUFF      //
     //********************************************//
+
     std::vector<Real> junction(3, 0.0);
     Real Radius = 0.1;
+    Real Iapp=100;
+
+    //ElectrophysiologyUtility::appliedCurrentClosestPointWithinRadius<mesh_Type>(junction,Radius,solver -> appliedCurrentPtr(),Iapp,solver -> fullMeshPtr() );
+    ElectrophysiologyUtility::appliedCurrentPointsWithinRadius<mesh_Type>(junction,Radius,solver -> appliedCurrentPtr(),Iapp,solver -> fullMeshPtr() );
+
    // UInt numVertices = solver -> fullMeshPtr() -> numLocalVertices();
-    int n = solver -> appliedCurrentPtr() -> epetraVector().MyLength();
-
-
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nDone.  " << std::flush ;
-    }
-    std::vector<UInt> ids;
-    for( UInt i(0); i < n; i++)
-    {
-    	 int iGID = solver -> appliedCurrentPtr() -> blockMap().GID(i);
-    	 Real px = solver -> fullMeshPtr() -> point ( iGID ).x();
-    	 Real py = solver -> fullMeshPtr() -> point ( iGID ).y();
-    	 Real pz = solver -> fullMeshPtr() -> point ( iGID ).z();
-
-    	 Real distance = std::sqrt( ( junction[0] - px) * (junction[0] - px)
-    			 	 	 	 	  + ( junction[1] - py) * (junction[1] - py)
-    			 	 	 	 	  + ( junction[2] - pz) * (junction[2] - pz) );
-    	 if(distance <= Radius) ids.push_back(iGID);
-    }
-    for(int i(0); i< ids.size(); i++)
-    {
-    	solver -> appliedCurrentPtr() -> operator []( ids.at(i) ) = 10.0;
-    }
+//    int n = solver -> appliedCurrentPtr() -> epetraVector().MyLength();
+//
+//
+//    if ( Comm->MyPID() == 0 )
+//    {
+//        cout << "\nDone.  " << std::flush ;
+//    }
+//    std::vector<UInt> ids;
+//    for( UInt i(0); i < n; i++)
+//    {
+//    	 int iGID = solver -> appliedCurrentPtr() -> blockMap().GID(i);
+//    	 Real px = solver -> fullMeshPtr() -> point ( iGID ).x();
+//    	 Real py = solver -> fullMeshPtr() -> point ( iGID ).y();
+//    	 Real pz = solver -> fullMeshPtr() -> point ( iGID ).z();
+//
+//    	 Real distance = std::sqrt( ( junction[0] - px) * (junction[0] - px)
+//    			 	 	 	 	  + ( junction[1] - py) * (junction[1] - py)
+//    			 	 	 	 	  + ( junction[2] - pz) * (junction[2] - pz) );
+//    	 if(distance <= Radius) ids.push_back(iGID);
+//    }
+//    for(int i(0); i< ids.size(); i++)
+//    {
+//    	solver -> appliedCurrentPtr() -> operator []( ids.at(i) ) = 10.0;
+//    }
 
 //    function_Type stimulus;
 //    if(ionic_model == "MinimalModel" )
