@@ -54,10 +54,10 @@ M_vNa(40.0),
 M_vK(-100.0),
 M_Cm(12.0)
 {
-	M_restingConditions.at(0) = 0.0;
-	M_restingConditions.at(1) = mInf(0);
-	M_restingConditions.at(2) = nInf(0);
-	M_restingConditions.at(3) = hInf(0);
+	M_restingConditions.at(0) = -80.0;
+	M_restingConditions.at(1) = mInf(M_restingConditions[0]);
+	M_restingConditions.at(2) = nInf(M_restingConditions[0]);
+	M_restingConditions.at(3) = hInf(M_restingConditions[0]);
 
 }
 
@@ -208,7 +208,7 @@ void IonicNoblePurkinje::computeGatingVariablesWithRushLarsen ( std::vector<Real
 void IonicNoblePurkinje::showMe()
 {
 
-    std::cout << "\n\tHi, I'm the minimal model\n\t See you soon\n\n";
+    std::cout << "\n\tHi, I'm the Noble model\n\t Good luck\n\n";
 }
 
 

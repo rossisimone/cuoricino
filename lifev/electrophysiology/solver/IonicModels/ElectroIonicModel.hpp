@@ -109,7 +109,7 @@ public:
     {
     	return M_appliedCurrent;
     }
-    inline vectorPtr_Type appliedCurrentPtr() const
+    inline vectorPtr_Type appliedCurrentPtr()
     {
     	return M_appliedCurrentPtr;
     }

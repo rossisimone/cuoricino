@@ -316,6 +316,8 @@ Int main ( Int argc, char** argv )
     }
 
 
+
+
     //********************************************//
     // Setting up the initial condition form      //
     // a given function.                          //
@@ -330,22 +332,58 @@ Int main ( Int argc, char** argv )
     solver -> initializeAppliedCurrent();
     solver -> setInitialConditions();
 
-    function_Type stimulus;
-    if(ionic_model == "MinimalModel" )
-    	stimulus = &PacingProtocolMM;
-    else if(ionic_model == "HodgkinHuxley" )
+    if ( Comm->MyPID() == 0 )
     {
-    	if(Comm -> MyPID() == 0) std::cout << "\nUsing Hodgkin Huxley pacing protocol";
-    	stimulus = &PacingProtocolHH;
+        cout << "\nDone.  " << std::flush ;
     }
-    else
-    	stimulus = &PacingProtocol;
-    solver -> setAppliedCurrentFromFunction(stimulus, 0.0);
+
+    //********************************************//
+    // MESH STUFF      //
+    //********************************************//
+    std::vector<Real> junction(3, 0.0);
+    Real Radius = 0.1;
+   // UInt numVertices = solver -> fullMeshPtr() -> numLocalVertices();
+    int n = solver -> appliedCurrentPtr() -> epetraVector().MyLength();
+
 
     if ( Comm->MyPID() == 0 )
     {
-        cout << "Done! \n" ;
+        cout << "\nDone.  " << std::flush ;
     }
+    std::vector<UInt> ids;
+    for( UInt i(0); i < n; i++)
+    {
+    	 int iGID = solver -> appliedCurrentPtr() -> blockMap().GID(i);
+    	 Real px = solver -> fullMeshPtr() -> point ( iGID ).x();
+    	 Real py = solver -> fullMeshPtr() -> point ( iGID ).y();
+    	 Real pz = solver -> fullMeshPtr() -> point ( iGID ).z();
+
+    	 Real distance = std::sqrt( ( junction[0] - px) * (junction[0] - px)
+    			 	 	 	 	  + ( junction[1] - py) * (junction[1] - py)
+    			 	 	 	 	  + ( junction[2] - pz) * (junction[2] - pz) );
+    	 if(distance <= Radius) ids.push_back(iGID);
+    }
+    for(int i(0); i< ids.size(); i++)
+    {
+    	solver -> appliedCurrentPtr() -> operator []( ids.at(i) ) = 10.0;
+    }
+
+//    function_Type stimulus;
+//    if(ionic_model == "MinimalModel" )
+//    	stimulus = &PacingProtocolMM;
+//    else if(ionic_model == "HodgkinHuxley" )
+//    {
+//    	if(Comm -> MyPID() == 0) std::cout << "\nUsing Hodgkin Huxley pacing protocol";
+//    	stimulus = &PacingProtocolHH;
+//    }
+//    else
+//    	stimulus = &PacingProtocol;
+//    solver -> setAppliedCurrentFromFunction(stimulus, 0.0);
+//
+//    if ( Comm->MyPID() == 0 )
+//    {
+//        cout << "Done! \n" ;
+//    }
 
     //********************************************//
     // Setting up the time data                   //
@@ -438,7 +476,7 @@ Int main ( Int argc, char** argv )
 
     for ( Real t = 0.0; t < TF; )
     {
-        solver -> setAppliedCurrentFromFunction ( stimulus, t );
+//        solver -> setAppliedCurrentFromFunction ( stimulus, t );
 
         if( solutionMethod == "splitting" )
         {

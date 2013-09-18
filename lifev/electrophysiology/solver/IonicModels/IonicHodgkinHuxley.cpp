@@ -183,7 +183,7 @@ void IonicHodgkinHuxley::computeRhs ( const   std::vector<Real>&  v,
     Real alphan=0.01*(10.-V)/(exp((10.-V)/10.)-1.);
     Real betan=0.125*exp(-V/80.0);
 
-    rhs[0] = -M_gK*N*N*N*N*(V-M_vK)-M_gNa*M*M*M*H*(V-M_vNa)-M_gL*(V-M_vL)+M_appliedCurrent;
+    rhs[0] = -M_gK*N*N*N*N*(V-M_vK)-M_gNa*M*M*M*H*(V-M_vNa)-M_gL*(V-M_vL);//+M_appliedCurrent;
     rhs[1] = alpham*(1-M)-betam*M;
     rhs[2] = alphan*(1-N)-betan*N;
     rhs[3] = alphah*(1-H)-betah*H;
@@ -200,7 +200,7 @@ Real IonicHodgkinHuxley::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real H = v[3];
 
 
-    dPotential = -M_gK*N*N*N*N*(V-M_vK)-M_gNa*M*M*M*H*(V-M_vNa)-M_gL*(V-M_vL)+M_appliedCurrent;
+    dPotential = -M_gK*N*N*N*N*(V-M_vK)-M_gNa*M*M*M*H*(V-M_vNa)-M_gL*(V-M_vL);//+M_appliedCurrent;
 
     return dPotential;
 }
@@ -236,7 +236,7 @@ void IonicHodgkinHuxley::computeGatingVariablesWithRushLarsen ( std::vector<Real
 void IonicHodgkinHuxley::showMe()
 {
 
-    std::cout << "\n\tHi, I'm the minimal model\n\t See you soon\n\n";
+    std::cout << "\n\tHi, I'm the Hodgkin Huxley model for neurons. This is the first model implemented by Simone Palamara!!!\n\t See you soon\n\n";
 }
 
 

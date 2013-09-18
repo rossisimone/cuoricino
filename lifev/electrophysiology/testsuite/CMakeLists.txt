@@ -2,7 +2,8 @@ INCLUDE(TribitsAddExecutableAndTest)
 INCLUDE(AddSubdirectories)
 
 ADD_SUBDIRECTORIES(
-	benchmark	 
+	benchmark
+	benchmarkPurkinje	 
 	test_monodomain
 	test_0DAlievPanfilovModel
 	test_0DLuoRudyIModel

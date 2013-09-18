@@ -362,7 +362,7 @@ public:
 		return M_fiberPtr;
 	}
 	//! get the pointer to the applied current vector
-	inline const vectorPtr_Type appliedCurrentPtr() const {
+	inline const vectorPtr_Type appliedCurrentPtr() {
 		return M_ionicModelPtr->appliedCurrentPtr();
 	}
 	//! get the pointer to the linear solver
