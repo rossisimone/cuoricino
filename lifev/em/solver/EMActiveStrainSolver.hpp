@@ -437,7 +437,7 @@ void EMActiveStrainSolver<Mesh>::setupLumpedMassMatrix()
 {
 	if(M_commPtr -> MyPID()==0)
 	{
-		std::cout << "\n Active Strain Solver: Assembling Mass Matrix";
+		std::cout << "\n Active Strain Solver: Assembling Lumped Mass Matrix";
 	}
 
 	M_massMatrixPtr.reset(new matrix_Type( M_FESpacePtr -> map() ) ) ;

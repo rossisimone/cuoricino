@@ -1297,7 +1297,7 @@ int main (int argc, char** argv)
 			{
 				std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING!\n" << std::endl;
 			}
-
+			 monodomain -> setupMassMatrix();
 			 monodomain -> setupStiffnessMatrix();
 			 monodomain -> setupGlobalMatrix();
 	  }

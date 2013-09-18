@@ -718,6 +718,7 @@ public:
 	 * \f]
 	 */
 	void solveOneReactionStepFE(int subiterations = 1);
+	void solveOneReactionStepFE(matrix_Type& mass, int subiterations = 1);
 	void solveOneReactionStepRL(int subiterations = 1);
 
 	//! Solves one reaction step using the Rosenbrock  method
@@ -812,6 +813,7 @@ public:
 	void computeRhsSVI();
 	//! Compute the rhs using ionic current interpolation
 	void computeRhsICI();
+	void computeRhsICI(matrix_Type& mass);
 	//!Solve one full step with ionic current interpolation
 	/*!
 	 * \f[
@@ -820,6 +822,7 @@ public:
 	 * where $\mathbf{I}$ is the vector of the ionic currents $I_j = I_{ion}(V_j^n)$
 	 */
 	void solveOneICIStep();
+	void solveOneICIStep(matrix_Type& mass);
 	//!Solve one full step with ionic current interpolation
 	/*!
 	 * \f[
@@ -1561,6 +1564,28 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(
 	}
 }
 
+
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(matrix_Type& mass, int subiterations) {
+	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
+
+	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
+		if(i==0)
+		{
+
+			vector_Type aux( M_potentialPtr -> map() );
+			aux = mass.operator *( (*(M_globalRhs.at(i))) );
+			*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
+					+ ((M_timeStep) / subiterations / M_ionicModelPtr -> membraneCapacitance() ) * aux;
+		}
+		else
+			*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
+				+ ((M_timeStep) / subiterations) * (*(M_globalRhs.at(i)));
+	}
+}
+
+
+
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneReactionStepRL(
 		int subiterations) {
@@ -1744,6 +1769,13 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsICI() {
 }
 
 template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsICI(matrix_Type& mass) {
+	M_ionicModelPtr->superIonicModel::computePotentialRhsICI(M_globalSolution,
+			M_globalRhs, mass);
+	updateRhs();
+}
+
+template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
 	if(M_displacementPtr)
 	{
@@ -1772,6 +1804,15 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneICIStep() {
 	computeRhsICI();
+	if (M_displacementPtr)
+		M_linearSolverPtr->setOperator(M_globalMatrixPtr);
+	M_linearSolverPtr->setRightHandSide(M_rhsPtrUnique);
+	M_linearSolverPtr->solve(M_potentialPtr);
+}
+
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneICIStep(matrix_Type& mass) {
+	computeRhsICI(mass);
 	if (M_displacementPtr)
 		M_linearSolverPtr->setOperator(M_globalMatrixPtr);
 	M_linearSolverPtr->setRightHandSide(M_rhsPtrUnique);

@@ -278,7 +278,21 @@ int main(int argc, char** argv) {
 			}
 			emSolverPtr -> solveOneDiffusionStep();
         }
-        else if(solutionMethod == "ICI")
+        if(solutionMethod == "HLS")
+              {
+      			*(emSolverPtr -> monodomainPtr() -> appliedCurrentPtr()) *= 10.0;
+    			if ( comm->MyPID() == 0 )
+    			{
+    				cout << "\nHLS: Solving gating variables ";
+    			}
+            	emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
+    			if ( comm->MyPID() == 0 )
+    			{
+    				cout << "\nHLS: Solving potential ";
+    			}
+            	emSolverPtr -> monodomainPtr() ->solveOneICIStep( *(emSolverPtr -> activationPtr() -> massMatrixPtr()) );
+              }
+        if(solutionMethod == "ICI")
         {
 			if ( comm->MyPID() == 0 )
 			{
@@ -291,7 +305,7 @@ int main(int argc, char** argv) {
 			}
         	emSolverPtr -> monodomainPtr() ->solveOneICIStep();
         }
-        else
+        if(solutionMethod == "SVI")
         {
             if ( comm->MyPID() == 0 )
             {
