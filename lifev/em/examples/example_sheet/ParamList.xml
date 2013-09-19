@@ -8,12 +8,12 @@
     <Parameter name="longitudinalDiffusion" type="double" value="0.10"  />
     <Parameter name="transversalDiffusion" type="double" value="0.010"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="solid_mesh_name" type="string" value="allflags.mesh"  />
-    <Parameter name="solid_mesh_path" type="string" value="/usr/scratch/srossi/enGrid/"  />
-    <Parameter name="solid_fiber_file" type="string" value="idealHeart_structure_fiber"  />
-    <Parameter name="mesh_name" type="string" value="idealHeart_structure_level0.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/Dropbox/IH_meshes/IdealizedLV/level0/"  />
-    <Parameter name="fiber_file" type="string" value="idealHeart_electro_fiber"  />
+    <Parameter name="solid_mesh_name" type="string" value="human_test2_level2.mesh"  />
+    <Parameter name="solid_mesh_path" type="string" value="/home/ruizbaier/Dropbox/myMeshes/IH_meshes/HumanBiventricular_Idealized/"  />
+    <Parameter name="solid_fiber_file" type="string" value="ww_fiber"  />
+    <Parameter name="mesh_name" type="string" value="human_test2_level2.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/home/ruizbaier/Dropbox/myMeshes/IH_meshes/HumanBiventricular_Idealized/"  />
+    <Parameter name="fiber_file" type="string" value="ww_fiber"  />
     <Parameter name="fiber_X" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Y" type="double" value="0.707106781187"  />
     <Parameter name="fiber_Z" type="double" value="0.0"  />

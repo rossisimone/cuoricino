@@ -532,9 +532,14 @@ int main ( int argc, char** argv )
 		Real cz = -0.283825038876930;
 
 		//idealized
-//		Real cx = 0.0;
-//		Real cy = 0.0;
-//		Real cz = 1.0;
+		//Real cx = 0.0;
+		//Real cy = 0.0;
+		//Real cz = 1.0;
+
+		//idealized biventricular
+		//Real cx = -0.585264869348945;
+		//Real cy = 0.724137970380166;
+		//Real cz = -0.364813969797835;
 
 
 	    if ( Comm->MyPID() == 0 )
