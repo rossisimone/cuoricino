@@ -1781,13 +1781,15 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
 	{
 		if(M_commPtr -> MyPID() == 0)
 		{
-			std::cout << "\nETA Monodomain Solver: updating rhs with SVI with mechanical coupling";
+			std::cout << "\nETA Monodomain Solver: updating rhs with SVI with mechanical coupling\n";
 		}
 		boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > vectorialSpace(
 					new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
 							3, M_commPtr));
 		M_ionicModelPtr -> computePotentialRhsSVI(M_globalSolution,
 					M_globalRhs, (*M_feSpacePtr), *M_displacementPtr, vectorialSpace);
+
+		std::cout << "\nETA Monodomain Solver SVI rhs: " << M_globalRhs[0] -> norm2() << "\n";
 	}
 	else
 	{

@@ -433,6 +433,13 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
                                                  vector_Type& disp,
                                              	boost::shared_ptr<FESpace<mesh_Type, MapEpetra> >  dispFESPace )
 {
+
+	if( uFESpace.map().commPtr() -> MyPID() == 0)
+	{
+		std::cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+		std::cout << "\n IONIC MODEL: I'm enetering in the wrong method!!!!";
+		std::cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
+	}
 	//computing Jacobian of deformation
 	vectorPtr_Type dUdx(new vector_Type( disp.map() ) );
 	vectorPtr_Type dUdy(new vector_Type( disp.map() ) );

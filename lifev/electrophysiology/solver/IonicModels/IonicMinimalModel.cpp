@@ -331,7 +331,7 @@ void IonicMinimalModel::computePotentialRhsSVI ( const std::vector<vectorPtr_Typ
 
 	if(uFESpace.mapPtr() -> commPtr() -> MyPID() == 0)
 	{
-		std::cout << "\nMinimal Model: Assembling SVI using ETA!";
+		std::cout << "\nMinimal Model: Assembling SVI using ETA!\n";
 	}
 	ETFESpaceVectorialPtr_Type spaceVectorial(
 					new ETFESpaceVectorial_Type(uFESpace.mesh(), &feTetraP1, uFESpace.mapPtr() -> commPtr() ) );
