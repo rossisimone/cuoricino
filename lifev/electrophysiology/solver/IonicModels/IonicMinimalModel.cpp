@@ -81,7 +81,7 @@ namespace LifeV
 //}
 
 IonicMinimalModel::IonicMinimalModel()  :
-    super       ( 4     ),
+    super       ( 4, 2     ),
     M_uo        ( 0.    ),
     M_uu        ( 1.58  ),
     M_tetav     ( 0.3   ),
@@ -284,6 +284,43 @@ void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
 }
 
 
+void IonicMinimalModel::computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt )
+{
+
+	std::cout << "\n\nRush Larsen method, for minimal model not implemented!!!\n";
+//    Real U = v[0];
+//    Real V = v[1];
+//    Real W = v[2];
+//    Real S = v[3];
+//
+//    Real tauv;
+//    Real tauw;
+//
+////    if( Heaviside(U-M_tetav) < 0)
+////    {
+////     tauv = M_tauvp;
+////    }
+////    else
+////    {
+//    tauv = ( 1.0 - Heaviside ( U - M_tetavm ) ) * M_tauv1 + Heaviside ( U - M_tetavm ) * M_tauv2;
+////    }
+////    if( Heaviside(U-M_tetaw) < 0)
+////    {
+//     tauw = M_tauwp;
+////    }
+////    else
+////    {
+////    tauw = M_tauw1 + ( M_tauw2  - M_tauw1  ) * ( 1.0 + std::tanh ( M_kw  * ( U - M_uw  ) ) ) / 2.0;
+////    }
+//    Real vinf  = Heaviside ( M_tetavm - U );
+//    Real winf  = ( 1.0 - Heaviside ( U - M_tetao ) ) * ( 1.0 - U / M_tauwinf ) + Heaviside ( U - M_tetao ) * M_winfstar;
+//
+//
+//    v[1] = vinf - ( vinf - V ) * std::exp(- dt / tauv );
+//    v[2] = winf - ( winf - W ) * std::exp(- dt / tauw );
+}
+
+
 Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v )
 {
     Real dPotential (0.0);
@@ -300,7 +337,7 @@ Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real Jso   = ( U - M_uo ) * ( 1.0 - Heaviside ( U - M_tetaw )  ) / tauo + Heaviside ( U - M_tetaw ) / tauso;
     Real Jsi   = - Heaviside ( U - M_tetaw ) * W * S / M_tausi;
 
-    dPotential = - ( Jfi + Jso + Jsi );
+    dPotential = - ( Jfi + Jso  + Jsi );
 //    std::cout.precision(15);
 //    std::cout << "\nValue: " << Jso;
     return dPotential;
@@ -374,9 +411,8 @@ void IonicMinimalModel::computePotentialRhsSVI ( const std::vector<vectorPtr_Typ
 		BOOST_AUTO_TPL(Jsi, value(-1.0) * eval(H, U - M_tetaw ) * W * S / M_tausi);
 
 		integrate( elements( uFESpace.mesh() ), uFESpace.qr(),
-					spaceScalar, J * ( Iapp - ( Jfi + Jso, Jsi )  ) * phi_i )
+					spaceScalar, J * ( Iapp - ( Jfi +  Jso + Jsi )  ) * phi_i )
 				>> rhs.at(0);
-
 	}
 
 	rhs.at(0) -> globalAssemble();

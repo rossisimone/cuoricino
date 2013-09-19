@@ -357,6 +357,9 @@ public:
                                             vector_Type& disp,
                                             boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace);
 
+    //
+    void computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt );
+
     //! Display information about the model
     void showMe();
 
