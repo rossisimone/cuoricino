@@ -52,7 +52,8 @@ super       ( 4,3 ),
 M_gi(0.14),
 M_vNa(40.0),
 M_vK(-100.0),
-M_Cm(12.0)
+M_Cm(12.0),
+M_Itot(0)
 {
 	M_restingConditions.at(0) = -80.0;
 	M_restingConditions.at(1) = mInf(M_restingConditions[0]);
@@ -68,6 +69,7 @@ IonicNoblePurkinje::IonicNoblePurkinje ( Teuchos::ParameterList& parameterList  
     M_vNa        =  parameterList.get ("vNa",      40.0     );
     M_vK        =  parameterList.get ("vK",      -100.0     );
     M_Cm        =  parameterList.get ("Cm",      12.0     );
+    M_Itot        =  0;
 
 }
 
@@ -78,7 +80,7 @@ IonicNoblePurkinje::IonicNoblePurkinje ( const IonicNoblePurkinje& model )
     M_vNa        =  model.M_vNa;
     M_vK        =  model.M_vK;
     M_Cm        =  model.M_Cm;
-
+    M_Itot      =  model.M_Itot;
 
     M_numberOfEquations = model.M_numberOfEquations;
     M_restingConditions = model.M_restingConditions;
@@ -147,6 +149,7 @@ void IonicNoblePurkinje::computeRhs ( const   std::vector<Real>&  v,
     Real gK2 = 1.2*N*N*N*N;
     Real gNa = 400*M*M*M*H+M_gi;
 
+    M_Itot = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
     rhs[0] = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
     rhs[1] = alpham*(1-M)-betam*M;
     rhs[2] = alphan*(1-N)-betan*N;
@@ -174,6 +177,7 @@ Real IonicNoblePurkinje::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real gK2 = 1.2*N*N*N*N;
     Real gNa = 400*M*M*M*H+M_gi;
 
+    M_Itot = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
     dPotential = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
 
     return dPotential;

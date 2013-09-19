@@ -264,6 +264,8 @@ Int main ( Int argc, char** argv )
         std::cout << "\nBuilding Constructor for " << ionic_model << " Model with parameters ... ";
     }
     ionicModelPtr_Type  model;
+    boost::shared_ptr<IonicNoblePurkinje> excitationModel(new IonicNoblePurkinje());
+
     if( ionic_model == "LuoRudyI" )
     	model.reset( new IonicLuoRudyI() );
     if ( ionic_model == "TenTusscher06")
@@ -343,10 +345,9 @@ Int main ( Int argc, char** argv )
 
     std::vector<Real> junction(3, 0.0);
     Real Radius = 0.1;
-    Real Iapp=100;
 
-    //ElectrophysiologyUtility::appliedCurrentClosestPointWithinRadius<mesh_Type>(junction,Radius,solver -> appliedCurrentPtr(),Iapp,solver -> fullMeshPtr() );
-    ElectrophysiologyUtility::appliedCurrentPointsWithinRadius<mesh_Type>(junction,Radius,solver -> appliedCurrentPtr(),Iapp,solver -> fullMeshPtr() );
+
+//    ElectrophysiologyUtility::appliedCurrentPointsWithinRadius<mesh_Type>(junction,Radius,solver -> appliedCurrentPtr(),Iapp,solver -> fullMeshPtr() );
 
    // UInt numVertices = solver -> fullMeshPtr() -> numLocalVertices();
 //    int n = solver -> appliedCurrentPtr() -> epetraVector().MyLength();
@@ -479,11 +480,18 @@ Int main ( Int argc, char** argv )
 
     std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
 
+    std::vector<Real> statesExcitationModel (excitationModel->Size(), 0);
+    std::vector<Real> rhsExcitationModel (excitationModel->Size(), 0);
+    excitationModel->initialize(statesExcitationModel);
 
     for ( Real t = 0.0; t < TF; )
     {
 //        solver -> setAppliedCurrentFromFunction ( stimulus, t );
 
+
+        excitationModel->computeGatingVariablesWithRushLarsen(statesExcitationModel,dt);
+        statesExcitationModel.at (0) = statesExcitationModel.at (0)  + dt * (excitationModel->computeLocalPotentialRhs ( statesExcitationModel));
+        ElectrophysiologyUtility::appliedCurrentPointsWithinRadius<mesh_Type>(junction,Radius,solver -> appliedCurrentPtr(),excitationModel->Itotal(),solver -> fullMeshPtr() );
         if( solutionMethod == "splitting" )
         {
 			chrono.reset();

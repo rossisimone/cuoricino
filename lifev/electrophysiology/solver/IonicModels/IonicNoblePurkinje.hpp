@@ -116,7 +116,10 @@ public:
         return M_vNa;
     }
 
-
+    inline const Real& Itotal()             const
+    {
+        return M_Itot;
+    }
 
 
     inline void setgi           ( const Real& p )
@@ -204,6 +207,7 @@ private:
     Real M_vNa;
     Real M_vK;
     Real M_Cm;
+    Real M_Itot;
 
 
     //! Xb states == equivalent to the number of equations
