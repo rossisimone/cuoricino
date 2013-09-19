@@ -614,6 +614,11 @@ public:
     {
         return *M_solid;
     }
+    //! Getter for the solid solver
+    const solidPtr_Type solidPtr()                                     const
+    {
+        return M_solid;
+    }
     //! Getter for the harmonic extension solver
     const meshMotion_Type& meshMotion()                           const
     {

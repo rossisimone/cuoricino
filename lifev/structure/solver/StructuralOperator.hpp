@@ -1656,7 +1656,8 @@ template <typename Mesh>
 void StructuralOperator<Mesh>::
 solveJac ( vector_Type& step, const vector_Type& res, Real& linear_rel_tol)
 {
-    updateJacobian ( *M_disp, M_jacobian );
+	/*Real normRes = res.normInf();
+	if(normRes > 1.0)*/ updateJacobian ( *M_disp, M_jacobian );
     solveJacobian (step,  res, linear_rel_tol, M_BCh);
 }
 

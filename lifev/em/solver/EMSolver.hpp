@@ -223,11 +223,16 @@ public:
 
 	//! @name Constructors & Destructor
 	//@{
-	EMSolver();
+	EMSolver( );
 
 	EMSolver(  Teuchos::ParameterList& parameterList,
 				const std::string data_file_name,
 				commPtr_Type comm );	//!Empty Constructor
+
+	EMSolver(  structuralOperatorPtr_Type solidPtr,
+				Teuchos::ParameterList& parameterList,
+				const std::string data_file_name,
+				commPtr_Type comm );
 
 	virtual ~EMSolver() {};
 
@@ -572,6 +577,142 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
             			M_solidBCPtr -> handler(),
             			comm);
     M_solidPtr -> setDataFromGetPot (dataFile);
+
+    //activation
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing Activation Solver";
+		std::cout << "\n==========================================";
+		std::cout << "\n";
+	}
+    M_activationPtr.reset( new activeStrain_Type(parameterList, dataFile, M_monodomainPtr -> localMeshPtr(), comm) );
+
+
+    M_activationTimePtr.reset(new vector_Type( M_monodomainPtr -> feSpacePtr() -> map() ) );
+    *M_activationTimePtr = -1.0;
+}
+
+
+
+template<typename Mesh, typename IonicModel>
+EMSolver<Mesh, IonicModel>::EMSolver( 	structuralOperatorPtr_Type solidPtr, Teuchos::ParameterList& parameterList,
+		const std::string data_file_name, commPtr_Type comm )
+{
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t EM SOLVER: 'YOU ROCK!!!!' ";
+		std::cout << "\n==========================================";
+	}
+
+	M_solidTimeStep = parameterList.get("emdt",1.0);
+	M_monodomainTimeStep = parameterList.get("dt",0.01);
+    M_lvPressure = parameterList.get("lv_pressure",0.0);
+    M_rvPressure  = parameterList.get("rv_pressure",0.0);
+    M_lvVolume  = 0.0;
+    M_rvVolume  = 0.0;
+    M_lvPV = parameterList.get("lv_pv",false);
+    M_rvPV = parameterList.get("rv_pv",false);
+    M_oneWayCoupling = parameterList.get("one_way_coupling",false);
+
+	GetPot dataFile (data_file_name);
+	//Initializing monodomain solver
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing Monodomain Solver";
+		std::cout << "\n==========================================";
+	}
+
+    std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
+    std::string meshPath = parameterList.get ("mesh_path", "./");
+	ionicModelPtr_Type ionicPtr( new IonicModel() );
+	M_monodomainPtr.reset( new monodomainSolver_Type ( meshName, meshPath, dataFile, ionicPtr ) );
+	M_monodomainPtr -> setInitialConditions();
+	M_monodomainPtr-> setParameters ( parameterList );
+
+	M_usingDifferentMeshes = false;
+
+	//Initializing structural solver
+
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing Solid Data and Solid mesh";
+		std::cout << "\n==========================================";
+	}
+
+	//Material data
+	M_solidDataPtr = solidPtr -> data();
+
+
+	//mesh
+    std::string solidMeshName = parameterList.get ("solid_mesh_name", "no_solid_mesh");
+    if(solidMeshName == "no_solid_mesh")
+    	solidMeshName   = dataFile ( "solid/space_discretization/mesh_file",   "no_solid_mesh" );
+
+    if(solidMeshName == "no_solid_mesh" || solidMeshName == meshName )
+    	{
+    	M_usingDifferentMeshes = false;
+    	}
+    else M_usingDifferentMeshes = true;
+
+    std::string solidMeshPath = parameterList.get ("solid_mesh_path", "");
+    if(solidMeshPath == "")
+    	solidMeshPath   = dataFile ( "solid/space_discretization/mesh_dir",  "" );
+
+
+    M_fullSolidMesh.reset(new mesh_Type( comm ) );
+    meshPtr_Type localSolidMesh(new mesh_Type( comm ) );
+    if( M_usingDifferentMeshes  )
+    {
+    	localSolidMesh.reset(new mesh_Type ( comm ) );
+    	MeshUtility::fillWithFullMesh (localSolidMesh, M_fullSolidMesh,  solidMeshName,  solidMeshPath );
+    }
+    else
+    {
+    	M_fullSolidMesh = M_monodomainPtr -> fullMeshPtr();
+    	localSolidMesh = M_monodomainPtr -> localMeshPtr();
+    }
+
+    //FESPACEs
+//    std::string dOrder =  dataFile ( "solid/space_discretization/order", "P1");
+//    FESpacePtr_Type dFESpace ( new FESpace_Type ( localSolidMesh,
+//         										   dOrder,
+//         										   3,
+//         										   localSolidMesh -> comm() ) );
+//
+//    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (localSolidMesh, &feTetraP1, comm) );
+
+    //boundary conditions
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Creating BC handler";
+		std::cout << "\n==========================================";
+		std::cout << "\n";
+	}
+
+    M_solidBCPtr.reset( new bcInterface_Type() );
+    M_solidBCPtr-> setHandler( solidPtr -> bcHandler() );
+    M_solidBCPtr -> setPhysicalSolver(solidPtr);
+
+    //setup structural operator
+	if(comm->MyPID()==0)
+	{
+		std::cout << "\n==========================================";
+		std::cout << "\n\t Initializing Structure Solver";
+		std::cout << "\n==========================================";
+		std::cout << "\n";
+	}
+    M_solidPtr = solidPtr;
+//    M_solidPtr -> setup (M_solidDataPtr,
+//            			dFESpace,
+//            			dETFESpace,
+//            			M_solidBCPtr -> handler(),
+//            			comm);
+//    M_solidPtr -> setDataFromGetPot (dataFile);
 
     //activation
 	if(comm->MyPID()==0)
@@ -1048,9 +1189,9 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 
 //	if(M_monodomainPtr -> commPtr() -> MyPID() == 0)
 //	{
-        cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-		std::cout << "\n Activation Solid NORM2: " << M_activationSolidPtr -> norm2();
-        cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+//        cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+//		std::cout << "\n Activation Solid NORM2: " << M_activationSolidPtr -> norm2();
+//        cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 //	}
 	Teuchos::RCP< Teuchos::ParameterList > belosList = Teuchos::rcp ( new Teuchos::ParameterList );
 	belosList = Teuchos::getParametersFromXmlFile ( parameterListName );
