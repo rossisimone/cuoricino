@@ -345,52 +345,20 @@ Int main ( Int argc, char** argv )
 
     std::vector<Real> junction(3, 0.0);
     Real Radius = 0.1;
+    UInt numberOfSources(4);
+    UInt numberLocalSources(numberOfSources/Comm->NumProc());
+    if ( Comm->MyPID() == 0 )
+    {
+        numberLocalSources+=numberOfSources%Comm->NumProc();
+    }
+    UInt flag(300);
+    std::vector<ID> containerPointsGivenFlag, containerPointsWithAppliedCurrent;
+    std::vector<Real> activationTime;
+    double deltaT(2.0);
+    ElectrophysiologyUtility::allIdsPointsWithGivenFlag<mesh_Type>(containerPointsGivenFlag,flag, solver -> appliedCurrentPtr(),  solver -> fullMeshPtr() );
+    ElectrophysiologyUtility::randomNPointsInSetAndNeighborhood<mesh_Type>(containerPointsGivenFlag,containerPointsWithAppliedCurrent,activationTime,deltaT, numberLocalSources,  *(solver -> fullMeshPtr()), Comm );
 
 
-//    ElectrophysiologyUtility::appliedCurrentPointsWithinRadius<mesh_Type>(junction,Radius,solver -> appliedCurrentPtr(),Iapp,solver -> fullMeshPtr() );
-
-   // UInt numVertices = solver -> fullMeshPtr() -> numLocalVertices();
-//    int n = solver -> appliedCurrentPtr() -> epetraVector().MyLength();
-//
-//
-//    if ( Comm->MyPID() == 0 )
-//    {
-//        cout << "\nDone.  " << std::flush ;
-//    }
-//    std::vector<UInt> ids;
-//    for( UInt i(0); i < n; i++)
-//    {
-//    	 int iGID = solver -> appliedCurrentPtr() -> blockMap().GID(i);
-//    	 Real px = solver -> fullMeshPtr() -> point ( iGID ).x();
-//    	 Real py = solver -> fullMeshPtr() -> point ( iGID ).y();
-//    	 Real pz = solver -> fullMeshPtr() -> point ( iGID ).z();
-//
-//    	 Real distance = std::sqrt( ( junction[0] - px) * (junction[0] - px)
-//    			 	 	 	 	  + ( junction[1] - py) * (junction[1] - py)
-//    			 	 	 	 	  + ( junction[2] - pz) * (junction[2] - pz) );
-//    	 if(distance <= Radius) ids.push_back(iGID);
-//    }
-//    for(int i(0); i< ids.size(); i++)
-//    {
-//    	solver -> appliedCurrentPtr() -> operator []( ids.at(i) ) = 10.0;
-//    }
-
-//    function_Type stimulus;
-//    if(ionic_model == "MinimalModel" )
-//    	stimulus = &PacingProtocolMM;
-//    else if(ionic_model == "HodgkinHuxley" )
-//    {
-//    	if(Comm -> MyPID() == 0) std::cout << "\nUsing Hodgkin Huxley pacing protocol";
-//    	stimulus = &PacingProtocolHH;
-//    }
-//    else
-//    	stimulus = &PacingProtocol;
-//    solver -> setAppliedCurrentFromFunction(stimulus, 0.0);
-//
-//    if ( Comm->MyPID() == 0 )
-//    {
-//        cout << "Done! \n" ;
-//    }
 
     //********************************************//
     // Setting up the time data                   //
@@ -482,8 +450,14 @@ Int main ( Int argc, char** argv )
 
     std::vector<Real> statesExcitationModel (excitationModel->Size(), 0);
     std::vector<Real> rhsExcitationModel (excitationModel->Size(), 0);
+    std::vector<Real> valueAppliedCurrent (TF/dt, 0);
+    std::vector<UInt> shiftVector (TF/dt, -1);
     excitationModel->initialize(statesExcitationModel);
-
+    statesExcitationModel[0]=-70.0;
+    statesExcitationModel[1]=excitationModel->mInf(-70.0);
+    statesExcitationModel[2]=excitationModel->nInf(-70.0);
+    statesExcitationModel[3]=excitationModel->hInf(-70.0);
+    int localIndexTime(0);
     for ( Real t = 0.0; t < TF; )
     {
 //        solver -> setAppliedCurrentFromFunction ( stimulus, t );
@@ -491,7 +465,13 @@ Int main ( Int argc, char** argv )
 
         excitationModel->computeGatingVariablesWithRushLarsen(statesExcitationModel,dt);
         statesExcitationModel.at (0) = statesExcitationModel.at (0)  + dt * (excitationModel->computeLocalPotentialRhs ( statesExcitationModel));
-        ElectrophysiologyUtility::appliedCurrentPointsWithinRadius<mesh_Type>(junction,Radius,solver -> appliedCurrentPtr(),excitationModel->Itotal(),solver -> fullMeshPtr() );
+        valueAppliedCurrent[localIndexTime]=excitationModel->Itotal();
+        localIndexTime++;
+        //ElectrophysiologyUtility::appliedCurrentPointsWithinRadius<mesh_Type>(junction,Radius,solver -> appliedCurrentPtr(),excitationModel->Itotal()/85.7,solver -> fullMeshPtr() );
+
+
+        //ElectrophysiologyUtility::applyCurrentGivenSetOfPoints<ID>(containerPointsWithAppliedCurrent,solver -> appliedCurrentPtr(), excitationModel->Itotal() );//
+        ElectrophysiologyUtility::applyCurrentGivenSetOfPoints<ID>(containerPointsWithAppliedCurrent, activationTime,solver -> appliedCurrentPtr(),valueAppliedCurrent, shiftVector,t);
         if( solutionMethod == "splitting" )
         {
 			chrono.reset();
