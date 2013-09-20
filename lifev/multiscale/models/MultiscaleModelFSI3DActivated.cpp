@@ -428,6 +428,7 @@ MultiscaleModelFSI3DActivated::solveModel()
         for(Real tt(tn); tt < tn + timeStep; )
         {
         	tt += M_monodomain -> timeStep() / 1000.0;
+        	M_monodomain -> solveOneStepGatingVariablesFE();
     		M_monodomain -> solveOneSVIStep();
 
             switch (M_activationModelType)
