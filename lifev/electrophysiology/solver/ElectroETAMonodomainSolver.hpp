@@ -1789,7 +1789,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
 		M_ionicModelPtr -> computePotentialRhsSVI(M_globalSolution,
 					M_globalRhs, (*M_feSpacePtr), *M_displacementPtr, vectorialSpace);
 
-		std::cout << "\nETA Monodomain Solver SVI rhs: " << M_globalRhs[0] -> norm2() << "\n";
+		//std::cout << "\nETA Monodomain Solver SVI rhs: " << M_globalRhs[0] -> norm2() << "\n";
 	}
 	else
 	{
