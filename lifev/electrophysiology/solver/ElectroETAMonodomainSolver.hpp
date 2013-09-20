@@ -1216,6 +1216,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup(std::string meshName,
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 
+	*M_massMatrixPtr *= 0.0;
 	if(M_lumpedMassMatrix)
 	{
 		if (M_displacementPtr)
@@ -1351,6 +1352,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix() {
+	*M_stiffnessMatrixPtr *= 0.0;
 	if (M_displacementPtr)
 		setupStiffnessMatrix(M_displacementPtr);
 	else
