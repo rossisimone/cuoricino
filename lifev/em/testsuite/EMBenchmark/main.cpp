@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
     sheets[2]=0.0;
     emSolverPtr -> solidPtr() -> material() -> setupFiberVector(fibers[0],fibers[1],fibers[2]);
     emSolverPtr -> solidPtr() -> material() -> setupSheetVector(sheets[0],sheets[1],sheets[2]);
-	emSolverPtr -> exportFibersAndSheetsFields( comm, problemFolder);
+	emSolverPtr -> exportFibersAndSheetsFields(problemFolder);
     if ( comm->MyPID() == 0 )
     {
         if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: fibers";
@@ -223,14 +223,14 @@ int main(int argc, char** argv) {
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
-    emSolverPtr -> setup(monodomainList, data_file_name, comm);
+    emSolverPtr -> setup(monodomainList, data_file_name);
 
-	emSolverPtr -> setupExporters(comm, problemFolder);
+	emSolverPtr -> setupExporters(problemFolder);
     //********************************************//
     // Activation time						      //
     //********************************************//
 	emSolverPtr -> registerActivationTime(0.0, 0.8);
-	emSolverPtr -> exportSolution(comm, 0.0);
+	emSolverPtr -> exportSolution(0.0);
 
     //********************************************//
     // Solving the system                         //
@@ -264,6 +264,7 @@ int main(int argc, char** argv) {
     std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
 
 
+
     for ( Real t = 0.0; t < TF - dt; )
     {
     	//register activation time
@@ -277,63 +278,73 @@ int main(int argc, char** argv) {
             cout << "\n==============";
         }
 
-        if ( comm->MyPID() == 0 )
-        {
-            cout << "\n------------------";
-            cout << "\nMonodomain Solver ";
-            cout << "\n------------------";
-        }
+
         if ( comm->MyPID() == 0 )
         {
             cout << "\nSet applied current";
         }
 
         emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction ( stimulus, t );
-        if(solutionMethod == "splitting")
-        {
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nSplitting: Solving reactions";
-			}
-			for(int j(0); j<reactionSubiter; j++)
-				emSolverPtr -> monodomainPtr() -> solveOneReactionStepFE(reactionSubiter);
-			//solve diffusion step
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nSplitting: : Solving diffusion";
-			}
-			emSolverPtr -> solveOneDiffusionStep();
-        }
-        else if(solutionMethod == "ICI")
-        {
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nICI: Solving gating variables ";
-			}
-        	emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nICI: Solving potential ";
-			}
-        	emSolverPtr -> monodomainPtr() ->solveOneICIStep();
-        }
-        else
-        {
-            if ( comm->MyPID() == 0 )
-            {
-                if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: exporters";
-            }
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nSVI: Solving gating variables ";
-			}
-        	emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nSVI: Solving potential ";
-			}
-        	emSolverPtr -> monodomainPtr() -> solveOneSVIStep();
-        }
+        emSolverPtr -> solveOneMonodomainStep();
+//        if(solutionMethod == "splitting")
+//        {
+//			if ( comm->MyPID() == 0 )
+//			{
+//				cout << "\nSplitting: Solving reactions";
+//			}
+//			for(int j(0); j<reactionSubiter; j++)
+//				emSolverPtr -> monodomainPtr() -> solveOneReactionStepFE(reactionSubiter);
+//			//solve diffusion step
+//			if ( comm->MyPID() == 0 )
+//			{
+//				cout << "\nSplitting: : Solving diffusion";
+//			}
+//			emSolverPtr -> solveOneDiffusionStep();
+//        }
+//        else if(solutionMethod == "HLS")
+//        {
+//			*(emSolverPtr -> monodomainPtr() -> appliedCurrentPtr()) *= 10.0;
+//			if ( comm->MyPID() == 0 )
+//			{
+//				cout << "\nHLS: Solving gating variables ";
+//			}
+//      	emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
+//			if ( comm->MyPID() == 0 )
+//			{
+//				cout << "\nHLS: Solving potential ";
+//			}
+//      	emSolverPtr -> monodomainPtr() ->solveOneICIStep( *(emSolverPtr -> activationPtr() -> massMatrixPtr()) );
+//        }
+//        else if(solutionMethod == "ICI")
+//        {
+//			if ( comm->MyPID() == 0 )
+//			{
+//				cout << "\nICI: Solving gating variables ";
+//			}
+//        	emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
+//			if ( comm->MyPID() == 0 )
+//			{
+//				cout << "\nICI: Solving potential ";
+//			}
+//        	emSolverPtr -> monodomainPtr() ->solveOneICIStep();
+//        }
+//        else
+//        {
+//            if ( comm->MyPID() == 0 )
+//            {
+//                if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: exporters";
+//            }
+//			if ( comm->MyPID() == 0 )
+//			{
+//				cout << "\nSVI: Solving gating variables ";
+//			}
+//        	emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
+//			if ( comm->MyPID() == 0 )
+//			{
+//				cout << "\nSVI: Solving potential ";
+//			}
+//        	emSolverPtr -> monodomainPtr() -> solveOneSVIStep();
+//        }
 
         if(coupling == true)
         {
@@ -377,14 +388,15 @@ int main(int argc, char** argv) {
 
 
         }
+    	emSolverPtr -> registerActivationTime(t, 0.8);
         if( k % iter == 0 )
         {
             if ( comm->MyPID() == 0 )
             {
                 cout << "\nExporting solutions";
             }
-        	emSolverPtr -> registerActivationTime(t, 0.8);
-        	emSolverPtr -> exportSolution(comm, t);
+
+        	emSolverPtr -> exportSolution(t);
         }
 
     }
@@ -394,9 +406,9 @@ int main(int argc, char** argv) {
         cout << "\nExporting Activation Time";
     }
 
-	emSolverPtr -> exportActivationTime(comm, problemFolder);
+	emSolverPtr -> exportActivationTime(problemFolder);
 
-	emSolverPtr -> closeExporters(comm);
+	emSolverPtr -> closeExporters();
     if ( comm->MyPID() == 0 )
           std::cout << "\nExporting fibers: " << std::endl;
 

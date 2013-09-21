@@ -238,7 +238,6 @@ public:
 
 	void setup(Teuchos::ParameterList& parameterList,
 				const std::string data_file_name,
-				commPtr_Type comm,
 				std::string parameterListName = "ParamList.xml");
 
 	void setupMonodomainMatrix(Teuchos::ParameterList& parameterList);
@@ -249,6 +248,18 @@ public:
 
 	void updateSolid();
 
+	void solveOneMonodomainStep(int subiter = 1);
+
+	void solveOneReactionStepFE(int subiter = 1);
+
+	void solveOneICIStep();
+
+	void solveOneSVIStep();
+
+	void solveOneHLStep();
+
+	void solveOneOSStep(int subiter = 1);
+
 	void solveOneDiffusionStep();
 
 	void solveOneActivationStep();
@@ -258,11 +269,11 @@ public:
 		M_solidPtr -> iterate ( M_solidBCPtr -> handler() );
 	}
 
-	void setupExporters(commPtr_Type comm, std::string dir = "./");
+	void setupExporters(std::string dir = "./");
 
-	void exportSolution(commPtr_Type comm, Real time = 0.0);
+	void exportSolution(Real time = 0.0);
 
-	void closeExporters(commPtr_Type comm);
+	void closeExporters();
 
 	void setupPreloadBC( GetPot& dataFile, map_Type map );
 
@@ -270,16 +281,16 @@ public:
 
 	void createReferencePositionVector();
 
-	void setupBC(commPtr_Type comm, const std::string data_file_name, map_Type map  );
+	void setupBC(const std::string data_file_name, map_Type map  );
 
 	void computeLVVolume(Real nx, Real ny, Real nz);
 	void computeRVVolume(Real nx, Real ny, Real nz);
 
-	void exportSolidFibersDirection(commPtr_Type comm, std::string dir = "./" );
+	void exportSolidFibersDirection(std::string dir = "./" );
 	void exportMonodomainFibersDirection(std::string dir = "./");
-	void exportSolidSheetsDirection(commPtr_Type comm, std::string dir = "./" );
-	void exportFibersAndSheetsFields(commPtr_Type comm, std::string dir = "./" );
-	void exportActivationTime(commPtr_Type comm, std::string dir = "./" );
+	void exportSolidSheetsDirection(std::string dir = "./" );
+	void exportFibersAndSheetsFields(std::string dir = "./" );
+	void exportActivationTime(std::string dir = "./" );
 
 	inline void importSolidFibers(Teuchos::ParameterList& parameterList);
 	inline void importSolidSheets(Teuchos::ParameterList& parameterList);
@@ -363,6 +374,17 @@ public:
 		return  pn - ( pn * dt / C / R + dV / C );
 	}
 
+	inline 	void setSolutionMethod( std::string p)
+	{
+		std::map< std::string, solutionMethod_Type > solutionMap;
+		solutionMap["OS"] = OS;
+		solutionMap["ICI"] = ICI;
+		solutionMap["HL"] = HL;
+		solutionMap["SVI"] = SVI;
+	    M_solutionMethod   = solutionMap[p];
+	}
+	enum solutionMethod_Type { OS, ICI, HL, SVI };
+	solutionMethod_Type 				M_solutionMethod;
 		/*!
 	 */
 	monodomainSolverPtr_Type	M_monodomainPtr;
@@ -413,6 +435,8 @@ public:
 
     bool 						M_oneWayCoupling;
 
+    commPtr_Type				M_comm;
+
 
 private:
 //    void initSolid();
@@ -426,7 +450,7 @@ private:
 // ===================================================
 template<typename Mesh, typename IonicModel>
 EMSolver<Mesh, IonicModel>::EMSolver():
-//	M_ionicPtr(),
+    M_solutionMethod(SVI),
 	M_monodomainPtr(),
 	M_usingDifferentMeshes(false),
 	M_solidDataPtr(),
@@ -458,19 +482,22 @@ EMSolver<Mesh, IonicModel>::EMSolver():
     M_rvPreloadPressure(0.0),
     M_lvPositionVectorPtr(),
     M_rvPositionVectorPtr(),
-    M_oneWayCoupling(false)
+    M_oneWayCoupling(false),
+    M_comm()
 	{}
 
 template<typename Mesh, typename IonicModel>
 EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
 		const std::string data_file_name, commPtr_Type comm )
 {
-	if(comm->MyPID()==0)
+	M_comm = comm;
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t EM SOLVER: 'YOU ROCK!!!!' ";
 		std::cout << "\n==========================================";
 	}
+
 
 	M_solidTimeStep = parameterList.get("emdt",1.0);
 	M_monodomainTimeStep = parameterList.get("dt",0.01);
@@ -481,10 +508,11 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
     M_lvPV = parameterList.get("lv_pv",false);
     M_rvPV = parameterList.get("rv_pv",false);
     M_oneWayCoupling = parameterList.get("one_way_coupling",false);
-
+   	std::string solutionMethod = parameterList.get( "solutionMethod", "SVI" );
+   	setSolutionMethod(solutionMethod);
 	GetPot dataFile (data_file_name);
 	//Initializing monodomain solver
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Monodomain Solver";
@@ -502,7 +530,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
 
 	//Initializing structural solver
 
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Solid Data and Solid mesh";
@@ -552,18 +580,18 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
     solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (localSolidMesh, &feTetraP1, comm) );
 
     //boundary conditions
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Creating BC handler";
 		std::cout << "\n==========================================";
 		std::cout << "\n";
 	}
-	setupBC( comm, data_file_name, dFESpace -> map() );
+	setupBC( data_file_name, dFESpace -> map() );
 
 
     //setup structural operator
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Structure Solver";
@@ -579,7 +607,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
     M_solidPtr -> setDataFromGetPot (dataFile);
 
     //activation
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Activation Solver";
@@ -599,7 +627,7 @@ template<typename Mesh, typename IonicModel>
 EMSolver<Mesh, IonicModel>::EMSolver( 	structuralOperatorPtr_Type solidPtr, Teuchos::ParameterList& parameterList,
 		const std::string data_file_name, commPtr_Type comm )
 {
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t EM SOLVER: 'YOU ROCK!!!!' ";
@@ -618,7 +646,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	structuralOperatorPtr_Type solidPtr, Teuc
 
 	GetPot dataFile (data_file_name);
 	//Initializing monodomain solver
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Monodomain Solver";
@@ -636,7 +664,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	structuralOperatorPtr_Type solidPtr, Teuc
 
 	//Initializing structural solver
 
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Solid Data and Solid mesh";
@@ -663,11 +691,11 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	structuralOperatorPtr_Type solidPtr, Teuc
     	solidMeshPath   = dataFile ( "solid/space_discretization/mesh_dir",  "" );
 
 
-    M_fullSolidMesh.reset(new mesh_Type( comm ) );
-    meshPtr_Type localSolidMesh(new mesh_Type( comm ) );
+    M_fullSolidMesh.reset(new mesh_Type( M_comm ) );
+    meshPtr_Type localSolidMesh(new mesh_Type( M_comm ) );
     if( M_usingDifferentMeshes  )
     {
-    	localSolidMesh.reset(new mesh_Type ( comm ) );
+    	localSolidMesh.reset(new mesh_Type ( M_comm ) );
     	MeshUtility::fillWithFullMesh (localSolidMesh, M_fullSolidMesh,  solidMeshName,  solidMeshPath );
     }
     else
@@ -681,12 +709,12 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	structuralOperatorPtr_Type solidPtr, Teuc
 //    FESpacePtr_Type dFESpace ( new FESpace_Type ( localSolidMesh,
 //         										   dOrder,
 //         										   3,
-//         										   localSolidMesh -> comm() ) );
+//         										   localSolidMesh -> M_comm() ) );
 //
-//    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (localSolidMesh, &feTetraP1, comm) );
+//    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (localSolidMesh, &feTetraP1, M_comm) );
 
     //boundary conditions
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Creating BC handler";
@@ -699,7 +727,7 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	structuralOperatorPtr_Type solidPtr, Teuc
     M_solidBCPtr -> setPhysicalSolver(solidPtr);
 
     //setup structural operator
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Structure Solver";
@@ -711,18 +739,18 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	structuralOperatorPtr_Type solidPtr, Teuc
 //            			dFESpace,
 //            			dETFESpace,
 //            			M_solidBCPtr -> handler(),
-//            			comm);
+//            			M_comm);
 //    M_solidPtr -> setDataFromGetPot (dataFile);
 
     //activation
-	if(comm->MyPID()==0)
+	if(M_comm->MyPID()==0)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Initializing Activation Solver";
 		std::cout << "\n==========================================";
 		std::cout << "\n";
 	}
-    M_activationPtr.reset( new activeStrain_Type(parameterList, dataFile, M_monodomainPtr -> localMeshPtr(), comm) );
+    M_activationPtr.reset( new activeStrain_Type(parameterList, dataFile, M_monodomainPtr -> localMeshPtr(), M_comm) );
 
 
     M_activationTimePtr.reset(new vector_Type( M_monodomainPtr -> feSpacePtr() -> map() ) );
@@ -733,7 +761,6 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	structuralOperatorPtr_Type solidPtr, Teuc
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::setup(Teuchos::ParameterList& parameterList,
 											const std::string data_file_name,
-											commPtr_Type comm,
 											std::string parameterListName )
 {
 	if(M_usingDifferentMeshes)
@@ -810,8 +837,147 @@ void EMSolver<Mesh, IonicModel>::updateSolid()
 
 
 template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::solveOneMonodomainStep(int subiter)
+{
+    if ( M_comm->MyPID() == 0 )
+    {
+        cout << "\n------------------";
+        cout << "\nMonodomain Solver ";
+        cout << "\n------------------";
+    }
+    LifeChrono timer;
+    timer.start();
+    switch(M_solutionMethod)
+    {
+    	case	OS:
+
+			if ( M_comm->MyPID() == 0 )
+			{
+				std::cout << "\nEM SOLVER: OS: Solving reactions";
+			}
+    		for(int j(0); j<subiter; j++) solveOneReactionStepFE(subiter);
+    		if ( M_comm->MyPID() == 0 )
+			{
+				std::cout << "\t ... done in " << timer.diff() << "s\n";
+    			std::cout << "\nEM SOLVER: OS: Solving diffusion";
+			}
+			solveOneDiffusionStep();
+    		break;
+
+    	case ICI:
+
+    		if(M_comm -> MyPID() == 0 )
+    		{
+    			std::cout << "\nEM SOLVER: ICI: solving gating variables";
+    		}
+    		M_monodomainPtr -> solveOneStepGatingVariablesFE();
+    		if (M_comm->MyPID() == 0 )
+			{
+				std::cout << "\t ... done in " << timer.diff() << "s\n";
+    			std::cout << "\nEM SOLVER: ICI: Solving potential";
+			}
+    		M_monodomainPtr ->solveOneICIStep();
+    		break;
+
+    	case HL:
+
+    		*(M_monodomainPtr -> appliedCurrentPtr()) *= 10.0;
+    		if(M_comm -> MyPID() == 0 )
+    		{
+    			std::cout << "\nEM SOLVER: HL: solving gating variables";
+    		}
+    		M_monodomainPtr -> solveOneStepGatingVariablesFE();
+    		if (M_comm->MyPID() == 0 )
+			{
+				std::cout << "\t ... done in " << timer.diff() << "s\n";
+    			std::cout << "\nEM SOLVER: HL: Solving potential";
+			}
+    		M_monodomainPtr ->solveOneICIStep( *(M_activationPtr -> massMatrixPtr()) );
+    		break;
+
+    	default:
+
+    		if(M_comm -> MyPID() == 0 )
+    		{
+    			std::cout << "\nEM SOLVER: SVI: solving gating variables";
+    		}
+    		M_monodomainPtr -> solveOneStepGatingVariablesFE();
+    		if (M_comm->MyPID() == 0 )
+			{
+				std::cout << "\t ... done in " << timer.diff() << "s\n";
+    			std::cout << "\nEM SOLVER: SVI: Solving potential";
+			}
+    		M_monodomainPtr ->solveOneSVIStep();
+    		break;
+    }
+
+	if ( M_comm->MyPID() == 0 )
+	{
+		std::cout << "\t ... done in " << timer.diffCumul() << "s\n";
+		std::cout << "\nEM SOLVER: Total time " << timer.diff() << "s\n";
+	}
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::solveOneReactionStepFE(int subiter)
+{
+	if(M_comm -> MyPID() == 0 )
+	{
+		std::cout << "\nEM SOLVER: solving monodomain with OS: reaction step\n";
+	}
+	for(int j(0); j<subiter; j++)
+		M_monodomainPtr -> solveOneReactionStepFE(subiter);
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::solveOneICIStep()
+{
+	if(M_comm -> MyPID() == 0 )
+	{
+		std::cout << "\nEM SOLVER: ICI: solving monodomain with ICI\n";
+	}
+	M_monodomainPtr -> solveOneStepGatingVariablesFE();
+	M_monodomainPtr ->solveOneICIStep();
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::solveOneSVIStep()
+{
+	if(M_comm -> MyPID() == 0 )
+	{
+		std::cout << "\nEM SOLVER: solving monodomain with SVI\n";
+	}
+	M_monodomainPtr -> solveOneStepGatingVariablesFE();
+	M_monodomainPtr ->solveOneSVIStep();
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::solveOneHLStep()
+{
+	if(M_comm -> MyPID() == 0 )
+	{
+		std::cout << "\nEM SOLVER: solving monodomain with ICI half lumping\n";
+	}
+	*(M_monodomainPtr -> appliedCurrentPtr()) *= 10.0;
+	M_monodomainPtr -> solveOneStepGatingVariablesFE();
+	M_monodomainPtr ->solveOneICIStep( *(M_activationPtr -> massMatrixPtr()) );
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::solveOneOSStep(int subiter)
+{
+	solveOneReactionStepFE(subiter);
+	solveOneDiffusionStep();
+}
+
+
+template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::solveOneDiffusionStep()
 {
+	if(M_comm -> MyPID() == 0 )
+	{
+		std::cout << "\nEM SOLVER: solving monodomain with OS: reaction step\n";
+	}
 	*(M_monodomainPtr -> rhsPtrUnique()) *= 0.0;
 	  M_monodomainPtr -> updateRhs();
 	  M_monodomainPtr -> solveOneDiffusionStepBE();
@@ -832,9 +998,9 @@ void EMSolver<Mesh, IonicModel>::solveOneActivationStep()
 
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string dir)
+void EMSolver<Mesh, IonicModel>::setupExporters(std::string dir)
 {
-	if(comm->MyPID()==0)
+	if(M_comm)
 	{
 		std::cout << "\n==========================================";
 		std::cout << "\n\t Setting up the exporters";
@@ -843,10 +1009,10 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 	M_monodomainExporterPtr.reset(new exporter_Type() );
 	M_monodomainPtr -> setupExporter(*M_monodomainExporterPtr, "ElectroOutput", dir);
 	M_activationExporterPtr.reset(new exporter_Type() );
-	M_activationPtr -> setupExporter(*M_activationExporterPtr, comm, dir);
+	M_activationPtr -> setupExporter(*M_activationExporterPtr, M_comm, dir);
 
 	M_solidExporterPtr.reset(new exporter_Type() );
-	M_solidExporterPtr -> setMeshProcId( M_solidPtr -> mesh(), comm->MyPID());
+	M_solidExporterPtr -> setMeshProcId( M_solidPtr -> mesh(), M_comm->MyPID());
 	M_solidExporterPtr -> setPrefix( "StructureOutput" );
 	M_solidExporterPtr -> setPostDir ( dir );
 	M_solidExporterPtr -> addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "displacement", M_solidPtr -> dispFESpacePtr(), M_solidPtr -> displacementPtr(), UInt (0) );
@@ -855,7 +1021,7 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 	if(M_usingDifferentMeshes)
 	{
 		FESpacePtr_Type gfSolidFESpace ( new FESpace_Type ( M_solidPtr -> dispFESpace().mesh(),
-															"P1", 	1,   comm ) );
+															"P1", 	1,  M_comm) );
 		M_solidExporterPtr -> addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField,
 											"gammaf",
 											gfSolidFESpace,
@@ -863,7 +1029,7 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 											UInt (0) );
 
 		FESpacePtr_Type displacementMonodomainFESpace ( new FESpace_Type ( M_monodomainPtr -> localMeshPtr(),
-																				"P1", 	3,   comm ) );
+																				"P1", 	3,   M_comm ) );
 		M_monodomainExporterPtr -> addVariable( ExporterData<RegionMesh<LinearTetra> >::VectorField,
 												"interpolated_displacement",
 												displacementMonodomainFESpace,
@@ -873,7 +1039,7 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 
 	if(M_lvPV)
 	{
-	    if ( comm->MyPID() == 0 )
+	    if ( M_comm->MyPID() == 0 )
 	    {
 		std::string outputFile = dir + "/LV_PV.txt";
 		M_lvPVexporter.open( outputFile.c_str() );
@@ -882,7 +1048,7 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 	}
 	if(M_rvPV)
 	{
-	    if ( comm->MyPID() == 0 )
+	    if ( M_comm->MyPID() == 0 )
 	    {
 		std::string outputFile = dir + "/RV_PV.txt";
 		M_rvPVexporter.open( outputFile.c_str() );
@@ -895,7 +1061,7 @@ void EMSolver<Mesh, IonicModel>::setupExporters(commPtr_Type comm, std::string d
 
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::exportSolution(commPtr_Type comm, Real time)
+void EMSolver<Mesh, IonicModel>::exportSolution(Real time)
 {
 	M_monodomainExporterPtr -> postProcess(time);
 	M_activationExporterPtr -> postProcess(time);
@@ -903,14 +1069,14 @@ void EMSolver<Mesh, IonicModel>::exportSolution(commPtr_Type comm, Real time)
 
 	if(M_lvPV)
 	{
-	    if ( comm->MyPID() == 0 )
+	    if ( M_comm->MyPID() == 0 )
 	    {
 		M_lvPVexporter << time << ", " << - M_lvPressure  * 3 / 4 << ", " << M_lvVolume << "\n";
 	    }
 	}
 	if(M_rvPV)
 	{
-	    if ( comm->MyPID() == 0 )
+	    if ( M_comm->MyPID() == 0 )
 	    {
 		M_rvPVexporter << time << ", " << - M_rvPressure * 3 / 4 << ", " << M_rvVolume << "\n";
 	    }
@@ -920,21 +1086,21 @@ void EMSolver<Mesh, IonicModel>::exportSolution(commPtr_Type comm, Real time)
 
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::closeExporters(commPtr_Type comm)
+void EMSolver<Mesh, IonicModel>::closeExporters()
 {
 	M_monodomainExporterPtr -> closeFile();
 	M_activationExporterPtr -> closeFile();
 	M_solidExporterPtr -> closeFile();
 	if(M_lvPV)
 	{
-	    if ( comm->MyPID() == 0 )
+	    if ( M_comm->MyPID() == 0 )
 	    {
 		M_lvPVexporter.close();
 	    }
 	}
 	if(M_rvPV)
 	{
-	    if ( comm->MyPID() == 0 )
+	    if ( M_comm->MyPID() == 0 )
 	    {
 		M_rvPVexporter.close();
 	    }
@@ -1037,7 +1203,7 @@ void EMSolver<Mesh, IonicModel>::createReferencePositionVector()
 }
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::setupBC(commPtr_Type comm,  const std::string data_file_name, map_Type map   )
+void EMSolver<Mesh, IonicModel>::setupBC( const std::string data_file_name, map_Type map   )
 {
 	GetPot dataFile(data_file_name);
     M_solidBCPtr.reset( new bcInterface_Type() );
@@ -1048,7 +1214,7 @@ void EMSolver<Mesh, IonicModel>::setupBC(commPtr_Type comm,  const std::string d
 //	UInt pippo = dataFile.vector_variable_size ( ( "/" + "/" + subSection + "/list" ).data() )
 	if(lvFlagsNumber == 0)
 	{
-		if(comm->MyPID() ==0)
+		if(M_comm->MyPID() ==0)
 		std::cout << "\nWARNING: You have not set the LV Flags!\n";
 	}
 	else
@@ -1061,7 +1227,7 @@ void EMSolver<Mesh, IonicModel>::setupBC(commPtr_Type comm,  const std::string d
 	UInt rvFlagsNumber = dataFile.vector_variable_size ( "solid/boundary_conditions/rv_flags" );
 	if(rvFlagsNumber == 0)
 	{
-		if(comm->MyPID() ==0)
+		if(M_comm->MyPID() ==0)
 		std::cout << "\nWARNING: You have not set the RV Flags!\n";
 	}
 	else
@@ -1075,10 +1241,10 @@ void EMSolver<Mesh, IonicModel>::setupBC(commPtr_Type comm,  const std::string d
 
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::exportSolidFibersDirection(commPtr_Type comm, std::string dir )
+void EMSolver<Mesh, IonicModel>::exportSolidFibersDirection(std::string dir )
 {
 	exporter_Type exp;
-	exp.setMeshProcId( M_solidPtr -> mesh(), comm->MyPID());
+	exp.setMeshProcId( M_solidPtr -> mesh(), M_comm->MyPID());
 	exp.setPostDir ( dir );
 	exp.setPrefix("SolidFibesrDirection");
 	exp.addVariable(ExporterData<mesh_Type>::VectorField,
@@ -1098,10 +1264,10 @@ void EMSolver<Mesh, IonicModel>::exportMonodomainFibersDirection(std::string dir
 
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::exportSolidSheetsDirection(commPtr_Type comm, std::string dir )
+void EMSolver<Mesh, IonicModel>::exportSolidSheetsDirection(std::string dir )
 {
 	exporter_Type exp;
-	exp.setMeshProcId( M_solidPtr -> mesh(), comm->MyPID());
+	exp.setMeshProcId( M_solidPtr -> mesh(), M_comm->MyPID());
 	exp.setPostDir ( dir );
 	exp.setPrefix("SolidSheetsDirection");
 	exp.addVariable(ExporterData<mesh_Type>::VectorField,
@@ -1113,19 +1279,19 @@ void EMSolver<Mesh, IonicModel>::exportSolidSheetsDirection(commPtr_Type comm, s
 }
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::exportFibersAndSheetsFields(commPtr_Type comm, std::string dir )
+void EMSolver<Mesh, IonicModel>::exportFibersAndSheetsFields(std::string dir )
 {
-	exportSolidSheetsDirection( comm, dir);
-	exportSolidFibersDirection( comm, dir);
+	exportSolidSheetsDirection( dir);
+	exportSolidFibersDirection(dir);
 	exportMonodomainFibersDirection(dir);
 }
 
 
 template<typename Mesh, typename IonicModel>
-void EMSolver<Mesh, IonicModel>::exportActivationTime(commPtr_Type comm, std::string dir )
+void EMSolver<Mesh, IonicModel>::exportActivationTime(std::string dir )
 {
 	exporter_Type exp;
-	exp.setMeshProcId( M_monodomainPtr -> localMeshPtr(), comm->MyPID());
+	exp.setMeshProcId( M_monodomainPtr -> localMeshPtr(), M_comm->MyPID());
 	exp.setPostDir ( dir );
 	exp.setPrefix("ActivationTime");
 	exp.addVariable(ExporterData<mesh_Type>::ScalarField,
