@@ -1216,7 +1216,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup(std::string meshName,
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 
-	*M_massMatrixPtr *= 0.0;
+
 	if(M_lumpedMassMatrix)
 	{
 		if (M_displacementPtr)
@@ -1228,7 +1228,9 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 	{
 		if (M_displacementPtr)
 			setupMassMatrix(*M_displacementPtr);
-		else {
+		else
+		{
+			*M_massMatrixPtr *= 0.0;
 			if (M_localMeshPtr->comm()->MyPID() == 0) {
 				std::cout << "\nETA Monodomain Solver: Setting up mass matrix";
 			}
@@ -1252,9 +1254,11 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix(
 	if (M_commPtr->MyPID() == 0) {
 		std::cout << "\nETA Monodomain Solver: Setting up mass matrix with coupling with mechanics ";
 	}
+
+	*M_massMatrixPtr *= 0.0;
 	ETFESpaceVectorialPtr_Type spaceVectorial(
-					new ETFESpaceVectorial_Type(M_localMeshPtr, &feTetraP1,
-							M_commPtr));
+			new ETFESpaceVectorial_Type(M_localMeshPtr, &feTetraP1, M_commPtr));
+
 	{
 		using namespace ExpressionAssembly;
 
@@ -1276,10 +1280,12 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix() {
 	M_lumpedMassMatrix = true;
 	if (M_displacementPtr)
 		setupLumpedMassMatrix(*M_displacementPtr);
-	else {
-		if (M_localMeshPtr->comm()->MyPID() == 0) {
-			std::cout
-					<< "\nETA Monodomain Solver: Setting up lumped mass matrix";
+	else
+	{
+		*M_massMatrixPtr *= 0.0;
+		if (M_localMeshPtr->comm()->MyPID() == 0)
+		{
+			std::cout << "\nETA Monodomain Solver: Setting up lumped mass matrix";
 		}
 		{
 			using namespace ExpressionAssembly;
@@ -1298,6 +1304,7 @@ template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix(
 		vector_Type& disp) {
 
+	*M_massMatrixPtr *= 0.0;
 	boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > vectorialSpace(
 			new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
 					3, M_commPtr));
@@ -1352,7 +1359,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix(
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix() {
-	*M_stiffnessMatrixPtr *= 0.0;
+
 	if (M_displacementPtr)
 		setupStiffnessMatrix(M_displacementPtr);
 	else
@@ -1367,44 +1374,30 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 				<< "\nETA Monodomain Solver: Setting up stiffness matrix (only fiber field)";
 	}
 
+	*M_stiffnessMatrixPtr *= 0.0;
+	Real sigmal = M_diffusionTensor[0];
+	Real sigmat = M_diffusionTensor[1];
+
+	ETFESpaceVectorialPtr_Type spaceVectorial(
+			new ETFESpaceVectorial_Type(M_localMeshPtr, &feTetraP1, M_commPtr));
+
 	{
 		using namespace ExpressionAssembly;
-//
-//		integrate(elements(M_localMeshPtr), M_feSpacePtr -> qr(), M_ETFESpacePtr,
-//				M_ETFESpacePtr,
-//				dot(
-//						rotate(M_ETFESpacePtr, *M_fiberPtr, diffusion)
-//								* grad(phi_i), grad(phi_j)))
-//				>> M_stiffnessMatrixPtr;
-		Real sigmal = diffusion[0];
-		Real sigmat = diffusion[1];
 
-		MatrixSmall<3, 3> Id;
-		Id(0, 0) = 1.;
-		Id(0, 1) = 0., Id(0, 2) = 0.;
-		Id(1, 0) = 0.;
-		Id(1, 1) = 1., Id(1, 2) = 0.;
-		Id(2, 0) = 0.;
-		Id(2, 1) = 0., Id(2, 2) = 1.;
-
-		ETFESpaceVectorialPtr_Type spaceVectorial(
-				new ETFESpaceVectorial_Type(M_localMeshPtr, &feTetraP1,
-						M_commPtr));
+		BOOST_AUTO_TPL(I, value(M_identity));
+		BOOST_AUTO_TPL(f0, value(spaceVectorial, *M_fiberPtr));
+		BOOST_AUTO_TPL(D,
+				value(sigmat) * I
+						+ (value(sigmal) - value(sigmat))
+								* outerProduct(f0, f0));
 
 		integrate(elements(M_localMeshPtr), M_feSpacePtr->qr(), M_ETFESpacePtr,
 				M_ETFESpacePtr,
-				dot(
-						(value(sigmat) * value(Id)
-								+ (value(sigmal) - value(sigmat))
-										* outerProduct(
-												value(spaceVectorial,
-														*M_fiberPtr),
-												value(spaceVectorial,
-														*M_fiberPtr)))
-								* grad(phi_i), grad(phi_j)))
+				dot( D * grad(phi_i), grad(phi_j)))
 				>> M_stiffnessMatrixPtr;
 
 	}
+
 	M_stiffnessMatrixPtr->globalAssemble();
 }
 
@@ -1415,6 +1408,8 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 		std::cout
 				<< "\nETA Monodomain Solver: Setting up stiffness matrix  coupling with mechanics";
 	}
+
+	*M_stiffnessMatrixPtr *= 0.0;
 	Real sigmal = M_diffusionTensor[0];
 	Real sigmat = M_diffusionTensor[1];
 

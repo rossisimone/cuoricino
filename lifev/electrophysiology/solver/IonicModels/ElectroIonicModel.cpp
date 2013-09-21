@@ -424,6 +424,7 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
             ( * ( rhs.at (0) ) ).sumIntoGlobalValues (ig,  elvec_Iion.vec() [i] );
         }
     }
+    rhs.at (0) -> globalAssemble();
 }
 
 
