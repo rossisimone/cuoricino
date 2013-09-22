@@ -241,6 +241,12 @@ public:
 				std::string parameterListName = "ParamList.xml");
 
 	void setupMonodomainMatrix(Teuchos::ParameterList& parameterList);
+	
+	void setupProjectionSolver(GetPot& dataFile, commPtr_Type comm);
+
+	void setupProjectionRhs();
+
+	void projection();
 
 	void updateMonodomainMatrix();
 
@@ -437,6 +443,10 @@ public:
 
     commPtr_Type				M_comm;
 
+    matrixPtr_Type				M_projectionMassMatrix;
+	vectorPtr_Type				M_projectionRhs;
+    basePrecPtr_Type 			M_precPtr;
+	linearSolver_Type 			M_projectionSolver;
 
 private:
 //    void initSolid();
@@ -483,7 +493,11 @@ EMSolver<Mesh, IonicModel>::EMSolver():
     M_lvPositionVectorPtr(),
     M_rvPositionVectorPtr(),
     M_oneWayCoupling(false),
-    M_comm()
+    M_comm(),
+    M_projectionMassMatrix(),
+    M_projectionRhs(),
+    M_precPtr(),
+    M_projectionSolver()
 	{}
 
 template<typename Mesh, typename IonicModel>
@@ -785,6 +799,34 @@ void EMSolver<Mesh, IonicModel>::setup(Teuchos::ParameterList& parameterList,
 }
 
 template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::setupProjectionSolver(GetPot& dataFile, commPtr_Type comm)
+{
+	if(M_comm -> MyPID() ==0)
+	{
+		std::cout<< "\nEM Solver: Setting L2 projection Linear Solver";
+	}
+	prec_Type* precRawPtr;
+	precRawPtr = new prec_Type;
+	precRawPtr->setDataFromGetPot(dataFile, "prec");
+	M_precPtr.reset(precRawPtr);
+
+	Teuchos::RCP < Teuchos::ParameterList > solverParamList = Teuchos::rcp(
+			new Teuchos::ParameterList);
+
+	std::string xmlpath = dataFile("activation/activation_xml_path",
+			"./");
+	std::string xmlfile = dataFile("activation/activation_xml_file",
+			"ParamList.xml");
+
+	solverParamList = Teuchos::getParametersFromXmlFile(xmlpath + xmlfile);
+	//linearSolver_Type linearSolver;
+    M_projectionSolver.setCommunicator ( comm );
+    M_projectionSolver.setParameters ( *solverParamList );
+    M_projectionSolver.setPreconditioner ( M_precPtr );
+    M_projectionSolver.setOperator( M_projectionMassMatrix );
+}
+
+template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::setupMonodomainMatrix(Teuchos::ParameterList& parameterList)
 {
     M_monodomainPtr -> setupMassMatrix();
@@ -823,9 +865,11 @@ void EMSolver<Mesh, IonicModel>::updateSolid()
 {
 	if(M_usingDifferentMeshes)
 	{
-	M_F2CPtr -> updateRhs( M_activationPtr -> gammafPtr() );
-	M_F2CPtr -> interpolate();
-	M_F2CPtr -> solution(  M_activationSolidPtr );
+//	M_F2CPtr -> updateRhs( M_activationPtr -> gammafPtr() );
+//	M_F2CPtr -> interpolate();
+//	M_F2CPtr -> solution(  M_activationSolidPtr );
+	setupProjectionRhs();
+	projection();
 	}
 
 	M_solidPtr -> material() -> setGammaf( *M_activationSolidPtr );
@@ -1367,7 +1411,7 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 	flags[0] = -1;
 
 	std::string c2f = parameterList.get ("c2f", "RBFrescaledVectorial");
-	if(M_monodomainPtr -> commPtr() -> MyPID() == 0)
+	if(M_comm -> MyPID() == 0)
 	{
 		std::cout << "\nINTERPOLATION C2F: from coarse to fine using " << c2f;
 	}
@@ -1386,38 +1430,98 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 
 
 
-	std::string f2c = parameterList.get ("f2c", "RBFrescaledScalar");
-	if(M_monodomainPtr -> commPtr() -> MyPID() == 0)
-	{
-		std::cout << "\nINTERPOLATION F2C: from fine to coarse using " << f2c;
-	}
-	M_F2CPtr.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( f2c ) );
-	M_F2CPtr->setup( M_monodomainPtr -> fullMeshPtr(),
-				  M_monodomainPtr -> localMeshPtr(),
-				  M_fullSolidMesh,
-				  M_solidPtr -> mesh(),
-				  flags);
-	//WARNING
-	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! Setting the Radius of interpolation using the full monodomain mesh.");
-	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! You shoul use the full activation mesh, but it's not coded yet...\n");
+//	std::string f2c = parameterList.get ("f2c", "RBFrescaledScalar");
+//	if(M_monodomainPtr -> commPtr() -> MyPID() == 0)
+//	{
+//		std::cout << "\nINTERPOLATION F2C: from fine to coarse using " << f2c;
+//	}
+//	M_F2CPtr.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( f2c ) );
+//	M_F2CPtr->setup( M_monodomainPtr -> fullMeshPtr(),
+//				  M_monodomainPtr -> localMeshPtr(),
+//				  M_fullSolidMesh,
+//				  M_solidPtr -> mesh(),
+//				  flags);
+//	//WARNING
+//	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! Setting the Radius of interpolation using the full monodomain mesh.");
+//	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! You shoul use the full activation mesh, but it's not coded yet...\n");
+//
+//
+//	M_F2CPtr -> setRadius( 1.5 * (double) MeshUtility::MeshStatistics::computeSize (* ( M_monodomainPtr -> fullMeshPtr()) ).maxH );
+//	//M_F2CPtr -> setRadius( (double) MeshUtility::MeshStatistics::computeSize (* (M_fullSolidMesh) ).maxH );
+//	M_F2CPtr -> setupRBFData ( M_activationPtr -> gammafPtr(), M_activationSolidPtr , dataFile, belosList);
+//	//if(c2f == "RBFscalar") M_F2CPtr->setBasis("TPS");
+//	M_F2CPtr -> buildOperators();
+//	M_F2CPtr->interpolate();
+//	M_F2CPtr->solution (M_activationSolidPtr);
 
 
-	M_F2CPtr -> setRadius( 1.5 * (double) MeshUtility::MeshStatistics::computeSize (* ( M_monodomainPtr -> fullMeshPtr()) ).maxH );
-	//M_F2CPtr -> setRadius( (double) MeshUtility::MeshStatistics::computeSize (* (M_fullSolidMesh) ).maxH );
-	M_F2CPtr -> setupRBFData ( M_activationPtr -> gammafPtr(), M_activationSolidPtr , dataFile, belosList);
-	//if(c2f == "RBFscalar") M_F2CPtr->setBasis("TPS");
-	M_F2CPtr -> buildOperators();
-	M_F2CPtr->interpolate();
-	M_F2CPtr->solution (M_activationSolidPtr);
+
+	M_projectionMassMatrix.reset(new matrix_Type(  M_solidPtr -> material() -> activationSpace() -> map() ) ) ;
+  	{
+  		using namespace ExpressionAssembly;
+
+  		integrate( elements( M_solidPtr -> mesh() ),
+  					M_activationPtr -> FESpacePtr() -> qr(),
+  					M_solidPtr -> material() -> activationSpace(),
+  					M_solidPtr -> material() -> activationSpace(),
+  					phi_i * phi_j ) >> M_projectionMassMatrix;
+
+  	}
+  	std::cout << "\nProjection Mass Matrix Assembled!!!\n";
+  	M_projectionMassMatrix -> globalAssemble();
 
 
+  	setupProjectionSolver(dataFile,M_comm);
+  	setupProjectionRhs();
+ //   cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+//	M_projectionMassMatrix ->  spy("l2proj");
+//	std::cout << "\n Projection Rhs SIZE: " << M_projectionRhs ->  size();
+//	std::cout << "\n Projection Rhs NORM2: " << M_projectionRhs -> norm2();
+ //   cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
-    cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-	std::cout << "\n Activation Solid NORM2: " << M_activationSolidPtr -> norm2();
-    cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+  	projection();
 
 }
 
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::setupProjectionRhs()
+{
+
+	vectorPtr_Type tmpRhs( new vector_Type( M_solidPtr -> material() -> activationSpace() -> map(), Repeated ) );
+
+	if(M_activationPtr -> gammafPtr())
+	{
+	  	{
+	  		using namespace ExpressionAssembly;
+
+	  		integrate( elements( M_solidPtr -> mesh() ),
+	  					M_activationPtr -> FESpacePtr() -> qr(),
+	  					M_solidPtr -> material() -> activationSpace(),
+	  					value(M_activationPtr -> ETFESpacePtr(), M_activationPtr -> gammaf() ) * phi_i  ) >> tmpRhs;
+
+	  	}
+	}
+	else
+		*tmpRhs *= 0.0;
+
+
+	M_projectionRhs.reset( new vector_Type( *tmpRhs, Unique ) );
+
+  	//std::cout << "\nProjection rhs vector Assembled!!!\n";
+  	M_projectionRhs -> globalAssemble();
+	M_projectionSolver.setRightHandSide(M_projectionRhs);
+}
+
+template<typename Mesh, typename IonicModel>
+void EMSolver<Mesh, IonicModel>::projection()
+{
+	if(M_comm -> MyPID() == 0)
+	{
+		std::cout << "\n L2 projection: Solving";
+	}
+
+	M_projectionSolver.solve(M_activationSolidPtr);
+}
 
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::createPositionVector(Real nx, Real ny, Real nz, std::vector<UInt> flags, vector_Type& vec)
