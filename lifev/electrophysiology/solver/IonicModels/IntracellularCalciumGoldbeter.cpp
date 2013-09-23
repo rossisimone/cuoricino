@@ -128,8 +128,8 @@ void IntracellularCalciumGoldbeter::computeGatingRhs (    const   std::vector<Re
                                          std::vector<Real>& rhs )
 {
 
-  Real dr = M_nu2 * (v[0]**2.0) / (M_k2 + (v[0]**2.0)) - M_nu3 * (v[0]**4.0) * (v[1]**2.0) / 
-    ((M_k3 + (v[1]**2.0))*(M_k4+(v[0]**4.0))) - M_nu5 * v[1];
+  Real dr = M_nu2 * std::pow( v[0], 2.0) / (M_k2 + std::pow(v[0],2.0)) - M_nu3 * std::pow(v[0],4.0) * std::pow(v[1],2.0) / 
+    ((M_k3 + std::pow(v[1],2.0))*(M_k4+std::pow(v[0],4.0))) - M_nu5 * v[1];
 
   rhs[0] = dr;
 
@@ -140,10 +140,10 @@ void IntracellularCalciumGoldbeter::computeRhs (    const   std::vector<Real>&  
                                          std::vector<Real>& rhs )
 {
 
-    Real dr = M_nu2 * (v[0]**2.0) / (M_k2 + (v[0]**2.0)) - M_nu3 * (v[0]**4.0) * (v[1]**2.0) / 
-    ((M_k3 + (v[1]**2.0))*(M_k4+(v[0]**4.0))) - M_nu5 * v[1];
-    Real dV = M_nu1 - M_nu2 * (v[0]**2.0) / (M_k2 + (v[0]**2.0)) + M_nu3 * (v[0]**4.0) * (v[1]**2.0) / 
-    ((M_k3 + (v[1]**2.0))*(M_k4+(v[0]**4.0))) - M_nu4 * v[0];
+  Real dr = M_nu2 * std::pow(v[0],2.0) / (M_k2 + std::pow(v[0],2.0)) - M_nu3 * std::pow(v[0],4.0) * std::pow(v[1],2.0) / 
+    ((M_k3 + std::pow(v[1],2.0))*(M_k4+std::pow(v[0],4.0))) - M_nu5 * v[1];
+  Real dV = M_nu1 - M_nu2 * std::pow(v[0],2.0) / (M_k2 + std::pow(v[0],2.0)) + M_nu3 * std::pow(v[0],4.0) * std::pow(v[1],2.0) / 
+    ((M_k3 + std::pow(v[1],2.0))*(M_k4+std::pow(v[0],4.0))) - M_nu4 * v[0];
 
     rhs[0] = dV;
     rhs[1] = dr;
@@ -153,8 +153,8 @@ void IntracellularCalciumGoldbeter::computeRhs (    const   std::vector<Real>&  
 
 Real IntracellularCalciumGoldbeter::computeLocalPotentialRhs ( const std::vector<Real>& v )
 {
-    return (M_nu1 - M_nu2 * (v[0]**2.0) / (M_k2 + (v[0]**2.0)) + M_nu3 * (v[0]**4.0) * (v[1]**2.0) / 
-    ((M_k3 + (v[1]**2.0))*(M_k4+(v[0]**4.0))) - M_nu4 * v[0] );
+  return (M_nu1 - M_nu2 * std::pow(v[0],2.0) / (M_k2 + std::pow(v[0],2.0)) + M_nu3 * std::pow(v[0],4.0) * std::pow(v[1],2.0) / 
+	  ((M_k3 + std::pow(v[1],2.0))*(M_k4+std::pow(v[0],4.0))) - M_nu4 * v[0] );
 }
 
 

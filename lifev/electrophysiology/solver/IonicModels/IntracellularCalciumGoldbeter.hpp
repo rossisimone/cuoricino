@@ -146,7 +146,7 @@ public:
     {
         this->M_nu3       = nu3;
     }
-    inline void setNu3      ( const Real& nu4 )
+    inline void setNu4      ( const Real& nu4 )
     {
         this->M_nu4       = nu4;
     }
