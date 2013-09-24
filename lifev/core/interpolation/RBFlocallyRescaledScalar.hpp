@@ -307,9 +307,9 @@ void RBFlocallyRescaledScalar<mesh_Type>::projectionOperator()
         {
             if ( M_flags[0] == -1 || this->isInside (M_fullMeshKnown->point (j).markerID(), M_flags) )
             {
-                d = std::sqrt ( pow (M_kx[j] - M_ukx[GlobalID[k]], 2)
-                                + pow (M_ky[j] - M_uky[GlobalID[k]], 2)
-                                + pow (M_kz[j] - M_ukz[GlobalID[k]], 2) );
+                d = std::sqrt ( std::pow (M_kx[j] - M_ukx[GlobalID[k]], 2)
+                                + std::pow (M_ky[j] - M_uky[GlobalID[k]], 2)
+                                + std::pow (M_kz[j] - M_ukz[GlobalID[k]], 2) );
                 if (d < d_min)
                 {
                     d_min = d;
