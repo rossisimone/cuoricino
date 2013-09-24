@@ -73,9 +73,6 @@ void EpetraSqrt( VectorEpetra& vec)
 	}
 }
 
-
-//@}
-
 } // namespace EMUtility
 
 } // namespace LifeV
