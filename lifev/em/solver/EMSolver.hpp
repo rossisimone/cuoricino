@@ -72,6 +72,8 @@
 #include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 
 
+#include <lifev/em/solver/EMEvaluate.hpp>
+
 namespace LifeV {
 
 //! EMSolver - Class featuring the solution of the electromechanical problem with monodomain equation
@@ -194,6 +196,9 @@ public:
 	inline bcVectorPtrs_Type	        bcVectorPtrs()       	{ return M_bcVectorPtrs; }
 	inline bool	        			oneWayCoupling()       	{ return M_oneWayCoupling; }
 	inline vectorPtr_Type				activationSolidPtr()		{ return M_activationSolidPtr;}
+	inline FESpacePtr_Type				activationSolidFESpacePtr()		{ return M_solidActivationFESpacePtr;}
+	inline FESpace_Type&				activationSolidFESpace()		{ return *M_solidActivationFESpacePtr;}
+	inline meshPtr_Type					fullSolidMesh()	{ return M_fullSolidMesh; }
 
 	inline void setMonodomainPtr(monodomainSolverPtr_Type p) { M_monodomainPtr = p;}
 	inline void setMonodomainPtr(monodomainSolver_Type& p)   { *M_monodomainPtr = p;}
@@ -448,6 +453,9 @@ public:
     basePrecPtr_Type 			M_precPtr;
 	linearSolver_Type 			M_projectionSolver;
 
+	FESpacePtr_Type 			M_solidActivationFESpacePtr;
+
+
 private:
 //    void initSolid();
 //    void initMonodomain();
@@ -497,7 +505,8 @@ EMSolver<Mesh, IonicModel>::EMSolver():
     M_projectionMassMatrix(),
     M_projectionRhs(),
     M_precPtr(),
-    M_projectionSolver()
+    M_projectionSolver(),
+    M_solidActivationFESpacePtr()
 	{}
 
 template<typename Mesh, typename IonicModel>
@@ -630,9 +639,11 @@ EMSolver<Mesh, IonicModel>::EMSolver( 	Teuchos::ParameterList& parameterList,
 	}
     M_activationPtr.reset( new activeStrain_Type(parameterList, dataFile, M_monodomainPtr -> localMeshPtr(), comm) );
 
-
     M_activationTimePtr.reset(new vector_Type( M_monodomainPtr -> feSpacePtr() -> map() ) );
     *M_activationTimePtr = -1.0;
+
+
+
 }
 
 
@@ -865,11 +876,21 @@ void EMSolver<Mesh, IonicModel>::updateSolid()
 {
 	if(M_usingDifferentMeshes)
 	{
-//	M_F2CPtr -> updateRhs( M_activationPtr -> gammafPtr() );
-//	M_F2CPtr -> interpolate();
-//	M_F2CPtr -> solution(  M_activationSolidPtr );
-	setupProjectionRhs();
-	projection();
+//		if(M_F2CPtr)
+//		{
+	M_F2CPtr -> updateRhs( M_activationPtr -> gammafPtr() );
+	M_F2CPtr -> interpolate();
+	M_F2CPtr -> solution(  M_activationSolidPtr );
+
+//	setupProjectionRhs();
+//	projection();
+//		}
+//		else
+//		{
+//	//	feToFEInterpolate
+//		EMEvaluate utility;
+//		utility.evaluate(M_activationPtr -> gammaf(), *M_activationSolidPtr, *(M_activationPtr ->FESpacePtr()), *M_solidActivationFESpacePtr, *M_fullSolidMesh);
+//		}
 	}
 
 	M_solidPtr -> material() -> setGammaf( *M_activationSolidPtr );
@@ -1391,6 +1412,9 @@ void EMSolver<Mesh, IonicModel>::setFibersAndSheets(Teuchos::ParameterList& para
 
 	std::cout << "\nImporting Monodomain Fibers\n\n";
 	importMonodomainFibers(parameterList);
+
+
+    M_activationPtr -> setFiberPtr( M_monodomainPtr -> fiberPtr() );
 }
 
 template<typename Mesh, typename IonicModel>
@@ -1403,6 +1427,8 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 //		std::cout << "\n Activation Solid NORM2: " << M_activationSolidPtr -> norm2();
 //        cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 //	}
+
+
 	Teuchos::RCP< Teuchos::ParameterList > belosList = Teuchos::rcp ( new Teuchos::ParameterList );
 	belosList = Teuchos::getParametersFromXmlFile ( parameterListName );
 
@@ -1429,57 +1455,59 @@ void EMSolver<Mesh, IonicModel>::setupInterpolants(std::string parameterListName
 	M_C2FPtr->solution (M_monodomainDisplacementPtr);
 
 
+////////////////////////////////////////////////////////////////////////////////
+	std::string f2c = parameterList.get ("f2c", "RBFrescaledScalar");
+	if(M_monodomainPtr -> commPtr() -> MyPID() == 0)
+	{
+		std::cout << "\nINTERPOLATION F2C: from fine to coarse using " << f2c;
+	}
 
-//	std::string f2c = parameterList.get ("f2c", "RBFrescaledScalar");
-//	if(M_monodomainPtr -> commPtr() -> MyPID() == 0)
-//	{
-//		std::cout << "\nINTERPOLATION F2C: from fine to coarse using " << f2c;
-//	}
-//	M_F2CPtr.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( f2c ) );
-//	M_F2CPtr->setup( M_monodomainPtr -> fullMeshPtr(),
-//				  M_monodomainPtr -> localMeshPtr(),
-//				  M_fullSolidMesh,
-//				  M_solidPtr -> mesh(),
-//				  flags);
-//	//WARNING
-//	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! Setting the Radius of interpolation using the full monodomain mesh.");
-//	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! You shoul use the full activation mesh, but it's not coded yet...\n");
+	M_F2CPtr.reset ( interpolation_Type::InterpolationFactory::instance().createObject ( f2c ) );
+	M_F2CPtr->setup( M_monodomainPtr -> fullMeshPtr(),
+				  M_monodomainPtr -> localMeshPtr(),
+				  M_fullSolidMesh,
+				  M_solidPtr -> mesh(),
+				  flags);
+	//WARNING
+	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! Setting the Radius of interpolation using the full monodomain mesh.");
+	M_solidPtr -> displayer().leaderPrint("\nWARNING!!! You shoul use the full activation mesh, but it's not coded yet...\n");
+
+
+	M_F2CPtr -> setRadius( (double) MeshUtility::MeshStatistics::computeSize (* ( M_monodomainPtr -> fullMeshPtr()) ).maxH );
+	M_F2CPtr -> setupRBFData ( M_activationPtr -> gammafPtr(), M_activationSolidPtr , dataFile, belosList);
+	M_F2CPtr -> buildOperators();
+	M_F2CPtr->interpolate();
+	M_F2CPtr->solution (M_activationSolidPtr);
+	
+////////////////////////////////////////////////////////////////////////////////
+
+
+
+//	M_projectionMassMatrix.reset(new matrix_Type(  M_solidPtr -> material() -> activationSpace() -> map() ) ) ;
+//  	{
+//  		using namespace ExpressionAssembly;
 //
+//  		integrate( elements( M_solidPtr -> mesh() ),
+//  					M_activationPtr -> FESpacePtr() -> qr(),
+//  					M_solidPtr -> material() -> activationSpace(),
+//  					M_solidPtr -> material() -> activationSpace(),
+//  					phi_i * phi_j ) >> M_projectionMassMatrix;
 //
-//	M_F2CPtr -> setRadius( 1.5 * (double) MeshUtility::MeshStatistics::computeSize (* ( M_monodomainPtr -> fullMeshPtr()) ).maxH );
-//	//M_F2CPtr -> setRadius( (double) MeshUtility::MeshStatistics::computeSize (* (M_fullSolidMesh) ).maxH );
-//	M_F2CPtr -> setupRBFData ( M_activationPtr -> gammafPtr(), M_activationSolidPtr , dataFile, belosList);
-//	//if(c2f == "RBFscalar") M_F2CPtr->setBasis("TPS");
-//	M_F2CPtr -> buildOperators();
-//	M_F2CPtr->interpolate();
-//	M_F2CPtr->solution (M_activationSolidPtr);
+//  	}
+//  	std::cout << "\nProjection Mass Matrix Assembled!!!\n";
+//  	M_projectionMassMatrix -> globalAssemble();
 
 
-
-	M_projectionMassMatrix.reset(new matrix_Type(  M_solidPtr -> material() -> activationSpace() -> map() ) ) ;
-  	{
-  		using namespace ExpressionAssembly;
-
-  		integrate( elements( M_solidPtr -> mesh() ),
-  					M_activationPtr -> FESpacePtr() -> qr(),
-  					M_solidPtr -> material() -> activationSpace(),
-  					M_solidPtr -> material() -> activationSpace(),
-  					phi_i * phi_j ) >> M_projectionMassMatrix;
-
-  	}
-  	std::cout << "\nProjection Mass Matrix Assembled!!!\n";
-  	M_projectionMassMatrix -> globalAssemble();
-
-
-  	setupProjectionSolver(dataFile,M_comm);
-  	setupProjectionRhs();
+//  	setupProjectionSolver(dataFile,M_comm);
+//  	setupProjectionRhs();
  //   cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 //	M_projectionMassMatrix ->  spy("l2proj");
 //	std::cout << "\n Projection Rhs SIZE: " << M_projectionRhs ->  size();
 //	std::cout << "\n Projection Rhs NORM2: " << M_projectionRhs -> norm2();
  //   cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
 
-  	projection();
+//  	projection();
+//  	M_solidActivationFESpacePtr.reset(new FESpace_Type(M_solidPtr -> mesh(), "P1" , 1, M_comm) );
 
 }
 
