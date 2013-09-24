@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
 
     emSolverPtr -> setFibersAndSheets(monodomainList);
 
-	emSolverPtr -> exportFibersAndSheetsFields( comm, problemFolder);
+	emSolverPtr -> exportFibersAndSheetsFields( problemFolder);
     if ( comm->MyPID() == 0 )
     {
         if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: fibers";
@@ -197,14 +197,19 @@ int main(int argc, char** argv) {
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
-    emSolverPtr -> setup(monodomainList, data_file_name, comm);
 
-	emSolverPtr -> setupExporters(comm, problemFolder);
+    emSolverPtr -> setup(monodomainList, data_file_name);
+
+    {
+        cout << "\nPointer 2:  " << emSolverPtr -> activationPtr() -> gammafPtr() ;
+    }
+
+	emSolverPtr -> setupExporters(problemFolder);
     //********************************************//
     // Activation time						      //
     //********************************************//
 	emSolverPtr -> registerActivationTime(0.0, 0.8);
-	emSolverPtr -> exportSolution(comm, 0.0);
+	emSolverPtr -> exportSolution( 0.0);
 
     //********************************************//
     // Solving the system                         //
@@ -372,7 +377,7 @@ int main(int argc, char** argv) {
                 cout << "\nExporting solutions";
             }
         	emSolverPtr -> registerActivationTime(t, 0.8);
-        	emSolverPtr -> exportSolution(comm, t);
+        	emSolverPtr -> exportSolution(t);
         }
 
     }
@@ -382,9 +387,9 @@ int main(int argc, char** argv) {
         cout << "\nExporting Activation Time";
     }
 
-	emSolverPtr -> exportActivationTime(comm, problemFolder);
+	emSolverPtr -> exportActivationTime(problemFolder);
 
-	emSolverPtr -> closeExporters(comm);
+	emSolverPtr -> closeExporters();
     if ( comm->MyPID() == 0 )
           std::cout << "\nExporting fibers: " << std::endl;
 
@@ -393,27 +398,7 @@ int main(int argc, char** argv) {
     //********************************************//
     emSolverPtr -> monodomainPtr() -> exportFiberDirection(problemFolder);
 
-
-//    if ( comm->MyPID() == 0 )
-//    {
-//    	chronoinitialsettings.stop();
-//    	std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
-//        if( solutionMethod == "splitting" )
-//        {
-//			std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
-//			std::cout<<"Reaction time : "<<timeReac<<std::endl;
-//        }
-//        else if( solutionMethod == "ICI" )
-//        {
-//        	std::cout<<"Solution time : "<<timeReacDiff<<std::endl;
-//        }
-//        else if( solutionMethod == "SVI" )
-//        {
-//        	std::cout<<"Solution time : "<<timeReacDiff<<std::endl;
-//        }
-
-        std::cout << "\n\nThank you for using EMSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
- //   }
+    std::cout << "\n\nThank you for using EMSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
 
 #ifdef HAVE_MPI
 	MPI_Finalize();
