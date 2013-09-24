@@ -1,5 +1,6 @@
 SET(solver_HEADERS
   solver/EMActiveStrainSolver.hpp
+  solver/EMEvaluate.hpp
   solver/EMSolver.hpp
   solver/EMETAFunctors.hpp
 CACHE INTERNAL "")
