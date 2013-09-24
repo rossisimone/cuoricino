@@ -541,9 +541,14 @@ template<typename Mesh>
 void EMActiveStrainSolver<Mesh>::setupRhs( const vector_Type& disp, solidETFESpacePtr_Type solidETFESpacePtr,
 		const vector_Type& calcium, scalarETFESpacePtr_Type ETFESpacePtr, Real dt)
 {
+	Real maxCa = calcium.maxValue();
+	Real minCa = calcium.minValue();
 	if(M_commPtr->MyPID()==0)
 	{
 		std::cout << "\n Active Strain Solver: Assembling rhs";
+		if(!M_fiberPtr) std::cout << "\n Active Strain Solver: Fibers not set cannot contract";
+		std::cout << "\n Activae Strain Solver: Max Calcium = " << maxCa << ", min Ca2+ : " <<minCa;
+
 	}
 	*M_rhsRepeatedPtr *= 0.0;
 
@@ -593,9 +598,10 @@ void EMActiveStrainSolver<Mesh>::setupRhs( const vector_Type& disp, solidETFESpa
 	//M_rhsRepeatedPtr -> globalAssemble();
 	*M_rhsPtr += ( dt  * *M_rhsRepeatedPtr );
 
-//	M_rhsPtr -> globalAssemble();
+	M_rhsPtr -> globalAssemble();
 //	M_rhsRepeatedPtr.reset( new vector_Type( M_) )
 	M_linearSolver.setRightHandSide(M_rhsPtr);
+
 }
 ///////////////////////////////////////
 //////////////////////////////////////////
@@ -655,6 +661,8 @@ void EMActiveStrainSolver<Mesh>::showMe( commPtr_Type comm )
 		std::cout << "\nActive viscosity: " <<	M_activeViscosity;
 		std::cout << "\nDiastolic calcium: " <<	M_CaDiastolic;
 		std::cout << "\nActive coefficient: " <<	M_activeCoefficient;
+		std::cout << "\nMesh size: " <<	M_meshPtr -> numPoints();
+		std::cout << "\nRHS: " <<	M_rhsPtr -> size();
 		std::cout << "\n==========================================";
 
 	}
