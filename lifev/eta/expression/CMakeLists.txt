@@ -26,6 +26,7 @@ SET(expression_HEADERS
 	expression/EvaluationRotateSmallMatrix.hpp	
 	expression/EvaluationVectorsToMatrix.hpp	
 	expression/EvaluationPower.hpp
+	expression/EvaluationSquareRoot.hpp
 	expression/EvaluationLogarithm.hpp
 	expression/EvaluationExponential.hpp
 	expression/EvaluationNormal.hpp
@@ -65,6 +66,7 @@ SET(expression_HEADERS
 	expression/ExpressionNormal.hpp
 	expression/ExpressionProduct.hpp
 	expression/ExpressionPower.hpp
+	expression/ExpressionSquareRoot.hpp
 	expression/ExpressionLogarithm.hpp
 	expression/ExpressionExponential.hpp
 	expression/ExpressionScalar.hpp

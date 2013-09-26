@@ -51,6 +51,7 @@
 #include <lifev/eta/expression/ExpressionSubstraction.hpp>
 #include <lifev/eta/expression/ExpressionProduct.hpp>
 #include <lifev/eta/expression/ExpressionPower.hpp>
+#include <lifev/eta/expression/ExpressionSquareRoot.hpp>
 #include <lifev/eta/expression/ExpressionLogarithm.hpp>
 #include <lifev/eta/expression/ExpressionExponential.hpp>
 #include <lifev/eta/expression/ExpressionDot.hpp>
@@ -98,6 +99,7 @@
 #include <lifev/eta/expression/EvaluationSubstraction.hpp>
 #include <lifev/eta/expression/EvaluationProduct.hpp>
 #include <lifev/eta/expression/EvaluationPower.hpp>
+#include <lifev/eta/expression/EvaluationSquareRoot.hpp>
 #include <lifev/eta/expression/EvaluationLogarithm.hpp>
 #include <lifev/eta/expression/EvaluationExponential.hpp>
 #include <lifev/eta/expression/EvaluationDot.hpp>
@@ -513,6 +515,19 @@ class ExpressionToEvaluation<ExpressionPower<ExpressionBase>, testDim, solutionD
 {
 public:
     typedef EvaluationPower <
+    typename ExpressionToEvaluation<ExpressionBase, testDim, solutionDim, spaceDim>::evaluation_Type
+    > evaluation_Type;
+private:
+    ExpressionToEvaluation();
+    ~ExpressionToEvaluation();
+};
+
+// Specialized for a power
+template<typename ExpressionBase, UInt testDim, UInt solutionDim, UInt spaceDim>
+class ExpressionToEvaluation<ExpressionSquareRoot<ExpressionBase>, testDim, solutionDim, spaceDim>
+{
+public:
+    typedef EvaluationSquareRoot <
     typename ExpressionToEvaluation<ExpressionBase, testDim, solutionDim, spaceDim>::evaluation_Type
     > evaluation_Type;
 private:

@@ -557,7 +557,7 @@ bool RBFlocallyRescaledVectorial<mesh_Type>::isInside (ID pointMarker, flagConta
 template <typename mesh_Type>
 double RBFlocallyRescaledVectorial<mesh_Type>::rbf (double x1, double y1, double z1, double x2, double y2, double z2, double radius)
 {
-    double distance = sqrt ( std::pow (x1 - x2, 2) + std::pow (y1 - y2, 2) + std::pow (z1 - z2, 2) );
+    double distance = std::sqrt ( std::pow (x1 - x2, 2) + std::pow (y1 - y2, 2) + std::pow (z1 - z2, 2) );
     return std::pow (1 - distance / radius, 4) * (4 * distance / radius + 1);
 }
 
