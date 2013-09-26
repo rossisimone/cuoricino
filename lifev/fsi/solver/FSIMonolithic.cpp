@@ -310,7 +310,7 @@ FSIMonolithic::computeFluidNormals ( vector_Type& normals)
 }
 
 void
-FSIMonolithic::solveJac ( vector_Type& step, const vector_Type& res, const Real /*linearRelTol*/ )
+FSIMonolithic::solveJac ( vector_Type& step, const vector_Type& res, const Real linearRelTol )
 {
     setupBlockPrec( );
 
@@ -323,7 +323,7 @@ FSIMonolithic::solveJac ( vector_Type& step, const vector_Type& res, const Real 
 #ifdef HAVE_LIFEV_DEBUG
     M_solid->displayer().leaderPrint ("  M-  Residual NormInf:                        ", res.normInf(), "\n");
 #endif
-    iterateMonolithic (res, step);
+    iterateMonolithic (res, step, linearRelTol);
 #ifdef HAVE_LIFEV_DEBUG
     M_solid->displayer().leaderPrint ("  M-  Solution NormInf:                        ", step.normInf(), "\n");
 #endif
@@ -342,7 +342,7 @@ FSIMonolithic::updateSystem()
 // Protected Methods
 // ===================================================
 void
-FSIMonolithic::iterateMonolithic (const vector_Type& rhs, vector_Type& step)
+FSIMonolithic::iterateMonolithic (const vector_Type& rhs, vector_Type& step, const Real linearRelTol)
 {
     LifeChrono chrono;
 
@@ -352,7 +352,7 @@ FSIMonolithic::iterateMonolithic (const vector_Type& rhs, vector_Type& step)
     //necessary if we did not imposed Dirichlet b.c.
 
     M_linearSolver->setOperator (*M_monolithicMatrix->matrix()->matrixPtr() );
-
+    M_linearSolver->setTolerance ( linearRelTol );
     M_linearSolver->setReusePreconditioner ( (M_reusePrec) && (!M_resetPrec) );
 
     int numIter = M_precPtr->solveSystem ( rhs, step, M_linearSolver );

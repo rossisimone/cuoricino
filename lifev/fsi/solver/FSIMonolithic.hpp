@@ -503,12 +503,13 @@ protected:
     /**
        \small solves the monolithic system, once a solver, a preconditioner and a rhs have been defined.
      */
-    void iterateMonolithic (const vector_Type& rhs, vector_Type& step);
+    void iterateMonolithic (const vector_Type& rhs, vector_Type& step, const Real linearRelTol);
 
     /**
        \small adds the part due to coupling to the rhs
        \param rhs: right hand side
        \param un: current solution
+       \param linearRelTol: tolerance for the linear solver
      */
     void couplingRhs ( vectorPtr_Type rhs);
 
