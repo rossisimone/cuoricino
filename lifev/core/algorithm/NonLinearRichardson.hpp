@@ -232,13 +232,18 @@ Int NonLinearRichardson ( VectorEpetra& sol,
             {
                 eta_new = std::max<Real> ( eta_new, gamma * eta_old * eta_old );
             }
-            linearRelTol = std::min<Real> ( eta_new, eta_max );
+            linearRelTol = std::min<Real> ( eta_new, eta_old/2. );
             linearRelTol = std::min<Real> ( eta_max,
                                             std::max<Real> ( linearRelTol,
-                                                             .5 * stop_tol / normRes ) );
-            //if ( verboseLevel > 0 )
-            //    std::cout << "    Newton: forcing term eta = " << linearRelTol << std::endl;
-            //std::cout<<"\nVerbose = "<<verboseLevel<<std::endl;
+                                                             .5 * stop_tol * ratio * ratio ) );
+            if ( verboseLevel > 0 )
+            {
+                std::cout << "\n    Newton: eta_max                       = " << eta_max << std::endl;
+                std::cout << "      Newton: forcing term eta              = " << linearRelTol << std::endl;
+                std::cout << "      Newton: ratio                         = " << ratio << std::endl;
+                std::cout << "      Newton: eta_new                       = " << eta_new << std::endl;
+                std::cout << "      Newton: .5 * stop_tol * ratio * ratio = " << .5 * stop_tol * ratio * ratio << std::endl;
+            }
         }
 
     }
