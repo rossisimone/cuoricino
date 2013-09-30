@@ -615,6 +615,11 @@ public:
 			(*(M_globalSolution.at(j))) = (*(p.at(j)));
 		}
 	}
+
+	inline void setVariablePtr(const vectorPtr_Type p, int j) {
+			M_globalSolution.at(j) = p;
+	}
+
 	inline void copyGlobalRhs(const vectorOfPtr_Type& p) {
 		for (int j = 0; j < M_ionicModelPtr->Size(); j++) {
 			(*(M_globalRhs.at(j))) = (*(p.at(j)));
@@ -1173,15 +1178,16 @@ template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup(GetPot& dataFile,
 		short int ionicSize) {
 
-	M_ETFESpacePtr.reset(
-			new ETFESpace_Type(M_localMeshPtr, &feTetraP1, M_commPtr));
+
 //	M_feSpacePtr.reset(
 //			new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
 //					1, M_commPtr));
 	M_feSpacePtr.reset(
 			new feSpace_Type(M_localMeshPtr, M_elementsOrder, 1, M_commPtr));
+	M_ETFESpacePtr.reset(
+			new ETFESpace_Type(M_localMeshPtr, &(M_feSpacePtr -> refFE()) , M_commPtr));
 	M_displacementETFESpacePtr.reset(
-			new ETFESpaceVectorial_Type(M_localMeshPtr, &feTetraP1, M_commPtr));
+			new ETFESpaceVectorial_Type(M_localMeshPtr, &(M_feSpacePtr -> refFE()), M_commPtr));
 	M_massMatrixPtr.reset(new matrix_Type(M_ETFESpacePtr->map()));
 	M_stiffnessMatrixPtr.reset(new matrix_Type(M_ETFESpacePtr->map()));
 	M_globalMatrixPtr.reset(new matrix_Type(M_ETFESpacePtr->map()));
@@ -1257,7 +1263,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix(
 
 	*M_massMatrixPtr *= 0.0;
 	ETFESpaceVectorialPtr_Type spaceVectorial(
-			new ETFESpaceVectorial_Type(M_localMeshPtr, &feTetraP1, M_commPtr));
+			new ETFESpaceVectorial_Type(M_localMeshPtr, &(M_feSpacePtr -> refFE()), M_commPtr));
 
 	{
 		using namespace ExpressionAssembly;
@@ -1379,7 +1385,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 	Real sigmat = M_diffusionTensor[1];
 
 	ETFESpaceVectorialPtr_Type spaceVectorial(
-			new ETFESpaceVectorial_Type(M_localMeshPtr, &feTetraP1, M_commPtr));
+			new ETFESpaceVectorial_Type(M_localMeshPtr, &(M_feSpacePtr -> refFE()), M_commPtr));
 
 	{
 		using namespace ExpressionAssembly;
@@ -1414,7 +1420,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 	Real sigmat = M_diffusionTensor[1];
 
 	ETFESpaceVectorialPtr_Type spaceVectorial(
-			new ETFESpaceVectorial_Type(M_localMeshPtr, &feTetraP1, M_commPtr));
+			new ETFESpaceVectorial_Type(M_localMeshPtr, &(M_feSpacePtr -> refFE()), M_commPtr));
 
 	{
 		using namespace ExpressionAssembly;
