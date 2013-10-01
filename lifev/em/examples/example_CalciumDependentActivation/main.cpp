@@ -198,7 +198,8 @@ int main (int argc, char** argv)
     }
 
   // monodomain -> setPotentialFromFunction( Vlid );
-  HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 53 ); 
+  // Initial calcium spark is applied on the sarcoplasmic reticulum (globalSolution().at(1))
+  HeartUtility::setValueOnBoundary( *(monodomain -> globalSolution().at(1)), monodomain -> fullMeshPtr(), 3.0, 19); 
 
   for(int i(0); i < ionicModel -> Size(); i++ )
     {

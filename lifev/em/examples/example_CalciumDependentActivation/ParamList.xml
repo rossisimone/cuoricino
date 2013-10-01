@@ -8,12 +8,12 @@
     <Parameter name="longitudinalDiffusion" type="double" value="0.06"  />
     <Parameter name="transversalDiffusion" type="double" value="0.03"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="canineBiventricular_rescaled.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/home/ruizbaier/Dropbox/myMeshes/IH_meshes/canineBiventricular/"  />
+    <Parameter name="mesh_name" type="string" value="cylinder_coarse.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/home/ruizbaier/Dropbox/myMeshes/3DSingeCell/"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="true"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>
-    <Parameter name="Silent" type="bool" value="true"/>
+    <Parameter name="Silent" type="bool" value="false"/>
 	<Parameter name="Solver Type" type="string" value="AztecOO"/>
 	<Parameter name="OutputFile" type="string" value="Calcium"/>
 	<Parameter name="OutputTimeSteps" type="string" value="TimeSteps1"/>
