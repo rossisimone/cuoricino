@@ -2,7 +2,6 @@
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IntracellularCalciumGoldbeter.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
-
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
@@ -21,19 +20,7 @@
 using namespace LifeV;
 
 
-Real bcZero (const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real& /*Z*/, const ID& /*i*/)
-{
-  return  0.;
-}
-
-Real initialVlid(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& /*Z*/, const ID& /*i*/)
-{
-  if( X < 0.1 ) return 1.0;
-  else return  0.;
-}
-
-
-Real initialVhumanSphere(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& /*i*/)
+Real initialSphere(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& /*i*/)
 {
 
   double r = std::sqrt(pow(X-6.25,2)+pow(Y-3.75,2)+pow(Z-7.25,2));
@@ -42,37 +29,6 @@ Real initialVhumanSphere(const Real& /*t*/, const Real&  X, const Real& Y, const
   return auxexp;
 }
 
-
-
-Real fiberRotation(const Real& /*t*/, const Real&  X, const Real& Y, const Real& /*Z*/, const ID& i)
-{
-  Real R = std::sqrt( X * X + Y * Y);
-  Real fx =  Y / R;
-  Real fy = - X / R;
-  Real sx = X / R;
-  Real sy = Y / R;
-  Real m = -1.9040;
-  Real q = 3.5224;
-  Real theta = m * R + q;
-
-  switch (i)
-    {
-    case 0:
-      return  fx * std::cos(theta) + fx * sx * sx * ( 1.0  - std::cos(theta) ) + sx * sy * fy * ( 1.0  - std::cos(theta) );
-      break;
-    case 1:
-      return sx * sy * fy *  ( 1.0  - std::cos(theta) ) + fy * std::cos(theta) + fy * sy * sy * ( 1.0  - std::cos(theta) ) ;
-      break;
-    case 2:
-      return sx * fy * std::sin(theta) - sy * fx * std::sin(theta);
-      break;
-    default:
-      ERROR_MSG ("This entry is not allowed: ud_functions.hpp");
-      return 0.;
-      break;
-    }
-
-}
 
 int main (int argc, char** argv)
 {
@@ -199,7 +155,7 @@ int main (int argc, char** argv)
 
   // monodomain -> setPotentialFromFunction( Vlid );
   // Initial calcium spark is applied on the sarcoplasmic reticulum (globalSolution().at(1))
-  HeartUtility::setValueOnBoundary( *(monodomain -> globalSolution().at(1)), monodomain -> fullMeshPtr(), 3.0, 19); 
+  HeartUtility::setValueOnBoundary( *(monodomain -> globalSolution().at(1)), monodomain -> fullMeshPtr(), 4.5, 19); 
 
   for(int i(0); i < ionicModel -> Size(); i++ )
     {
@@ -235,7 +191,6 @@ int main (int argc, char** argv)
   //				SOLID MECHANICS
   //===========================================================
 
-
   if ( comm->MyPID() == 0 )
     {
       std::cout << "monodomain: passed!" << std::endl;
@@ -243,16 +198,15 @@ int main (int argc, char** argv)
 
   typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >               solidFESpace_Type;
   typedef boost::shared_ptr<solidFESpace_Type>                        solidFESpacePtr_Type;
-
   typedef ETFESpace< RegionMesh<LinearTetra>, MapEpetra, 3, 1 >       scalarETFESpace_Type;
   typedef boost::shared_ptr<scalarETFESpace_Type>                      scalarETFESpacePtr_Type;
   typedef ETFESpace< RegionMesh<LinearTetra>, MapEpetra, 3, 3 >       solidETFESpace_Type;
   typedef boost::shared_ptr<solidETFESpace_Type>                      solidETFESpacePtr_Type;
+
   if ( comm->MyPID() == 0 )
     {
       std::cout << "\n\ninitialization bc handler" << std::endl;
     }
-
 
   if ( comm->MyPID() == 0 )
     {
@@ -276,7 +230,6 @@ int main (int argc, char** argv)
   solidFESpacePtr_Type aFESpace ( new solidFESpace_Type (monodomain -> localMeshPtr(), dOrder, 1, comm) );
   solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (monodomain -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
   scalarETFESpacePtr_Type aETFESpace ( new scalarETFESpace_Type (monodomain -> localMeshPtr(), & (aFESpace->refFE() ), & (aFESpace->fe().geoMap() ), comm) );
-
 
   if ( comm->MyPID() == 0 )
     {
@@ -396,6 +349,7 @@ int main (int argc, char** argv)
 
   vectorPtr_Type gammaf( new vector_Type( monodomain -> globalSolution().at(0) -> map() ) );
   *gammaf *= 0;
+
   vectorPtr_Type rhsActivation( new vector_Type( *gammaf ) );
   *rhsActivation *= 0;
 
@@ -465,6 +419,10 @@ int main (int argc, char** argv)
   //Real emdt = parameterList.get("emdt",1.0);
   //int iter((emdt / monodomain -> timeStep()));
   int k(0);
+
+
+  //Initial condition for gammaf
+  *gammaf = -0.015;
 
   BOOST_AUTO_TPL(Ca, value( aETFESpace, *(monodomain -> globalSolution().at(0)  )));
   BOOST_AUTO_TPL(Gammaf, value( aETFESpace, *gammaf ));
