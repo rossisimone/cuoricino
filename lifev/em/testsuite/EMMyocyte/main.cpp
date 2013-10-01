@@ -355,8 +355,8 @@ int main (int argc, char** argv)
     scalarETFESpacePtr_Type aETFESpace ( new scalarETFESpace_Type (monodomain -> localMeshPtr(), & (aFESpace->refFE() ), & (aFESpace->fe().geoMap() ), comm) );
     solidFESpacePtr_Type solidaFESpace ( new solidFESpace_Type (localSolidMesh, "P1", 1, comm) );
 
-
-    if ( comm->MyPID() == pid )
+    //    if ( comm->MyPID() == pid )
+    if ( comm->MyPID() == 0 )
     {
         std::cout << "\nsetup boundary conditions" << std::endl;
     }
@@ -365,7 +365,8 @@ int main (int argc, char** argv)
     solidBC->fillHandler ( data_file_name, "solid" );
 
 
-    if ( comm->MyPID() == pid )
+    //if ( comm->MyPID() == pid )
+    if ( comm->MyPID() == 0 )
     {
         std::cout << "\nsetup structural operator" << std::endl;
     }
@@ -378,8 +379,9 @@ int main (int argc, char** argv)
                   solidBC -> handler(),
                   comm);
 
-     if ( comm->MyPID() == pid )
-     {
+     //if ( comm->MyPID() == pid )
+     if ( comm->MyPID() == 0 )
+       {
          std::cout << "\ninitial guess" << std::endl;
      }
 
@@ -390,12 +392,13 @@ int main (int argc, char** argv)
     	//				FIBERS
     	//===========================================================
     	//===========================================================
-     for(int pid(0); pid < 4 ; pid ++){
-     if ( comm->MyPID() == pid )
+     // for(int pid(0); pid < 4 ; pid ++){
+       // if ( comm->MyPID() == pid )
+     if ( comm->MyPID() == 0 ) 
      {
          std::cout << "\nreading fibers ... " << std::endl;
      }
-     }
+     //   }
 
 
      vectorPtr_Type solidFibers( new vector_Type( dFESpace -> map() ) );
