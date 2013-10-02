@@ -24,7 +24,7 @@ Real initialSphere(const Real& /*t*/, const Real&  X, const Real& Y, const Real&
 {
 
   double r = std::sqrt(pow(X,2)+pow(Y-60,2)+pow(Z-12,2));
-  double auxexp=1.0-1.0/(1.0+exp(-50.0*(r-4)));
+  double auxexp=1.0-1.0/(1.0+exp(-50.0*(r-12)));
 
   return 0.1+3.5*auxexp;
 }
