@@ -17,7 +17,9 @@ gamma		= 1
 gammaf		= -0.015 #-0.3
 solidType 	= neoHookeanActivated
 lawType     	= nonlinear
-active_coefficient = -3.0
+active_coefficient = -0.015
+a		   =0.496
+
 
 [../time_discretization]
 initialtime 	= 0.
@@ -79,8 +81,8 @@ verbose   	= 1
 
 [../newton]
 maxiter 	= 1
-reltol  	= 1.e-7
-abstol  	= 1.e-7
+reltol  	= 1.e-5
+abstol  	= 1.e-5
 
 
 [../solver]

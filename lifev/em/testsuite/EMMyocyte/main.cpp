@@ -191,7 +191,6 @@ int main (int argc, char** argv)
         std::cout << " Splitting solver done... ";
     }
 
-    bool load4restart = parameterList.get("load4restart", false);
     monodomain -> setInitialConditions();
 
     function_Type f = &initialStimulus;
@@ -459,7 +458,6 @@ int main (int argc, char** argv)
 
      solid.buildSystem(1.0);
      vectorPtr_Type rhs (new vector_Type (solid.displacement(), Unique) );
-     vectorPtr_Type disp (new vector_Type (solid.displacement(), Unique) );
      vectorPtr_Type initialDisplacement (new vector_Type (solid.displacement(), Unique) );
      solid.initialize ( initialDisplacement );
 
@@ -623,12 +621,7 @@ int main (int argc, char** argv)
     int k(0);
     Real saveStep = parameterList.get("save_step",1.0);
     int saveIter((saveStep / monodomain -> timeStep()));
-    Real meth = parameterList.get("meth",1.0);
     int subiter = parameterList.get("subiter",100);
-
-    Real dt_min = 0.01;
-
-    Real Ca_diastolic = dataFile( "solid/physics/Ca_diastolic", 0.02155 );
 
     for( Real t(0.0); t< monodomain -> endTime(); )
       {
@@ -657,8 +650,7 @@ int main (int argc, char** argv)
 	  }
 	{
 	  using namespace ExpressionAssembly;
-//
-//
+
 //						BOOST_AUTO_TPL(I,      value(Id) );
 //						BOOST_AUTO_TPL(Grad_u, grad( electrodETFESpace, *emDisp, 0) );
 //						BOOST_AUTO_TPL(F,      ( Grad_u + I ) );
