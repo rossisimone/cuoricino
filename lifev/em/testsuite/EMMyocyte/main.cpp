@@ -1,6 +1,5 @@
 #include <lifev/core/LifeV.hpp>
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
-#include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IntracellularCalciumGoldbeter.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
 
@@ -19,16 +18,15 @@
 #include <lifev/eta/fem/ETFESpace.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
 
-#include <lifev/core/interpolation/RBFhtp.hpp>
-#include <lifev/core/interpolation/RBFhtpVectorial.hpp>
+//#include <lifev/core/interpolation/RBFhtp.hpp>
+//#include <lifev/core/interpolation/RBFhtpVectorial.hpp>
 #include <lifev/core/mesh/MeshLoadingUtility.hpp>
 #include <lifev/core/mesh/MeshTransformer.hpp>
-#include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
-#include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
-#include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
-#include <lifev/core/interpolation/RBFrescaledScalar.hpp>
-//#include <lifev/core/interpolation/RBFscalar.hpp>
-#include <lifev/core/interpolation/RBFvectorial.hpp>
+//#include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
+//#include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
+//#include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
+//#include <lifev/core/interpolation/RBFrescaledScalar.hpp>
+//#include <lifev/core/interpolation/RBFvectorial.hpp>
 
 #include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 #include <sys/stat.h>
@@ -66,9 +64,9 @@ Real d0(const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real& /*
     return  0.;
 }
 
-Real initialStimulus(const Real& /*t*/, const Real&  X, const Real& /*Y*/, const Real& /*Z*/, const ID& /*i*/)
+Real initialStimulus(const Real& /*t*/, const Real&  /*X*/, const Real& Y, const Real& /*Z*/, const ID& /*i*/)
 {
-	if( X == 0 ) return 1.0;
+	if( Y == 0 ) return 3.5;
 	else return  0.;
 }
 
@@ -147,8 +145,7 @@ int main (int argc, char** argv)
     {
         std::cout << "Importing parameters list...";
     }
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "ParamList1.xml" ) );
-    Teuchos::ParameterList parameterList2 = * ( Teuchos::getParametersFromXmlFile ( "ParamList2.xml" ) );
+    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
     if ( comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
@@ -208,34 +205,21 @@ int main (int argc, char** argv)
     }
 
     monodomainSolverPtr_Type monodomain ( new monodomainSolver_Type ( meshName, meshPath, dataFile, ionicModel ) );
-    monodomainSolverPtr_Type monodomain2 ( new monodomainSolver_Type ( meshName, meshPath, dataFile, ionicModel ) );
     if ( comm->MyPID() == 0 )
     {
         std::cout << " Splitting solver done... ";
     }
 
     bool load4restart = parameterList.get("load4restart", false);
-//    ionicModel -> initialize( monodomain -> globalSolution() );
+    monodomain -> setInitialConditions();
+
+    function_Type f = &initialStimulus;
+    monodomain -> setPotentialFromFunction(f);
 
 
-
-	monodomain -> setInitialConditions();
-
-//	function_Type f = &initialStimulus;
-//	monodomain -> setPotentialFromFunction(f);
-
-
-	monodomain2 -> setVariablePtr( monodomain -> globalSolution().at(0), 1 );
-	monodomain2 -> setVariablePtr( monodomain -> globalSolution().at(1), 0 );
-
-	function_Type f2 = &initialStimulus;
-	monodomain2 -> setPotentialFromFunction(f2);
-
-
-    std::cout << "Norm Inf potential = " <<  (  *( monodomain -> globalSolution().at(0) ) ).normInf() << std::endl;
+    std::cout << "Norm Inf Calcium = " <<  (  *( monodomain -> globalSolution().at(0) ) ).normInf() << std::endl;
 
     monodomain -> setParameters ( parameterList );
-    monodomain2 -> setParameters ( parameterList2 );
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
@@ -405,8 +389,8 @@ int main (int argc, char** argv)
 
 
      std::vector<Real> fvec(3, 0.0);
-     fvec.at(0)  = parameterList.get ("fiber_X", 1.0);
-     fvec.at(1)  = parameterList.get ("fiber_Y", 0.0);
+     fvec.at(0)  = parameterList.get ("fiber_X", 0.0);
+     fvec.at(1)  = parameterList.get ("fiber_Y", 1.0);
      fvec.at(2)  = parameterList.get ("fiber_Z", 0.0);
      HeartUtility::setupFibers(*solidFibers, fvec);
 
@@ -432,7 +416,6 @@ int main (int argc, char** argv)
 
     solidGammaf = gammaf;
     monodomain -> setFiberPtr( solidFibers );
-    monodomain2 -> setFiberPtr( solidFibers );
     emDisp = solid.displacementPtr();
     electroFiberFESpace = dFESpace;
     electrodETFESpace = dETFESpace;
@@ -445,23 +428,13 @@ int main (int argc, char** argv)
      //********************************************//
      if ( comm->MyPID() == 0 )
      {
-         cout << "\nSetup operators:  1 = " << monodomain -> timeStep() << "\n" ;
+         cout << "\nSetup operators:   = " << monodomain -> timeStep() << "\n" ;
      }
 
      monodomain -> setDisplacementPtr( emDisp );
      monodomain -> setupMassMatrix();
      monodomain -> setupStiffnessMatrix();
      monodomain -> setupGlobalMatrix();
-
-
-     if ( comm->MyPID() == 0 )
-     {
-         cout << "\nSetup operators:  2 = " << monodomain -> timeStep() << "\n" ;
-     }
-     monodomain2 -> setDisplacementPtr( emDisp );
-     monodomain2 -> setupMassMatrix();
-     monodomain2 -> setupStiffnessMatrix();
-     monodomain2 -> setupGlobalMatrix();
 
      if ( comm->MyPID() == 0 )
      {
@@ -709,13 +682,6 @@ int main (int argc, char** argv)
 	      monodomain -> updateRhs();
           monodomain -> solveOneDiffusionStepBE();
 
-          (*monodomain2 -> rhsPtrUnique()) *= 0.0;
-  	      monodomain2 -> updateRhs();
-            monodomain2 -> solveOneDiffusionStepBE();
-
-
-
-
 		  *tmpRhsActivation *= 0;
 			if ( comm->MyPID() == 0 )
 			{
@@ -775,7 +741,7 @@ int main (int argc, char** argv)
 						BOOST_AUTO_TPL(Ca ,   value( aETFESpace, *( monodomain -> globalSolution().at(0)  ) ) );
 						BOOST_AUTO_TPL(Gammaf,	 value( aETFESpace, *gammaf )  );
 					//Activation as in the IUTAM proceedings
-						BOOST_AUTO_TPL(activationEquation, value(-0.02) *Ca + value(-0.04)*Gammaf  );
+						BOOST_AUTO_TPL(activationEquation, value(-0.5)*Ca + value(-2.5)*Gammaf  );
 
 						integrate ( elements ( monodomain -> localMeshPtr() ),
 								monodomain -> feSpacePtr() -> qr() ,
