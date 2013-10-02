@@ -23,10 +23,16 @@ using namespace LifeV;
 Real initialSphere(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& /*i*/)
 {
 
-  double r = std::sqrt(pow(X-6.25,2)+pow(Y-3.75,2)+pow(Z-7.25,2));
-  double auxexp=1.0-1.0/(1.0+exp(-90.0*(r-1.7)));
+  double r = std::sqrt(pow(X,2)+pow(Y-60,2)+pow(Z-12,2));
+  double auxexp=1.0-1.0/(1.0+exp(-50.0*(r-4)));
 
-  return auxexp;
+  return 0.1+3.5*auxexp;
+}
+
+Real initialStimulus(const Real& /*t*/, const Real&  /*X*/, const Real& Y, const Real& /*Z*/, const ID& /*i*/)
+{
+	if( Y == 0 ) return 3.5;
+	else return  0.;
 }
 
 
@@ -145,17 +151,9 @@ int main (int argc, char** argv)
       std::cout << " Splitting solver done... ";
     }
 
-  //    ionicModel -> initialize( monodomain -> globalSolution() );
   monodomain -> setInitialConditions();
-
-  for(int i(0); i < ionicModel -> Size(); i++ )
-    {
-      std::cout << "Norm Inf variable " << i  << " = " <<  (  *( monodomain -> globalSolution().at(i) ) ).normInf() << std::endl;
-    }
-
-  // monodomain -> setPotentialFromFunction( Vlid );
-  // Initial calcium spark is applied on the sarcoplasmic reticulum (globalSolution().at(1))
-  HeartUtility::setValueOnBoundary( *(monodomain -> globalSolution().at(1)), monodomain -> fullMeshPtr(), 4.5, 19); 
+  function_Type f = &initialSphere;
+  monodomain -> setPotentialFromFunction(f);
 
   for(int i(0); i < ionicModel -> Size(); i++ )
     {
@@ -348,7 +346,8 @@ int main (int argc, char** argv)
   expGammaf.setPrefix("gammaf");
 
   vectorPtr_Type gammaf( new vector_Type( monodomain -> globalSolution().at(0) -> map() ) );
-  *gammaf *= 0;
+
+  *gammaf *= 0.0;
 
   vectorPtr_Type rhsActivation( new vector_Type( *gammaf ) );
   *rhsActivation *= 0;
@@ -411,6 +410,21 @@ int main (int argc, char** argv)
       std::cout << "\nIt does!!!!" << std::endl;
     }
 
+  
+
+
+  //Initial condition for gammaf
+  *gammaf = -0.015;
+
+  vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
+  expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
+			monodomain -> feSpacePtr(), gammaf, UInt(0));
+  expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "rhs",
+			monodomain -> feSpacePtr(), rhsActivation, UInt(0));
+  expGammaf.postProcess(0.0);
+
+
+
   //===========================================================
   //===========================================================
   //				TIME LOOP
@@ -421,20 +435,6 @@ int main (int argc, char** argv)
   int k(0);
 
 
-  //Initial condition for gammaf
-  *gammaf = -0.015;
-
-  BOOST_AUTO_TPL(Ca, value( aETFESpace, *(monodomain -> globalSolution().at(0)  )));
-  BOOST_AUTO_TPL(Gammaf, value( aETFESpace, *gammaf ));
-  BOOST_AUTO_TPL(activationEquation, value(-0.5) *Ca + value(-2.5)*Gammaf); //Laadhari et al. IJNME 2013
-
-  vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
-  expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
-			monodomain -> feSpacePtr(), gammaf, UInt(0));
-  expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "rhs",
-			monodomain -> feSpacePtr(), rhsActivation, UInt(0));
-  expGammaf.postProcess(0.0);
-
   for( Real t(0.0); t< monodomain -> endTime(); )
     {
       t = t + monodomain -> timeStep();
@@ -443,6 +443,11 @@ int main (int argc, char** argv)
       *tmpRhsActivation *= 0;
       {
 	using namespace ExpressionAssembly;
+
+	BOOST_AUTO_TPL(Ca, value( aETFESpace, *(monodomain -> globalSolution().at(0)  )));
+	BOOST_AUTO_TPL(Gammaf, value( aETFESpace, *gammaf ));
+	BOOST_AUTO_TPL(activationEquation, value(-0.5) *Ca + value(-2.5)*Gammaf); //Laadhari et al. IJNME 2013
+
 	integrate ( elements ( monodomain -> localMeshPtr() ),
 		    monodomain -> feSpacePtr() -> qr() ,
 		    monodomain -> ETFESpacePtr(),
