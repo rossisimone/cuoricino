@@ -1,6 +1,6 @@
 <ParameterList>
     <Parameter name="timeStep" type="double" value="0.02"  />
-    <Parameter name="endTime" type="double" value="10"  />
+    <Parameter name="endTime" type="double" value="8"  />
     <Parameter name="saveStep" type="double" value="1.0"  />
     <Parameter name="meth" type="double" value="1.0"  />
     <Parameter name="surfaceVolumeRatio" type="double" value="1.0"/>
@@ -9,7 +9,7 @@
     <Parameter name="transversalDiffusion" type="double" value="30.0"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="cylinder_coarse.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/home/ruizbaier/Dropbox/myMeshes/3DSingeCell/"  />
+    <Parameter name="mesh_path" type="string" value="/home/ruizbaier/Dropbox/myMeshes/3DSingeCell/testMeshes/"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="true"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>
