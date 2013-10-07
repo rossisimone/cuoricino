@@ -1090,10 +1090,10 @@ StructuralOperator<Mesh>::iterate ( const bcHandler_Type& bch )
 //
 //    Real abstol  = dataFile ( "solid/Newton/abstol", 1.e-7 );
 //    Real reltol  = dataFile ( "solid/Newton/reltol", 1.e-7 );
-    Real abstol = 1e-7;
-    Real reltol = 1e-14;
+    Real abstol = 1e-6;
+    Real reltol = 1e-6;
     UInt maxiter = 200;
-    Real etamax  = 1e-7;
+    Real etamax  = 1e-1;
     Int NonLinearLineSearch = 0;
 
     Real time = M_data->dataTime()->time();
@@ -1666,7 +1666,7 @@ template <typename Mesh>
 void StructuralOperator<Mesh>::
 solveJacobian (vector_Type&           step,
                const vector_Type&     res,
-               Real&                 /*linear_rel_tol*/,
+               Real&                 linear_rel_tol,
                bcHandler_Type&       /* BCh*/)
 {
     LifeChrono chrono;
@@ -1700,7 +1700,7 @@ solveJacobian (vector_Type&           step,
     //Setting up the quantities
     M_linearSolver->setOperator ( matrFull );
     M_linearSolver->setRightHandSide ( pointerToRes );
-
+    M_linearSolver-> setTolerance( linear_rel_tol );
     //Solving the system
     M_linearSolver->solve ( pointerToStep );
 
