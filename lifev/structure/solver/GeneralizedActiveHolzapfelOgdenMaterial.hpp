@@ -66,6 +66,61 @@ public:
 namespace StrainEnergyGHO
 {
 
+
+
+class GAHOShowValue
+{
+public:
+    typedef LifeV::Real return_Type;
+
+    return_Type operator() (const LifeV::Real& a)
+    {
+    	std::cout.precision(15);
+    	std::cout << "value is: " << a <<" \n";
+    	return 1.0;
+    }
+
+    return_Type operator() (const LifeV::VectorSmall<3>& a)
+    {
+    	std::cout << "value is: " << a[0]  <<" \n" << a[1]  <<" \n" << a[2]  <<" \n";
+    	return 1.0;
+    }
+
+    return_Type operator() (const LifeV::MatrixSmall<3,3>& a)
+    {
+    	std::cout << "value is\n";
+    	std::cout << a[0][0]  <<" \t" << a[0][1]  <<" \t" << a[0][2]  <<" \n";
+    	std::cout << a[1][0]  <<" \t" << a[1][1]  <<" \t" << a[1][2]  <<" \n";
+    	std::cout << a[2][0]  <<" \t" << a[2][1]  <<" \t" << a[2][2]  <<" \n";
+
+    	return 1.0;
+    }
+
+
+
+    GAHOShowValue() {}
+    GAHOShowValue (const GAHOShowValue&) {}
+    ~GAHOShowValue() {}
+};
+
+
+
+class Sign
+{
+public:
+    typedef LifeV::Real return_Type;
+
+    return_Type operator() (const LifeV::Real& p)
+    {
+    	if(p>=0.0) return 1.0;
+    	else return -1.0;
+    }
+
+    Sign() {}
+    Sign (const Sign&) {}
+    ~Sign() {}
+};
+
 // Isotropic Part
 class dW1
 {
@@ -124,7 +179,7 @@ public:
     	if(I4 == 1.0) return 0.0;
     	else return M_a * (I4 > 1.)
                 * (I4 - 1)
-                * std::exp(M_b * pow(I4 - 1, 2.0));
+                * std::exp(M_b * std::pow(I4 - 1, 2.0));
     }
 
     dW4(LifeV::Real a, LifeV::Real b)
@@ -148,8 +203,8 @@ public:
     {
     	if(I4 == 1.0) return M_a;
     	else return M_a * (I4 >= 1.)
-                * (1.0 + 2.0 * M_b * pow(I4 - 1, 2.0))
-                * std::exp(M_b * pow(I4 - 1, 2.0));
+                * (1.0 + 2.0 * M_b * std::pow(I4 - 1, 2.0))
+                * std::exp(M_b * std::pow(I4 - 1, 2.0));
     }
 
     d2W4(LifeV::Real a, LifeV::Real b)
@@ -173,7 +228,7 @@ public:
     return_Type operator() (const LifeV::Real& I8)
     {
     	if(I8==0) return 0.0;
-    	else return M_a * I8 * std::exp(M_b * pow(I8, 2.0));
+    	else return M_a * I8 * std::exp(M_b * std::pow(I8, 2.0));
     }
 
     dW8(LifeV::Real a, LifeV::Real b)
@@ -196,7 +251,7 @@ public:
     return_Type operator() (const LifeV::Real& I8)
     {
     	if(I8==0) return M_a;
-    	else return  M_a * (1.0 + 2.0 * M_b * pow(I8, 2.0))
+    	else return  M_a * (1.0 + 2.0 * M_b * std::pow(I8, 2.0))
                     * std::exp(M_b * pow(I8, 2.0));
     }
 
@@ -529,9 +584,17 @@ public:
     inline void setGammas( const vector_Type& gammas) { M_Gammas.reset( new vector_Type( gammas ) ); }
     inline void setGamman( const vector_Type& gamman) { M_Gamman.reset( new vector_Type( gamman ) ); }
 
-    inline void setFiberVector( const vector_Type& fiberVector) { M_fiberVector.reset( new vector_Type( fiberVector ) ); }
+    inline void setFiberVector( const vector_Type& fiberVector)
+    {
+    	M_fiberVector.reset( new vector_Type( fiberVector ) );
+    	HeartUtility::normalize(*M_fiberVector);
+    }
 
-    inline void setSheetVector( const vector_Type& sheetVector) { M_sheetVector.reset( new vector_Type( sheetVector ) ); }
+    inline void setSheetVector( const vector_Type& sheetVector)
+    {
+    	M_sheetVector.reset( new vector_Type( sheetVector ) );
+    	HeartUtility::normalize(*M_sheetVector);
+    }
 
     //@}
 
@@ -541,31 +604,37 @@ public:
     inline void setupFiberVector( std::string& name, boost::shared_ptr<mesh_Type> mesh )
     {
         HeartUtility::importFibers( M_fiberVector, name, mesh  );
+        HeartUtility::normalize(*M_fiberVector);
     }
 
     inline void setupFiberVector( std::string& name, std::string& path )
     {
         HeartUtility::importFibers( M_fiberVector, name, path  );
+        HeartUtility::normalize(*M_fiberVector);
     }
 
     void setupFiberVector( Real& fx, Real& fy, Real& fz )
     {
         HeartUtility::setupFibers( *M_fiberVector, fx, fy, fz  );
+        HeartUtility::normalize(*M_fiberVector);
     }
 
     inline void setupSheetVector( std::string& name, boost::shared_ptr<mesh_Type> mesh )
     {
         HeartUtility::importFibers( M_sheetVector, name, mesh  );
+    	HeartUtility::normalize(*M_sheetVector);
     }
 
     inline void setupSheetVector( std::string& name, std::string& path )
     {
         HeartUtility::importFibers( M_sheetVector, name, path  );
+    	HeartUtility::normalize(*M_sheetVector);
     }
 
     void setupSheetVector( Real& sx, Real& sy, Real& sz )
     {
         HeartUtility::setupFibers( *M_sheetVector, sx, sy, sz);
+    	HeartUtility::normalize(*M_sheetVector);
     }
             //@}
 
@@ -847,6 +916,8 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
     boost::shared_ptr<StrainEnergyGHO::dWvol> dWvolfun(new StrainEnergyGHO::dWvol(M_kappa));
     boost::shared_ptr<StrainEnergyGHO::d2Wvol> d2Wvolfun(new StrainEnergyGHO::d2Wvol(M_kappa));
 
+    boost::shared_ptr<StrainEnergyGHO::GAHOShowValue> sv(new StrainEnergyGHO::GAHOShowValue());
+
     // Kinematics
     BOOST_AUTO_TPL(I,      value(Id));
     BOOST_AUTO_TPL(Grad_u, grad(this->M_dispETFESpace, disp, this->M_offset));
@@ -854,13 +925,25 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
     BOOST_AUTO_TPL(FmT,    minusT(F));
     BOOST_AUTO_TPL(J,      det(F));
     // Fibres
-    BOOST_AUTO_TPL(f0,     value(this->M_dispETFESpace, *M_fiberVector));
-    BOOST_AUTO_TPL(s0,     value(this->M_dispETFESpace, *M_sheetVector));
+    BOOST_AUTO_TPL(f01,     value(this->M_dispETFESpace, *M_fiberVector));
+    BOOST_AUTO_TPL(f0,     f01 / sqrt( dot(f01, f01) ) );
+    BOOST_AUTO_TPL(s01,     value(this->M_dispETFESpace, *M_sheetVector));
+    BOOST_AUTO_TPL(s0,     s01 / sqrt( dot(s01, s01) ) );
+
     // Invariants
     BOOST_AUTO_TPL(I1,     dot(F, F));
+    BOOST_AUTO_TPL(C,      transpose(F) * F);
+    BOOST_AUTO_TPL(I2,    value(0.5) * (I1 * I1 - dot(C, C) ) );
+
+
     BOOST_AUTO_TPL(I4f,    dot(F*f0, F*f0));
     BOOST_AUTO_TPL(I4s,    dot(F*s0, F*s0));
+    BOOST_AUTO_TPL(I5f,    dot( C * f0, C * f0) );
+    BOOST_AUTO_TPL(I5s,    dot( C * s0, C * s0) );
+
     BOOST_AUTO_TPL(I8fs,   dot(F*f0, F*s0));
+//    BOOST_AUTO_TPL(I8fs2,   I2 + I4f * I4s + I5f + I5s - I1 * ( I4f + I4s ) );
+//    BOOST_AUTO_TPL(I8fs,    sqrt ( I8fs2 ) );
     // Reduced invariants
     BOOST_AUTO_TPL(Jm23,    pow(J, -2./3));
     BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
@@ -1002,7 +1085,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
 					this->M_dispFESpace->qr(),
 					this->M_dispETFESpace,
 					this->M_dispETFESpace,
-					dot(/* dPiso_8fs +*/ dPeiso_8fs, grad(phi_i))
+					dot( dPeiso_8fs, grad(phi_i))
 				  ) >> jacobian;
 		}
     }
@@ -1075,6 +1158,8 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeResidual ( const 
     boost::shared_ptr<StrainEnergyGHO::dWvol> dWvolfun(new StrainEnergyGHO::dWvol(M_kappa));
     boost::shared_ptr<StrainEnergyGHO::d2Wvol> d2Wvolfun(new StrainEnergyGHO::d2Wvol(M_kappa));
 
+    boost::shared_ptr<StrainEnergyGHO::GAHOShowValue> sv(new StrainEnergyGHO::GAHOShowValue());
+
     // Kinematics
     BOOST_AUTO_TPL(I,      value(Id));
     BOOST_AUTO_TPL(Grad_u, grad(this->M_dispETFESpace, disp, this->M_offset));
@@ -1082,13 +1167,24 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeResidual ( const 
     BOOST_AUTO_TPL(FmT,    minusT(F));
     BOOST_AUTO_TPL(J,      det(F));
     // Fibres
-    BOOST_AUTO_TPL(f0,     value(this->M_dispETFESpace, *M_fiberVector));
-    BOOST_AUTO_TPL(s0,     value(this->M_dispETFESpace, *M_sheetVector));
+    BOOST_AUTO_TPL(f01,     value(this->M_dispETFESpace, *M_fiberVector));
+    BOOST_AUTO_TPL(f0,     f01 / sqrt( dot(f01, f01) ) );
+    BOOST_AUTO_TPL(s01,     value(this->M_dispETFESpace, *M_sheetVector));
+    BOOST_AUTO_TPL(s0,     s01 / sqrt( dot(s01, s01) ) );
     // Invariants
     BOOST_AUTO_TPL(I1,     dot(F, F));
+    BOOST_AUTO_TPL(C,      transpose(F) * F);
+    BOOST_AUTO_TPL(I2,    value(0.5) * (I1 * I1 - dot(C, C) ) );
+
+
     BOOST_AUTO_TPL(I4f,    dot(F*f0, F*f0));
     BOOST_AUTO_TPL(I4s,    dot(F*s0, F*s0));
+    BOOST_AUTO_TPL(I5f,    dot( C * f0, C * f0) );
+    BOOST_AUTO_TPL(I5s,    dot( C * s0, C * s0) );
+
     BOOST_AUTO_TPL(I8fs,   dot(F*f0, F*s0));
+//    BOOST_AUTO_TPL(I8fs2,   I2 + I4f * I4s + I5f + I5s - I1 * ( I4f + I4s ) );
+//    BOOST_AUTO_TPL(I8fs,    sqrt ( I8fs2 ) );
     // Reduced invariants
     BOOST_AUTO_TPL(Jm23,    pow(J, -2./3.0));
     BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
@@ -1186,7 +1282,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeResidual ( const 
 		integrate ( elements ( this->M_dispETFESpace->mesh() ),
 					this->M_dispFESpace->qr(),
 					this->M_dispETFESpace,
-					dot( /*Piso_8fs +*/ Peiso_8fs, grad(phi_i))
+					dot( /*Piso_8fs +*/ /*eval(sv, I8fs2)  */ /* eval(sv, I2) *//* eval(sv, I8fs2) */ Peiso_8fs, grad(phi_i))
 				  ) >> M_stiff;
 		}
     }
@@ -1238,6 +1334,11 @@ namespace
 {
 static bool registerGHO = StructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct("GAHO", &createGeneralizedActiveHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
 }
+
+
+
+
+
 
 } //Namespace LifeV
 
