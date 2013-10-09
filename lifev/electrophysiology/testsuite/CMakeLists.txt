@@ -4,6 +4,7 @@ INCLUDE(AddSubdirectories)
 ADD_SUBDIRECTORIES(
 	benchmark
 	benchmarkPurkinje	 
+        test_bidomain
 	test_monodomain
 	test_0DAlievPanfilovModel
 	test_0DLuoRudyIModel

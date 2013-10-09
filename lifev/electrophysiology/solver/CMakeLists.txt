@@ -14,6 +14,7 @@ SET(solver_HEADERS
   solver/ElectroFunctors.hpp
   solver/ElectroMonodomainSolver.hpp
   solver/ElectroETAMonodomainSolver.hpp
+  solver/ElectroETABidomainSolver.hpp
   solver/ElectroUpdatedMonodomainSolver.hpp
   solver/StimulationProtocol.hpp
 #  solver/ElectroODEModel.hpp
