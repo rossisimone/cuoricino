@@ -1,4 +1,4 @@
-//@HEADER
+//HEADER
 /*
  *******************************************************************************
 
@@ -32,7 +32,7 @@
  @author Toni Lassila <toni.lassila@epfl.ch>
  @author Matthias Lange <m.lange@sheffield.ac.uk>
 
- @last update 04-10-2013
+ @last update 10-10-2013
 
  This class provides interfaces to solve the bidomain equations
  ( reaction diffusion equation ) using the ETA framework.
@@ -54,7 +54,7 @@
 #endif
 
 #include <string>
-
+#include <lifev/core/fem/BCManage.hpp>
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
 #include <lifev/core/filter/ExporterHDF5.hpp>
@@ -359,7 +359,7 @@ public:
 		return M_rhsPtr;
 	}
 	//! get the pointer to the unique version of the right hand side
-	inline const blockVectorPtr_Type rhsPtrUnique() const {
+	inline const vectorPtr_Type rhsPtrUnique() const {
 		return M_rhsPtrUnique;
 	}
 	//! get the pointer to the transmembrane potential
@@ -414,6 +414,9 @@ public:
 	//! @name Set Methods
 	//@{
 
+	inline void setM_bcHandler(BCHandler* bcHandler)
+	{this->M_bcHandler=bcHandler;}
+	  
 	//! set the surface to volume ratio
 	/*!
 	 @param Real surface to volume ratio
@@ -646,11 +649,11 @@ public:
 	}
 	inline void setPotentialTrans(const vector_Type& p) {
 		(*(M_potentialTransPtr)) = p;
-		this->M_potentialGlobalPtr->replace(p,this->M_potentialGlobalPtr->block(0));
+		this->M_potentialGlobalPtr->replace(p,this->M_potentialGlobalPtr->block(0)->firstIndex());
 	}
 	inline void setPotentialExtra(const blockVector_Type& p) {
 		(*(M_potentialExtraPtr)) = p;
-		this->M_potentialGlobalPtr->replace(p,this->M_potentialGlobalPtr->block(1));
+		this->M_potentialGlobalPtr->replace(p,this->M_potentialGlobalPtr->block(1)->firstIndex());
 	}
 	inline void setFiber(const vector_Type& p) {
 		(*(M_fiberPtr)) = p;
@@ -742,12 +745,12 @@ public:
 	//! Initialize the potential to the value k
 	void inline initializePotentialTrans(Real k) {
 		(*(M_globalSolution.at(0))) = k;
-		this->M_potentialGlobalPtr->replace((*(M_globalSolution.at(0))),this->M_potentialGlobalPtr->block(0));
+		this->M_potentialGlobalPtr->replace((*(M_globalSolution.at(0))),this->M_potentialGlobalPtr->block(0)->firstIndex);
 		
 	}
 	void inline initializePotentialExtra(Real k) {
 		(*M_potentialExtraPtr) = k;
-		this->M_potentialGlobalPtr->replace((*M_potentialExtraPtr),this->M_potentialGlobalPtr->block(1));
+		this->M_potentialGlobalPtr->replace((*M_potentialExtraPtr),this->M_potentialGlobalPtr->block(1)->firstIndex);
 		
 	}
 
@@ -1017,7 +1020,7 @@ private:
 	vectorPtr_Type M_potentialTransPtr;
 	vectorPtr_Type M_potentialExtraPtr;
 //	vectorPtr_Type M_appliedCurrentPtr;
-
+	
 	linearSolverPtr_Type M_linearSolverPtr;
 
 	vectorOfPtr_Type M_globalSolution;
@@ -1029,6 +1032,7 @@ private:
 
 	vectorPtr_Type M_displacementPtr;
 
+	boost::shared_ptr<LifeV::BCHandler>  M_bcHandler;
 	//Create the identity for F
 	matrixSmall_Type M_identity;
 
@@ -1040,6 +1044,8 @@ private:
 
 	protected:
 	//void copyBlock();
+	protected:
+	void importFibers(vectorPtr_Type M_fiberPtr, std::string fibersFile, meshPtr_Type M_localMeshPtr);
 };
 
 
@@ -1052,7 +1058,7 @@ private:
     for ( Int i = 0; i < numMyEntries; ++i )
     {
       //.epetraVectorPtr()
-       destBlock[gids[i]] = (*srcBlock.vectorPtr())[gids[i+srcBlock.firstIndex()]];
+	destBlock[gids[i]] = (*srcBlock.vectorPtr())[gids[i+srcBlock.firstIndex()]];
     }//
 
     return;
@@ -1649,7 +1655,7 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 
 	ETFESpaceVectorialPtr_Type spaceVectorial(
 			new ETFESpaceVectorial_Type(M_localMeshPtr, &(M_feSpacePtr -> refFE()), M_commPtr));
-	boost::shared_ptr<blockMatrix_Type> ETcomponentStiffnessMatrix
+	blockMatrixPtr_Type ETcomponentStiffnessMatrix
 		    (new blockMatrix_Type ( M_ETFESpacePtr->map() ) );
 	*ETcomponentStiffnessMatrix *= 0.0;
 	//Intra Cellular 
@@ -1669,10 +1675,13 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 				>> ETcomponentStiffnessMatrix->block (0, 0);
 
 	}
-	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (0, 0) );
-	*ETcomponentStiffnessMatrix *= -1.0;
+	ETcomponentStiffnessMatrix->globalAssemble();
+//	*ETcomponentStiffnessMatrix *= -1.0;
 	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (0, 1) );
 	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (1, 0) );
+//	if (M_bcHandler!=NULL)
+//	  bcManage ( ETcomponentStiffnessMatrix , M_rhsPtrUnique, M_localMeshPtr,  M_feSpacePtr->dof(), *M_bcHandler,  M_feSpacePtr->feBd(), 1.0, 0 );
+	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (0, 0) );
 	//ExtraCellular
 	sigmal += diffusionExtra[0];
 	sigmat += diffusionExtra[1];
@@ -1683,7 +1692,7 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 		BOOST_AUTO_TPL(I, value(M_identity));
 		BOOST_AUTO_TPL(f0, value(spaceVectorial, *M_fiberPtr));
 		BOOST_AUTO_TPL(D,
-				value(-1.0)*(value(sigmat) * I
+				(value(sigmat) * I
 						+ (value(sigmal) - value(sigmat))
 								* outerProduct(f0, f0)));
 
@@ -1695,6 +1704,9 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 	}
 	M_stiffnessMatrixPtr->globalAssemble();
 }
+
+
+
 
 
 template<typename Mesh, typename IonicModel>
@@ -1846,7 +1858,9 @@ template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(
 		int subiterations) {
 	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
-
+	//M_globalSolution.at(0)->spy("GlobalSolution");
+	//M_globalRhs->spy("globalRhs");
+	//M_globalRhs.at(0)->showMe();
 	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
 		if(i==0)
 			*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
@@ -1855,6 +1869,9 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(
 			*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
 				+ ((M_timeStep) / subiterations) * (*(M_globalRhs.at(i)));
 	}
+	//copying th transmembrane potential back	
+	M_potentialGlobalPtr->subset((*M_globalSolution.at(0)),(M_globalSolution.at(0)->map()),(UInt)0,(UInt)0);
+	
 }
 
 
@@ -1873,7 +1890,7 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneReactionStepRL(
 		*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
 				+ ((M_timeStep) / subiterations) * (*(M_globalRhs.at(i)));
 	}
-
+	M_potentialGlobalPtr->subset((*M_globalRhs.at(0)),(M_globalRhs.at(0)->map()),(UInt)0,(UInt)0);
 }
 
 template<typename Mesh, typename IonicModel>
@@ -1888,7 +1905,7 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBE() {
 	(*M_potentialExtraPtr)*=0;
 	//M_potentialTransPtr boost::shared_ptr<VectorEpetra>) M_potentialGlobalPtr->block(0)->vectorPtr());
 
-	///Int* temp= (*(static_cast<boost::shared_ptr<VectorEpetra> >(M_potentialGlobalPtr->block(0)->vectorPtr ()))).blockMap().MyGlobalElements();
+	//Int* temp= (*(static_cast<boost::shared_ptr<VectorEpetra> >(M_potentialGlobalPtr->block(0)->vectorPtr ()))).blockMap().MyGlobalElements();
 	//VectorEpetra& vectorg =(*(static_cast<boost::shared_ptr<VectorEpetra> >(M_potentialGlobalPtr->block(0)->vectorPtr ())));
 	//VectorEpetra& vectort =(*(static_cast<boost::shared_ptr<VectorEpetra> >(M_potentialTransPtr)));
 	
@@ -1901,14 +1918,15 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBE() {
 //	  vectort(gids[i] + offset) = vectorg(gids[i]);
 //	}
 
-	Int temp =M_potentialTransPtr->epetraVector().MyLength();
+	//Int temp =M_potentialGlobalPtr->epetraVector().MyLength();
 	//((vector_Type)M_potentialGlobalPtr->block(0)->vectorPtr());
 	//vector_Type te (*(M_potentialGlobalPtr->epetraVector()));
+//	M_potentialGlobalPtr->showMe();
 	copyBlockVector( M_potentialGlobalPtr->block(0),M_potentialTransPtr);
 	copyBlockVector( M_potentialGlobalPtr->block(1),M_potentialExtraPtr);
-	M_rhsPtrUnique->showMe();
+
 	//M_potentialTransPtr->showMe();
-	//M_potentialGlobalPtr->showMe();
+	
 	//M_potentialExtraPtr->add(M_potentialGlobalPtr->epetraVector(),0,temp);
 //	M_potentialTransPtr->add(*te,0,temp,M_potentialGlobalPtr->block(0)->firstIndex());
 
@@ -1975,7 +1993,7 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::init() {
 	M_linearSolverPtr.reset(new LinearSolver());
 	M_globalSolution = *(new vectorOfPtr_Type());
 	M_globalRhs = *(new vectorOfPtr_Type());
-
+	//M_bcHandler=*(new LifeV::BCHandler());
 	M_identity(0, 0) = 1.0;
 	M_identity(0, 1) = 0.0;
 	M_identity(0, 2) = 0.0;

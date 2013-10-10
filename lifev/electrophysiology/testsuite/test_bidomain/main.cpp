@@ -1,4 +1,4 @@
-//@HEADER
+//HEADER
 /*
 *******************************************************************************
 
@@ -75,6 +75,7 @@
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
+#include <lifev/core/fem/BCManage.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -109,7 +110,7 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
     Real pacingSite_Y = 0.0;
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
-    Real stimulusValue = 1.0;
+    Real stimulusValue = 80.0;
 
     Real returnValue1;
 
@@ -121,6 +122,18 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
 
     return returnValue1;
 }
+
+    typedef LifeV::Real real_t;
+
+    static real_t bcDirichletZero(const real_t&, const real_t&, const real_t&, const real_t&, const LifeV::ID&)
+    {
+       return 0.000;
+    }
+
+    static real_t bcDirichletOne(const real_t&, const real_t&, const real_t&, const real_t&, const LifeV::ID&)
+    {
+       return 1;
+    }
 
 
 Int main ( Int argc, char** argv )
@@ -260,6 +273,32 @@ Int main ( Int argc, char** argv )
     splitting -> setParameters ( bidomainList );
 
     //********************************************//
+    // Settung up the Boundary condition          //
+    //********************************************//
+    
+     if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "-- Reading bc ..";
+    }
+
+    boost::shared_ptr<LifeV::BCHandler> bcs(new LifeV::BCHandler());
+
+    LifeV::BCFunctionBase zero(bcDirichletZero);
+    
+    std::vector<LifeV::ID> compx(1, 0), compy(1, 1), compz(1, 2);
+    bcs->addBC("boundaryDirichletZero", 600, LifeV::Essential, LifeV::Full, zero,1);
+    
+    //bcs->addBC("boundaryNeumannBase", 99, LifeV::Natural, LifeV::Full, one,1);
+    //partition mesh 	
+    bcs->bcUpdate ( *splitting->localMeshPtr(), splitting->feSpacePtr()->feBd(), splitting->feSpacePtr()->dof() );
+
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << " Done!"<<std::endl;
+    }
+
+    
+    //********************************************//
     // Create a fiber direction                   //
     //********************************************//
     if ( Comm->MyPID() == 0 )
@@ -337,9 +376,10 @@ Int main ( Int argc, char** argv )
     for ( Real t = 0.0; t < TF; )
     {
 
-        if (  t >=stimulusStart &&   t <=  stimulusStop + dt )
+        if (  (t >=stimulusStart )&&   (t <=  stimulusStop + dt) )
         {
             splitting -> setAppliedCurrentFromFunctionIntra ( pacing );
+	 //   splitting->appliedCurrentIntraPtr()->showMe();
         }
         else
         {
@@ -350,7 +390,7 @@ Int main ( Int argc, char** argv )
         if(meth==1)
         {
             chrono.start();
-      //      splitting->solveOneReactionStepROS3P(dtVec, dt_min);
+//            splitting->solveOneReactionStepROS3P(dtVec, dt_min);
             chrono.stop();
         }
         else
@@ -366,7 +406,10 @@ Int main ( Int argc, char** argv )
         splitting->updateRhs();
 
         chrono.reset();
-        chrono.start();
+	//bcManage ( *splitting->stiffnessMatrixPtr() , *splitting->rhsPtrUnique(), *splitting->localMeshPtr(), splitting->feSpacePtr()->dof(), *bcs,  splitting->feSpacePtr()->feBd(), 1.0, t );
+       splitting->rhsPtrUnique()->spy("rhs.dat"); 
+       splitting->stiffnessMatrixPtr()->spy("Stiffness");
+	chrono.start();
         splitting->solveOneDiffusionStepBE();
         chrono.stop();
         timeDiff += chrono.globalDiff( *Comm );
