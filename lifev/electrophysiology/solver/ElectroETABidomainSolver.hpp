@@ -414,9 +414,7 @@ public:
 	//! @name Set Methods
 	//@{
 
-	inline void setM_bcHandler(BCHandler* bcHandler)
-	{this->M_bcHandler=bcHandler;}
-	  
+
 	//! set the surface to volume ratio
 	/*!
 	 @param Real surface to volume ratio
@@ -1032,7 +1030,6 @@ private:
 
 	vectorPtr_Type M_displacementPtr;
 
-	boost::shared_ptr<LifeV::BCHandler>  M_bcHandler;
 	//Create the identity for F
 	matrixSmall_Type M_identity;
 
@@ -1049,26 +1046,6 @@ private:
 };
 
 
- void copyBlockVector ( const VectorEpetraStructuredView& srcBlock,  VectorEpetra& destBlock )
-{
-    Int numMyEntries = destBlock.epetraVector().MyLength ();
-    const Int* gids  = srcBlock.vectorPtr()->blockMap().MyGlobalElements();
-
-    // eg: (u,p) += p or (u,p) += u
-    for ( Int i = 0; i < numMyEntries; ++i )
-    {
-      //.epetraVectorPtr()
-	destBlock[gids[i]] = (*srcBlock.vectorPtr())[gids[i+srcBlock.firstIndex()]];
-    }//
-
-    return;
-}
-
- void copyBlockVector ( boost::shared_ptr< VectorEpetraStructuredView > srcBlock,
-boost::shared_ptr< VectorEpetra > destBlock )
-{
-  copyBlockVector ( *srcBlock, *destBlock );
-}
 
 // class BidomainSolver
 
@@ -1390,35 +1367,12 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 			//	    (new blockMatrix_Type ( ETuCompSpace->map() ) );
 			//*ETcomponentMassMatrix *= 0.0;
 
-   		{
-     			using namespace ExpressionAssembly;
-			integrate(elements(M_localMeshPtr), M_feSpacePtr->qr(),
+			{
+			  using namespace ExpressionAssembly;
+			  integrate(elements(M_localMeshPtr), M_feSpacePtr->qr(),
 					M_ETFESpacePtr, M_ETFESpacePtr, phi_i * phi_j)
 					>> M_massMatrixPtr->block (0,0);
-     			//integrate ( elements (M_ETFESpacePtr->mesh() ),
-             		// /    M_feSpacePtr->qr(),
-              		//     ETFESpacePtr,
-              		//     ETFESpacePtr,
-	   		//				phi_i * phi_j
-			//					   )
-		        //        >> M_massMatrixPtr->block (0,0);//ETcomponentMassMatrix->block (0, 0);
 		  	}
-			//ETcomponentMassMatrix->globalAssemble();
-    		
-
-
-    		// ---------------------------------------------------------------
-    		// We copy the blocks
-    		// ---------------------------------------------------------------
-			//result matrix 
-			// M   -M
-			// -M	  M	
-    		//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (0, 0) );
-    		//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (1, 1) );
-    		//*ETsystemMatrixIII *= -1.0;
-    		//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (0, 1) );
-    		//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (1, 0) );
-
 			
 			M_massMatrixPtr->globalAssemble();
 		}
@@ -1451,29 +1405,8 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupMassMatrix(
 		integrate(elements(M_localMeshPtr), M_feSpacePtr->qr(), M_ETFESpacePtr,
 				M_ETFESpacePtr,  J * phi_i * phi_j) 
 			>> M_massMatrixPtr->block(0,0);
-		//integrate ( elements (M_ETFESpacePtr->mesh() ),
-        //		     M_feSpacePtr->qr(),
-        //		     ETFESpacePtr,
-        //		     ETFESpacePtr,
- 	//					J * phi_i * phi_j
-	//				   )
-	                //ETcomponentMassMatrix->block (0, 0);
 	}
 	//ETcomponentMassMatrix->globalAssemble();
-    	
-
-
-  	// ---------------------------------------------------------------
-  	// We copy the blocks
-  	// ---------------------------------------------------------------
-	//result matrix 
-	// M   -M
-	// -M	  M	
-  	//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (0, 0) );
-  	//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (1, 1) );
-  	//*ETsystemMatrixIII *= -1.0;
-  	//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (0, 1) );
-  	//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (1, 0) );
 
 	M_massMatrixPtr->globalAssemble();
 }
@@ -1676,11 +1609,9 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 
 	}
 	ETcomponentStiffnessMatrix->globalAssemble();
-//	*ETcomponentStiffnessMatrix *= -1.0;
+
 	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (0, 1) );
 	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (1, 0) );
-//	if (M_bcHandler!=NULL)
-//	  bcManage ( ETcomponentStiffnessMatrix , M_rhsPtrUnique, M_localMeshPtr,  M_feSpacePtr->dof(), *M_bcHandler,  M_feSpacePtr->feBd(), 1.0, 0 );
 	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (0, 0) );
 	//ExtraCellular
 	sigmal += diffusionExtra[0];
@@ -1834,7 +1765,7 @@ template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::setupGlobalSolution(
 		short int ionicSize) {
   //This is the solution vector for the IonicModel
-	M_globalSolution.push_back(M_potentialTransPtr); //NEEDS TO BE CHANGED
+	M_globalSolution.push_back(M_potentialTransPtr); 
 	//M_globalSolution.push_back(M_potentialExtraPtr);
 	for (int k = 1; k < ionicSize; ++k) {
 		M_globalSolution.push_back(
@@ -1845,7 +1776,7 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupGlobalSolution(
 template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::setupGlobalRhs(
 		short int ionicSize) {
-	M_globalRhs.push_back(M_ionicModelPtr->appliedCurrentPtr()); // SHOULD BE I_app^i vector
+	M_globalRhs.push_back(M_ionicModelPtr->appliedCurrentPtr()); 
 	for (int k = 1; k < ionicSize; ++k) {
 		M_globalRhs.push_back(
 				*(new vectorPtr_Type(new VectorEpetra(M_ETFESpacePtr->map()))));
@@ -1858,9 +1789,6 @@ template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(
 		int subiterations) {
 	M_ionicModelPtr->superIonicModel::computeRhs(M_globalSolution, M_globalRhs);
-	//M_globalSolution.at(0)->spy("GlobalSolution");
-	//M_globalRhs->spy("globalRhs");
-	//M_globalRhs.at(0)->showMe();
 	for (int i = 0; i < M_ionicModelPtr->Size(); i++) {
 		if(i==0)
 			*(M_globalSolution.at(i)) = *(M_globalSolution.at(i))
@@ -1870,8 +1798,7 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneReactionStepFE(
 				+ ((M_timeStep) / subiterations) * (*(M_globalRhs.at(i)));
 	}
 	//copying th transmembrane potential back	
-	M_potentialGlobalPtr->subset((*M_globalSolution.at(0)),(M_globalSolution.at(0)->map()),(UInt)0,(UInt)0);
-	
+	M_potentialGlobalPtr->subset((*M_globalSolution.at(0)),(M_globalSolution.at(0)->map()),(UInt)0,(UInt)0);	
 }
 
 
@@ -1901,39 +1828,11 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBE() {
 	M_linearSolverPtr->solve(M_potentialGlobalPtr);
 	
 	//copy the result from the gloable solution back to the two vector
-	(*M_potentialTransPtr)*=0;
-	(*M_potentialExtraPtr)*=0;
-	//M_potentialTransPtr boost::shared_ptr<VectorEpetra>) M_potentialGlobalPtr->block(0)->vectorPtr());
+//	(*M_potentialTransPtr)*=0;
+//	(*M_potentialExtraPtr)*=0;
 
-	//Int* temp= (*(static_cast<boost::shared_ptr<VectorEpetra> >(M_potentialGlobalPtr->block(0)->vectorPtr ()))).blockMap().MyGlobalElements();
-	//VectorEpetra& vectorg =(*(static_cast<boost::shared_ptr<VectorEpetra> >(M_potentialGlobalPtr->block(0)->vectorPtr ())));
-	//VectorEpetra& vectort =(*(static_cast<boost::shared_ptr<VectorEpetra> >(M_potentialTransPtr)));
-	
-//	Int numMyEntries = M_potentialTransPtr->epetraVector().MyLength ();
-//	Int* gids  = M_potentialTransPtr->blockMap().MyGlobalElements();
-//	Int offset=0;
-	// eg: (u,p) += p or (u,p) += u
-//	for ( Int i = 0; i < numMyEntries; ++i )
-//	{
-//	  vectort(gids[i] + offset) = vectorg(gids[i]);
-//	}
-
-	//Int temp =M_potentialGlobalPtr->epetraVector().MyLength();
-	//((vector_Type)M_potentialGlobalPtr->block(0)->vectorPtr());
-	//vector_Type te (*(M_potentialGlobalPtr->epetraVector()));
-//	M_potentialGlobalPtr->showMe();
-	copyBlockVector( M_potentialGlobalPtr->block(0),M_potentialTransPtr);
-	copyBlockVector( M_potentialGlobalPtr->block(1),M_potentialExtraPtr);
-
-	//M_potentialTransPtr->showMe();
-	
-	//M_potentialExtraPtr->add(M_potentialGlobalPtr->epetraVector(),0,temp);
-//	M_potentialTransPtr->add(*te,0,temp,M_potentialGlobalPtr->block(0)->firstIndex());
-
-	
-	//M_potentialTransPtr->subset((*(static_cast<boost::shared_ptr<VectorEpetra> >(M_potentialGlobalPtr->block(0)->vectorPtr()))),0);
-	//M_potentialExtraPtr->subset((*(static_cast<boost::shared_ptr<VectorEpetra> >(M_potentialGlobalPtr->block(1)->vectorPtr()))),0);
-	//M_potentialGlobalPtr->block(0)->firstIndex()
+	M_potentialTransPtr->subset((const VectorEpetra&)(*M_potentialGlobalPtr->block(0)->vectorPtr()),M_potentialTransPtr->map(),M_potentialGlobalPtr->block(0)->firstIndex(),static_cast<UInt> (0));
+	M_potentialExtraPtr->subset((const VectorEpetra&)(*M_potentialGlobalPtr->block(1)->vectorPtr()),M_potentialExtraPtr->map(),M_potentialGlobalPtr->block(1)->firstIndex(),static_cast<UInt> (0));
 }
 
 template<typename Mesh, typename IonicModel>
@@ -1983,8 +1882,9 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupExporter(
 		variableName = "Variable" + boost::lexical_cast<std::string>(i);
 		exporter.addVariable(ExporterData<mesh_Type>::ScalarField, variableName,
 				M_feSpacePtr, M_globalSolution.at(i), UInt(0));
-				// EXPORT ALSO EXTRACELLULAR POTENTIAL
 	}
+	exporter.addVariable(ExporterData<mesh_Type>::ScalarField, "PotentialExtracellular",
+			M_feSpacePtr, M_potentialExtraPtr, UInt(0));
 }
 
 /********   INITIALIZITION FOR CONSTRUCTOR ****/    //////
@@ -1993,7 +1893,6 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::init() {
 	M_linearSolverPtr.reset(new LinearSolver());
 	M_globalSolution = *(new vectorOfPtr_Type());
 	M_globalRhs = *(new vectorOfPtr_Type());
-	//M_bcHandler=*(new LifeV::BCHandler());
 	M_identity(0, 0) = 1.0;
 	M_identity(0, 1) = 0.0;
 	M_identity(0, 2) = 0.0;
