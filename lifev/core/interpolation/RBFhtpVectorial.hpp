@@ -248,7 +248,7 @@ void RBFhtpVectorial<Mesh>::buildInterpolationMatrix()
         }
     }
 
-    delete Indices;
+    delete[] Indices;
 
     invDiag->globalAssemble ();
 
@@ -352,10 +352,10 @@ void RBFhtpVectorial<Mesh>::interpolationOperator()
         M_approximatedInverse->matrixPtr()->InsertGlobalValues (GlobalID[i], 1, &diag, &GlobalID[i]);
     }
     M_interpolationOperator->globalAssemble();
-    delete Indices;
-    delete Values;
-    delete ElementsPerRow;
-    delete GlobalID;
+    delete[] Indices;
+    delete[] Values;
+    delete[] ElementsPerRow;
+    delete[] GlobalID;
 }
 
 template <typename mesh_Type>
@@ -429,10 +429,10 @@ void RBFhtpVectorial<mesh_Type>::projectionOperator()
         M_projectionOperator->matrixPtr()->InsertGlobalValues (GlobalID[i], k, Values, Indices);
     }
     M_projectionOperator->globalAssemble (M_interpolationOperatorMap, M_projectionOperatorMap);
-    delete Indices;
-    delete Values;
-    delete ElementsPerRow;
-    delete GlobalID;
+    delete[] Indices;
+    delete[] Values;
+    delete[] ElementsPerRow;
+    delete[] GlobalID;
 }
 
 template <typename mesh_Type>

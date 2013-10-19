@@ -104,6 +104,7 @@
 
 #include <lifev/core/util/HeartUtility.hpp>
 #include <lifev/core/mesh/MeshUtility.hpp>
+#include <lifev/core/mesh/MeshTransformer.hpp>
 #include <lifev/core/mesh/MeshLoadingUtility.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -141,6 +142,7 @@ typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
 typedef  StructuralOperator< RegionMesh<LinearTetra> >		physicalSolver_Type;
 typedef BCInterface3D< bc_Type, physicalSolver_Type >              bcInterface_Type;
 typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
+typedef MeshUtility::MeshTransformer<mesh_Type>                         meshTransformer_Type;
 
 
 // ---------------------------------------------------------------
@@ -232,7 +234,11 @@ int main ( int argc, char** argv )
     {
         std::cout << " done ! " << std::endl;
     }
-
+//    meshTransformer_Type  transformer(*meshPart);
+//    VectorSmall<3>  scale ( 0.22, 0.22, 0.57143 );
+//    Vector3D rotate ( 0.0, 0.0, M_PI );
+//    Vector3D translate ( 0.0, 0.0, 0.0 );
+//    transformer.transformMesh ( scale, rotate, translate );
 
     // ---------------------------------------------------------------
     // We define now the ETFESpace that we need for the assembly.
@@ -527,9 +533,28 @@ int main ( int argc, char** argv )
 		HeartUtility::normalize(*rbSheet);
 
 		//human biventricular
-		Real cx = -0.655333989927163;
-		Real cy = 0.699986220544843;
-		Real cz = -0.283825038876930;
+//		Real cx = -0.655333989927163;
+//		Real cy = 0.699986220544843;
+//		Real cz = -0.283825038876930;
+
+		//single myocyte
+//		Real cx = 0.82965;
+//		Real cy = 0.55828;
+//		Real cz = 0.00000;
+//		Real cx = 0.999356;
+//		Real cy = 0.033312;
+//		Real cz = 0.013325;
+
+
+		//EuroHeart
+//		Real cx = 0.013355;
+//		Real cy = 0.170887;
+//		Real cz = 0.985200;
+			// euro heart 11   0.0066535  -0.0555680   0.9984327
+		Real cx = 0.0066535;
+		Real cy =-0.0555680;
+		Real cz = 0.9984327;
+
 
 		//idealized
 		//Real cx = 0.0;
