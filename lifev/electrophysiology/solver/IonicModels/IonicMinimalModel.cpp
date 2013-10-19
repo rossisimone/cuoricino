@@ -121,7 +121,7 @@ IonicMinimalModel::IonicMinimalModel()  :
 IonicMinimalModel::IonicMinimalModel ( Teuchos::ParameterList& parameterList     )   :
     super       ( 4 )
 {
-    M_uo        =  parameterList.get ("uo",      0.0     );
+    M_uo        =  parameterList.get ("uo",      1000.0     );
     M_uu        =  parameterList.get ("uu",      1.61    );
     M_tetav     =  parameterList.get ("tetav",   0.30    );
     M_tetaw     =  parameterList.get ("tetaw",   0.130   );
@@ -149,6 +149,11 @@ IonicMinimalModel::IonicMinimalModel ( Teuchos::ParameterList& parameterList    
     M_tausi     =  parameterList.get ("tausi",   3.3849  );
     M_tauwinf   =  parameterList.get ("tauwinf", 0.01    );
     M_winfstar  =  parameterList.get ("winfstar", 0.5     );
+
+	M_restingConditions.at(0) = 0.0;
+	M_restingConditions.at(1) = 1.0;
+	M_restingConditions.at(2) = 1.0;
+	M_restingConditions.at(3) = 0.021553043080281;
 }
 
 IonicMinimalModel::IonicMinimalModel ( const IonicMinimalModel& model )
@@ -281,6 +286,7 @@ void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
     rhs[1] = ( 1.0 - Heaviside ( U - M_tetav ) ) * ( vinf - V ) / tauvm - Heaviside ( U - M_tetav ) * V / M_tauvp;
     rhs[2] = ( 1.0 - Heaviside ( U - M_tetaw ) ) * ( winf - W ) / tauwm - Heaviside ( U - M_tetaw ) * W / M_tauwp;
     rhs[3] = ( ( 1.0 + std::tanh ( M_ks * ( U - M_us ) ) ) / 2.0 - S ) / taus;
+
 }
 
 
@@ -348,6 +354,35 @@ void IonicMinimalModel::showMe()
 {
 
     std::cout << "\n\tHi, I'm the minimal model\n\t See you soon\n\n";
+
+            std::cout << "\nuo " <<       M_uo      ;
+            std::cout << "\nuu " <<       M_uu     ;
+         std::cout << "\ntetav " <<    M_tetav     ;
+         std::cout << "\ntetaw " <<    M_tetaw    ;
+        std::cout << "\ntetavm " <<   M_tetavm     ;
+         std::cout << "\ntetao " <<    M_tetao    ;
+       std::cout << "\ntauv1 " <<    M_tauv1      ;
+         std::cout << "\ntauv2 " <<    M_tauv2   ;
+         std::cout << "\ntauvp " <<    M_tauvp   ;
+         std::cout << "\ntauw1 " <<    M_tauw1     ;
+         std::cout << "\ntauw2 " <<    M_tauw2      ;
+            std::cout << "\nkw " <<       M_kw    ;
+            std::cout << "\nuw " <<       M_uw    ;
+         std::cout << "\ntauwp " <<    M_tauwp    ;
+         std::cout << "\ntaufi " <<    M_taufi    ;
+         std::cout << "\ntauo1 " <<    M_tauo1   ;
+         std::cout << "\ntauo2 " <<    M_tauo2      ;
+        std::cout << "\ntauso1 " <<   M_tauso1     ;
+        std::cout << "\ntauso2 " <<   M_tauso2      ;
+          std::cout << "\nkso " <<     M_kso       ;
+           std::cout << "\nuso " <<      M_uso      ;
+        std::cout << "\ntaus1 " <<    M_taus1    ;
+         std::cout << "\ntaus2 " <<   M_taus2      ;
+            std::cout << "\nks " <<       M_ks   ;
+            std::cout << "\nus " <<       M_us   ;
+         std::cout << "\ntausi " <<    M_tausi   ;
+       std::cout << "\ntauwinf " <<  M_tauwinf     ;
+     std::cout << "\nwinfstar " <<   M_winfstar    << "\n"  ;
 }
 
 

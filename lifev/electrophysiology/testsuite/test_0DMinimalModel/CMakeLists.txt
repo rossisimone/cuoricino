@@ -13,7 +13,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_electrophysiology_0DMinimalModel_data
   CREATE_SYMLINK
-  SOURCE_FILES data  
+  SOURCE_FILES data  ParametersMCells.xml ParametersEndo.xml ParametersEpi.xml ParametersTNNP.xml ParametersPB.xml
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

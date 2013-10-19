@@ -55,7 +55,7 @@
 #include <fstream>
 #include <string>
 
-#include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/filter/GetPot.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/LifeV.hpp>
@@ -85,9 +85,13 @@ Int main ( Int argc, char** argv )
     // in the execution directory.                //
     //********************************************//
 
-    //std::cout << "Importing parameters list...";
-    // Teuchos::ParameterList NLParameterList = *( Teuchos::getParametersFromXmlFile( "NegroniLascano96Parameters.xml" ) );
-    //std::cout << " Done!" << endl;
+    GetPot commandLine ( argc, argv );
+    std::string xmlParameterFilename = commandLine.follow ("Parameters.xml", 2, "-i","--file"); ;
+
+    std::cout << "Importing parameters list...";
+//    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "Parameters.xml" ) );
+    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( xmlParameterFilename ) );
+    std::cout << " Done!" << endl;
 
 
     //********************************************//
@@ -96,8 +100,8 @@ Int main ( Int argc, char** argv )
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
-    std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
-    IonicMinimalModel  ionicModel;
+    std::cout << "Building Constructor for Minimal  Model with parameters ... ";
+    IonicMinimalModel  ionicModel(ParameterList);
     std::cout << " Done!" << endl;
 
 
@@ -117,10 +121,11 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.Size(), 0);
-    states.at (0) = 1.0;
-    states.at (1) = 1.0;
-    states.at (2) = 1.0;
-    states.at (3) = 0.021553043080281;
+//    states.at (0) = 0.0;
+//    states.at (1) = 1.0;
+//    states.at (2) = 1.0;
+//    states.at (3) = 0.021553043080281;
+    ionicModel.initialize(states);
     std::vector<Real>& rStates = states;
     std::cout << " Done!" << endl;
 
@@ -152,7 +157,7 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (500);
+    Real TF (550);
     Real dt (0.02);
 
 
@@ -175,8 +180,8 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        //if( t > 10 && t < 11 ) Iapp = 4.0;
-        //else Iapp = 0;
+        if( t >= 50 && t <= 52 ) Iapp = 0.4;
+        else Iapp = 0.0;
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
@@ -184,6 +189,7 @@ Int main ( Int argc, char** argv )
         //********************************************//
         ionicModel.setAppliedCurrent(Iapp);
         ionicModel.computeRhs ( states, rhs);
+        rhs[0] += Iapp;
 
         //********************************************//
         // Use forward Euler method to advance the    //
@@ -192,7 +198,7 @@ Int main ( Int argc, char** argv )
 
         for ( int j (0); j < ionicModel.Size(); j++)
         {
-            rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
+            states[j] = states[j]  + dt * rhs[j];
         }
 
         //********************************************//

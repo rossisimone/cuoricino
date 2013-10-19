@@ -338,18 +338,22 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
     std::vector<vectorPtr_Type>      URepPtr;
     for ( int k = 0; k < M_numberOfEquations; k++ )
     {
-        URepPtr.push_back ( * ( new vectorPtr_Type ( new VectorEpetra (  * ( v.at (k) )     , Repeated ) ) ) );
+        URepPtr.push_back ( vectorPtr_Type ( new VectorEpetra (  * ( v.at (k) )     , Repeated ) ) );
     }
 
     VectorEpetra    IappRep ( uFESpace.map(), Repeated );
-    if(M_appliedCurrentPtr)     IappRep = (*( new VectorEpetra ( *M_appliedCurrentPtr , Repeated ) ) );
+    if(M_appliedCurrentPtr)
+    	{
+    	M_appliedCurrentPtr -> setMapType(Repeated);
+    	IappRep = *M_appliedCurrentPtr;
+    	}
     else IappRep *= 0.0;
 
 
     std::vector<elvecPtr_Type>      elvecPtr;
     for ( int k = 0; k < M_numberOfEquations; k++ )
     {
-        elvecPtr.push_back ( * ( new elvecPtr_Type ( new VectorElemental (  uFESpace.fe().nbFEDof(), 1  ) ) ) );
+        elvecPtr.push_back ( elvecPtr_Type ( new VectorElemental (  uFESpace.fe().nbFEDof(), 1  ) ) );
     }
 
     VectorElemental elvec_Iapp ( uFESpace.fe().nbFEDof(), 1 );
@@ -425,6 +429,18 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
         }
     }
     rhs.at (0) -> globalAssemble();
+
+
+    if(M_appliedCurrentPtr)
+	{
+    	M_appliedCurrentPtr -> setMapType(Unique);
+	}
+
+//    for ( int k = 0; k < M_numberOfEquations; k++ )
+//    {
+//        URepPtr[k].reset();
+//        elvecPtr[k].reset();
+//    }
 }
 
 
