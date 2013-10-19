@@ -458,7 +458,7 @@ public:
       //=============
       inline Real Itot(Real V, Real m, Real h, Real j, Real d, Real f, Real X, Real Ca)
       {
-    	  return ( INa(V,m,h,j) + Isi(V, d, f, Ca) + IK(V, X) + IK1(V) + IK1(V) + IKp(V) + Ib(V) );
+    	  return ( INa(V,m,h,j) + Isi(V, d, f, Ca) + IK(V, X) + IK1(V) + IKp(V) + Ib(V) );
       }
     //Compute the rhs on a single node or for the 0D case
     void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
