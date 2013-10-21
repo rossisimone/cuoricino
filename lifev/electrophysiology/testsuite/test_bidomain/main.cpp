@@ -123,7 +123,7 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
     return returnValue1;
 }
 
-    typedef LifeV::Real real_t;
+//    typedef LifeV::Real real_t;
 
     static real_t bcDirichletZero(const real_t&, const real_t&, const real_t&, const real_t&, const LifeV::ID&)
     {
