@@ -125,6 +125,13 @@ public:
         Orthotropic
     };
 
+    enum FSI3DActivated_IonicCurrentType
+    {
+        ICI,
+        SVI,
+        OperatorSplitting
+    };
+
     //@}
 
 
@@ -280,6 +287,7 @@ private:
     scalarETFESpacePtr_Type					M_activationETFESpace;
 
     FSI3DActivated_ActivationType      		M_activationType;
+    FSI3DActivated_IonicCurrentType         M_ionicCurrentType;
     Real 									M_orthotropicActivationAnisotropyRatio;
     matrixPtr_Type 							M_activationOperator;
     vectorPtr_Type							M_preloadVector;

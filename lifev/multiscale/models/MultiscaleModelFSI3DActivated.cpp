@@ -122,8 +122,13 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = monodomainList.get ("mesh_path", "./");
 
-    // Activation model settings
+    // Ionic current implementation
+    std::map< std::string, FSI3DActivated_IonicCurrentType > ionicCurrentTypeMap;
+    ionicCurrentTypeMap["ICI"]               = ICI;
+    ionicCurrentTypeMap["SVI"]               = SVI;
+    ionicCurrentTypeMap["OperatorSplitting"] = OperatorSplitting;
 
+    // Activation model settings
     std::map< std::string, FSI3DActivated_ActivationModelType > activationModelTypeMap;
     activationModelTypeMap["Algebraic"]           = Algebraic;
     activationModelTypeMap["SimpleODE"]           = SimpleODE;
@@ -194,6 +199,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_activationModelType   = activationModelTypeMap[dataFile ( "electrophysiology/activation_model", "SimpleODE" )];
     M_activationType        = activationTypeMap[dataFile ( "electrophysiology/activation_type", "TransverselyIsotropic" )];
     M_orthotropicActivationAnisotropyRatio = dataFile ( "electrophysiology/anisotropy_ratio", 3. );
+    M_ionicCurrentType      = ionicCurrentTypeMap[ monodomainList.get ("solutionMethod", "SVI") ];
 
   //  M_preloadInTime         = dataFile ("solid/physics/preload", 0);
     typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >          FESpace_Type;
@@ -428,10 +434,20 @@ MultiscaleModelFSI3DActivated::solveModel()
         for(Real tt(tn); tt < tn + timeStep; )
         {
         	tt += M_monodomain -> timeStep() / 1000.0;
-        	M_monodomain -> solveOneStepGatingVariablesFE();
-    		M_monodomain -> solveOneSVIStep();
 
-            switch (M_activationModelType)
+        	switch (M_ionicCurrentType)
+        	{
+        	    case OperatorSplitting:
+        	        M_monodomain -> solveOneSplittingStep();
+        	    case SVI:
+        	        M_monodomain -> solveOneStepGatingVariablesFE();
+        	        M_monodomain -> solveOneSVIStep();
+        	    case ICI:
+        	        M_monodomain -> solveOneStepGatingVariablesFE();
+        	        M_monodomain -> solveOneICIStep();
+        	}
+
+        	switch (M_activationModelType)
              {
                  case Algebraic:
                  {
