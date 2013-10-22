@@ -92,7 +92,6 @@
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
-#include <lifev/electrophysiology/solver/ElectroMonodomainSolver.hpp>
 #include <lifev/core/fem/BCHandler.hpp>
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/core/algorithm/PreconditionerIfpack.hpp>
@@ -140,7 +139,6 @@ Int main ( Int argc, char** argv )
 
     typedef RegionMesh<LinearTetra> mesh_Type;
     typedef boost::shared_ptr<mesh_Type> meshPtr_Type;
-    typedef  ElectroMonodomainSolver< RegionMesh<LinearTetra> >		physicalSolver_Type;
 
     typedef VectorEpetra vector_Type;
     typedef boost::shared_ptr< vector_Type > vectorPtr_Type;

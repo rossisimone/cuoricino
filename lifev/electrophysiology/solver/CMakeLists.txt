@@ -4,26 +4,19 @@ ADD_SUBDIRECTORIES(
 )
 SET(solver_HEADERS
 #  solver/ElectroAlievPanfilov.hpp
-  solver/ElectroMonodomainData.hpp
   solver/ElectroStiffnessFibers.hpp
   solver/ElectroIonicData.hpp
-  solver/ElectroBidomainData.hpp
   solver/ElectroIonicSolver.hpp
   solver/ElectroLuoRudy.hpp
-  solver/ElectroBidomainSolver.hpp
   solver/ElectroFunctors.hpp
-  solver/ElectroMonodomainSolver.hpp
   solver/ElectroETAMonodomainSolver.hpp
   solver/ElectroETABidomainSolver.hpp
-  solver/ElectroUpdatedMonodomainSolver.hpp
   solver/StimulationProtocol.hpp
 #  solver/ElectroODEModel.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES
   solver/ElectroIonicData.cpp
-  solver/ElectroMonodomainData.cpp
-  solver/ElectroBidomainData.cpp
   solver/ElectroFunctors.cpp
   solver/StimulationProtocol.cpp
 CACHE INTERNAL "")
