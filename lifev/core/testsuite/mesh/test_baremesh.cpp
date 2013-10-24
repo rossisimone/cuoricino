@@ -84,6 +84,8 @@ public:
     {
         return LifeV::Repeated;
     }
+    inline void setMapType(LifeV::MapEpetraType type) { }
+
 };
 
 template<typename meshEntity>

@@ -597,6 +597,8 @@ VectorEpetra::operator! ( void )
 // ===================================================
 bool VectorEpetra::isGlobalIDPresent (const UInt row) const
 {
+
+//	std::cout << "\nOn processor: " << M_epetraVector->Comm().MyPID() << ", GID = " << row << ", LID " << blockMap().LID (row) << ", but numLocal: " << M_epetraVector->MyLength() <<"\n";
     return blockMap().LID (row) >= 0;
 }
 

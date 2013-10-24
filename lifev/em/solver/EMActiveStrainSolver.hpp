@@ -172,6 +172,7 @@ public:
 	inline 	scalarETFESpacePtr_Type ETFESpacePtr()	{ return M_ETFESpacePtr; }
 	inline 	solidETFESpacePtr_Type 	solidETFESpacePtr()	{ return M_solidETFESpacePtr; }
 	inline 	FESpacePtr_Type 	FESpacePtr()		{ return M_FESpacePtr; }
+	inline 	FESpacePtr_Type 	FESpacePtrSolid()		{ return M_FESpacePtrSolid; }
 
 	inline 	activation_Type 		activationType() { return M_activationType; }
 	inline 	Real 	orthotropicActivationAnisotropyRatio()	{ return M_orthotropicActivationAnisotropyRatio; }
@@ -275,7 +276,7 @@ public:
 	scalarETFESpacePtr_Type 	M_ETFESpacePtr;
 	solidETFESpacePtr_Type 		M_solidETFESpacePtr;
 	FESpacePtr_Type 			M_FESpacePtr;
-//	FESpacePtr_Type 			M_solidFESpacePtr;
+	FESpacePtr_Type 			M_FESpacePtrSolid;
 
 
 	Real 						M_orthotropicActivationAnisotropyRatio;
@@ -320,6 +321,7 @@ EMActiveStrainSolver<Mesh>::EMActiveStrainSolver():
 	M_ETFESpacePtr(),
 	M_solidETFESpacePtr(),
 	M_FESpacePtr(),
+	M_FESpacePtrSolid(),
 	M_activationType(Orthotropic),
 	M_orthotropicActivationAnisotropyRatio(4.0),
 	M_CaDiastolic(0.02155),
@@ -630,6 +632,7 @@ void EMActiveStrainSolver<Mesh>::init( Teuchos::ParameterList parameterList, mes
     M_ETFESpacePtr.reset( new scalarETFESpace_Type (meshPtr,  &feTetraP1, comm) );
 	M_solidETFESpacePtr.reset( new solidETFESpace_Type(meshPtr, &feTetraP1, comm) );
 	M_FESpacePtr.reset( new FESpace_Type(meshPtr, "P1", 1, comm));
+	M_FESpacePtrSolid.reset( new FESpace_Type(meshPtr, "P1", 3, comm));
 
 	M_gammafPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
 	M_gammasPtr.reset(new vector_Type( M_FESpacePtr -> map() ) );
