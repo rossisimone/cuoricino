@@ -97,7 +97,10 @@ public:
     *  @param dim  Length of vector disp.
     */
     template <typename VectorType>
-    void moveMesh ( const VectorType& disp, UInt dim);
+    void moveMesh ( VectorType& disp, UInt dim, int substitute = 0 );
+
+    template <typename VectorType>
+    void vertices ( VectorType& disp, UInt dim );
     /** Transform the mesh. It uses  boost::numeric::ublas (3,3) matrices
      *  scale, rotate and translate to perform the mesh movement
      *  (operations performed in this order).
@@ -184,17 +187,20 @@ MeshTransformer<RegionMeshType, MarkerCommonType >::MeshTransformer (RegionMeshT
  */
 template <typename RegionMeshType, typename MarkerCommonType >
 template <typename VectorType>
-void MeshTransformer<RegionMeshType, MarkerCommonType >::moveMesh ( const VectorType& disp, UInt dim )
+void MeshTransformer<RegionMeshType, MarkerCommonType >::moveMesh ( VectorType& disp, UInt dim, int substitute )
 {
     // the method must be called with a Repeated vector
+	bool mapUnique=false;
     if ( disp.mapType() == Unique )
     {
+    	mapUnique = true;
 #ifdef HAVE_LIFEV_DEBUG
         std::cerr << "Info: moveMesh() requires a Repeated vector, a copy of the passed Unique vector will be created.\n"
                   << "To optimize your code, you should pass a repeated vector to avoid the conversion." << std::endl;
 #endif
-        this->moveMesh ( VectorType ( disp, Repeated ), dim );
-        return;
+        //this->moveMesh ( VectorType ( disp, Repeated ), dim );
+        disp.setMapType(Repeated);
+        //return;
     }
 
     if ( !this->hasOldPoint() )
@@ -210,10 +216,76 @@ void MeshTransformer<RegionMeshType, MarkerCommonType >::moveMesh ( const Vector
         {
             int globalId = pointList[i].id();
             ASSERT ( disp.isGlobalIDPresent ( globalId + dim * j ), "global ID missing" );
-            pointList[ i ].coordinate ( j ) = M_pointList[ i ].coordinate ( j ) + disp[ j * dim + globalId ];
+            if (substitute == 1)
+            {
+            	pointList[ i ].coordinate ( j ) *= 0.0;
+            	pointList[ i ].coordinate ( j ) = disp[ j * dim + globalId ];
+//                std:: cout << "\nMOVING THE MESH:  " << disp[ j * dim + globalId ] << ",  coordinate: " << M_pointList[ i ].coordinate ( j );
+            }
+            else
+            {
+            	pointList[ i ].coordinate ( j ) = M_pointList[ i ].coordinate ( j ) + disp[ j * dim + globalId ];
+            }
         }
     }
+
+    if(mapUnique)
+    {
+    	disp.setMapType(Unique);
+    }
 }
+
+
+
+template <typename RegionMeshType, typename MarkerCommonType >
+template <typename VectorType>
+void MeshTransformer<RegionMeshType, MarkerCommonType >::vertices ( VectorType& disp, UInt dim )
+{
+    // the method must be called with a Repeated vector
+	bool mapUnique=false;
+    if ( disp.mapType() == Unique )
+    {
+    	mapUnique = true;
+#ifdef HAVE_LIFEV_DEBUG
+        std::cerr << "Info: moveMesh() requires a Repeated vector, a copy of the passed Unique vector will be created.\n"
+                  << "To optimize your code, you should pass a repeated vector to avoid the conversion." << std::endl;
+#endif
+        disp.setMapType(Repeated);
+        //  this->moveMesh ( VectorType ( disp, Repeated ), dim );
+        //return;
+    }
+
+    if ( !this->hasOldPoint() )
+    {
+        this->savePoints();
+    }
+
+    std:: cout << "\n list size" << M_mesh.pointList.size();
+
+    typedef typename RegionMeshType::points_Type points_Type;
+    points_Type& pointList ( M_mesh.pointList );
+    for ( UInt i = 0; i < M_mesh.pointList.size(); ++i )
+    {
+    	std:: cout << "\n--------------";
+        for ( UInt j = 0; j < nDimensions; ++j )
+        {
+            int globalId = pointList[i].id();
+            std:: cout << "\n GID " << globalId << ", dim " << dim << ", j * dim + GID: " <<  (j * dim + globalId) ;
+            ASSERT ( disp.isGlobalIDPresent ( globalId + dim * j ), "global ID missing" );
+            std:: cout << "\n i " << i << ", j : " << j << ", " << disp[ j * dim + globalId ] << ", " << M_pointList[ i ].coordinate ( j );
+
+            disp[ j * dim + globalId ] = M_pointList[ i ].coordinate ( j );
+            std:: cout << "\n i " << i << ", j : " << j << ", " << disp[ j * dim + globalId ] << ", " << M_pointList[ i ].coordinate ( j );
+        }
+    }
+
+    if(mapUnique)
+    {
+    	disp.setMapType(Unique);
+    }
+}
+
+
 
 template<typename RegionMeshType, typename MarkerCommonType >
 void MeshTransformer<RegionMeshType, MarkerCommonType >::savePoints()
