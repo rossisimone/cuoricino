@@ -18,4 +18,5 @@ ADD_SUBDIRECTORIES(
   linearizedGHObiventricle
   linearizedGHOrotation
   linearizedGHOventricle
+  prestress
 )
