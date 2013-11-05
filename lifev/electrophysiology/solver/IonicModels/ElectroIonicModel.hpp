@@ -47,7 +47,10 @@
 #include <lifev/core/array/VectorElemental.hpp>
 #include <lifev/core/fem/FESpace.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
+#include <lifev/electrophysiology/util/CardiacStimulus.hpp>
 
+#include <boost/bind.hpp>
+#include <boost/ref.hpp>
 
 namespace LifeV
 {
@@ -139,11 +142,20 @@ public:
 		M_appliedCurrentPtr.reset( new vector_Type( p ) );
 	}
 	inline void setAppliedCurrentFromFunction(function_Type& f, feSpacePtr_Type feSpacePtr,
-			Real time = 0.0) {
+	                                          Real time = 0.0) {
 
-		feSpacePtr -> interpolate(
-						static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(f),
-						*M_appliedCurrentPtr, time);
+	    feSpacePtr -> interpolate(
+	                    static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(f),
+	                    *M_appliedCurrentPtr, time);
+	}
+	inline void setAppliedCurrentFromCardiacStimulus( CardiacStimulus& stimulus, feSpacePtr_Type feSpacePtr, Real time = 0.0) {
+
+	    // boost::ref() is needed here because otherwise a copy of the base object is reinstantiated
+	    function_Type f = boost::bind(&CardiacStimulus::appliedCurrent, boost::ref(stimulus), _1, _2, _3, _4, _5 );
+
+	    feSpacePtr -> interpolate(
+	                    static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(f),
+	                    *M_appliedCurrentPtr, time);
 	}
 
 	inline void setPacingProtocol( function_Type pacingProtocol )
@@ -186,7 +198,6 @@ public:
 
     //Compute the rhs on a mesh/ 3D case
     virtual void computeNonGatingRhs ( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
-
 
     virtual void computeRhs ( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
 
