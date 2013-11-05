@@ -79,7 +79,7 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicLuoRudyI.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher06.hpp>
-
+#include <lifev/electrophysiology/util/CardiacStimulusPMJ.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -93,12 +93,12 @@ using namespace LifeV;
 Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
 {
 
-    const int numberOfPacingSites = 3;
+    const int numberOfPacingSites = 1;
 
-    Real pacingSite_X[numberOfPacingSites]   = { 13.0, 15.2, 9.7 };
-    Real pacingSite_Y[numberOfPacingSites]   = { 6.5 ,  8.5, 6.6 };
-    Real pacingSite_Z[numberOfPacingSites]   = { 15.0, 18.2, 15. };
-    Real stimulusRadius[numberOfPacingSites] = { 0.15,  0.15,  0.1 };
+    Real pacingSite_X[numberOfPacingSites]   = { 3.10949         };
+    Real pacingSite_Y[numberOfPacingSites]   = { -3.15376 };
+    Real pacingSite_Z[numberOfPacingSites]   = { -2.89625 };
+    Real stimulusRadius[numberOfPacingSites] = { 0.25 };
     Real stimulusValue = 50;
 
     Real returnValue = 0;
@@ -296,12 +296,50 @@ Int main ( Int argc, char** argv )
     solver -> initializeAppliedCurrent();
     solver -> setInitialConditions();
 
+    /*
     function_Type stimulus;
     if(ionic_model == "MinimalModel" )
         stimulus = &PacingProtocolMM;
     else
         stimulus = &PacingProtocol;
-    solver -> setAppliedCurrentFromFunction(stimulus, 0.0);
+     */
+
+    CardiacStimulusPMJ stimulus;
+    stimulus.setRadius( 0.2 );
+    stimulus.setTotalCurrent( 2.0 );
+    //stimulus.setPMJAddJunction( 3.10949, -3.15376, -2.89625, 0.0, 2.0 );
+
+    stimulus.setPMJAddJunction(4.6230, -4.1798, -2.9722, 0.5754, 2.0000);
+    stimulus.setPMJAddJunction(3.4078, -2.9326, -4.0292, 0.0000, 2.0000);
+    stimulus.setPMJAddJunction(6.4159, -1.8895, -4.0080, 25.5728, 2.0000);
+    stimulus.setPMJAddJunction(6.6757, -1.0402, -2.8399, 25.9171, 2.0000);
+    stimulus.setPMJAddJunction(2.7523, 0.6452, -4.3700, 34.2997, 2.0000);
+    stimulus.setPMJAddJunction(4.1017, 1.8470, -2.9836, 37.0173, 2.0000);
+    stimulus.setPMJAddJunction(4.9271, -1.4719, 0.6499, 41.1689, 2.0000);
+    stimulus.setPMJAddJunction(2.9258, -1.7308, 0.3550, 48.5998, 2.0000);
+    stimulus.setPMJAddJunction(2.7268, -2.3931, -0.2608, 46.3182, 2.0000);
+    stimulus.setPMJAddJunction(2.8927, -3.0254, -1.5040, 49.8934, 2.0000);
+    stimulus.setPMJAddJunction(5.9344, -2.1053, -4.4254, 12.1738, 2.0000);
+    stimulus.setPMJAddJunction(3.5544, 0.3440, -4.2917, 26.6577, 2.0000);
+    stimulus.setPMJAddJunction(2.5224, 3.2275, -1.2027, 47.3882, 2.0000);
+    stimulus.setPMJAddJunction(1.7620, 3.1506, -2.8372, 47.2847, 2.0000);
+    stimulus.setPMJAddJunction(3.7067, 2.9274, -1.0377, 46.9317, 2.0000);
+    stimulus.setPMJAddJunction(2.4350, 0.5375, 0.7186, 51.6274, 2.0000);
+    stimulus.setPMJAddJunction(6.1813, -1.3826, -0.5886, 37.6358, 2.0000);
+    stimulus.setPMJAddJunction(6.1745, -0.4471, -0.6968, 37.1766, 2.0000);
+    stimulus.setPMJAddJunction(6.3000, -0.2611, -0.7963, 39.2447, 2.0000);
+    stimulus.setPMJAddJunction(5.9208, 0.5714, -0.7229, 38.8118, 2.0000);
+    stimulus.setPMJAddJunction(0.6487, -0.9959, -2.0964, 39.8484, 2.0000);
+    stimulus.setPMJAddJunction(-0.1536, 0.5113, -3.2163, 39.6806, 2.0000);
+    stimulus.setPMJAddJunction(0.1714, 1.6314, -3.7963, 39.0650, 2.0000);
+    stimulus.setPMJAddJunction(1.5492, 2.9836, -3.3110, 40.9078, 2.0000);
+    stimulus.setPMJAddJunction(4.5385, -4.1890, -1.9103, 20.7932, 2.0000);
+    stimulus.setPMJAddJunction(5.3255, -4.1738, -1.4622, 18.9310, 2.0000);
+    stimulus.setPMJAddJunction(6.8030, -2.9734, -2.1150, 20.0534, 2.0000);
+    stimulus.setPMJAddJunction(7.1989, -3.1165, -3.6779, 20.4257, 2.0000);
+
+    solver -> setAppliedCurrentFromCardiacStimulus(stimulus, 0.0);
+
 
     if ( Comm->MyPID() == 0 )
     {
@@ -410,7 +448,7 @@ Int main ( Int argc, char** argv )
 
     for ( Real t = 0.0; t < TF; )
     {
-        solver -> setAppliedCurrentFromFunction ( stimulus, t );
+        solver -> setAppliedCurrentFromCardiacStimulus ( stimulus, t );
 
         if( solutionMethod == "splitting" )
         {
