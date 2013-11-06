@@ -24,7 +24,7 @@ Real initialSphereOnCylinder(const Real& /*t*/, const Real&  X, const Real& Y, c
 {
 
   double r = std::sqrt(pow(X,2)+pow(Y-60,2)+pow(Z-12,2));
-  double auxexp=1.0-1.0/(1.0+exp(-50.0*(r-12)));
+  double auxexp=1.0-1.0/(1.0+exp(-50.0*(r-10)));
 
   return 0.1+3.5*auxexp;
 }
@@ -33,7 +33,7 @@ Real initialSphereOnCell(const Real& /*t*/, const Real&  X, const Real& Y, const
 {
 
   double r = std::sqrt(pow(X-42,2)+pow(Y-46,2)+pow(Z-7,2));
-  double auxexp=1.0-1.0/(1.0+exp(-50.0*(r-8)));
+  double auxexp=1.0-1.0/(1.0+exp(-50.0*(r-6.5)));
 
   return 0.1+3.5*auxexp;
 }
@@ -111,7 +111,7 @@ int main (int argc, char** argv)
   //********************************************//
   if ( comm->MyPID() == 0 )
     {
-      std::cout << "Mesh Loading...";
+      std::cout << "Reading Mesh Name and Path...";
     }
 
   std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
@@ -176,16 +176,10 @@ int main (int argc, char** argv)
   //********************************************//
   ExporterHDF5< RegionMesh <LinearTetra> > exp;
 
-  for(int pid(0); pid < 4 ; pid ++){
-    if ( comm->MyPID() == pid )
+  if ( comm->MyPID() == 0 )
     {
-        cout << "\nExporter setup:  " ;
+     cout << "\nExporter setup:  " ;
     }
-    }
-  //if ( comm->MyPID() == 0 )
-  //  {
-  //   cout << "\nExporter setup:  " ;
-  //  }
 
   monodomain -> setupExporter ( exp, parameterList.get ("OutputFile", "output") );
 
@@ -237,17 +231,10 @@ int main (int argc, char** argv)
   solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (monodomain -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
   scalarETFESpacePtr_Type aETFESpace ( new scalarETFESpace_Type (monodomain -> localMeshPtr(), & (aFESpace->refFE() ), & (aFESpace->fe().geoMap() ), comm) );
 
-  for(int pid(0); pid < 4 ; pid ++){
-    if ( comm->MyPID() == pid )
+  if ( comm->MyPID() == 0 )
     {
-        std::cout << "\nsetup boundary conditions" << std::endl;
+      std::cout << "\nsetup boundary conditions" << std::endl;
     }
-    }
-
-  //  if ( comm->MyPID() == 0 )
-  // {
-  // std::cout << "\nsetup boundary conditions" << std::endl;
-  //}
 
   //===========================================================
   //			BOUNDARY CONDITIONS
@@ -258,18 +245,10 @@ int main (int argc, char** argv)
   solidBC->createHandler();
   solidBC->fillHandler ( data_file_name, "solid" );
 
-  //if ( comm->MyPID() == 0 )
-  // {
-  //   std::cout << "\nsetup structural operator" << std::endl;
-  //}
-
-   for(int pid(0); pid < 4 ; pid ++){
-    if ( comm->MyPID() == pid )
-    {
-        std::cout << "\nsetup boundary conditions" << std::endl;
-    }
-    }
-
+  if ( comm->MyPID() == 0 )
+   {
+     std::cout << "\nsetup structural operator" << std::endl;
+  }
 
   //! 1. Constructor of the structuralSolver
   StructuralOperator< RegionMesh<LinearTetra> > solid;
@@ -278,18 +257,10 @@ int main (int argc, char** argv)
 	       dETFESpace,
 	       solidBC -> handler(),
 	       comm);
-for(int pid(0); pid < 4 ; pid ++){
-     if ( comm->MyPID() == pid )
-     {
-         std::cout << "\ninitial guess" << std::endl;
-     }
-     }
-
-
-//if ( comm->MyPID() == 0 )
-//   {
-//     std::cout << "\ninitial guess" << std::endl;
-//  }
+  if ( comm->MyPID() == 0 )
+    {
+      std::cout << "\ninitial guess" << std::endl;
+    }
 
   solid.setDataFromGetPot (dataFile);
 
@@ -298,6 +269,7 @@ for(int pid(0); pid < 4 ; pid ++){
   //				FIBERS
   //===========================================================
   vectorPtr_Type fibers( new vector_Type( dFESpace -> map() ) );
+  vectorPtr_Type emDisp;
 
      if ( comm->MyPID() == 0 )
      {
@@ -306,13 +278,7 @@ for(int pid(0); pid < 4 ; pid ++){
 
      HeartUtility::importFibers(fibers, parameterList.get ("fibers_file", ""), monodomain -> localMeshPtr());
 
-     //std::vector<Real> fvec(3, 0.0);
-     //fvec.at(0)  = parameterList.get ("fiber_X", 0.0);
-     //  fvec.at(1)  = parameterList.get ("fiber_Y", 1.0);
-     //  fvec.at(2)  = parameterList.get ("fiber_Z", 0.0);
-     //  HeartUtility::setupFibers(*fibers, fvec);
 
-  MPI_Barrier(MPI_COMM_WORLD);
   if ( comm->MyPID() == 0 )
     {
       std::cout << "\nset fibers" << std::endl;
@@ -320,6 +286,7 @@ for(int pid(0); pid < 4 ; pid ++){
 
   monodomain -> setFiberPtr( fibers );
   monodomain -> exportFiberDirection();
+  emDisp = solid.displacementPtr();
   solid.material() -> setFiberVector( *fibers );
 
   //********************************************//
@@ -329,7 +296,7 @@ for(int pid(0); pid < 4 ; pid ++){
     {
       cout << "\nSetup operators:  dt = " << monodomain -> timeStep() << "\n" ;
     }
-
+  monodomain -> setDisplacementPtr( emDisp );
   monodomain -> setupLumpedMassMatrix();
   monodomain -> setupStiffnessMatrix();
   monodomain -> setupGlobalMatrix();
@@ -340,12 +307,19 @@ for(int pid(0); pid < 4 ; pid ++){
     }
 
 
+
+
   if ( comm->MyPID() == 0 )
     {
       std::cout << "\nset gammaf and fibers" << std::endl;
     }
-  solid.material() -> setGammaf( *( monodomain -> globalSolution().at(0) ) );
-  
+
+  vectorPtr_Type gammaf( new vector_Type( monodomain -> globalSolution().at(0) -> map() ) );
+
+  *gammaf *= 0.0;
+
+  //obs
+  solid.material() -> setGammaf( *gammaf );
 
   if ( comm->MyPID() == 0 )
     {
@@ -384,15 +358,7 @@ for(int pid(0); pid < 4 ; pid ++){
   expGammaf.setMeshProcId(monodomain -> localMeshPtr(), comm->MyPID());
   expGammaf.setPrefix("gammaf");
 
-  vectorPtr_Type gammaf( new vector_Type( monodomain -> globalSolution().at(0) -> map() ) );
-
-  *gammaf *= 0.0;
-
-  //obs
-  solid.material() -> setGammaf( *gammaf );
-
-
-  //obs
+    //obs
   matrixPtr_Type mass(new matrix_Type( monodomain -> massMatrixPtr() -> map() ) ) ;
   {
     using namespace ExpressionAssembly;
@@ -490,7 +456,10 @@ for(int pid(0); pid < 4 ; pid ++){
   //===========================================================
   //===========================================================
   int k(0);
-
+  Real emdt = parameterList.get("emdt",1.0);
+  int iter((emdt / monodomain -> timeStep()));
+  Real saveStep = parameterList.get("save_step",1.0);
+  int saveIter((saveStep / monodomain -> timeStep()));
 
   for( Real t(0.0); t< monodomain -> endTime(); )
     {
@@ -519,12 +488,17 @@ for(int pid(0); pid < 4 ; pid ++){
       linearSolver.setRightHandSide(rhsActivation);
       linearSolver.solve(gammaf);
 
-      solid.material() -> setGammaf( *gammaf );
-      solid.iterate ( solidBC -> handler() );
+      if ( k % iter == 0){
+	solid.material() -> setGammaf( *gammaf );
+	solid.iterate ( solidBC -> handler() );
+	*solidDisp = solid.displacement();
+      }
 
-      *solidDisp = solid.displacement();
-      expGammaf.postProcess(t);
-      exporter->postProcess ( t );
+      if ( k % saveIter == 0){
+	monodomain -> exportSolution(exp, t);
+	expGammaf.postProcess(t);
+	exporter->postProcess ( t );
+      }
     }
   exp.closeFile();
   expGammaf.closeFile();
