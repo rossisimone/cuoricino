@@ -8,8 +8,8 @@
     <Parameter name="longitudinalDiffusion" type="double" value="60.0"  />
     <Parameter name="transversalDiffusion" type="double" value="30.0"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="cylinder_coarse.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/home/ruizbaier/Dropbox/myMeshes/3DSingeCell/"  />
+    <Parameter name="mesh_name" type="string" value="Cardiomyocyte-77031_flags.mesh"  />
+    <Parameter name="mesh_path" type="string" value="/home/ruizbaier/Dropbox/myMeshes/3DSingeCell/testMeshes/"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="true"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>

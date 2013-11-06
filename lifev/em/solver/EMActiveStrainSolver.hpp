@@ -499,7 +499,7 @@ void EMActiveStrainSolver<Mesh>::setupLinearSolver(GetPot& dataFile, commPtr_Typ
 	std::string xmlpath = dataFile("activation/activation_xml_path",
 			"./");
 	std::string xmlfile = dataFile("activation/activation_xml_file",
-			"pParamList.xml");
+			"ParamList.xml");
 
 	solverParamList = Teuchos::getParametersFromXmlFile(xmlpath + xmlfile);
 	//linearSolver_Type linearSolver;

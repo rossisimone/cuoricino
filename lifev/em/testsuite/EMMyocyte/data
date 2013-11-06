@@ -7,7 +7,7 @@ save       = 1
 [solid]
 [./physics]
 density		= 0
-material_flag  	= 29
+material_flag  	= 24
 young     	= 1.47808e+5
 poisson   	= 0.49
 mu		= 0.496
@@ -31,11 +31,12 @@ BDF_order   	= 2
 
 [../space_discretization]
 mesh_type = .mesh
-mesh_dir  	= /home/ruizbaier/Dropbox/myMeshes/3DSingeCell/
-mesh_file 	= cylinder_coarse.mesh
+mesh_dir  	= /home/ruizbaier/Dropbox/myMeshes/3DSingeCell/testMeshes/
+mesh_file 	= Cardiomyocyte-77031_flags.mesh
 order     	= P1
 
 #cylinder mesh flags: Vol 29, left 19, right 17, patches 27, 25, 23, 21
+#cell mesh flags: Vol 24, left 29,
 
 [../miscellaneous]
 factor    	= 1
@@ -46,7 +47,7 @@ verbose   	= 1
     list = 'Left'
     	 [./Left]
          type		    = Essential
-         flag		    = 19
+         flag		    = 29
          mode    	    = Full
          component  	    = 3
 	 function 	    = 0
@@ -81,8 +82,8 @@ verbose   	= 1
 
 [../newton]
 maxiter 	= 1
-reltol  	= 1.e-5
-abstol  	= 1.e-5
+reltol  	= 1.e-7
+abstol  	= 1.e-7
 
 
 [../solver]

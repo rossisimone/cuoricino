@@ -237,7 +237,7 @@ tol             = 1.e-10    		# AztecOO tolerance
 [../prec]
 prectype        = ML #Ifpack	 		# Ifpack or ML
 displayList     = true
-xmlName         = ParamList.xml #xmlParameters.xml
+xmlName         = ParamList.xml
 
 [./ML] 
 

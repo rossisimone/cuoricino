@@ -45,6 +45,24 @@ void EpetraSqrt ( VectorEpetra& vector )
 	}
 }
 
+Real initialSphereOnCell(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& /*i*/)
+{
+
+  double r = std::sqrt(pow(X-42,2)+pow(Y-46,2)+pow(Z-7,2));
+  double auxexp=1.0-1.0/(1.0+exp(-50.0*(r-8)));
+
+  return 0.1+3.5*auxexp;
+}
+
+Real initialSphereOnCylinder(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& /*i*/)
+{
+
+  double r = std::sqrt(pow(X,2)+pow(Y-60,2)+pow(Z-12,2));
+  double auxexp=1.0-1.0/(1.0+exp(-50.0*(r-12)));
+
+  return 0.1+3.5*auxexp;
+}
+
 Real initialStimulus(const Real& /*t*/, const Real&  /*X*/, const Real& Y, const Real& /*Z*/, const ID& /*i*/)
 {
 	if( Y == 0 ) return 3.5;
@@ -193,7 +211,7 @@ int main (int argc, char** argv)
 
     monodomain -> setInitialConditions();
 
-    function_Type f = &initialStimulus;
+    function_Type f = &initialSphereOnCell;
     monodomain -> setPotentialFromFunction(f);
 
 
@@ -427,7 +445,7 @@ int main (int argc, char** argv)
      //==================================================================//
      //==================================================================//
      *gammaf *= 0.0;
-     *solidGammaf =0.0;
+     *solidGammaf =0;
 
      solid.material() -> setGammaf( *solidGammaf );
 
@@ -589,6 +607,12 @@ int main (int argc, char** argv)
         std::cout << "\nIt does!!!!" << std::endl;
       }
 
+
+
+
+    //Initial condition for gammaf
+    *gammaf = -0.015;
+
     vectorPtr_Type tmpRhsActivation( new vector_Type ( rhsActivation -> map(), Repeated ) );
     solidFESpacePtr_Type emDispFESpace ( new solidFESpace_Type ( monodomain -> localMeshPtr(), "P1", 3, comm) );
     expGammaf.addVariable(ExporterData<mesh_Type>::ScalarField, "gammaf",
@@ -651,50 +675,7 @@ int main (int argc, char** argv)
 	{
 	  using namespace ExpressionAssembly;
 
-//						BOOST_AUTO_TPL(I,      value(Id) );
-//						BOOST_AUTO_TPL(Grad_u, grad( electrodETFESpace, *emDisp, 0) );
-//						BOOST_AUTO_TPL(F,      ( Grad_u + I ) );
-//						BOOST_AUTO_TPL(J,       det(F) );
-//						BOOST_AUTO_TPL(Jm23,    pow(J, -2./3));
-//						BOOST_AUTO_TPL(I1,     dot(F, F));
-//
-//						// Fibres
-//						BOOST_AUTO_TPL(f0,     value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) );
-//						BOOST_AUTO_TPL(f,      F * f0 );
-//						BOOST_AUTO_TPL(I4f,    dot(f, f) );
-//
-//						BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
-//						BOOST_AUTO_TPL(I4fiso,  Jm23 * I4f);
-//						// Generalised invariants
-//					    BOOST_AUTO_TPL(gf,  value(aETFESpace, *gammaf));
-//					    BOOST_AUTO_TPL(gs,  value(aETFESpace, *gammas));
-//					    BOOST_AUTO_TPL(gn,  value(aETFESpace, *gamman));
-//
-//
-//
-//				        BOOST_AUTO_TPL(dI1edI1,   value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  )    );
-//				        BOOST_AUTO_TPL(dI1edI4f,  value(1.0) / (   (gf + value(1.0))  *  (gf + value(1.0))  ) -  value(1.0) / (   (gn + value(1.0))  *  (gn + value(1.0))  ) );
-//				        BOOST_AUTO_TPL(dI4fedI4f, value(1.0) / (   (gf + value(1.0)) *   (gf + value(1.0))  )    );
-//
-//					    BOOST_AUTO_TPL(I1eiso,   dI1edI1 * I1iso + dI1edI4f * I4fiso );
-//					    BOOST_AUTO_TPL(I4feiso,  dI4fedI4f * I4fiso);
-//						BOOST_AUTO_TPL(I4feisom1, ( I4feiso - value(1.0) ) );
-//
-//						Real A = dataFile( "solid/physics/a", 4960 );
-//						Real B = dataFile( "solid/physics/b_activation", 0. );
-//						Real Af = dataFile( "solid/physics/af", 0. );
-//						Real Bf = dataFile( "solid/physics/bf", 0. );
-//
-//						BOOST_AUTO_TPL(a, value( A ) );
-//						BOOST_AUTO_TPL(b, value(  B ) );
-//						BOOST_AUTO_TPL(af, value( Af ) );
-//						BOOST_AUTO_TPL(bf, value(  Bf ) );
-//
-//						Real viscosity = dataFile( "solid/physics/viscosity", 0.0005 );
-//						BOOST_AUTO_TPL(beta, value(viscosity ) /*/ coeff  /* Jm23 * pow( eval(EXP, ( I1iso + value(-3.0) ) ), -B )*/ );
-//
-////						BOOST_AUTO_TPL(dWs, a * pow(g, -1) );
-//						BOOST_AUTO_TPL(gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );
+
 
 	  BOOST_AUTO_TPL(Ca ,   value( aETFESpace, *( monodomain -> globalSolution().at(0)  ) ) );
 	  BOOST_AUTO_TPL(Gammaf,	 value( aETFESpace, *gammaf )  );

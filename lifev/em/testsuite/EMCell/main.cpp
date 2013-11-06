@@ -1,6 +1,7 @@
 #include <lifev/core/LifeV.hpp>
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IntracellularCalciumGoldbeter.hpp>
+//#include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
 
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
@@ -44,10 +45,33 @@ Real initialSphere(const Real& /*t*/, const Real&  X, const Real& Y, const Real&
   return 0.1+3.5*auxexp;
 }
 
-Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+Real PacingProtocolGoldbeter ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
 {
 
-	//Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
+    Real pacingSite_X = 0.0;
+    Real pacingSite_Y = 60.0;
+    Real pacingSite_Z = 12.0;
+    Real stimulusRadius = 10;
+    Real stimulusValue =3.6;
+    Real stimulusPeriod = 2.;
+
+    Real returnValue;
+	
+	Real r = std::sqrt((x - pacingSite_X )*(x - pacingSite_X )+(y - pacingSite_Y )*(y - pacingSite_Y )+(z - pacingSite_Z )*(z - pacingSite_Z ));
+    if ( r <  stimulusRadius  && t < 0.1 )
+    {
+    	returnValue = stimulusValue;
+    }
+    else
+    {
+        returnValue = 0.;
+    }
+
+    return returnValue;
+}
+
+Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+{
 
     Real pacingSite_X = 0.0045;
     Real pacingSite_Y = 0.0025;
@@ -82,6 +106,7 @@ int main(int argc, char** argv) {
                                     const ID&   /*i*/ ) >   function_Type;
 
     typedef IntracellularCalciumGoldbeter	ionicModel_Type;
+    //typedef IonicMinimalModel	ionicModel_Type;
     typedef boost::shared_ptr<ionicModel_Type>                       ionicModelPtr_Type;
     typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type > monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >               monodomainSolverPtr_Type;
@@ -175,7 +200,7 @@ int main(int argc, char** argv) {
 
 
     function_Type stimulus;
-   	stimulus = &initialSphere;
+   	stimulus = &PacingProtocolGoldbeter;
     emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction(stimulus, 0.0);
     if ( comm->MyPID() == 0 )
     {
@@ -257,7 +282,7 @@ int main(int argc, char** argv) {
       }
     Int k(0);
 
-    std::string solutionMethod = monodomainList.get ("solutionMethod", "SVI");
+    std::string solutionMethod = monodomainList.get ("solutionMethod", "ICI");
 
 
     emSolverPtr -> preloadRamp(0.1);

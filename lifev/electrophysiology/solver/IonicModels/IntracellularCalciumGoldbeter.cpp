@@ -158,6 +158,8 @@ Real IntracellularCalciumGoldbeter::computeLocalPotentialRhs ( const std::vector
 }
 
 
+
+
 void IntracellularCalciumGoldbeter::showMe()
 {
     std::cout << "\n\n\t\tIntracellularCalciumGoldbeter Informations\n\n";

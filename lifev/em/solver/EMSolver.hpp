@@ -1382,10 +1382,13 @@ void EMSolver<Mesh, IonicModel>::importSolidSheets(Teuchos::ParameterList& param
 {
 	std::string solidSheetsFile = parameterList.get ("solid_sheets_file", "");
 	std::string solidSheetsField = parameterList.get ("solid_sheets_field", "");
-    HeartUtility::importVectorField( M_solidPtr -> material() -> sheetVectorPtr(),
+	if( solidSheetsFile != "" )
+	  {
+	    HeartUtility::importVectorField( M_solidPtr -> material() -> sheetVectorPtr(),
     		                         solidSheetsFile,
     		                         solidSheetsField,
     		                         M_solidPtr -> mesh() );
+	  }
 }
 template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::importMonodomainFibers(Teuchos::ParameterList& parameterList)
