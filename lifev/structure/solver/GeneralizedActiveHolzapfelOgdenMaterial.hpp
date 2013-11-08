@@ -97,7 +97,6 @@ public:
     }
 
 
-
     GAHOShowValue() {}
     GAHOShowValue (const GAHOShowValue&) {}
     ~GAHOShowValue() {}
@@ -105,20 +104,91 @@ public:
 
 
 
-class Sign
+class Normalize0
 {
 public:
-    typedef LifeV::Real return_Type;
+    typedef LifeV::VectorSmall<3> return_Type;
 
-    return_Type operator() (const LifeV::Real& p)
+    return_Type operator() (const LifeV::VectorSmall<3>& a)
     {
-    	if(p>=0.0) return 1.0;
-    	else return -1.0;
+	LifeV::VectorSmall<3>	n;
+
+	LifeV::Real norm = std::sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);
+	if( norm != 0 ) 
+	{
+	n[0] = a[0] / norm;
+	n[1] = a[1] / norm;
+	n[2] = a[2] / norm;
+	}	 
+	else
+	{
+	n[0] = 1.0;
+	n[1] = 0.0;
+	n[2] = 0.0;
+	}
+	return n;
     }
 
-    Sign() {}
-    Sign (const Sign&) {}
-    ~Sign() {}
+    Normalize0() {}
+    ~Normalize0() {}
+};
+
+class Normalize1
+{
+public:
+    typedef LifeV::VectorSmall<3> return_Type;
+
+    return_Type operator() (const LifeV::VectorSmall<3>& a)
+    {
+	LifeV::VectorSmall<3>	n;
+
+	LifeV::Real norm = std::sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);
+	if( norm != 0 ) 
+	{
+	n[0] = a[0] / norm;
+	n[1] = a[1] / norm;
+	n[2] = a[2] / norm;
+	}	 
+	else
+	{
+	n[0] = 0.0;
+	n[1] = 1.0;
+	n[2] = 0.0;
+	}
+	return n;
+    }
+
+    Normalize1() {}
+    ~Normalize1() {}
+};
+
+class Normalize2
+{
+public:
+    typedef LifeV::VectorSmall<3> return_Type;
+
+    return_Type operator() (const LifeV::VectorSmall<3>& a)
+    {
+	LifeV::VectorSmall<3>	n;
+
+	LifeV::Real norm = std::sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);
+	if( norm != 0 ) 
+	{
+	n[0] = a[0] / norm;
+	n[1] = a[1] / norm;
+	n[2] = a[2] / norm;
+	}	 
+	else
+	{
+	n[0] = 0.0;
+	n[1] = 0.0;
+	n[2] = 1.0;
+	}
+	return n;
+    }
+
+    Normalize2() {}
+    ~Normalize2() {}
 };
 
 // Isotropic Part
@@ -917,6 +987,10 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
     boost::shared_ptr<StrainEnergyGHO::d2Wvol> d2Wvolfun(new StrainEnergyGHO::d2Wvol(M_kappa));
 
     boost::shared_ptr<StrainEnergyGHO::GAHOShowValue> sv(new StrainEnergyGHO::GAHOShowValue());
+    
+    boost::shared_ptr<StrainEnergyGHO::Normalize0> normalize0(new StrainEnergyGHO::Normalize0());
+    boost::shared_ptr<StrainEnergyGHO::Normalize1> normalize1(new StrainEnergyGHO::Normalize1());
+    boost::shared_ptr<StrainEnergyGHO::Normalize2> normalize2(new StrainEnergyGHO::Normalize2());
 
     // Kinematics
     BOOST_AUTO_TPL(I,      value(Id));
@@ -925,10 +999,13 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
     BOOST_AUTO_TPL(FmT,    minusT(F));
     BOOST_AUTO_TPL(J,      det(F));
     // Fibres
-    BOOST_AUTO_TPL(f01,     value(this->M_dispETFESpace, *M_fiberVector));
-    BOOST_AUTO_TPL(f0,     f01 / sqrt( dot(f01, f01) ) );
+    BOOST_AUTO_TPL(f01,    value(this->M_dispETFESpace, *M_fiberVector));
+    //BOOST_AUTO_TPL(f0,     f01 / sqrt( dot(f01, f01) ) );
+    BOOST_AUTO_TPL(f0,     eval(normalize0, f01) );
+
     BOOST_AUTO_TPL(s01,     value(this->M_dispETFESpace, *M_sheetVector));
-    BOOST_AUTO_TPL(s0,     s01 / sqrt( dot(s01, s01) ) );
+    BOOST_AUTO_TPL(s02,     eval(normalize1, s01) );
+    BOOST_AUTO_TPL(s0,      eval(normalize2, s02 - dot(f0, s02) * f0) );
 
     // Invariants
     BOOST_AUTO_TPL(I1,     dot(F, F));
@@ -1115,7 +1192,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const
                                                        const displayerPtr_Type& displayer )
 {
     displayer->leaderPrint (" \n******************************************************************\n  ");
-    displayer->leaderPrint (" Non-Linear S-  Computing the Holzapfel-Ogden nonlinear stiffness vector"     );
+    displayer->leaderPrint (" Non-Linear S-  Computing the GAHO residual vector"     );
     displayer->leaderPrint (" \n******************************************************************\n  ");
 
     computeResidual(disp);
@@ -1160,6 +1237,10 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeResidual ( const 
 
     boost::shared_ptr<StrainEnergyGHO::GAHOShowValue> sv(new StrainEnergyGHO::GAHOShowValue());
 
+    boost::shared_ptr<StrainEnergyGHO::Normalize0> normalize0(new StrainEnergyGHO::Normalize0());
+    boost::shared_ptr<StrainEnergyGHO::Normalize1> normalize1(new StrainEnergyGHO::Normalize1());
+    boost::shared_ptr<StrainEnergyGHO::Normalize2> normalize2(new StrainEnergyGHO::Normalize2());
+
     // Kinematics
     BOOST_AUTO_TPL(I,      value(Id));
     BOOST_AUTO_TPL(Grad_u, grad(this->M_dispETFESpace, disp, this->M_offset));
@@ -1167,10 +1248,14 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeResidual ( const 
     BOOST_AUTO_TPL(FmT,    minusT(F));
     BOOST_AUTO_TPL(J,      det(F));
     // Fibres
-    BOOST_AUTO_TPL(f01,     value(this->M_dispETFESpace, *M_fiberVector));
-    BOOST_AUTO_TPL(f0,     f01 / sqrt( dot(f01, f01) ) );
+    BOOST_AUTO_TPL(f01,    value(this->M_dispETFESpace, *M_fiberVector));
+    //BOOST_AUTO_TPL(f0,     f01 / sqrt( dot(f01, f01) ) );
+    BOOST_AUTO_TPL(f0,     eval(normalize0, f01) );
+
     BOOST_AUTO_TPL(s01,     value(this->M_dispETFESpace, *M_sheetVector));
-    BOOST_AUTO_TPL(s0,     s01 / sqrt( dot(s01, s01) ) );
+    BOOST_AUTO_TPL(s02,     eval(normalize1, s01) );
+    BOOST_AUTO_TPL(s0,      eval(normalize2, s02 - dot(f0, s02) * f0) );
+
     // Invariants
     BOOST_AUTO_TPL(I1,     dot(F, F));
     BOOST_AUTO_TPL(C,      transpose(F) * F);
