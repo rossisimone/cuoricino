@@ -37,7 +37,7 @@ b			= 9.242
 bf			= 15.972
 bs			= 10.446
 bfs			= 11.602
-bulk		= 3500000
+bulk		= 35000
 solidType 	= GAHO #Only work with this 
 lawType     = nonlinear
 viscosity = 0.00025;
@@ -46,7 +46,8 @@ Ca_diastolic = 0.02156;
 
 
    [../boundary_conditions]
-   list = 'symm0 symm1 symm2'
+   list = 'symm0 symm1 symm2 point'
+
 
 
 
@@ -56,6 +57,14 @@ Ca_diastolic = 0.02156;
         mode       = Component
         component  = 0
 	    function  = '0.0'
+
+
+        [../point]
+        type       = EssentialVertices
+        flag       = 33
+        mode       = Full
+        component  = 3
+        function  = '0.0, 0.0, 0.0'
 
 
         [../symm1]
@@ -115,11 +124,45 @@ kspace          = 800
 tol             = 1.e-10    		# AztecOO tolerance
 
 [../prec]
-prectype        = Ifpack #Ifpack	 		# Ifpack or ML
+prectype        = ML #Ifpack	 		# Ifpack or ML
 displayList     = true
 xmlName         = ParamList.xml #xmlParameters.xml
 
-[./ifpack]
+[./ML] 
+
+    	default_parameter_list = NSSA  # Domain-decomposition
+	prec_type =  MGV               # Multigrid, single V-cycle
+	max_levels = 10
+    	inc_or_dec = increasing
+
+    		[./energy_minimization]
+		enable = true
+		type   = 3
+
+		[../repartition]
+		enable              = 1
+                max_min_ratio       = 1.3
+                min_per_proc        = 500
+                partitioner         = ParMETIS #Zoltan: to be implemented
+
+                [../aggregation]
+                threshold            = 0.01
+                nodes_per_aggregate = 32
+
+                [../coarse]
+                max_size            = 10
+                type                = 'self' 
+
+                [../smoother]
+                type        = 'symmetric Gauss-Seidel'           # Gauss-Seidel smoother
+                sweeps      = 1
+                pre_or_post = both
+                [../] #smoother
+
+        [../] # ML
+
+
+[../ifpack]
 overlap  	= 1
 
             [./relaxation]

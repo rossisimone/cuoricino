@@ -2,7 +2,7 @@
     <Parameter name="surfaceVolumeRatio" type="double" value="1400.0"/><!-- cm ^ -1-->
     <Parameter name="membraneCapacitance" type="double" value="1.00"/><!-- mu F cm ^ -2 -->
     <Parameter name="timeStep" type="double" value="0.01"  /><!-- ms ^ -1-->
-    <Parameter name="endTime" type="double" value="0.02"  />
+    <Parameter name="endTime" type="double" value="450"  />
     <Parameter name="emdt" type="double" value="1.0"  />
     <Parameter name="saveStep" type="double" value="1.0"  />
     <Parameter name="value" type="double" value="1.0"  />
@@ -11,24 +11,23 @@
     <Parameter name="stimulus_value" type="double" value="80.0"  />
     <Parameter name="longitudinalDiffusion" type="double" value="1.33417721518987"  /><!-- 1.33417721518987 k Ohm ^-1 cm ^ -1-->
     <Parameter name="transversalDiffusion" type="double" value ="0.176061776061776"  /><!--0.176061776061776 k Ohm ^-1 cm ^ -1-->
-
     <Parameter name="Ca_diastolic" type="double" value="0.02156"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <!--Parameter name="ionic_model" type="string" value="MinimalModel"  /-->
     <Parameter name="solutionMethod" type="string" value="SVI"  />
     <Parameter name="LumpedMass" type="bool" value="true"/>
-    <Parameter name="coupling" type="bool" value="true"/>
+    <Parameter name="coupling" type="bool" value="false"/>
     <Parameter name="one_way_coupling" type="bool" value="true"/>
-    <Parameter name="mesh_name" type="string" value="benchmark2_2mm.mesh"  /> 
-    <Parameter name="mesh_path" type="string" value="/usr/scratch/srossi/meshes/benchmark/"  />
-    <Parameter name="solid_mesh_name" type="string" value="benchmark2_4mm.mesh"  />
-    <Parameter name="solid_mesh_path" type="string" value="/usr/scratch/srossi/meshes/benchmark/"  />
+    <Parameter name="mesh_name" type="string" value="benchmark2_s4mm.mesh"  /> 
+    <Parameter name="mesh_path" type="string" value="/scratch/srossi/meshes/benchmark/"  />
+    <Parameter name="solid_mesh_name" type="string" value="benchmark2_s4mm.mesh"  />
+    <Parameter name="solid_mesh_path" type="string" value="/scratch/srossi/meshes/benchmark/"  />
     <Parameter name="c2f" type="string" value="RBFhtpVectorial"  />
     <Parameter name="f2c" type="string" value="RBFlocallyRescaledScalar"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="true"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>
-    <Parameter name="Silent" type="bool" value="true"/>
+    <Parameter name="Silent" type="bool" value="false"/>
     <Parameter name="Solver Type" type="string" value="AztecOO"/>
     <Parameter name="OutputFile" type="string" value="Solution"/>
 	

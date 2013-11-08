@@ -1,13 +1,12 @@
 #include <lifev/core/LifeV.hpp>
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
-#include <lifev/electrophysiology/solver/IonicModels/IntracellularCalciumGoldbeter.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
+
 #include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
 
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
-#include <lifev/structure/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
-#include <lifev/em/solver/EMETAFunctors.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
@@ -17,32 +16,50 @@
 
 #include <lifev/eta/fem/ETFESpace.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
+
+#include <lifev/core/interpolation/RBFhtp.hpp>
+#include <lifev/core/interpolation/RBFhtpVectorial.hpp>
 #include <lifev/core/mesh/MeshLoadingUtility.hpp>
 #include <lifev/core/mesh/MeshTransformer.hpp>
+#include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
+#include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
+#include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
+#include <lifev/core/interpolation/RBFrescaledScalar.hpp>
+//#include <lifev/core/interpolation/RBFscalar.hpp>
+#include <lifev/core/interpolation/RBFvectorial.hpp>
+
 #include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 #include <sys/stat.h>
+#include <fstream>
+
+#include <lifev/em/solver/EMSolver.hpp>
+#include <lifev/em/solver/EMActiveStrainSolver.hpp>
 
 using namespace LifeV;
 
-void EpetraPow ( VectorEpetra& vector, const Real p )
-{
-	Int size = vector.epetraVector().MyLength();
 
-	for(int j(0); j < size; j++ )
-	{
-	int gid = vector.blockMap().GID(j);
-	vector[gid] = std::pow(vector[gid],p);
-	}
-}
-void EpetraSqrt ( VectorEpetra& vector )
+Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
 {
-	Int size = vector.epetraVector().MyLength();
+    Real pacingSite_X = 0.0045;
+    Real pacingSite_Y = 0.0025;
+    Real pacingSite_Z = 0.0;
+    Real stimulusRadius = 0.0005;
+    Real stimulusValue =10.;
+    Real stimulusPeriod = 2.;
 
-	for(int j(0); j < size; j++ )
-	{
-	int gid = vector.blockMap().GID(j);
-	vector[gid] = std::sqrt(vector[gid]);
-	}
+    Real returnValue;
+	
+	Real r = std::sqrt((x - pacingSite_X )*(x - pacingSite_X )+(y - pacingSite_Y )*(y - pacingSite_Y )+(z - pacingSite_Z )*(z - pacingSite_Z ));
+    if ( r <  stimulusRadius  && t < 0.1 )
+    {
+    	returnValue = stimulusValue;
+    }
+    else
+    {
+        returnValue = 0.;
+    }
+
+    return returnValue;
 }
 
 Real initialSphereOnCell(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& /*i*/)
@@ -71,42 +88,34 @@ Real initialStimulus(const Real& /*t*/, const Real&  /*X*/, const Real& Y, const
 
 
 
-
-
-int main (int argc, char** argv)
-{
+int main(int argc, char** argv) {
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
-    typedef boost::shared_ptr<mesh_Type>                    meshPtr_Type;
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
                                     const Real& /*z*/,
                                     const ID&   /*i*/ ) >   function_Type;
-    typedef IntracellularCalciumGoldbeter					ionicModel_Type;
-    typedef boost::shared_ptr< ionicModel_Type >  ionicModelPtr_Type;
 
-    typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type >        monodomainSolver_Type;
-    typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
-    typedef VectorEpetra				vector_Type;
-    typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
+   	typedef IonicMinimalModel	                                     ionicModel_Type;
+    typedef boost::shared_ptr<ionicModel_Type>                       ionicModelPtr_Type;
+    typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type > monodomainSolver_Type;
+    typedef boost::shared_ptr< monodomainSolver_Type >               monodomainSolverPtr_Type;
 
-    typedef MatrixEpetra<Real> matrix_Type;
-    typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
+    typedef VectorEpetra				                             vector_Type;
+    typedef boost::shared_ptr<vector_Type>                           vectorPtr_Type;
 
-    typedef BCHandler                                          bc_Type;
-    typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
-    typedef  StructuralOperator< RegionMesh<LinearTetra> >		physicalSolver_Type;
-    typedef BCInterface3D< bc_Type, physicalSolver_Type >              bcInterface_Type;
-    typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
-
-
+    typedef EMSolver<mesh_Type, ionicModel_Type>	emSolver_Type;
+    typedef boost::shared_ptr<emSolver_Type> emSolverPtr_Type;
 
 #ifdef HAVE_MPI
-    MPI_Init ( &argc, &argv );
+	MPI_Init ( &argc, &argv );
 #endif
 
-    boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+	boost::shared_ptr<Epetra_Comm> comm(new Epetra_MpiComm(MPI_COMM_WORLD));
+
+
+
     //*********************************************//
     // creating output folder
     //*********************************************//
@@ -124,16 +133,6 @@ int main (int argc, char** argv)
     }
 
 
-  	//===========================================================
-  	//				ELECTROPHYSIOLOGY
-  	//===========================================================
-
-
-    if ( comm->MyPID() == 0 )
-    {
-        cout << "% using MPI" << endl;
-    }
-
     //********************************************//
     // Import parameters from an xml list. Use    //
     // Teuchos to create a list from a given file //
@@ -144,68 +143,63 @@ int main (int argc, char** argv)
     {
         std::cout << "Importing parameters list...";
     }
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
     if ( comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
     }
 
+	//********************************************//
+	// We need the GetPot datafile to setup       //
+	//                                            //
+	//********************************************//
+	GetPot command_line(argc, argv);
+	const string data_file_name = command_line.follow("data", 2, "-f",
+			"--file");
+	GetPot dataFile(data_file_name);
 
     //********************************************//
-    // In the parameter list we need to specify   //
-    // the mesh name and the mesh path.           //
-    //********************************************//
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "Reading Mesh Name and Path...\n";
-    }
-
-    std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
-    std::string meshPath = parameterList.get ("mesh_path", "./");
-
-
-
-
-    if ( comm->MyPID() == 0 )
-        {
-            std::cout << " Done!" << endl;
-        }
-
-    //********************************************//
-    // We need the GetPot datafile for to setup   //
-    // the preconditioner.                        //
-    //********************************************//
-    GetPot command_line (argc, argv);
-    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
-    GetPot dataFile (data_file_name);
-
-    //********************************************//
-    // Creates a new model object representing the//
-    // model from Aliev and Panfilov 1996.  The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
-    //********************************************//
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "Building Constructor for ionic Model with parameters ... ";
-    }
-    ionicModelPtr_Type  ionicModel ( new ionicModel_Type() );
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << " Done!" << endl;
-    }
-
-    //********************************************//
-    // set up the monodomain solver               //
+    // We create three solvers to solve with:     //
+    // 1) Operator Splitting method               //
     //********************************************//
     if ( comm->MyPID() == 0 )
     {
         std::cout << "Building Monodomain Solvers... ";
     }
 
-    monodomainSolverPtr_Type monodomain ( new monodomainSolver_Type ( meshName, meshPath, dataFile, ionicModel ) );
+	emSolverPtr_Type emSolverPtr( new emSolver_Type(monodomainList, data_file_name, comm));
+
+	if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: constructor";
+    }
+
+
     if ( comm->MyPID() == 0 )
     {
+        std::cout << " solver done... ";
+
+    }
+    //********************************************//
+    // Setting up the initial condition form      //
+    // a given function.                          //
+    //********************************************//
+    if ( comm->MyPID() == 0 )
+    {
+        cout << "\nInitializing potential and gating variables:  " ;
+    }
+
+
+    function_Type stimulus;
+   	stimulus = &PacingProtocolMM;
+    emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction(stimulus, 0.0);
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: applied current";
+    }
+    if ( comm->MyPID() == 0 )
+    {
+<<<<<<< HEAD
         std::cout << " Splitting solver done... ";
     }
 
@@ -214,141 +208,88 @@ int main (int argc, char** argv)
     function_Type f = &initialSphereOnCell;
     monodomain -> setPotentialFromFunction(f);
 
+=======
+        cout << "Done! \n" ;
+>>>>>>> 854b4f4... myocytes
 
-    std::cout << "Norm Inf Calcium = " <<  (  *( monodomain -> globalSolution().at(0) ) ).normInf() << std::endl;
-
-    monodomain -> setParameters ( parameterList );
-    //********************************************//
-    // Creating exporters to save the solution    //
-    //********************************************//
-    ExporterHDF5< RegionMesh <LinearTetra> > expElectro;
-
-    for(int pid(0); pid < 4 ; pid ++){
-    if ( comm->MyPID() == pid )
-    {
-        cout << "\nExporter setup:  " ;
     }
-    }
-    monodomain -> setupExporter ( expElectro, parameterList.get ("ElectroOutputFile", "CalciumOutput") );
-    expElectro.setPostDir ( problemFolder );
+
+    //********************************************//
+    // Create a fiber direction                   //
+    //********************************************//
     if ( comm->MyPID() == 0 )
     {
-        cout << "\nExport at 0:  " ;
+        cout << "\nSetting fibers:  " ;
     }
 
-    monodomain -> exportSolution ( expElectro, 0.0 );
+  /*  VectorSmall<3> fibers;
+    fibers[0]=0.0;
+    fibers[1]=0.0;
+    fibers[2]=1.0;
+    emSolverPtr -> monodomainPtr() -> setupFibers( fibers );
+    emSolverPtr -> activationPtr() -> setFiberPtr( emSolverPtr -> monodomainPtr() -> fiberPtr() );
+
+
+    VectorSmall<3> sheets;
+    sheets[0]=0.0;
+    sheets[1]=1.0;
+    sheets[2]=0.0;
+    emSolverPtr -> solidPtr() -> material() -> setupFiberVector(fibers[0],fibers[1],fibers[2]);
+    emSolverPtr -> solidPtr() -> material() -> setupSheetVector(sheets[0],sheets[1],sheets[2]);*/
+
+	emSolverPtr -> setFibersAndSheets(monodomainList);
+	emSolverPtr -> exportFibersAndSheetsFields(problemFolder);
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: fibers";
+    }
 
     if ( comm->MyPID() == 0 )
     {
-        cout << "\nsolve system:  " ;
+        cout << "Done! \n" ;
     }
 
-
+    if ( comm->MyPID() == 0 )
+    {
+        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain";
+    }
+    //********************************************//
+    // Create the global matrix: mass + stiffness //
+    //********************************************//
+    if ( comm->MyPID() == 0 )
+    {
+        cout << "\nPointer 1:  " << emSolverPtr -> activationPtr() -> gammafPtr() ;
+    }
+    emSolverPtr -> setup(monodomainList, data_file_name);
+    if ( comm->MyPID() == 0 )
+    {
+        cout << "\nPointer 2:  " << emSolverPtr -> activationPtr() -> gammafPtr() ;
+    }
+	emSolverPtr -> setupExporters(problemFolder);
     //********************************************//
     // Activation time						      //
     //********************************************//
-    vectorPtr_Type activationTimeVector( new vector_Type( monodomain -> potentialPtr() -> map() ) );
-    *activationTimeVector = -1.0;
+	emSolverPtr -> registerActivationTime(0.0, 0.8);
+	emSolverPtr -> exportSolution(0.0);
 
-    ExporterHDF5< RegionMesh <LinearTetra> > activationTimeExporter;
-    activationTimeExporter.setMeshProcId(monodomain -> localMeshPtr(), monodomain -> commPtr() ->MyPID());
-    activationTimeExporter.addVariable(ExporterData<mesh_Type>::ScalarField, "Activation Time",
-    				monodomain -> feSpacePtr(), activationTimeVector, UInt(0));
-    activationTimeExporter.setPrefix("ActivationTime");
-    activationTimeExporter.setPostDir(problemFolder);
-  	//===========================================================
-  	//===========================================================
-  	//				SOLID MECHANICS
-  	//===========================================================
-  	//===========================================================
+        emSolverPtr -> activationPtr() -> setActivationType( "TransverselyIsotropic" );
 
-
+    //********************************************//
+    // Solving the system                         //
+    //********************************************//
 
     if ( comm->MyPID() == 0 )
     {
-        std::cout << "monodomain: passed!" << std::endl;
+        cout << "\nImporting Time data from parametr list:  " ;
     }
-
-    typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >               solidFESpace_Type;
-    typedef boost::shared_ptr<solidFESpace_Type>                        solidFESpacePtr_Type;
-
-    typedef ETFESpace< RegionMesh<LinearTetra>, MapEpetra, 3, 1 >       scalarETFESpace_Type;
-    typedef boost::shared_ptr<scalarETFESpace_Type>                      scalarETFESpacePtr_Type;
-    typedef ETFESpace< RegionMesh<LinearTetra>, MapEpetra, 3, 3 >       solidETFESpace_Type;
-    typedef boost::shared_ptr<solidETFESpace_Type>                      solidETFESpacePtr_Type;
+    Real dt = monodomainList.get ("timeStep", 0.1);
+    Real TF = monodomainList.get ("endTime", 150.0);
+    Int iter = monodomainList.get ("saveStep", 1.0) / dt;
+    Int reactionSubiter = monodomainList.get ("reaction_subiteration", 100);
+    Int solidIter = monodomainList.get ("emdt", 1.0) / dt;
+    bool coupling = monodomainList.get ("coupling", false);
     if ( comm->MyPID() == 0 )
-    {
-        std::cout << "\n\ninitialization bc handler" << std::endl;
-    }
-
-
-    for(int pid(0); pid < 4 ; pid ++){
-    if ( comm->MyPID() == pid )
-    {
-        std::cout << "\nparameters" << std::endl;
-    }
-    }
-    Real rho, poisson, young, bulk, alpha, gammai, mu;
-    rho     = dataFile ( "solid/physics/density", 1. );
-    young   = dataFile ( "solid/physics/young",   1. );
-    poisson = dataFile ( "solid/physics/poisson", 1. );
-    bulk    = dataFile ( "solid/physics/bulk",    1. );
-    alpha   = dataFile ( "solid/physics/alpha",   1. );
-    gammai   = dataFile ( "solid/physics/gamma",   1. );
-    mu   = dataFile ( "solid/physics/mu",   1. );
-  //  M_gammaf  = dataFile ( "solid/physics/gammaf",  0. );
-
-    if ( comm->MyPID() == 0 )
-        {
-    std::cout << "density = " << rho     << std::endl
-              << "young   = " << young   << std::endl
-              << "poisson = " << poisson << std::endl
-              << "bulk    = " << bulk    << std::endl
-              << "alpha   = " << alpha   << std::endl
-              << "gamma   = " << gammai   << std::endl;
-        }
-
-    for(int pid(0); pid < 4 ; pid ++){
-    if ( comm->MyPID() == pid )
-    {
-        std::cout << "\ninitialization constitutive law" << std::endl;
-    }
-    }
-    boost::shared_ptr<StructuralConstitutiveLawData> dataStructure (new StructuralConstitutiveLawData( ) );
-    dataStructure->setup (dataFile);
-
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "setup spaces" << std::endl;
-    }
-
-    meshPtr_Type fullSolidMesh;
-    meshPtr_Type localSolidMesh;
-
-
-
-    fullSolidMesh = monodomain -> fullMeshPtr();
-    localSolidMesh = monodomain -> localMeshPtr();
-
-    std::string dOrder =  dataFile ( "solid/space_discretization/order", "P1");
-    solidFESpacePtr_Type dFESpace ( new solidFESpace_Type (localSolidMesh, dOrder, 3, comm) );
-    solidFESpacePtr_Type aFESpace ( new solidFESpace_Type (monodomain -> localMeshPtr(), dOrder, 1, comm) );
-    solidETFESpacePtr_Type dETFESpace ( new solidETFESpace_Type (localSolidMesh, & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
-    scalarETFESpacePtr_Type aETFESpace ( new scalarETFESpace_Type (monodomain -> localMeshPtr(), & (aFESpace->refFE() ), & (aFESpace->fe().geoMap() ), comm) );
-    solidFESpacePtr_Type solidaFESpace ( new solidFESpace_Type (localSolidMesh, "P1", 1, comm) );
-
-    //    if ( comm->MyPID() == pid )
-    if ( comm->MyPID() == 0 )
-    {
-        std::cout << "\nsetup boundary conditions" << std::endl;
-    }
-    bcInterfacePtr_Type                     solidBC( new bcInterface_Type() );
-    solidBC->createHandler();
-    solidBC->fillHandler ( data_file_name, "solid" );
-
-
-    //if ( comm->MyPID() == pid )
-    if ( comm->MyPID() == 0 )
+<<<<<<< HEAD
     {
         std::cout << "\nsetup structural operator" << std::endl;
     }
@@ -517,92 +458,121 @@ int main (int argc, char** argv)
 	boost::shared_ptr<FLRelationship> fl (new FLRelationship);
 
 	boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
-
-	boost::shared_ptr<Psi4f> psi4f (new Psi4f);
-	boost::shared_ptr<ShowValue> sv(new ShowValue);
-
-      MatrixSmall<3,3> Id;
-      Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
-      Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
-      Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
-      VectorSmall<3> E1;
-      E1(0) = 1.;
-      E1(1) = 0.;
-      E1(2) = 0.;
-  	{
-  		using namespace ExpressionAssembly;
-
-  		integrate(elements(monodomain -> localMeshPtr() ), monodomain -> feSpacePtr() -> qr(), monodomain -> ETFESpacePtr(),
-  				monodomain -> ETFESpacePtr(), phi_i * phi_j) >> mass;
-
-  	}
-  	mass -> globalAssemble();
-
-
-  	vectorPtr_Type rhsActivation( new vector_Type( *gammaf ) );
-  	*rhsActivation *= 0;
-
-
-
-
-      if ( comm->MyPID() == 0 )
+=======
       {
-          std::cout << "\nSolve system" << std::endl;
+        std::cout << "\ndt: " << dt;
+        std::cout << "\nTF: " << TF;
+        std::cout << "\nIter: " << iter;
+        std::cout << "\nsubiter: " << reactionSubiter;
+        std::cout << "\nsolid iterations: " << solidIter;
+        std::cout << "\nSolving coupled problem: " << coupling;
       }
+    Int k(0);
+>>>>>>> 854b4f4... myocytes
 
-      //==================================================================//
-      //==================================================================//
-      //					SETUP LINEAR SOLVER	    						//
-      //						ACTIVATION									//
-      //==================================================================//
-      //==================================================================//
+//    Real timeReac = 0.0;
+//    Real timeDiff = 0.0;
+//    Real timeReacDiff = 0.0;
 
-      if ( comm->MyPID() == 0 )
-      {
-          std::cout << "\nset up linear solver... Does it work???" << std::endl;
-      }
-  	typedef LinearSolver linearSolver_Type;
-  	typedef boost::shared_ptr<LinearSolver> linearSolverPtr_Type;
-	typedef LifeV::Preconditioner basePrec_Type;
-	typedef boost::shared_ptr<basePrec_Type> basePrecPtr_Type;
-	typedef LifeV::PreconditionerIfpack prec_Type;
-	typedef boost::shared_ptr<prec_Type> precPtr_Type;
+    std::string solutionMethod = monodomainList.get ("solutionMethod", "SVI");
 
 
-	prec_Type* precRawPtr;
-	basePrecPtr_Type precPtr;
-	precRawPtr = new prec_Type;
-	precRawPtr->setDataFromGetPot(dataFile, "prec");
-	precPtr.reset(precRawPtr);
+//    EMEvaluate util;
+//    util.evaluate(*(emSolverPtr -> monodomainPtr() -> potentialPtr()),
+//    			  *(emSolverPtr -> activationSolidPtr()),
+//    			  *(emSolverPtr -> monodomainPtr() -> feSpacePtr()),
+//    			  emSolverPtr -> activationSolidFESpace(),
+//    			  *(emSolverPtr -> fullSolidMesh()) );
+	emSolverPtr -> preloadRamp(0.1);
+
+
+    for ( Real t = 0.0; t < TF - dt; )
+    {
+    	//register activation time
+		k++;
+		t = t + dt;
+
+        if ( comm->MyPID() == 0 )
+        {
+            cout << "\n==============";
+            cout << "\nTime: " << t;
+            cout << "\n==============";
+        }
+
+
+        if ( comm->MyPID() == 0 )
+        {
+            cout << "\nSet applied current";
+        }
+
+        emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction ( stimulus, t );
+        emSolverPtr -> solveOneMonodomainStep();
+
+        if(coupling == true)
+        {
+            if ( comm->MyPID() == 0 )
+            {
+                cout << "\n---------------------";
+                cout << "\nActive Strain Solver ";
+                cout << "\n---------------------";
+            }
+        	emSolverPtr -> solveOneActivationStep();
+            if ( comm->MyPID() == 0 )
+            {
+                if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: activation";
+            }
+
+
+        	if( k % solidIter == 0 )
+        	{
+                if ( comm->MyPID() == 0 )
+                {
+                    cout << "\n---------------------";
+                    cout << "\nInterpolating gammaf ";
+                    cout << "\n---------------------";
+                }
+        		emSolverPtr -> updateSolid();
+                if ( comm->MyPID() == 0 )
+                {
+                    cout << "\n------------------";
+                    cout << "\nStructural Solver ";
+                    cout << "\n------------------";
+                }
+                emSolverPtr -> solveSolid();
+                if ( comm->MyPID() == 0 )
+                {
+                    cout << "\n---------------------------";
+                    cout << "\nInterpolating displacement ";
+                    cout << "\n---------------------------";
+                }
+                emSolverPtr -> updateMonodomain();
+        	}
+
+
+        }
+    	emSolverPtr -> registerActivationTime(t, 0.8);
+//    	matrixPtr_Type broydenMatrix( emSolverPtr -> solidPtr() -> );
+        if( k % iter == 0 )
+        {
+            if ( comm->MyPID() == 0 )
+            {
+                cout << "\nExporting solutions";
+            }
+
+        	emSolverPtr -> exportSolution(t);
+        }
+
+    }
 
     if ( comm->MyPID() == 0 )
     {
-        std::cout << "\nprec done!!!!" << std::endl;
+        cout << "\nExporting Activation Time";
     }
 
-	Teuchos::RCP < Teuchos::ParameterList > solverParamList = Teuchos::rcp(
-			new Teuchos::ParameterList);
-
-	std::string xmlpath = dataFile("electrophysiology/monodomain_xml_path",
-			"./");
-	std::string xmlfile = dataFile("electrophysiology/monodomain_xml_file",
-			"MonodomainSolverParamList.xml");
-
-	solverParamList = Teuchos::getParametersFromXmlFile(xmlpath + xmlfile);
-
+	emSolverPtr -> exportActivationTime(problemFolder);
+	emSolverPtr -> closeExporters();
     if ( comm->MyPID() == 0 )
-    {
-        std::cout << "\nreading file done!!!!" << std::endl;
-    }
-
-	linearSolver_Type linearSolver;
-    linearSolver.setCommunicator ( comm );
-    linearSolver.setParameters ( *solverParamList );
-    linearSolver.setPreconditioner ( precPtr );
-    linearSolver.setOperator( mass );
-    //	linearSolver.setOperator( monodomain -> massMatrixPtr() );
-
-    if ( comm->MyPID() == 0 )
+<<<<<<< HEAD
       {
         std::cout << "\nIt does!!!!" << std::endl;
       }
@@ -657,16 +627,16 @@ int main (int argc, char** argv)
 	for(int j(0); j<subiter; j++) monodomain -> solveOneReactionStepFE(subiter);
 
 	timer.stop();
+=======
+          std::cout << "\nExporting fibers: " << std::endl;
+>>>>>>> 854b4f4... myocytes
 
-	if ( comm->MyPID() == 0 )
-	  {
-	    std::cout << "\nSolve DIFFUSION step with BE!\n" << std::endl;
-	  }
+    //********************************************//
+    // Saving Fiber direction to file             //
+    //********************************************//
+    emSolverPtr -> monodomainPtr() -> exportFiberDirection(problemFolder);
 
-	(*monodomain -> rhsPtrUnique()) *= 0.0;
-	monodomain -> updateRhs();
-	monodomain -> solveOneDiffusionStepBE();
-
+<<<<<<< HEAD
 	*tmpRhsActivation *= 0;
 	if ( comm->MyPID() == 0 )
 	  {
@@ -747,24 +717,15 @@ int main (int argc, char** argv)
 	    exporter->postProcess ( t );
 	  }
       }
+=======
+>>>>>>> 854b4f4... myocytes
 
-    expElectro.closeFile();
-    expGammaf.closeFile();
-    exporter -> closeFile();
-    
-    activationTimeExporter.postProcess(0);
-    activationTimeExporter.closeFile();
 
-    if ( comm->MyPID() == 0 )
-      {
-	std::cout << "\nActive strain example: Passed!" << std::endl;
-      }
+        std::cout << "\n\nThank you for using EMSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
+ //   }
 
 #ifdef HAVE_MPI
-    MPI_Finalize();
+	MPI_Finalize();
 #endif
-    return 0;
+	return 0;
 }
-
-
-

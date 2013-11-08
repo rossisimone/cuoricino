@@ -1188,12 +1188,12 @@ int main (int argc, char** argv)
   	//				Initializing solid
   	//===========================================================
   	//===========================================================
-    boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterRamp;
+  //  boost::shared_ptr< Exporter<RegionMesh<LinearTetra> > > exporterRamp;
 
-    exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, "RampOutput" ) );
-    exporterRamp -> setPostDir ( problemFolder );
-    exporterRamp->setMeshProcId ( localSolidMesh, comm->MyPID() );
-    exporterRamp->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "ramp displacement", dFESpace, solidDisp, UInt (0) );
+    //exporterRamp.reset ( new ExporterHDF5<RegionMesh<LinearTetra> > ( dataFile, "RampOutput" ) );
+    //exporterRamp -> setPostDir ( problemFolder );
+    //exporterRamp->setMeshProcId ( localSolidMesh, comm->MyPID() );
+    //exporterRamp->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "ramp displacement", dFESpace, solidDisp, UInt (0) );
 
     vector_Type endoVec (0.0 * (*solidDisp) , Repeated);
 //    vector_Type pressure (aFESpace->map(), Repeated);
@@ -1253,13 +1253,13 @@ int main (int argc, char** argv)
 //    		solidBC -> handler() -> showMe();
     		solid.iterate ( solidBC -> handler() );
 
-    	    exporterRamp->postProcess(pseudot);
+    	   // exporterRamp->postProcess(pseudot);
     	    *solidDisp = solid.displacement();
 
 
 
 		}
-	      exporterRamp->closeFile();
+	     // exporterRamp->closeFile();
     }
 
     exporter->postProcess ( 0 );
@@ -1286,7 +1286,7 @@ int main (int argc, char** argv)
 
 	vectorPtr_Type emDisp0(new vector_Type( emDisp -> map() ) );
     *emDisp0 = *emDisp;
-    cout << "\n\naddress emDisp: " << emDisp << ", emDisp0: " << emDisp0 << "\n\n";
+//    cout << "\n\naddress emDisp: " << emDisp << ", emDisp0: " << emDisp0 << "\n\n";
     //return 0.0;
 
   	bool twoWayCoupling = parameterList.get("two_way", false);
@@ -1297,7 +1297,7 @@ int main (int argc, char** argv)
 			{
 				std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING!\n" << std::endl;
 			}
-			 monodomain -> setupMassMatrix();
+			 monodomain -> setupLumpedMassMatrix();
 			 monodomain -> setupStiffnessMatrix();
 			 monodomain -> setupGlobalMatrix();
 	  }
@@ -1344,37 +1344,42 @@ int main (int argc, char** argv)
 //		    }
 		    LifeChrono timer;
 		    timer.start();
-		    if(meth == 1.0) monodomain -> solveOneReactionStepROS3P(dt_min);
-		    else
-		    	{
-		    	 for(int j(0); j<subiter; j++) monodomain -> solveOneReactionStepFE(subiter);
-		    	}
+		    //if(meth == 1.0) monodomain -> solveOneReactionStepROS3P(dt_min);
+		    //else
+		    //	{
+	//	    	 for(int j(0); j<subiter; j++) monodomain -> solveOneReactionStepFE(subiter);
+		    //	}
 
-          timer.stop();
-          for(int pid(0); pid < 4; pid++)
-          {
-				if ( comm->MyPID() == pid )
-				{
-						std::cout << "\nDone in " << timer.diff() << std::endl;
-				}
-          }
+//          timer.stop();
+  //        for(int pid(0); pid < 4; pid++)
+    //      {
+	//			if ( comm->MyPID() == pid )
+	//			{
+	//					std::cout << "\nDone in " << timer.diff() << std::endl;
+	//			}
+        //  }
 
-		if ( comm->MyPID() == 0 )
-		{
-			std::cout << "\nSolve DIFFUSION step with BE!\n" << std::endl;
-		}
-		timer.reset();
-		timer.start();
+	//	if ( comm->MyPID() == 0 )
+	//	{
+	//		std::cout << "\nSolve DIFFUSION step with BE!\n" << std::endl;
+	//	}
+	//	timer.reset();
+	//	timer.start();
 
-	    (*monodomain -> rhsPtrUnique()) *= 0.0;
-	      monodomain -> updateRhs();
-          monodomain -> solveOneDiffusionStepBE();
+	//    (*monodomain -> rhsPtrUnique()) *= 0.0;
+	//      monodomain -> updateRhs();
+
+	 //   (*monodomain -> rhsPtrUnique()) *= 0.0;
+	 //     monodomain -> updateRhs();
+          monodomain -> solveOneDiffusionStepBE();	 
+	 monodomain ->  solveOneStepGatingVariablesFE();
+         monodomain -> solveOneSVIStep();
   		timer.stop();
         for(int pid(0); pid < 4; pid++)
         {
 				if ( comm->MyPID() == pid )
 				{
-						std::cout << "\nDone in " << timer.diff() << std::endl;
+						std::cout << "\nSVI solution Done in " << timer.diff() << std::endl;
 				}
         }
 		timer.reset();
@@ -1753,7 +1758,7 @@ int main (int argc, char** argv)
 							{
 								std::cout << "\nREASSEMBLING STIFFNESS MATRIX FOR TOW WAY COUPLING!\n" << std::endl;
 							}
-
+							 monodomain -> setupLumpedMassMatrix();
 							 monodomain -> setupStiffnessMatrix();
 							 monodomain -> setupGlobalMatrix();
 
@@ -1761,9 +1766,13 @@ int main (int argc, char** argv)
 			  }
 
 		  //cout << "\n\n save every " << saveIter << "iteration\n";
-		  if ( k % saveIter == 0)
+
+
+		monodomain -> registerActivationTime(*activationTimeVector, t, 1.0);
+		if(activationTimeVector -> minValue() >= 0)activationTimeExporter.postProcess(0);				  
+		if ( k % saveIter == 0)
 		  {
-			  monodomain -> registerActivationTime(*activationTimeVector, t, 1.0);
+			  
 			  monodomain -> exportSolution(expElectro, t);
 			  expGammaf.postProcess(t);
 			  exporter->postProcess ( t );
@@ -1780,7 +1789,7 @@ int main (int argc, char** argv)
 
       exporter -> closeFile();
 
-    activationTimeExporter.postProcess(0);
+	if(activationTimeVector -> minValue() < 0)activationTimeExporter.postProcess(0);
     activationTimeExporter.closeFile();
 
 

@@ -814,3 +814,4 @@ VectorEpetra operator* ( const VectorEpetra::data_type& scalar, const VectorEpet
 } // end namespace LifeV
 
 #endif
+
