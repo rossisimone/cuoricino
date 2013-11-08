@@ -5,6 +5,7 @@
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
+//#include <lifev/structure/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
 #include <lifev/em/solver/EMETAFunctors.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
@@ -296,7 +297,7 @@ int main (int argc, char** argv)
     {
       cout << "\nSetup operators:  dt = " << monodomain -> timeStep() << "\n" ;
     }
-  monodomain -> setDisplacementPtr( emDisp );
+  // monodomain -> setDisplacementPtr( emDisp );
   monodomain -> setupLumpedMassMatrix();
   monodomain -> setupStiffnessMatrix();
   monodomain -> setupGlobalMatrix();
@@ -332,7 +333,7 @@ int main (int argc, char** argv)
   solid.initialize ( initialDisplacement );
 
 
-  MPI_Barrier (MPI_COMM_WORLD);
+  //MPI_Barrier (MPI_COMM_WORLD);
 
   if ( comm->MyPID() == 0 )
     {
@@ -494,11 +495,11 @@ int main (int argc, char** argv)
 	*solidDisp = solid.displacement();
       }
 
-      if ( k % saveIter == 0){
+      //if ( k % saveIter == 0){
 	monodomain -> exportSolution(exp, t);
 	expGammaf.postProcess(t);
 	exporter->postProcess ( t );
-      }
+      //}
     }
   exp.closeFile();
   expGammaf.closeFile();

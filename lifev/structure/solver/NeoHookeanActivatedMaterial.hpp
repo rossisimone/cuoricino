@@ -362,11 +362,11 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
                      const displayerPtr_Type& displayer  )
 {
 
-#ifdef HAVE_MPI
-    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
-#else
-    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
-#endif
+  //#ifdef HAVE_MPI
+  //    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
+  //#else
+  //    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm );
+  //#endif
 
     this->M_displayer = displayer;
     this->M_dataMaterial  = dataMaterial;
@@ -385,7 +385,7 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
     M_fiberVector.reset				( new vector_Type (*this->M_localMap) );
     M_activationSpace.reset 		( new scalarETFESpace_Type(	dETFESpace -> mesh(),
     															&feTetraP1,
-    															Comm ) );
+    															dFESpace->map().commPtr())  );
     M_Gammaf.reset 					( new vector_Type ( M_activationSpace -> map() ) );
 
 

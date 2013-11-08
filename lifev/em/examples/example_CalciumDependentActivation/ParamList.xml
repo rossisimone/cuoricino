@@ -1,8 +1,8 @@
 <ParameterList>
     <Parameter name="timeStep" type="double" value="0.02"  />
     <Parameter name="endTime" type="double" value="5"  />
-    <Parameter name="saveStep" type="double" value="1.0"  />
-    <Parameter name="meth" type="double" value="1.0"  />
+    <Parameter name="saveStep" type="double" value="0.04"  />
+    <Parameter name="meth" type="double" value="0.04"  />
     <Parameter name="surfaceVolumeRatio" type="double" value="1.0"/>
     <Parameter name="membraneCapacitance" type="double" value="1.0"/>
     <Parameter name="longitudinalDiffusion" type="double" value="60.0"  />

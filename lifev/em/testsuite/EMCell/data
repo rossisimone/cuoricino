@@ -1,205 +1,26 @@
-###################################################################################################
-#
-#                       This file is part of the LifeV Library
-#                Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
-#                Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
-#
-#      Author(s): Umberto Villa <uvilla@emory.edu>
-#                 Tiziano Passerini <tiziano@mathcs.emory.edu>
-#           Date: 10-12-2010
-#  License Terms: GNU LGPL
-#
-###################################################################################################
-### TESTSUITE: STRUCTURE MECHANICS ################################################################
-###################################################################################################
-#-------------------------------------------------
-#      Data file for Structure Solver
-#-------------------------------------------------
-
-
 [exporter]
-type       = hdf5 #ensight 			# hdf5 (if library compiled with hdf5 support) or ensight
+type       = hdf5
 multimesh  = false
 start      = 0
 save       = 1
 
-
 [solid]
-
 [./physics]
-density   	= 0 
-material_flag   = 24 
-a			= 33587
-af			= 1354
-as			= 0
-afs			= 0
-b			= 2.7142
-bf			= 5.4536
-bs			= 0
-bfs			= 0
-bulk		= 35000
-solidType 	= GAHO #Only work with this 
-lawType     = nonlinear
-viscosity = 0.00025;
-active_coefficient = -3.0;
-Ca_diastolic = 0.02156;
-
-
-   [../boundary_conditions]
-   list = 'Robin1 Robin2 Robin3 Robin4 Robin5 Robin6 Robin7 Robin8 Robin9 Robin10'
-
-       [./Robin1]
-        type       = Robin
-        flag       = 25
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-
-       [../Robin2]
-        type       = Robin
-        flag       = 62
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-
-
-       [../Robin3]
-        type       = Robin
-        flag       = 29
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 5.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-
-       [../Robin4]
-        type       = Robin
-        flag       = 32
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-
-       [../Robin5]
-        type       = Robin
-        flag       = 31
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-
-       [../Robin6]
-        type       = Robin
-        flag       = 40
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-       [../Robin7]
-        type       = Robin
-        flag       = 51
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-       [../Robin8]
-        type       = Robin
-        flag       = 68
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 5.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-       [../Robin9]
-        type       = Robin
-        flag       = 69
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-       [../Robin10]
-        type       = Robin
-        flag       = 61
-        mode       = Normal
-        component  = 1
-
-            [./RobinAlpha]
-            function = ' 1.00 * 100' # D
-
-            [../RobinBeta]
-            function = '0' # D
-
-            [../]
-
-  #  [../]
-
+density		= 0
+material_flag  	= 24 #29
+young     	= 1.47808e+5
+poisson   	= 0.49
+mu		= 0.496
+bulk		= 2.46e+4
+alpha 		= 2.684564e+7
+gamma		= 1
+gammaf		= -0.015 #-0.3
+solidType 	= neoHookeanActivated
+lawType     	= nonlinear
 
 [../time_discretization]
 initialtime 	= 0.
-endtime     	= 4
+endtime     	= 5
 timestep    	= 0.1
 theta       	= 0.35
 zeta        	= 0.75
@@ -207,14 +28,29 @@ BDF_order   	= 2
 
 [../space_discretization]
 mesh_type = .mesh
-mesh_dir  	= /home/ruizbaier/Dropbox/myMeshes/3DSingeCell/testMeshes/
-mesh_file 	= Cardiomyocyte-77031_flags.mesh 
+mesh_dir  	= /home/ruizbaier/Dropbox/myMeshes/cell_testMeshes/
+mesh_file 	= Cardiomyocyte-77031_flags.mesh #cylinder_coarse.mesh
 order     	= P1
 
+#cylinder mesh flags: Vol 29, left 19, right 17, patches 27, 25, 23, 21
+#cell mesh flags: Vol 24, left 29,
 
 [../miscellaneous]
 factor    	= 1
 verbose   	= 1
+
+
+[../boundary_conditions]
+    list = 'Left'
+    	 [./Left]
+         type		    = Essential
+         flag		    = 29 #19
+         mode    	    = Full
+         component  	    = 3
+	 function 	    = 0
+
+	 [../]
+
 
 
 [../newton]
@@ -226,106 +62,43 @@ abstol  	= 1.e-7
 [../solver]
 solver          = cg
 scaling         = none
-output          = all 			# none
+output          = all
 conv            = rhs
 max_iter        = 500
 reuse           = true
 max_iter_reuse  = 250
 kspace          = 800
-tol             = 1.e-10    		# AztecOO tolerance
+tol             = 1.e-10
 
 [../prec]
-prectype        = ML #Ifpack	 		# Ifpack or ML
+prectype        = Ifpack
 displayList     = true
 xmlName         = ParamList.xml
 
-[./ML] 
+[./ifpack]
+overlap  	= 2
 
-    	default_parameter_list = NSSA  # Domain-decomposition
-	prec_type =  MGV               # Multigrid, single V-cycle
-	max_levels = 10
-    	inc_or_dec = increasing
+[./fact]
+ilut_level-of-fill 	= 1
+drop_tolerance          = 1.e-5
+relax_value             = 0
 
-    		[./energy_minimization]
-		enable = true
-		type   = 3
+[../amesos]
+solvertype 		=  Amesos_Umfpack 	# Amesos_KLU or Amesos_Umfpack
 
-		[../repartition]
-		enable              = 1
-                max_min_ratio       = 1.3
-                min_per_proc        = 500
-                partitioner         = ParMETIS #Zoltan: to be implemented
-
-                [../aggregation]
-                threshold            = 0.01
-                nodes_per_aggregate = 32
-
-                [../coarse]
-                max_size            = 10
-                type                = 'self' 
-
-                [../smoother]
-                type        = 'symmetric Gauss-Seidel'           # Gauss-Seidel smoother
-                sweeps      = 1
-                pre_or_post = both
-                [../] #smoother
-
-        [../] # ML
+[../partitioner]
+overlap 		= 4
 
 
-[../ifpack]
-overlap  	= 1
-
-            [./relaxation]
-            type                   = Jacobi
-            sweeps                 = 2
-            damping_factor         = 1.
-            min_diagonal_value     = 0
-            zero_starting_solution = true
-
-            [../partitioner]
-            type                   = metis
-            overlap                = 1
-            local_parts            = 1
-            root_node              = 0
-            use_symmetric_graph    = true
-
-            [../amesos]
-            solvertype             = Amesos_Superludist # Amesos_KLU or Amesos_Umfpack
-
-            [../fact]
-            level-of-fill          = 5
-            ilut_level-of-fill     = 5
-            absolute_threshold     = 0
-            relative_threshold     = 1
-            relax_value            = 0
-            drop_tolerance         = 1.e-10
-
-            [../schwarz]
-            combine_mode           = 0             # 0=Add, 1=Zero, 2=Insert, 3=Average, 4=AbsMax
-            compute_condest        = false
-            reordering_type        = none          #none, metis, rcm
-            filter_singletons      = true
-
+[../schwarz]
+reordering_type 	= none 			# metis, rcm, none
+filter_singletons 	= true
 
 [../]
 [../]
 
-
-
-
-	# -*- getpot -*- (GetPot mode activation for emacs)
-#----------------------------------------------------------------
-#      Data file for heart test
-#----------------------------------------------------------------
-
+# -*- getpot -*- (GetPot mode activation for emacs)
 
 [electrophysiology]
 monodomain_xml_path = ./
 monodomain_xml_file = ParamList.xml
-[../]
-
-[activation]
-activation_xml_path = ./
-activation_xml_file = ParamList.xml
-[../]
