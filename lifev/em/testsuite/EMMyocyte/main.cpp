@@ -199,7 +199,7 @@ int main(int argc, char** argv) {
     }
     if ( comm->MyPID() == 0 )
     {
-<<<<<<< HEAD
+/*
         std::cout << " Splitting solver done... ";
     }
 
@@ -208,9 +208,8 @@ int main(int argc, char** argv) {
     function_Type f = &initialSphereOnCell;
     monodomain -> setPotentialFromFunction(f);
 
-=======
+*/
         cout << "Done! \n" ;
->>>>>>> 854b4f4... myocytes
 
     }
 
@@ -289,7 +288,7 @@ int main(int argc, char** argv) {
     Int solidIter = monodomainList.get ("emdt", 1.0) / dt;
     bool coupling = monodomainList.get ("coupling", false);
     if ( comm->MyPID() == 0 )
-<<<<<<< HEAD
+/*
     {
         std::cout << "\nsetup structural operator" << std::endl;
     }
@@ -362,10 +361,10 @@ int main(int argc, char** argv) {
 
 
      monodomain -> exportFiberDirection(problemFolder);
-     //********************************************//
+ */    //********************************************//
      // Create the global matrix: mass + stiffness in ELECTROPHYSIOLOGY //
      //********************************************//
-     if ( comm->MyPID() == 0 )
+ /*    if ( comm->MyPID() == 0 )
      {
          cout << "\nSetup operators:   = " << monodomain -> timeStep() << "\n" ;
      }
@@ -458,7 +457,7 @@ int main(int argc, char** argv) {
 	boost::shared_ptr<FLRelationship> fl (new FLRelationship);
 
 	boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
-=======
+*/
       {
         std::cout << "\ndt: " << dt;
         std::cout << "\nTF: " << TF;
@@ -468,7 +467,7 @@ int main(int argc, char** argv) {
         std::cout << "\nSolving coupled problem: " << coupling;
       }
     Int k(0);
->>>>>>> 854b4f4... myocytes
+
 
 //    Real timeReac = 0.0;
 //    Real timeDiff = 0.0;
@@ -571,8 +570,8 @@ int main(int argc, char** argv) {
 
 	emSolverPtr -> exportActivationTime(problemFolder);
 	emSolverPtr -> closeExporters();
-    if ( comm->MyPID() == 0 )
-<<<<<<< HEAD
+/*    if ( comm->MyPID() == 0 )
+
       {
         std::cout << "\nIt does!!!!" << std::endl;
       }
@@ -627,16 +626,15 @@ int main(int argc, char** argv) {
 	for(int j(0); j<subiter; j++) monodomain -> solveOneReactionStepFE(subiter);
 
 	timer.stop();
-=======
+*/
           std::cout << "\nExporting fibers: " << std::endl;
->>>>>>> 854b4f4... myocytes
 
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
     emSolverPtr -> monodomainPtr() -> exportFiberDirection(problemFolder);
 
-<<<<<<< HEAD
+/*
 	*tmpRhsActivation *= 0;
 	if ( comm->MyPID() == 0 )
 	  {
@@ -716,10 +714,7 @@ int main(int argc, char** argv) {
 	    expGammaf.postProcess(t);
 	    exporter->postProcess ( t );
 	  }
-      }
-=======
->>>>>>> 854b4f4... myocytes
-
+      }*/
 
         std::cout << "\n\nThank you for using EMSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
  //   }
