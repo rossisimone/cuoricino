@@ -328,7 +328,7 @@ int main (int argc, char** argv)
   solid.initialize ( initialDisplacement );
 
 
-  MPI_Barrier (MPI_COMM_WORLD);
+  //MPI_Barrier (MPI_COMM_WORLD);
 
   if ( comm->MyPID() == 0 )
     {
