@@ -9,7 +9,7 @@
     <Parameter name="transversalDiffusion" type="double" value="30.0"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="Cardiomyocyte-77031_flags.mesh"  />
-    <Parameter name="mesh_path" type="string" value="/home/ruizbaier/Dropbox/myMeshes/cell_testMeshes/"  />
+    <Parameter name="mesh_path" type="string" value="/scratch/ruizbaie/lifev-env/Meshes/SingleCell/"  />
     <Parameter name="fibers_file" type="string" value="FiberDirection"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
@@ -21,7 +21,6 @@
 
     <!-- Operator specific parameters (AztecOO) -->
     <ParameterList name="Solver: Operator List">
-
       <!-- Trilinos parameters -->
       <ParameterList name="Trilinos: AztecOO List">
 	<Parameter name="solver" type="string" value="cg"/>

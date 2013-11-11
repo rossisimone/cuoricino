@@ -28,7 +28,7 @@ BDF_order   	= 2
 
 [../space_discretization]
 mesh_type = .mesh
-mesh_dir  	= /home/ruizbaier/Dropbox/myMeshes/cell_testMeshes/
+mesh_dir  	= /scratch/ruizbaie/lifev-env/Meshes/SingleCell/
 mesh_file 	= Cardiomyocyte-77031_flags.mesh #cylinder_coarse.mesh
 order     	= P1
 
@@ -64,18 +64,19 @@ solver          = cg
 scaling         = none
 output          = all
 conv            = rhs
-max_iter        = 500
-reuse           = false
+max_iter        = 800
+reuse           = true
 max_iter_reuse  = 250
 kspace          = 800
-tol             = 1.e-10
+tol             = 1.e-8
 
 [../prec]
-prectype        = Ifpack
+prectype        = ML #Ifpack
 displayList     = true
 xmlName         = ParamList.xml
 
 [./ifpack]
+<<<<<<< HEAD
 overlap  	= 1 #2
 
             [./relaxation]
@@ -108,6 +109,25 @@ overlap  	= 1 #2
             compute_condest        = false
             reordering_type        = none          #none, metis, rcm
             filter_singletons      = true
+=======
+overlap  	= 1
+
+[./fact]
+ilut_level-of-fill 	= 2
+drop_tolerance          = 1.e-5
+relax_value             = 0
+
+[../amesos]
+solvertype 		=  Amesos_Umfpack 	# Amesos_KLU or Amesos_Umfpack
+
+[../partitioner]
+overlap 		= 1 #4
+
+
+[../schwarz]
+reordering_type 	= none 			# metis, rcm, none
+filter_singletons 	= true
+>>>>>>> a10cc05ea610cf3cf9e2526a842050a4168153e6
 
 [../]
 [../]
