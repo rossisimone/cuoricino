@@ -43,8 +43,8 @@ namespace LifeV
 //! Constructors
 // ===================================================
 CardiacStimulusPMJ::CardiacStimulusPMJ() :
-                            M_radius( 0 ),
-                            M_activationData ( *(new activationData_type()) )
+                                            M_radius( 0 ),
+                                            M_activationData ( *(new activationData_type()) )
 {
 
 }
@@ -54,7 +54,20 @@ CardiacStimulusPMJ::CardiacStimulusPMJ() :
 // ===================================================
 void CardiacStimulusPMJ::setPMJFromFile( std::string fileName )
 {
-    // TODO: Reading Purkinje-muscle junctions from a CSV
+    std::ifstream fin;
+    Real x,y,z,time,duration;
+
+    fin.open ( fileName.c_str() );
+    if ( !fin.fail() )
+    {
+        CardiacStimulusPMJ_Activation junction;
+        fin >> junction.x;
+        fin >> junction.y;
+        fin >> junction.time;
+        fin >> junction.duration;
+        M_activationData.push_back( junction );
+    }
+    fin.close();
 }
 
 void CardiacStimulusPMJ::setPMJAddJunction( Real x, Real y, Real z, Real time, Real duration )
