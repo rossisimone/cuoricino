@@ -38,6 +38,18 @@ Real initialSphereOnCell(const Real& /*t*/, const Real&  X, const Real& Y, const
   return 0.1+3.5*auxexp;
 }
 
+Real initialSeveralSparksOnCell(const Real& /*t*/, const Real&  X, const Real& Y, const Real& Z, const ID& /*i*/)
+{
+
+  double r1 = std::sqrt(pow(X-39,2)+pow(Y-46,2)+pow(Z-7,2));
+  double r2 = std::sqrt(pow(X-47,2)+pow(Y-2,2)+pow(Z-7.1,2));
+  double r3 = std::sqrt(pow(X-50,2)+pow(Y-30,2)+pow(Z-4,2));
+  double aux1=1.0-1.0/(1.0+exp(-50.0*(r1-2)));
+  double aux2=1.0-1.0/(1.0+exp(-50.0*(r2-2)));
+  double aux3=1.0-1.0/(1.0+exp(-50.0*(r3-2)));
+  return 0.1+3.2*(aux1+aux2+aux3);
+}
+
 
 Real initialStimulus(const Real& /*t*/, const Real&  /*X*/, const Real& Y, const Real& /*Z*/, const ID& /*i*/)
 {
@@ -162,7 +174,7 @@ int main (int argc, char** argv)
     }
 
   monodomain -> setInitialConditions();
-  function_Type f = &initialSphereOnCell;
+  function_Type f = &initialSeveralSparksOnCell;
   monodomain -> setPotentialFromFunction(f);
 
   for(int i(0); i < ionicModel -> Size(); i++ )
