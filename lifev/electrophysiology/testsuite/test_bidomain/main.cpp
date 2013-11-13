@@ -464,7 +464,7 @@ Int main ( Int argc, char** argv )
 
     Real returnValue;
 
-    if (std::abs(normSolution - 3.39112) > 1e-4 )
+    if (std::abs(normSolution - 14.182) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

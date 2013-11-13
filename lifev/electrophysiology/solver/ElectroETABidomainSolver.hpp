@@ -379,11 +379,6 @@ public:
 	inline const vectorPtr_Type appliedCurrentIntraPtr() {
 		return M_ionicModelPtr->appliedCurrentPtr();
 	}
-	//! get the pointer to the applied extra cellular current vector
-	/* THIS SHOULD BE EQUAL TO -appliedCurrentIntra, REMOVED */
-	/*inline const vectorPtr_Type appliedCurrentExtraPtr() {
-		return M_IappExtraPtr;
-	}*/
 
 	//! get the pointer to the linear solver
 	inline const linearSolverPtr_Type linearSolverPtr() const {
@@ -537,21 +532,13 @@ public:
 	 */
 	inline void setRhsPtrUnique(const blockVectorPtr_Type p) {
 		this->M_rhsPtrUnique = p;
-		//! set the pointer to the transmembrane potential
-		/*!
-		 @param boost::shared_ptr<VectorEpetra>  pointer to the transmembrane potential
-		 */
-		//THIS MAY BE WRONG this->M_globalRhs.at(0) = p;
 	}
-	/*inline void setPotentialIntraPtr(const vectorPtr_Type p) {
-		this->M_globalSolution.at(0) = p;
-	}*/
+
 	inline void setPotentialExtraPtr(const vectorPtr_Type p) {
 		this->M_potentialExtraPtr = p;
 		this->M_potentialGlobalPtr->replace((*p),this->M_potentialGlobalPtr->block(1)->firstIndex);
-		
-	//	this->M_globalSolution.at(1) = M_potentialExtraPtr;
 	}
+
 	inline void setPotentialTransPtr(const vectorPtr_Type p) {
 		this->M_potentialTransPtr = p;
 		this->M_potentialGlobalPtr->replace((*p),this->M_potentialGlobalPtr->block(0)->firstIndex() );
@@ -565,15 +552,6 @@ public:
 	inline void setAppliedCurrentIntraPtr(const vectorPtr_Type p) {
 		M_ionicModelPtr->setAppliedCurrentPtr(p);
 	}
-	//! set the pointer to the extra cellular applied current vector
-	/*!
-	 @param boost::shared_ptr<VectorEpetra>  pointer to the extra cellular applied current vector
-	 */
-	/* REMOVED
-        inline void setAppliedCurrentExtraPtr(const vectorPtr_Type p) {
-		M_IappExtraPtr=p;
-	}
-        */
 
 	//! set the pointer to the linear solver
 	/*!
@@ -662,11 +640,6 @@ public:
 	inline void setAppliedCurrentIntra(const vector_Type& p) {
 		M_ionicModelPtr->setAppliedCurrent(p);
 	}
-	/* REMOVED
-        inline void setAppliedCurrentExtra(const vector_Type& p) {
-		(*M_IappExtraPtr)=p;
-	}
-        */
 	inline void setLinearSolver(const linearSolver_Type& p) {
 		(*(M_linearSolverPtr)) = p;
 	}
