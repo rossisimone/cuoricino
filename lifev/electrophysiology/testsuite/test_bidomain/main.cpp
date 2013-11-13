@@ -110,7 +110,7 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
     Real pacingSite_Y = 0.0;
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
-    Real stimulusValue = 80.0;
+    Real stimulusValue = 10.0;
 
     Real returnValue1;
 
@@ -284,7 +284,7 @@ Int main ( Int argc, char** argv )
     LifeV::BCFunctionBase zero(bcDirichletZero);
     
     std::vector<LifeV::ID> compx(1, 0), compy(1, 1), compz(1, 2);
-    bcs->addBC("boundaryDirichletZero", 600, LifeV::Essential, LifeV::Full, zero,1);
+    bcs->addBC("boundaryDirichletZero", 600, LifeV::Essential, LifeV::Full, zero,3);
     
     //bcs->addBC("boundaryNeumannBase", 99, LifeV::Natural, LifeV::Full, one,1);
     //partition mesh 	
@@ -405,8 +405,8 @@ Int main ( Int argc, char** argv )
 
         chrono.reset();
 	//bcManage ( *splitting->stiffnessMatrixPtr() , *splitting->rhsPtrUnique(), *splitting->localMeshPtr(), splitting->feSpacePtr()->dof(), *bcs,  splitting->feSpacePtr()->feBd(), 1.0, t );
-       splitting->rhsPtrUnique()->spy("rhs.dat"); 
-       splitting->stiffnessMatrixPtr()->spy("Stiffness");
+       //splitting->rhsPtrUnique()->spy("rhs.dat");
+       //splitting->stiffnessMatrixPtr()->spy("Stiffness");
 	chrono.start();
         splitting->solveOneDiffusionStepBE();
         chrono.stop();

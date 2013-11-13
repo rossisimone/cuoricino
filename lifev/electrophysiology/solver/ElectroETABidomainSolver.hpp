@@ -1349,7 +1349,7 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 //		if (M_displacementPtr)
 //			setupLumpedMassMatrix(*M_displacementPtr);
 //		else
-//			setupLumpedMassMatrix();
+			setupLumpedMassMatrix();
 	}
 	else
 	{
@@ -1382,89 +1382,58 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 
 template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::setupMassMatrix(
-		vector_Type& disp) {
-	if (M_commPtr->MyPID() == 0) {
-		std::cout << "\nETA Bidomain Solver: Setting up mass matrix with coupling with mechanics ";
-	}
+                vector_Type& disp) {
+    if (M_commPtr->MyPID() == 0) {
+        std::cout << "\nETA Bidomain Solver: Setting up mass matrix with coupling with mechanics ";
+    }
 
-	*M_massMatrixPtr *= 0.0;
-	ETFESpaceVectorialPtr_Type spaceVectorial(
-			new ETFESpaceVectorial_Type(M_localMeshPtr, &(M_feSpacePtr -> refFE()), M_commPtr));
+    *M_massMatrixPtr *= 0.0;
+    ETFESpaceVectorialPtr_Type spaceVectorial( new ETFESpaceVectorial_Type( M_localMeshPtr, &(M_feSpacePtr -> refFE()), M_commPtr ) );
 
+    // Mass matrix only in the first equation (parabolic-elliptic formulation)
+    //boost::shared_ptr<blockMatrix_Type> ETcomponentMassMatrix
+    (new blockMatrix_Type ( M_ETFESpacePtr->map() ) );
+    //*ETcomponentMassMatrix *= 0.0;
 
-//Create one Mass Matrix, because it is the same in all the blocks up to an sign
-	boost::shared_ptr<blockMatrix_Type> ETcomponentMassMatrix
-			    (new blockMatrix_Type ( M_ETFESpacePtr->map() ) );
-	*ETcomponentMassMatrix *= 0.0;
-  	{
-  		using namespace ExpressionAssembly;
-		BOOST_AUTO_TPL(I, value(M_identity));
- 		BOOST_AUTO_TPL(Grad_u, grad(spaceVectorial, disp));
-		BOOST_AUTO_TPL(F, (Grad_u + I));
-		BOOST_AUTO_TPL(J, det (F));
-		integrate(elements(M_localMeshPtr), M_feSpacePtr->qr(), M_ETFESpacePtr,
-				M_ETFESpacePtr,  J * phi_i * phi_j) 
-			>> M_massMatrixPtr->block(0,0);
-	}
-	//ETcomponentMassMatrix->globalAssemble();
+    {
+        using namespace ExpressionAssembly;
+        BOOST_AUTO_TPL(I, value(M_identity));
+        BOOST_AUTO_TPL(Grad_u, grad(spaceVectorial, disp));
+        BOOST_AUTO_TPL(F, (Grad_u + I));
+        BOOST_AUTO_TPL(J, det (F));
+        integrate(elements(M_localMeshPtr), M_feSpacePtr->qr(), M_ETFESpacePtr,
+                  M_ETFESpacePtr,  J * phi_i * phi_j)
+        >> M_massMatrixPtr->block(0,0);
+    }
 
-	M_massMatrixPtr->globalAssemble();
+    M_massMatrixPtr->globalAssemble();
 }
 
 
 template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix() {
 
-	/*
-	 * M_lumpedMassMatrix = true;
-	if (M_displacementPtr)
-		setupLumpedMassMatrix(*M_displacementPtr);
-	else
-	{
-		*M_massMatrixPtr *= 0.0;
-		if (M_localMeshPtr->comm()->MyPID() == 0)
-		{
-			std::cout << "\nETA Bidomain Solver: Setting up lumped mass matrix";
-		}
+    M_lumpedMassMatrix = true;
+     if (M_displacementPtr)
+         setupLumpedMassMatrix(*M_displacementPtr);
+     else
+     {
+         *M_massMatrixPtr *= 0.0;
+         if (M_localMeshPtr->comm()->MyPID() == 0)
+         {
+             std::cout << "\nETA Bidomain Solver: Setting up lumped mass matrix";
+         }
+         {
+             using namespace ExpressionAssembly;
 
-		//Create one Mass Matrix, because it is the same in all the blocks up to an sign
-		boost::shared_ptr<blockMatrix_Type> ETcomponentMassMatrix
-			    (new blockMatrix_Type ( M_ETFESpacePtr->map() ) );
-		*ETcomponentMassMatrix *= 0.0;
+             integrate(elements(M_localMeshPtr), quadRuleTetra4ptNodal,
+                     M_ETFESpacePtr, M_ETFESpacePtr, phi_i * phi_j)
+                     >> M_massMatrixPtr->block(0,0);
 
-		{
-     		using namespace ExpressionAssembly;
+         }
+         M_massMatrixPtr->globalAssemble();
 
-  			integrate ( elements (M_ETFESpacePtr->mesh() ),
-           		     M_feSpacePtr->qr(),
-           		     ETFESpacePtr,
-           		     ETFESpacePtr,
-	  						phi_i * phi_j
-						   )
-	                >> M_massMatrixPtr->block(0,0);//ETcomponentMassMatrix->block (0, 0);
-	  	}
-		//ETcomponentMassMatrix->globalAssemble();
-  		
-
-
-  		// ---------------------------------------------------------------
-  		// We copy the blocks
-  		// ---------------------------------------------------------------
-		//result matrix 
-		// M   -M
-		// -M	  M	
-  		//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (0, 0) );
-  		//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (1, 1) );
-  		//*ETsystemMatrixIII *= -1.0;
-  		//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (0, 1) );
-  		//MatrixEpetraStructuredUtility::copyBlock (*ETcomponentMassMatrix->block (0, 0), *M_massMatrixPtr->block (1, 0) );
-
-
-
-
-		M_massMatrixPtr->globalAssemble();
-
-	}*/
+     }
 }
 
 
@@ -1591,7 +1560,8 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 	blockMatrixPtr_Type ETcomponentStiffnessMatrix
 		    (new blockMatrix_Type ( M_ETFESpacePtr->map() ) );
 	*ETcomponentStiffnessMatrix *= 0.0;
-	//Intra Cellular 
+
+	//Intracellular conduction
 	{
 		using namespace ExpressionAssembly;
 
@@ -1613,7 +1583,8 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (0, 1) );
 	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (1, 0) );
 	MatrixEpetraStructuredUtility::copyBlock (*ETcomponentStiffnessMatrix->block (0, 0), *M_stiffnessMatrixPtr->block (0, 0) );
-	//ExtraCellular
+
+	// Extracellular conduction
 	sigmal += diffusionExtra[0];
 	sigmat += diffusionExtra[1];
 	
@@ -1718,14 +1689,16 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupGlobalMatrix() {
 	(*M_globalMatrixPtr) *= 0;
 	(*M_globalMatrixPtr) = (*M_stiffnessMatrixPtr);
 	(*M_globalMatrixPtr) *= 1.0 / M_surfaceVolumeRatio;
-//This line should be right, as long as the membraneCpacitance is intra and extra cellular the same 
+
+	// This line should be right, as long as the membraneCpacitance is intra and extra cellular the same
 	(*M_globalMatrixPtr) += ((*M_massMatrixPtr) * ( M_ionicModelPtr -> membraneCapacitance() / M_timeStep));
 }
 
 template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::setupLinearSolver(
 		GetPot dataFile) {
-	prec_Type* precRawPtr;
+
+    prec_Type* precRawPtr;
 	basePrecPtr_Type precPtr;
 	precRawPtr = new prec_Type;
 	precRawPtr->setDataFromGetPot(dataFile, "prec");
@@ -1749,7 +1722,8 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setupLinearSolver(
 template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::setupLinearSolver(
 		GetPot dataFile, list_Type list) {
-	prec_Type* precRawPtr;
+
+    prec_Type* precRawPtr;
 	basePrecPtr_Type precPtr;
 	precRawPtr = new prec_Type;
 	precRawPtr->setDataFromGetPot(dataFile, "prec");
@@ -1826,10 +1800,6 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneDiffusionStepBE() {
 	  M_linearSolverPtr->setOperator(M_globalMatrixPtr);
 	M_linearSolverPtr->setRightHandSide(M_rhsPtrUnique);
 	M_linearSolverPtr->solve(M_potentialGlobalPtr);
-	
-	//copy the result from the gloable solution back to the two vector
-//	(*M_potentialTransPtr)*=0;
-//	(*M_potentialExtraPtr)*=0;
 
 	M_potentialTransPtr->subset((const VectorEpetra&)(*M_potentialGlobalPtr->block(0)->vectorPtr()),M_potentialTransPtr->map(),M_potentialGlobalPtr->block(0)->firstIndex(),static_cast<UInt> (0));
 	M_potentialExtraPtr->subset((const VectorEpetra&)(*M_potentialGlobalPtr->block(1)->vectorPtr()),M_potentialExtraPtr->map(),M_potentialGlobalPtr->block(1)->firstIndex(),static_cast<UInt> (0));
@@ -1949,17 +1919,21 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::init(meshPtr_Type meshPtr,
 /********* parameter initialization */    ////////
 template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::setParameters() {
-  // THESE ARE WRONG BUT SHOULD BE CHANGED ALO IN MONODOMAIN
-	M_surfaceVolumeRatio = 2400.0;
-	M_diffusionTensorIntra[0] = 0.001;
-	M_diffusionTensorIntra[1] = 0.001;
-	M_diffusionTensorIntra[2] = 0.001;
-	M_diffusionTensorExtra[0] = 0.001;
-	M_diffusionTensorExtra[1] = 0.001;
-	M_diffusionTensorExtra[2] = 0.001;
+
+    // Suggested values from Niederer et al. 2011
+
+	M_surfaceVolumeRatio = 1400.0;
+
+	M_diffusionTensorIntra[0] = 1.7;
+	M_diffusionTensorIntra[1] = 0.19;
+	M_diffusionTensorIntra[2] = 0.19;
+
+	M_diffusionTensorExtra[0] = 6.2;
+	M_diffusionTensorExtra[1] = 2.4;
+	M_diffusionTensorExtra[2] = 2.4;
 
 	M_initialTime = 0.0;
-	M_endTime = 100.0;
+	M_endTime = 50.0;
 	M_timeStep = 0.01;
 	M_elementsOrder = "P1";
 	M_lumpedMassMatrix = false;
@@ -1969,26 +1943,26 @@ void ElectroETABidomainSolver<Mesh, IonicModel>::setParameters() {
 template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::setParameters(
 		list_Type list) {
-  // THESE ARE WRONG BUT SHOULD BE CHANGED ALO IN MONODOMAIN
-	M_surfaceVolumeRatio = list.get("surfaceVolumeRatio", 2400.0);
-	M_diffusionTensorIntra[0] = list.get("longitudinalDiffusionIntra", 0.001);
-	M_diffusionTensorIntra[1] = list.get("transversalDiffusionIntra", 0.001);
+
+    // Suggested values from Niederer et al. 2011
+
+	M_surfaceVolumeRatio = list.get("surfaceVolumeRatio", 1400.0);
+
+	M_diffusionTensorIntra[0] = list.get("longitudinalDiffusionIntra", 1.7);
+	M_diffusionTensorIntra[1] = list.get("transversalDiffusionIntra", 0.19);
 	M_diffusionTensorIntra[2] = M_diffusionTensorIntra[1];
-	M_diffusionTensorExtra[0] = list.get("longitudinalDiffusionExtra", 0.001);
-	M_diffusionTensorExtra[1] = list.get("transversalDiffusionExtra", 0.001);
+
+	M_diffusionTensorExtra[0] = list.get("longitudinalDiffusionExtra", 6.2);
+	M_diffusionTensorExtra[1] = list.get("transversalDiffusionExtra", 2.4);
 	M_diffusionTensorExtra[2] = M_diffusionTensorExtra[1];
 
 	M_initialTime = list.get("initialTime", 0.0);
-	M_endTime = list.get("endTime", 100.0);
+	M_endTime = list.get("endTime", 50.0);
 	M_timeStep = list.get("timeStep", 0.01);
 	M_elementsOrder = list.get("elementsOrder", "P1");
 	M_lumpedMassMatrix = list.get ("LumpedMass", false);
 
 }
-
-
-
-
 
 } // namespace LifeV
 

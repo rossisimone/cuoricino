@@ -14,9 +14,9 @@ type = hdf5
     prectype        = ML
 
     [./ML] # preconditioner for the first factor in case our choice was ML
-    displayList = false
+    displayList = true
     default_parameter_list = SA    # Domain-decomposition
-    prec_type =  MGV               # Multigrid, single V-cycle
+    prec_type =  MGW               # Multigrid, single V-cycle
     max_levels = 5
     inc_or_dec = increasing
 
@@ -32,15 +32,15 @@ type = hdf5
 
     [../aggregation]
     type                = METIS
-    treshold            = 0.0
+    threshold           = 0.01
     nodes_per_aggregate = 32
 
     [../coarse]
-    max_size            = 500
-    type                = self
+    max_size            = 100
+    type                = 'symmetric Gauss-Seidel'
 
     [../smoother]
-    type        = Gauss-Seidel           # Gauss-Seidel smoother
+    type        = 'symmetric Gauss-Seidel'           # Gauss-Seidel smoother
     pre_or_post = both
 
     [../] # end of ML
