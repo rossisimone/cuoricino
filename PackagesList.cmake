@@ -86,6 +86,7 @@ SET( LifeV_PACKAGES_AND_DIRS_AND_CLASSIFICATIONS
   Multiscale            lifev/multiscale                  EX
   Darcy                 lifev/darcy                       PS
   LevelSet              lifev/level_set                   PS
+  Toolkit               lifev/toolkit                     EX
   Dummy                 lifev/dummy                       EX
 )
 
