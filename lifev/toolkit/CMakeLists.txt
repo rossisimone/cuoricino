@@ -1,6 +1,8 @@
 INCLUDE(TribitsPackageMacros)
 INCLUDE(TribitsAddOptionAndDefine)
 INCLUDE(TribitsLibraryMacros)
+INCLUDE(AddSubdirectories)
+INCLUDE(TribitsAddExecutable)
 
 #
 # A) Define the package
@@ -22,17 +24,9 @@ SET(SOURCES "")
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
-#ADD_SUBDIRECTORY(util)
-#SET(HEADERS ${HEADERS} ${util_HEADERS})
-#SET(SOURCES ${SOURCES} ${util_SOURCES})
-
-#ADD_SUBDIRECTORY(solver)
-#SET(HEADERS ${HEADERS} ${solver_HEADERS} ${solver_IonicModels_HEADERS} ${solver_XbModels_HEADERS})
-#SET(SOURCES ${SOURCES} ${solver_SOURCES} ${solver_IonicModels_SOURCES} ${solver_XbModels_SOURCES})
+ADD_SUBDIRECTORIES(lvelectrom)
 
 TRIBITS_EXCLUDE_AUTOTOOLS_FILES()
-# This is the list of files excluded from the tarball
-TRIBITS_EXCLUDE_FILES()
 
 # Add library target
 TRIBITS_ADD_LIBRARY(

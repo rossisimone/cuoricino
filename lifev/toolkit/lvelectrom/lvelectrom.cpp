@@ -26,13 +26,12 @@
 
 /*!
     @file
-    @brief Electrophysiology benchmark of Niederer et al. 2011
+    @brief
 
-    @date 01−2013
-    @author Simone Rossi <simone.rossi@epfl.ch>
-
+    @date
+    @author
     @contributor
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
+    @mantainer
  */
 
 // Tell the compiler to ignore specific kind of warnings:
@@ -51,13 +50,10 @@
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
-
-
 #include <fstream>
 #include <string>
 
 #include <lifev/core/array/VectorSmall.hpp>
-
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
@@ -90,79 +86,36 @@
 
 using namespace LifeV;
 
-Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
-{
-
-    const int numberOfPacingSites = 1;
-
-    Real pacingSite_X[numberOfPacingSites]   = { 3.10949         };
-    Real pacingSite_Y[numberOfPacingSites]   = { -3.15376 };
-    Real pacingSite_Z[numberOfPacingSites]   = { -2.89625 };
-    Real stimulusRadius[numberOfPacingSites] = { 0.25 };
-    Real stimulusValue = 50;
-
-    Real returnValue = 0;
-
-    for (int i=0; i < numberOfPacingSites; i++)
-    {
-        if ( std::abs( x - pacingSite_X[i] ) <= stimulusRadius[i] &&
-                std::abs( z - pacingSite_Z[i] ) <= stimulusRadius[i] &&
-                std::abs( y - pacingSite_Y[i] ) <= stimulusRadius[i] &&
-                t <= 2)
-        {
-            returnValue = stimulusValue;
-        }
-    }
-
-    return returnValue;
-
-}
-
-Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
-{
-
-    const int numberOfPacingSites = 3;
-
-    Real pacingSite_X[numberOfPacingSites]   = { 13.0, 15.2, 9.7 };
-    Real pacingSite_Y[numberOfPacingSites]   = { 6.5 ,  8.5, 6.6 };
-    Real pacingSite_Z[numberOfPacingSites]   = { 15.0, 18.2, 15. };
-    Real stimulusRadius[numberOfPacingSites] = { 0.15,  0.15,  0.1 };
-    Real stimulusValue = 50;
-
-    Real returnValue = 0;
-
-    for (int i=0; i < numberOfPacingSites; i++)
-    {
-        if ( std::abs( x - pacingSite_X[i] ) <= stimulusRadius[i] &&
-                std::abs( z - pacingSite_Z[i] ) <= stimulusRadius[i] &&
-                std::abs( y - pacingSite_Y[i] ) <= stimulusRadius[i] &&
-                t <= 2)
-        {
-            returnValue = stimulusValue;
-        }
-    }
-
-    return returnValue;
-
-}
-
-
 Int main ( Int argc, char** argv )
 {
+
+    typedef RegionMesh<LinearTetra>                                  mesh_Type;
+    typedef boost::function < Real (const Real& /*t*/,
+                                    const Real &   x,
+                                    const Real &   y,
+                                    const Real& /*z*/,
+                                    const ID&   /*i*/ ) >            function_Type;
+
+    typedef ElectroIonicModel    ionicModel_Type;
+    typedef boost::shared_ptr<ionicModel_Type>                       ionicModelPtr_Type;
+    typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type > monodomainSolver_Type;
+    typedef boost::shared_ptr< monodomainSolver_Type >               monodomainSolverPtr_Type;
+
+    typedef VectorEpetra                                             vector_Type;
+    typedef boost::shared_ptr<vector_Type>                           vectorPtr_Type;
+
+    bool verbose = false;
 
     //! Initializing Epetra communicator
     MPI_Init (&argc, &argv);
     boost::shared_ptr<Epetra_Comm>  Comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "% using MPI" << endl;
-    }
 
     //*********************************************//
     // creating output folder
     //*********************************************//
     GetPot commandLine ( argc, argv );
-    std::string problemFolder = commandLine.follow ( "Output", 2, "-o", "--output" );
+    std::string problemFolder = commandLine.follow ( "work", 2, "-w", "--work" );
+
     // Create the problem folder
     if ( problemFolder.compare ("./") )
     {
@@ -177,21 +130,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Starts the chronometer.                    //
     //********************************************//
-
-    typedef RegionMesh<LinearTetra>                         mesh_Type;
-    typedef boost::function < Real (const Real& /*t*/,
-            const Real &   x,
-            const Real &   y,
-            const Real& /*z*/,
-            const ID&   /*i*/ ) >   function_Type;
-
-    typedef ElectroIonicModel	 ionicModel_Type;
-    typedef boost::shared_ptr<ionicModel_Type> ionicModelPtr_Type;
-    typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type >        monodomainSolver_Type;
-    typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
-
-    typedef VectorEpetra				                             vector_Type;
-    typedef boost::shared_ptr<vector_Type>                           vectorPtr_Type;
 
 
     LifeChrono chronoinitialsettings;
@@ -209,6 +147,8 @@ Int main ( Int argc, char** argv )
     {
         std::cout << "Importing parameters list...";
     }
+    GetPot command_line (argc, argv);
+    const string monodomain_datafile_name = command_line.follow ("MonodomainSolverParamList.xml", 2, "-f", "--file");
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
     if ( Comm->MyPID() == 0 )
     {
@@ -221,23 +161,15 @@ Int main ( Int argc, char** argv )
         std::cout << "\nIonic_Model:" << ionic_model;
     }
 
-
-
-    //********************************************//
-    // Creates a new model object representing the//
-    // model from Aliev and Panfilov 1996.  The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
-    //********************************************//
     if ( Comm->MyPID() == 0 )
     {
         std::cout << "\nBuilding Constructor for " << ionic_model << " Model with parameters ... ";
     }
     ionicModelPtr_Type  model;
     if( ionic_model == "LuoRudyI" )
-    	model.reset( new IonicLuoRudyI() );
+        model.reset( new IonicLuoRudyI() );
     else if ( ionic_model == "TenTusscher06")
-    	model.reset(new IonicTenTusscher06() );
+        model.reset(new IonicTenTusscher06() );
     else
         model.reset( new IonicMinimalModel() );
 
@@ -253,16 +185,14 @@ Int main ( Int argc, char** argv )
     // In the parameter list we need to specify   //
     // the mesh name and the mesh path.           //
     //********************************************//
-    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
-    std::string meshPath = monodomainList.get ("mesh_path", "./");
+    std::string meshName = command_line.follow ("default", 2, "-m", "--model") + ".mesh";
 
     //********************************************//
     // We need the GetPot datafile for to setup   //
     // the preconditioner.                        //
     //********************************************//
-    GetPot command_line (argc, argv);
-    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
-    GetPot dataFile (data_file_name);
+    const string preconditioner_datafile_name = command_line.follow ("MonodomainSolverPreconditioner", 2, "-p", "--prec");
+    GetPot dataFile (preconditioner_datafile_name);
 
     //********************************************//
     // We create three solvers to solve with:     //
@@ -275,7 +205,7 @@ Int main ( Int argc, char** argv )
         std::cout << "Building Monodomain Solvers... ";
     }
 
-    monodomainSolverPtr_Type solver ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    monodomainSolverPtr_Type solver ( new monodomainSolver_Type ( meshName, problemFolder, dataFile, model ) );
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " solver done... ";
@@ -296,47 +226,12 @@ Int main ( Int argc, char** argv )
     solver -> initializeAppliedCurrent();
     solver -> setInitialConditions();
 
-    /*
-    function_Type stimulus;
-    if(ionic_model == "MinimalModel" )
-        stimulus = &PacingProtocolMM;
-    else
-        stimulus = &PacingProtocol;
-     */
-
     CardiacStimulusPMJ stimulus;
-    stimulus.setRadius( 0.2 );
-    stimulus.setTotalCurrent( 2.0 );
-    //stimulus.setPMJAddJunction( 3.10949, -3.15376, -2.89625, 0.0, 2.0 );
+    stimulus.setRadius( monodomainList.get("applied_current_radius", 0.2) );
+    stimulus.setTotalCurrent( monodomainList.get("applied_total_current", 0.2) );
 
-    stimulus.setPMJAddJunction(4.6230, -4.1798, -2.9722, 0.5754, 2.0000);
-    stimulus.setPMJAddJunction(3.4078, -2.9326, -4.0292, 0.0000, 2.0000);
-    stimulus.setPMJAddJunction(6.4159, -1.8895, -4.0080, 25.5728, 2.0000);
-    stimulus.setPMJAddJunction(6.6757, -1.0402, -2.8399, 25.9171, 2.0000);
-    stimulus.setPMJAddJunction(2.7523, 0.6452, -4.3700, 34.2997, 2.0000);
-    stimulus.setPMJAddJunction(4.1017, 1.8470, -2.9836, 37.0173, 2.0000);
-    stimulus.setPMJAddJunction(4.9271, -1.4719, 0.6499, 41.1689, 2.0000);
-    stimulus.setPMJAddJunction(2.9258, -1.7308, 0.3550, 48.5998, 2.0000);
-    stimulus.setPMJAddJunction(2.7268, -2.3931, -0.2608, 46.3182, 2.0000);
-    stimulus.setPMJAddJunction(2.8927, -3.0254, -1.5040, 49.8934, 2.0000);
-    stimulus.setPMJAddJunction(5.9344, -2.1053, -4.4254, 12.1738, 2.0000);
-    stimulus.setPMJAddJunction(3.5544, 0.3440, -4.2917, 26.6577, 2.0000);
-    stimulus.setPMJAddJunction(2.5224, 3.2275, -1.2027, 47.3882, 2.0000);
-    stimulus.setPMJAddJunction(1.7620, 3.1506, -2.8372, 47.2847, 2.0000);
-    stimulus.setPMJAddJunction(3.7067, 2.9274, -1.0377, 46.9317, 2.0000);
-    stimulus.setPMJAddJunction(2.4350, 0.5375, 0.7186, 51.6274, 2.0000);
-    stimulus.setPMJAddJunction(6.1813, -1.3826, -0.5886, 37.6358, 2.0000);
-    stimulus.setPMJAddJunction(6.1745, -0.4471, -0.6968, 37.1766, 2.0000);
-    stimulus.setPMJAddJunction(6.3000, -0.2611, -0.7963, 39.2447, 2.0000);
-    stimulus.setPMJAddJunction(5.9208, 0.5714, -0.7229, 38.8118, 2.0000);
-    stimulus.setPMJAddJunction(0.6487, -0.9959, -2.0964, 39.8484, 2.0000);
-    stimulus.setPMJAddJunction(-0.1536, 0.5113, -3.2163, 39.6806, 2.0000);
-    stimulus.setPMJAddJunction(0.1714, 1.6314, -3.7963, 39.0650, 2.0000);
-    stimulus.setPMJAddJunction(1.5492, 2.9836, -3.3110, 40.9078, 2.0000);
-    stimulus.setPMJAddJunction(4.5385, -4.1890, -1.9103, 20.7932, 2.0000);
-    stimulus.setPMJAddJunction(5.3255, -4.1738, -1.4622, 18.9310, 2.0000);
-    stimulus.setPMJAddJunction(6.8030, -2.9734, -2.1150, 20.0534, 2.0000);
-    stimulus.setPMJAddJunction(7.1989, -3.1165, -3.6779, 20.4257, 2.0000);
+    std::string purkinjeFile = problemFolder + command_line.follow ("default", 2, "-m", "--model") + "_activation.txt";
+    stimulus.setPMJFromFile(purkinjeFile);
 
     solver -> setAppliedCurrentFromCardiacStimulus(stimulus, 0.0);
 
@@ -359,19 +254,11 @@ Int main ( Int argc, char** argv )
         cout << "\nSetting fibers:  " ;
     }
 
-    /*
-    VectorSmall<3> fibers;
-    fibers[0]=0.0;
-    fibers[1]=0.0;
-    fibers[2]=1.0;
-    solver -> setupFibers( fibers );
-    */
-
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
     ( new FESpace< mesh_Type, MapEpetra > ( solver -> localMeshPtr(), "P1", 3, solver -> commPtr() ) );
 
     boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
-    std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
+    std::string nm = problemFolder + monodomainList.get("fiber_file","FiberDirection") ;
     HeartUtility::importFibers( fiber, nm, solver -> localMeshPtr() );
 
     solver -> setFiberPtr(fiber);
@@ -389,7 +276,7 @@ Int main ( Int argc, char** argv )
         cout << "\nSetup operators:  " ;
     }
 
-    bool lumpedMass = monodomainList.get ("LumpedMass", true);
+    bool lumpedMass = monodomainList.get ("lumped_mass", false);
     if( lumpedMass)
         solver -> setupLumpedMassMatrix();
     else
@@ -408,7 +295,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     ExporterHDF5< RegionMesh <LinearTetra> > exporter;
 
-    solver -> setupExporter ( exporter, monodomainList.get ("OutputFile", "Solution") );
+    solver -> setupExporter ( exporter, monodomainList.get ("outputFile", command_line.follow ("default", 2, "-m", "--model") + "_solution") );
     exporter.setPostDir(problemFolder);
     solver -> exportSolution ( exporter, 0);
 
@@ -421,8 +308,8 @@ Int main ( Int argc, char** argv )
     ExporterHDF5< RegionMesh <LinearTetra> > activationTimeExporter;
     activationTimeExporter.setMeshProcId(solver -> localMeshPtr(), solver -> commPtr() ->MyPID());
     activationTimeExporter.addVariable(ExporterData<mesh_Type>::ScalarField, "Activation Time",
-            solver -> feSpacePtr(), activationTimeVector, UInt(0));
-    activationTimeExporter.setPrefix("ActivationTime");
+                                       solver -> feSpacePtr(), activationTimeVector, UInt(0));
+    activationTimeExporter.setPrefix(command_line.follow ("default", 2, "-m", "--model") + "_activationTime");
     activationTimeExporter.setPostDir(problemFolder);
 
     //********************************************//

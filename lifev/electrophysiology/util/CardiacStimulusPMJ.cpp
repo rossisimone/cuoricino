@@ -58,14 +58,16 @@ void CardiacStimulusPMJ::setPMJFromFile( std::string fileName )
     Real x,y,z,time,duration;
 
     fin.open ( fileName.c_str() );
-    if ( !fin.fail() )
+    while ( !fin.fail() )
     {
         CardiacStimulusPMJ_Activation junction;
         fin >> junction.x;
         fin >> junction.y;
+        fin >> junction.z;
         fin >> junction.time;
         fin >> junction.duration;
         M_activationData.push_back( junction );
+        std::cout << "Read a junction." << std::endl;
     }
     fin.close();
 }
@@ -98,7 +100,6 @@ Real CardiacStimulusPMJ::appliedCurrent( const Real& t, const Real& x, const Rea
         {
             current += M_totalCurrent / volumeOfBall;
         }
-
     }
 
     return current;
