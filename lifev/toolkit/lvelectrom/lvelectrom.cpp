@@ -143,28 +143,12 @@ Int main ( Int argc, char** argv )
     // in the execution directory.                //
     //********************************************//
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Importing parameters list...";
-    }
     GetPot command_line (argc, argv);
     const string monodomain_datafile_name = command_line.follow ("MonodomainSolverParamList.xml", 2, "-f", "--file");
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << " Done!" << endl;
-    }
 
     std::string ionic_model( monodomainList.get ("ionic_model", "minimalModel") );
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "\nIonic_Model:" << ionic_model;
-    }
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "\nBuilding Constructor for " << ionic_model << " Model with parameters ... ";
-    }
     ionicModelPtr_Type  model;
     if( ionic_model == "LuoRudyI" )
         model.reset( new IonicLuoRudyI() );
@@ -172,13 +156,6 @@ Int main ( Int argc, char** argv )
         model.reset(new IonicTenTusscher06() );
     else
         model.reset( new IonicMinimalModel() );
-
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << " Done!" << endl;
-    }
-
-    model -> showMe();
 
 
     //********************************************//
@@ -200,26 +177,12 @@ Int main ( Int argc, char** argv )
     // 2) Ionic Current Interpolation             //
     // 3) State Variable Interpolation            //
     //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Building Monodomain Solvers... ";
-    }
-
     monodomainSolverPtr_Type solver ( new monodomainSolver_Type ( meshName, problemFolder, dataFile, model ) );
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << " solver done... ";
-    }
-
 
     //********************************************//
     // Setting up the initial condition form      //
     // a given function.                          //
     //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nInitializing potential and gating variables:  " ;
-    }
 
     // Initial pacing
     solver -> initializePotential();
@@ -235,12 +198,6 @@ Int main ( Int argc, char** argv )
 
     solver -> setAppliedCurrentFromCardiacStimulus(stimulus, 0.0);
 
-
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "Done! \n" ;
-    }
-
     //********************************************//
     // Setting up the time data                   //
     //********************************************//
@@ -249,11 +206,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nSetting fibers:  " ;
-    }
-
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > Space3D
     ( new FESpace< mesh_Type, MapEpetra > ( solver -> localMeshPtr(), "P1", 3, solver -> commPtr() ) );
 
@@ -263,19 +215,9 @@ Int main ( Int argc, char** argv )
 
     solver -> setFiberPtr(fiber);
 
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "Done! \n" ;
-    }
-
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nSetup operators:  " ;
-    }
-
     bool lumpedMass = monodomainList.get ("lumped_mass", false);
     if( lumpedMass)
         solver -> setupLumpedMassMatrix();
@@ -285,10 +227,6 @@ Int main ( Int argc, char** argv )
 
     solver -> setupStiffnessMatrix( solver -> diffusionTensor() );
     solver -> setupGlobalMatrix();
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "Done! \n" ;
-    }
 
     //********************************************//
     // Creating exporters to save the solution    //
@@ -383,47 +321,14 @@ Int main ( Int argc, char** argv )
         {
             solver -> exportSolution (exporter, t);
         }
-        if ( Comm->MyPID() == 0 )
-            std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
     }
-
-    Real normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
-    if ( Comm->MyPID() == 0 )
-        std::cout << "2-norm of potential solution: " << normSolution << std::endl;
 
     exporter.closeFile();
     activationTimeExporter.postProcess(0);
     activationTimeExporter.closeFile();
 
-    if ( Comm->MyPID() == 0 )
-        std::cout << "Exporting fibers: " << std::endl;
+    chronoinitialsettings.stop();
 
-    //********************************************//
-    // Saving Fiber direction to file             //
-    //********************************************//
-    solver -> exportFiberDirection();
-
-
-    if ( Comm->MyPID() == 0 )
-    {
-        chronoinitialsettings.stop();
-        std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
-        if( solutionMethod == "splitting" )
-        {
-            std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
-            std::cout<<"Reaction time : "<<timeReac<<std::endl;
-        }
-        else if( solutionMethod == "ICI" )
-        {
-            std::cout<<"Solution time : "<<timeReacDiff<<std::endl;
-        }
-        else if( solutionMethod == "SVI" )
-        {
-            std::cout<<"Solution time : "<<timeReacDiff<<std::endl;
-        }
-
-        std::cout << "\n\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
-    }
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();
 
