@@ -214,6 +214,11 @@ public:
                                           FESpace<mesh_Type, MapEpetra>&  uFESpace );
 
     virtual void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
+                                              std::vector<vectorPtr_Type>&        rhs,
+                                              FESpace<mesh_Type, MapEpetra>&  uFESpace,
+                                              QuadratureRule& qr );
+
+    virtual void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
                                           std::vector<vectorPtr_Type>&        rhs,
                                           FESpace<mesh_Type, MapEpetra>&  uFESpace,
                                           vector_Type& disp,
