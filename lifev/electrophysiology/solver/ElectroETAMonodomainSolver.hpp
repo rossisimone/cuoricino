@@ -1840,8 +1840,18 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsMixed() {
         {
             std::cout << "\nETA Monodomain Solver: updating rhs with mixed (SVI + ICI)";
         }
-        std::vector<vectorPtr_Type> rhsSVI(M_globalRhs);
-        std::vector<vectorPtr_Type> rhsICI(M_globalRhs);
+        vectorOfPtr_Type rhsSVI;
+        vectorOfPtr_Type rhsICI;
+
+        rhsSVI.push_back(*(new vectorPtr_Type(new VectorEpetra(M_ETFESpacePtr->map()))));
+        rhsICI.push_back(*(new vectorPtr_Type(new VectorEpetra(M_ETFESpacePtr->map()))));
+
+        for (int k = 1; k < M_ionicModelPtr->Size(); ++k) {
+            rhsSVI.push_back(
+                            *(new vectorPtr_Type(new VectorEpetra(M_ETFESpacePtr->map()))));
+            rhsICI.push_back(
+                            *(new vectorPtr_Type(new VectorEpetra(M_ETFESpacePtr->map()))));
+        }
 
         // Take a convex combination of SVI(1) and ICI ionic currents
         M_ionicModelPtr->superIonicModel::computePotentialRhsSVI(M_globalSolution, rhsSVI, (*M_feSpacePtr), quadRuleTetra1pt );
@@ -1849,7 +1859,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsMixed() {
 
         for (int i = 0; i < M_ionicModelPtr->Size(); i++)
         {
-            *(M_globalRhs[i]) = 0.5 * (*(rhsSVI[i]) + *(rhsICI[i]));
+            *(M_globalRhs[i]) = 0.015 * (*(rhsSVI[i])) + 0.985 * (*(rhsICI[i]));
         }
     //}
     updateRhs();
