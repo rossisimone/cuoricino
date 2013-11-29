@@ -481,8 +481,20 @@ Int main ( Int argc, char** argv )
 			else
 				solver -> solveOneStepGatingVariablesFE();
         	solver -> solveOneSVIStep();
-			chrono.stop();
-			timeReacDiff += chrono.globalDiff( *Comm );
+        	chrono.stop();
+        	timeReacDiff += chrono.globalDiff( *Comm );
+        }
+        else if( solutionMethod == "Mixed" )
+        {
+            chrono.reset();
+            chrono.start();
+            if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
+                solver -> solveOneStepGatingVariablesRL();
+            else
+                solver -> solveOneStepGatingVariablesFE();
+            solver -> solveOneMixedStep();
+            chrono.stop();
+            timeReacDiff += chrono.globalDiff( *Comm );
         }
 
         //register activation time

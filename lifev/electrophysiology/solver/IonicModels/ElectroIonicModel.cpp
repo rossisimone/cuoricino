@@ -341,13 +341,14 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
         URepPtr.push_back ( vectorPtr_Type ( new VectorEpetra (  * ( v.at (k) )     , Repeated ) ) );
     }
 
-    VectorEpetra    IappRep ( uFESpace.map(), Repeated );
-    if(M_appliedCurrentPtr)
-    	{
-    	M_appliedCurrentPtr -> setMapType(Repeated);
-    	IappRep = *M_appliedCurrentPtr;
-    	}
-    else IappRep *= 0.0;
+    VectorEpetra    IappRep ( *M_appliedCurrentPtr, Repeated );
+//    if(M_appliedCurrentPtr)
+//    	{
+//    	//M_appliedCurrentPtr -> setMapType(Repeated);
+//
+//    	IappRep = *M_appliedCurrentPtr;
+//    	}
+//    else IappRep *= 0.0;
 
 
     std::vector<elvecPtr_Type>      elvecPtr;
@@ -446,7 +447,7 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
 void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_Type>& v,
                                                  std::vector<vectorPtr_Type>& rhs,
                                                  FESpace<mesh_Type, MapEpetra>& uFESpace,
-                                                 QuadratureRule& qr)
+                                                 const QuadratureRule& qr)
 {
 
     std::vector<Real> U (M_numberOfEquations, 0.0);
@@ -459,13 +460,14 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
         URepPtr.push_back ( vectorPtr_Type ( new VectorEpetra (  * ( v.at (k) )     , Repeated ) ) );
     }
 
-    VectorEpetra    IappRep ( uFESpace.map(), Repeated );
-    if(M_appliedCurrentPtr)
+    VectorEpetra    IappRep ( *M_appliedCurrentPtr, Repeated );
+
+    /*if(M_appliedCurrentPtr)
         {
         M_appliedCurrentPtr -> setMapType(Repeated);
         IappRep = *M_appliedCurrentPtr;
         }
-    else IappRep *= 0.0;
+    else IappRep *= 0.0;*/
 
 
     std::vector<elvecPtr_Type>      elvecPtr;
@@ -478,7 +480,7 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
     VectorElemental elvec_Iion ( uFESpace.fe().nbFEDof(), 1 );
 
     // Change quadrature rule temporarily
-    QuadratureRule defaultqr( uFESpace.qr() );
+    //QuadratureRule defaultqr( uFESpace.qr() );
     uFESpace.setQuadRule( qr );
 
     for (UInt iVol = 0; iVol < uFESpace.mesh()->numVolumes(); ++iVol)
@@ -553,7 +555,7 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
     rhs.at (0) -> globalAssemble();
 
     // Change quadrature rule back to default
-    uFESpace.setQuadRule( defaultqr );
+    //uFESpace.setQuadRule( defaultqr );
 
 
     if(M_appliedCurrentPtr)
