@@ -67,7 +67,6 @@ void CardiacStimulusPMJ::setPMJFromFile( std::string fileName )
         fin >> junction.time;
         fin >> junction.duration;
         M_activationData.push_back( junction );
-        std::cout << "Read a junction." << std::endl;
     }
     fin.close();
 }

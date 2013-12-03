@@ -895,6 +895,8 @@ public:
 	void registerActivationTime(vector_Type& activationTimeVector, Real time,
 			Real threshold = 0.0);
 
+	void setVerbosity(bool verbose);
+
 	//@}
 
 private:
@@ -948,8 +950,7 @@ private:
 	ETFESpaceVectorialPtr_Type M_displacementETFESpacePtr;
 
 	bool 			M_lumpedMassMatrix;
-//ETFESpaceVectorialPtr_Type spaceVectorial( new ETFESpaceVectorial_Type ( M_localMeshPtr, &feTetraP1, M_commPtr ) );
-//    vectorPtr_Type M_previousPotential;
+	bool            M_verbose;
 
 };
 // class MonodomainSolver
@@ -962,13 +963,15 @@ private:
 // ===================================================
 template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver() {
-	setParameters();
-	init();
+    M_verbose = false;
+    setParameters();
+    init();
 }
 
 template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 		list_Type list, GetPot& dataFile, ionicModelPtr_Type model) {
+    M_verbose = false;
 	init(model);
 	setParameters(list);
 	setup(list.get("meshName", "lid16.mesh"), list.get("meshPath", "./"),
@@ -979,6 +982,7 @@ template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 		list_Type list, GetPot& dataFile, ionicModelPtr_Type model,
 		commPtr_Type comm) {
+    M_verbose = false;
 	setParameters(list);
 	init(comm);
 	setup(list.get("meshName", "lid16.mesh"), list.get("meshPath", "./"),
@@ -989,6 +993,7 @@ template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 		list_Type list, GetPot& dataFile, ionicModelPtr_Type model,
 		meshPtr_Type meshPtr) {
+    M_verbose = false;
 	setParameters(list);
 	init(meshPtr);
 	setup(dataFile, M_ionicModelPtr->Size());
@@ -998,6 +1003,7 @@ template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 		std::string meshName, std::string meshPath, GetPot& dataFile,
 		ionicModelPtr_Type model) {
+    M_verbose = false;
 	setParameters();
 	init(model);
 	setup(meshName, meshPath, dataFile, M_ionicModelPtr->Size());
@@ -1007,6 +1013,7 @@ template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 		std::string meshName, std::string meshPath, GetPot& dataFile,
 		ionicModelPtr_Type model, vectorPtr_Type previousPotentialPtr) {
+    M_verbose = false;
 	setParameters();
 	init(model);
 	setup(meshName, meshPath, dataFile, M_ionicModelPtr->Size());
@@ -1016,7 +1023,7 @@ template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 		std::string meshName, std::string meshPath, GetPot& dataFile,
 		ionicModelPtr_Type model, commPtr_Type comm) :
-		M_ionicModelPtr(model) {
+		M_ionicModelPtr(model), M_verbose(false) {
 	setParameters();
 	init(comm);
 	setup(meshName, meshPath, dataFile, M_ionicModelPtr->Size());
@@ -1025,7 +1032,7 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 		GetPot& dataFile, ionicModelPtr_Type model, meshPtr_Type meshPtr) :
-		M_ionicModelPtr(model) {
+		M_ionicModelPtr(model), M_verbose(false) {
 	setParameters();
 	init(meshPtr);
 	setup(dataFile, M_ionicModelPtr->Size());
@@ -1049,10 +1056,11 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver(
 				new LinearSolver(*(solver.M_linearSolverPtr))), M_elementsOrder(
 				solver.M_elementsOrder), M_fiberPtr(
 				new vector_Type(*(solver.M_fiberPtr))
-//				,M_previousPotential( new vectorPtr_Type(*(solver.M_previousPotential)))
+
 						) ,
-						M_lumpedMassMatrix(false){
-	if(M_commPtr -> MyPID() == 0)
+						M_lumpedMassMatrix(false),
+						M_verbose(false) {
+	if(M_verbose && M_commPtr -> MyPID() == 0)
 	{
 		std::cout << "\n WARNING!!! ETA Monodomain Solver: you are using the copy constructor! This method is outdated.";
 		std::cout << "\n WARNING!!! ETA Monodomain Solver: Don't count on it, at this moment. Feel free to update  yourself...";
@@ -1068,7 +1076,7 @@ template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>& ElectroETAMonodomainSolver<Mesh,
 		IonicModel>::operator=(const ElectroETAMonodomainSolver& solver)
 {
-	if(M_commPtr -> MyPID() == 0)
+	if(M_verbose && M_commPtr -> MyPID() == 0)
 	{
 		std::cout << "\n WARNING!!! ETA Monodomain Solver: you are using the assignment operator! This method is outdated.";
 		std::cout << "\n WARNING!!! ETA Monodomain Solver: Don't count on it, at this moment. Feel free to update  yourself...";
@@ -1096,8 +1104,7 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>& ElectroETAMonodomainSolver<Mesh,
 	copyGlobalRhs(solver.M_globalRhs);
 	M_elementsOrder = solver.M_elementsOrder;
 	setFiber(*(solver.M_fiberPtr));
-
-//	M_previousPotential = solver.M_previousPotential;
+	M_verbose = solver.M_verbose;
 
 	return *this;
 }
@@ -1249,7 +1256,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 		else
 		{
 			*M_massMatrixPtr *= 0.0;
-			if (M_localMeshPtr->comm()->MyPID() == 0) {
+			if (M_verbose && M_localMeshPtr->comm()->MyPID() == 0) {
 				std::cout << "\nETA Monodomain Solver: Setting up mass matrix";
 			}
 
@@ -1269,7 +1276,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix() {
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix(
 		vector_Type& disp) {
-	if (M_commPtr->MyPID() == 0) {
+	if (M_verbose && M_commPtr->MyPID() == 0) {
 		std::cout << "\nETA Monodomain Solver: Setting up mass matrix with coupling with mechanics ";
 	}
 
@@ -1301,7 +1308,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix() {
 	else
 	{
 		*M_massMatrixPtr *= 0.0;
-		if (M_localMeshPtr->comm()->MyPID() == 0)
+		if (M_verbose && M_localMeshPtr->comm()->MyPID() == 0)
 		{
 			std::cout << "\nETA Monodomain Solver: Setting up lumped mass matrix";
 		}
@@ -1360,7 +1367,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupLumpedMassMatrix(
 				+ F13 * ( F21 * F32 - F31 * F22 );
 	}
 
-	if (M_localMeshPtr->comm()->MyPID() == 0) {
+	if (M_verbose && M_localMeshPtr->comm()->MyPID() == 0) {
 		std::cout << "\nETA Monodomain Solver: Setting up lumped mass matrix coupling with mechanics";
 	}
 	{
@@ -1387,7 +1394,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix() {
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 		VectorSmall<3> diffusion) {
-	if (M_localMeshPtr->comm()->MyPID() == 0) {
+	if (M_verbose && M_localMeshPtr->comm()->MyPID() == 0) {
 		std::cout
 				<< "\nETA Monodomain Solver: Setting up stiffness matrix (only fiber field)";
 	}
@@ -1422,7 +1429,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupStiffnessMatrix(
 		vectorPtr_Type disp) {
-	if (M_localMeshPtr->comm()->MyPID() == 0) {
+	if (M_verbose && M_localMeshPtr->comm()->MyPID() == 0) {
 		std::cout
 				<< "\nETA Monodomain Solver: Setting up stiffness matrix  coupling with mechanics";
 	}
@@ -1794,7 +1801,7 @@ template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
 	if(M_displacementPtr)
 	{
-		if(M_commPtr -> MyPID() == 0)
+		if(M_verbose && M_commPtr -> MyPID() == 0)
 		{
 			std::cout << "\nETA Monodomain Solver: updating rhs with SVI with mechanical coupling\n";
 		}
@@ -1804,11 +1811,10 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI() {
 		M_ionicModelPtr -> computePotentialRhsSVI(M_globalSolution,
 					M_globalRhs, (*M_feSpacePtr), *M_displacementPtr, vectorialSpace);
 
-		//std::cout << "\nETA Monodomain Solver SVI rhs: " << M_globalRhs[0] -> norm2() << "\n";
 	}
 	else
 	{
-		if(M_commPtr -> MyPID() == 0)
+		if(M_verbose && M_commPtr -> MyPID() == 0)
 		{
 			std::cout << "\nETA Monodomain Solver: updating rhs with SVI";
 		}
@@ -1836,7 +1842,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsMixed() {
 //    }
 //    else
 //    {
-        if(M_commPtr -> MyPID() == 0)
+        if(M_verbose && M_commPtr -> MyPID() == 0)
         {
             std::cout << "\nETA Monodomain Solver: updating rhs with mixed (SVI + ICI)";
         }
@@ -2117,6 +2123,12 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setParameters(
 
 }
 
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::setVerbosity(
+    bool verbose)
+    {
+        M_verbose = verbose;
+    }
 } // namespace LifeV
 
 #endif //_MONODOMAINSOLVER_H_
