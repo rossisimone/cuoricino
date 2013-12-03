@@ -6,7 +6,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 TRIBITS_ADD_EXECUTABLE_AND_TEST(
   test_0DMinimalModel
   SOURCES main.cpp
-  ARGS -c
+  ARGS "-i ParametersTNNP.xml -c"
   NUM_MPI_PROCS 2
   COMM serial mpi
 )
