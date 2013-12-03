@@ -230,7 +230,7 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    if (std::abs(rStates.at ( ionicModel.Size() - 2 ) - 0.190401) > 1e-4 )
+    if (std::abs(rStates.at ( ionicModel.Size() - 2 ) - 0.21885) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
