@@ -1,6 +1,6 @@
 //@HEADER
 /*
-*******************************************************************************
+ *******************************************************************************
 
     Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
     Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
@@ -20,8 +20,8 @@
     You should have received a copy of the GNU Lesser General Public License
     along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 
-*******************************************************************************
-*/
+ *******************************************************************************
+ */
 //@HEADER
 
 /*!
@@ -103,7 +103,7 @@ Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, 
 }
 
 Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
-    {
+{
 
     Real pacingSite_X = 0.0;
     Real pacingSite_Y = 0.0;
@@ -155,7 +155,7 @@ Int main ( Int argc, char** argv )
     LifeChrono chronoinitialsettings;
 
     if ( Comm->MyPID() == 0 )
-      	chronoinitialsettings.start();
+        chronoinitialsettings.start();
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -271,7 +271,7 @@ Int main ( Int argc, char** argv )
     ( new FESpace< mesh_Type, MapEpetra > ( splitting -> localMeshPtr(), "P1", 3, splitting -> commPtr() ) );
 
     boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
-	std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
+    std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
     HeartUtility::setupFibers ( *fiber, 0.0, 0.0, 1.0 );
     splitting -> setFiberPtr(fiber);
 
@@ -346,34 +346,22 @@ Int main ( Int argc, char** argv )
         }
 
         chrono.reset();
-        if(meth==1)
-        {
-            chrono.start();
-            splitting->solveOneReactionStepROS3P(dtVec, dt_min);
-            chrono.stop();
-        }
-        else
-        {
-            chrono.start();
-           	splitting->solveOneReactionStepFE( );
-           	chrono.stop();
-        }
+        chrono.start();
+        splitting->solveOneStepGatingVariablesFE( );
+        chrono.stop();
 
         timeReac += chrono.globalDiff( *Comm );
 
-        (*splitting->rhsPtrUnique()) *= 0.0;
-        splitting->updateRhs();
-
         chrono.reset();
         chrono.start();
-        splitting->solveOneDiffusionStepBE();
+        splitting -> solveOneSVIStep();
         chrono.stop();
         timeDiff += chrono.globalDiff( *Comm );
 
         if( k % iter == 0 )
         {
-           	splitting -> exportSolution (exporterSplitting, t);
-           	Exp.postProcess (t);
+            splitting -> exportSolution (exporterSplitting, t);
+            Exp.postProcess (t);
         }
 
         nodes = dtVec->epetraVector().MyLength();
@@ -381,9 +369,9 @@ Int main ( Int argc, char** argv )
         dt_min = (*dtVec)[j];
         for(int i=1; i<nodes; i++)
         {
-        	j = dtVec->blockMap().GID (i);
-        	if(dt_min>(*dtVec)[j])
-        		dt_min = (*dtVec)[j];
+            j = dtVec->blockMap().GID (i);
+            if(dt_min>(*dtVec)[j])
+                dt_min = (*dtVec)[j];
         }
 
         k++;
@@ -391,7 +379,7 @@ Int main ( Int argc, char** argv )
         t = t + dt;
 
         if ( Comm->MyPID() == 0 )
-        	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+            std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
 
     }
 
@@ -411,10 +399,10 @@ Int main ( Int argc, char** argv )
 
     if ( Comm->MyPID() == 0 )
     {
-    	chronoinitialsettings.stop();
-    	std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
-    	std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
-    	std::cout<<"Reaction time : "<<timeReac<<std::endl;
+        chronoinitialsettings.stop();
+        std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
+        std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
+        std::cout<<"Reaction time : "<<timeReac<<std::endl;
         cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
     MPI_Barrier (MPI_COMM_WORLD);
@@ -422,7 +410,7 @@ Int main ( Int argc, char** argv )
 
     Real returnValue;
 
-    if (std::abs(normSolution - 3.39112) > 1e-4 )
+    if (std::abs(normSolution - 3.37828) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

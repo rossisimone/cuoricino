@@ -6,10 +6,10 @@
     <Parameter name="epsilon" type="double" value="0.01"  />
     <Parameter name="timeStep" type="double" value="0.01"  />
     <Parameter name="endTime" type="double" value="0.02"  />
-    <Parameter name="saveStep" type="double" value="0.01"  />
+    <Parameter name="saveStep" type="double" value="0.02"  />
     <Parameter name="meth" type="int" value="1"  />
-    <Parameter name="longitudinalDiffusion" type="double" value="0.0013342"  />
-    <Parameter name="transversalDiffusion" type="double" value ="0.00017606"  />
+    <Parameter name="longitudinalDiffusion" type="double" value="1.3342"  />
+    <Parameter name="transversalDiffusion" type="double" value ="0.17606"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="NiedererBM11.mesh"  />
     <Parameter name="mesh_path" type="string" value="./"  />
