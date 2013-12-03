@@ -302,6 +302,15 @@ Int main ( Int argc, char** argv )
             chrono.stop();
             timeReacDiff += chrono.globalDiff( *Comm );
         }
+        else if( solutionMethod == "Mixed" )
+        {
+            chrono.reset();
+            chrono.start();
+            solver -> solveOneStepGatingVariablesFE();
+            solver -> solveOneMixedStep();
+            chrono.stop();
+            timeReacDiff += chrono.globalDiff( *Comm );
+        }
         else if( solutionMethod == "SVI" )
         {
             chrono.reset();
