@@ -384,7 +384,7 @@ public:
        \param velAndPressure: initial vector containing the velocity and pressure
        \param displacement: initial vector containing the mesh displacement
      */
-    void initializeFluid ( const vector_Type& velAndPressure, const vector_Type& displacement );
+    void initializeFluid ( const vector_Type& velAndPressure, vector_Type& displacement );
 
     //! initializes the solid solver with vectors
     /**
@@ -397,7 +397,7 @@ public:
     /**
        \param disp displacement of the mesh, must be the difference between the current solution of the HE problem and the one at the previous time step.
      */
-    void moveMesh ( const vector_Type& disp );
+    void moveMesh ( vector_Type& disp );
 
     //     void solveLinearFluid();
     //     void solveLinearSolid();

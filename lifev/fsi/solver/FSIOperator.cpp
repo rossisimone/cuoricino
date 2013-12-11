@@ -795,7 +795,7 @@ void FSIOperator::initializeTimeAdvance ( const std::vector<vectorPtr_Type>& ini
 
 void
 FSIOperator::initializeFluid ( const vector_Type& velAndPressure,
-                               const vector_Type& displacement )
+                               vector_Type& displacement )
 {
     this->fluid().initialize ( velAndPressure );
     this->moveMesh ( displacement);
@@ -809,7 +809,7 @@ FSIOperator::initializeSolid ( vectorPtr_Type displacement,
 }
 
 void
-FSIOperator::moveMesh ( const vector_Type& dep )
+FSIOperator::moveMesh ( vector_Type& dep )
 {
     displayer().leaderPrint ("FSI-  Moving the mesh ...                      ");
     M_fluidLocalMesh->meshTransformer().moveMesh (dep,  this->M_mmFESpace->dof().numTotalDof() );
