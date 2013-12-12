@@ -10,11 +10,11 @@ ADD_SUBDIRECTORIES(
   fem
   filter
   hyperbolic
-  interpolation
+#  interpolation
   linear_solver
   matrix_epetra_structured_framework
   mesh
-  repeated_mesh
+#  repeated_mesh
   region_marker_id
   template_test
   vector_container
