@@ -9,7 +9,7 @@ ADD_SUBDIRECTORIES(
   exampleGHO_withFiberRotation
   exampleHO_withFiberRotation
   exampleStatic_GAHO
-   exampleHO_ellipsoid
+  exampleHO_ellipsoid
   example_ActiveStrain
   example_CalciumDependentActivation
   example_laplacian
