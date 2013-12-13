@@ -167,7 +167,7 @@ public:
     typedef VectorEpetra vector_Type;
 
     //!
-   // typedef VectorSmall<3> diagonalMatrix_Type;
+    // typedef VectorSmall<3> diagonalMatrix_Type;
 
     //@}
 
@@ -246,8 +246,8 @@ public:
         std::vector<Real> u_z (M_quadrature->nbQuadPt(), 0);
         VectorSmall< 3 > a_l;
 
-//        Real longitudinalComponent = M_matrix[0];
-//        Real transversalComponent  = M_matrix[1];
+        //        Real longitudinalComponent = M_matrix[0];
+        //        Real transversalComponent  = M_matrix[1];
 
         M_currentFE.update (M_fespace->mesh()->element (iElement), ET_UPDATE_DPHI);
         Real nbFEDof (M_fespace->refFE().nbDof() );
@@ -270,25 +270,25 @@ public:
         {
             for (UInt q (0); q < M_quadrature->nbQuadPt(); ++q)
             {
-//                a_l[0] = u_x[q];
-//                a_l[1] = u_y[q];
-//                a_l[2] = u_z[q];
-//                Real norm = std::sqrt ( a_l[0] * a_l[0] + a_l[1] * a_l[1] + a_l[2] * a_l[2] );
-//                a_l[0] = a_l[0] / norm;
-//                a_l[1] = a_l[1] / norm;
-//                a_l[2] = a_l[2] / norm;
-//                for ( UInt j (0); j < 3; j++)           ///////  D = sigma_t * I + (sigma_l-sigma_t) * a_l * a_l^T
-//                {
-//                    M_tensor[q][j][j] += transversalComponent;
-//
-//                    for ( UInt k (0); k < 3; k++)
-//                    {
-//                        M_tensor[q][j][k] += (longitudinalComponent - transversalComponent ) * a_l[j] * a_l[k];
-//                    }
-//                }
-            	M_tensor[q][0][0] = u_x[q];
-            	M_tensor[q][1][1] = u_y[q];
-            	M_tensor[q][2][2] = u_z[q];
+                //                a_l[0] = u_x[q];
+                //                a_l[1] = u_y[q];
+                //                a_l[2] = u_z[q];
+                //                Real norm = std::sqrt ( a_l[0] * a_l[0] + a_l[1] * a_l[1] + a_l[2] * a_l[2] );
+                //                a_l[0] = a_l[0] / norm;
+                //                a_l[1] = a_l[1] / norm;
+                //                a_l[2] = a_l[2] / norm;
+                //                for ( UInt j (0); j < 3; j++)           ///////  D = sigma_t * I + (sigma_l-sigma_t) * a_l * a_l^T
+                //                {
+                //                    M_tensor[q][j][j] += transversalComponent;
+                //
+                //                    for ( UInt k (0); k < 3; k++)
+                //                    {
+                //                        M_tensor[q][j][k] += (longitudinalComponent - transversalComponent ) * a_l[j] * a_l[k];
+                //                    }
+                //                }
+                M_tensor[q][0][0] = u_x[q];
+                M_tensor[q][1][1] = u_y[q];
+                M_tensor[q][2][2] = u_z[q];
 
             }
         }
@@ -404,7 +404,7 @@ private:
     vector_Type M_vector2;
     vector_Type M_vector3;
 
-  //  diagonalMatrix_Type M_matrix;
+    //  diagonalMatrix_Type M_matrix;
     QuadratureRule* M_quadrature;
 
     //! Structure for the computations

@@ -39,7 +39,8 @@
 
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 
-namespace LifeV {
+namespace LifeV
+{
 
 template <typename mesh_Type>
 class RBFrescaledVectorial: public RBFInterpolation<mesh_Type>
@@ -102,7 +103,7 @@ public:
 
     void solutionrbf (vectorPtr_Type& Solution_rbf);
 
-    void updateRhs(vectorPtr_Type newRhs);
+    void updateRhs (vectorPtr_Type newRhs);
 
     void setRadius ( double radius );
 
@@ -134,8 +135,8 @@ private:
 };
 
 template <typename mesh_Type>
-RBFrescaledVectorial<mesh_Type>::RBFrescaledVectorial():
-    M_radius(0)
+RBFrescaledVectorial<mesh_Type>::RBFrescaledVectorial() :
+    M_radius (0)
 {}
 
 template <typename mesh_Type>
@@ -180,7 +181,7 @@ void RBFrescaledVectorial<Mesh>::buildOperators()
 template <typename Mesh>
 void RBFrescaledVectorial<Mesh>::interpolationOperator()
 {
-    ASSERT(M_radius!=0, "Please set the basis radius using RBFrescaledScalar<mesh_Type>::setRadius(double radius)")
+    ASSERT (M_radius != 0, "Please set the basis radius using RBFrescaledScalar<mesh_Type>::setRadius(double radius)")
     this->identifyNodes (M_localMeshKnown, M_GIdsKnownMesh, M_knownField);
     M_neighbors.reset ( new neighbors_Type ( M_fullMeshKnown, M_localMeshKnown, M_knownField->mapPtr(), M_knownField->mapPtr()->commPtr() ) );
     if (M_flags[0] == -1)
@@ -327,8 +328,8 @@ void RBFrescaledVectorial<mesh_Type>::buildRhs()
     M_RhsOne.reset (new vector_Type (*M_interpolationOperatorMap) );
 
     M_RhsF1->subset (*M_knownField, *M_interpolationOperatorMap, 0, 0);
-    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3, 0);
-    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3*2, 0);
+    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3, 0);
+    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3 * 2, 0);
     *M_RhsOne += 1;
 }
 
@@ -441,12 +442,12 @@ void RBFrescaledVectorial<mesh_Type>::interpolate()
 
     M_unknownField_rbf.reset (new vector_Type (M_unknownField->map() ) );
     M_unknownField_rbf->subset (*rbf_f1, *M_projectionOperatorMap, 0, 0);
-    M_unknownField_rbf->subset (*rbf_f2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
-    M_unknownField_rbf->subset (*rbf_f3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
+    M_unknownField_rbf->subset (*rbf_f2, *M_projectionOperatorMap, 0, M_unknownField->size() / 3);
+    M_unknownField_rbf->subset (*rbf_f3, *M_projectionOperatorMap, 0, M_unknownField->size() / 3 * 2);
 
     M_unknownField->subset (*solution1, *M_projectionOperatorMap, 0, 0);
-    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
-    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
+    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size() / 3);
+    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size() / 3 * 2);
 
 }
 
@@ -493,14 +494,14 @@ double RBFrescaledVectorial<mesh_Type>::rbf (double x1, double y1, double z1, do
 }
 
 template <typename mesh_Type>
-void RBFrescaledVectorial<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
+void RBFrescaledVectorial<mesh_Type>::updateRhs (vectorPtr_Type newRhs)
 {
     *M_RhsF1 *= 0;
     M_RhsF1->subset (*newRhs, *M_interpolationOperatorMap, 0, 0);
     *M_RhsF2 *= 0;
-    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3, 0);
+    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size() / 3, 0);
     *M_RhsF3 *= 0;
-    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3*2, 0);
+    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size() / 3 * 2, 0);
 }
 
 template <typename mesh_Type>
@@ -517,7 +518,7 @@ void RBFrescaledVectorial<mesh_Type>::solutionrbf (vectorPtr_Type& Solution_rbf)
 
 //! Factory create function
 template <typename mesh_Type>
-inline RBFInterpolation<mesh_Type> * createRBFrescaledVectorial()
+inline RBFInterpolation<mesh_Type>* createRBFrescaledVectorial()
 {
     return new RBFrescaledVectorial< mesh_Type > ();
 }

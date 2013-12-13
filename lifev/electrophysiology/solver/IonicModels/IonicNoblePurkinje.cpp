@@ -48,22 +48,22 @@ namespace LifeV
 
 
 IonicNoblePurkinje::IonicNoblePurkinje()  :
-super       ( 4,3 ),
-M_gi(0.14),
-M_vNa(40.0),
-M_vK(-100.0),
-M_Cm(12.0),
-M_Itot(0)
+    super       ( 4, 3 ),
+    M_gi (0.14),
+    M_vNa (40.0),
+    M_vK (-100.0),
+    M_Cm (12.0),
+    M_Itot (0)
 {
-	M_restingConditions.at(0) = -80.0;
-	M_restingConditions.at(1) = mInf(M_restingConditions[0]);
-	M_restingConditions.at(2) = nInf(M_restingConditions[0]);
-	M_restingConditions.at(3) = hInf(M_restingConditions[0]);
+    M_restingConditions.at (0) = -80.0;
+    M_restingConditions.at (1) = mInf (M_restingConditions[0]);
+    M_restingConditions.at (2) = nInf (M_restingConditions[0]);
+    M_restingConditions.at (3) = hInf (M_restingConditions[0]);
 
 }
 
 IonicNoblePurkinje::IonicNoblePurkinje ( Teuchos::ParameterList& parameterList     )   :
-    super       ( 4,3 )
+    super       ( 4, 3 )
 {
     M_gi        =  parameterList.get ("gi",      0.14     );
     M_vNa        =  parameterList.get ("vNa",      40.0     );
@@ -109,7 +109,7 @@ IonicNoblePurkinje& IonicNoblePurkinje::operator= ( const IonicNoblePurkinje& mo
 //! Methods
 // ===================================================
 void IonicNoblePurkinje::computeGatingRhs ( const   std::vector<Real>&  v,
-                                     std::vector<Real>& rhs )
+                                            std::vector<Real>& rhs )
 {
 
     Real V = v[0];
@@ -117,20 +117,20 @@ void IonicNoblePurkinje::computeGatingRhs ( const   std::vector<Real>&  v,
     Real N = v[2];
     Real H = v[3];
 
-    Real alpham = GeneralFunctionAlphaAndBeta(V,0,1,0.1,-1,-15,-48);
-    Real betam  = GeneralFunctionAlphaAndBeta(V,0,1,-0.12,-1,5,-8);
-    Real alphah = GeneralFunctionAlphaAndBeta(V,0.17,-20,0,0,1,-90);
-    Real betah  = GeneralFunctionAlphaAndBeta(V,1,0,0,1,-10,-42);
-    Real alphan = GeneralFunctionAlphaAndBeta(V,0,1,0.0001,-1,-10,-50);
-    Real betan  = GeneralFunctionAlphaAndBeta(V,0.002,-80,0,0,1,-90);
+    Real alpham = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.1, -1, -15, -48);
+    Real betam  = GeneralFunctionAlphaAndBeta (V, 0, 1, -0.12, -1, 5, -8);
+    Real alphah = GeneralFunctionAlphaAndBeta (V, 0.17, -20, 0, 0, 1, -90);
+    Real betah  = GeneralFunctionAlphaAndBeta (V, 1, 0, 0, 1, -10, -42);
+    Real alphan = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.0001, -1, -10, -50);
+    Real betan  = GeneralFunctionAlphaAndBeta (V, 0.002, -80, 0, 0, 1, -90);
 
-    rhs[0] = alpham*(1-M)-betam*M;
-    rhs[1] = alphan*(1-N)-betan*N;
-    rhs[2] = alphah*(1-H)-betah*H;
+    rhs[0] = alpham * (1 - M) - betam * M;
+    rhs[1] = alphan * (1 - N) - betan * N;
+    rhs[2] = alphah * (1 - H) - betah * H;
 }
 
 void IonicNoblePurkinje::computeRhs ( const   std::vector<Real>&  v,
-                                     std::vector<Real>& rhs )
+                                      std::vector<Real>& rhs )
 {
 
     Real V = v[0];
@@ -138,22 +138,22 @@ void IonicNoblePurkinje::computeRhs ( const   std::vector<Real>&  v,
     Real N = v[2];
     Real H = v[3];
 
-    Real alpham = GeneralFunctionAlphaAndBeta(V,0,1,0.1,-1,-15,-48);
-    Real betam  = GeneralFunctionAlphaAndBeta(V,0,1,-0.12,-1,5,-8);
-    Real alphah = GeneralFunctionAlphaAndBeta(V,0.17,-20,0,0,1,-90);
-    Real betah  = GeneralFunctionAlphaAndBeta(V,1,0,0,1,-10,-42);
-    Real alphan = GeneralFunctionAlphaAndBeta(V,0,1,0.0001,-1,-10,-50);
-    Real betan  = GeneralFunctionAlphaAndBeta(V,0.002,-80,0,0,1,-90);
+    Real alpham = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.1, -1, -15, -48);
+    Real betam  = GeneralFunctionAlphaAndBeta (V, 0, 1, -0.12, -1, 5, -8);
+    Real alphah = GeneralFunctionAlphaAndBeta (V, 0.17, -20, 0, 0, 1, -90);
+    Real betah  = GeneralFunctionAlphaAndBeta (V, 1, 0, 0, 1, -10, -42);
+    Real alphan = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.0001, -1, -10, -50);
+    Real betan  = GeneralFunctionAlphaAndBeta (V, 0.002, -80, 0, 0, 1, -90);
 
-    Real gK1 = 1.2*std::exp(-(V+90.0)/50.0)+0.015*std::exp((V+90.0)/60.0);
-    Real gK2 = 1.2*N*N*N*N;
-    Real gNa = 400*M*M*M*H+M_gi;
+    Real gK1 = 1.2 * std::exp (- (V + 90.0) / 50.0) + 0.015 * std::exp ( (V + 90.0) / 60.0);
+    Real gK2 = 1.2 * N * N * N * N;
+    Real gNa = 400 * M * M * M * H + M_gi;
 
-    M_Itot = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
-    rhs[0] = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
-    rhs[1] = alpham*(1-M)-betam*M;
-    rhs[2] = alphan*(1-N)-betan*N;
-    rhs[3] = alphah*(1-H)-betah*H;
+    M_Itot = 1 / M_Cm * (-gNa * (V - M_vNa) - (gK1 + gK2) * (V - M_vK) );
+    rhs[0] = 1 / M_Cm * (-gNa * (V - M_vNa) - (gK1 + gK2) * (V - M_vK) );
+    rhs[1] = alpham * (1 - M) - betam * M;
+    rhs[2] = alphan * (1 - N) - betan * N;
+    rhs[3] = alphah * (1 - H) - betah * H;
 }
 
 
@@ -166,19 +166,19 @@ Real IonicNoblePurkinje::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real N = v[2];
     Real H = v[3];
 
-    Real alpham = GeneralFunctionAlphaAndBeta(V,0,1,0.1,-1,-15,-48);
-    Real betam  = GeneralFunctionAlphaAndBeta(V,0,1,-0.12,-1,5,-8);
-    Real alphah = GeneralFunctionAlphaAndBeta(V,0.17,-20,0,0,1,-90);
-    Real betah  = GeneralFunctionAlphaAndBeta(V,1,0,0,1,-10,-42);
-    Real alphan = GeneralFunctionAlphaAndBeta(V,0,1,0.0001,-1,-10,-50);
-    Real betan  = GeneralFunctionAlphaAndBeta(V,0.002,-80,0,0,1,-90);
+    Real alpham = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.1, -1, -15, -48);
+    Real betam  = GeneralFunctionAlphaAndBeta (V, 0, 1, -0.12, -1, 5, -8);
+    Real alphah = GeneralFunctionAlphaAndBeta (V, 0.17, -20, 0, 0, 1, -90);
+    Real betah  = GeneralFunctionAlphaAndBeta (V, 1, 0, 0, 1, -10, -42);
+    Real alphan = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.0001, -1, -10, -50);
+    Real betan  = GeneralFunctionAlphaAndBeta (V, 0.002, -80, 0, 0, 1, -90);
 
-    Real gK1 = 1.2*std::exp(-(V+90.0)/50.0)+0.015*std::exp((V+90.0)/60.0);
-    Real gK2 = 1.2*N*N*N*N;
-    Real gNa = 400*M*M*M*H+M_gi;
+    Real gK1 = 1.2 * std::exp (- (V + 90.0) / 50.0) + 0.015 * std::exp ( (V + 90.0) / 60.0);
+    Real gK2 = 1.2 * N * N * N * N;
+    Real gNa = 400 * M * M * M * H + M_gi;
 
-    M_Itot = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
-    dPotential = 1/M_Cm*(-gNa*(V-M_vNa)-(gK1+gK2)*(V-M_vK));
+    M_Itot = 1 / M_Cm * (-gNa * (V - M_vNa) - (gK1 + gK2) * (V - M_vK) );
+    dPotential = 1 / M_Cm * (-gNa * (V - M_vNa) - (gK1 + gK2) * (V - M_vK) );
 
     return dPotential;
 }
@@ -188,24 +188,24 @@ void IonicNoblePurkinje::computeGatingVariablesWithRushLarsen ( std::vector<Real
     Real V = v[0];
 
 
-    Real alpham = GeneralFunctionAlphaAndBeta(V,0,1,0.1,-1,-15,-48);
-    Real betam  = GeneralFunctionAlphaAndBeta(V,0,1,-0.12,-1,5,-8);
-    Real alphah = GeneralFunctionAlphaAndBeta(V,0.17,-20,0,0,1,-90);
-    Real betah  = GeneralFunctionAlphaAndBeta(V,1,0,0,1,-10,-42);
-    Real alphan = GeneralFunctionAlphaAndBeta(V,0,1,0.0001,-1,-10,-50);
-    Real betan  = GeneralFunctionAlphaAndBeta(V,0.002,-80,0,0,1,-90);
+    Real alpham = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.1, -1, -15, -48);
+    Real betam  = GeneralFunctionAlphaAndBeta (V, 0, 1, -0.12, -1, 5, -8);
+    Real alphah = GeneralFunctionAlphaAndBeta (V, 0.17, -20, 0, 0, 1, -90);
+    Real betah  = GeneralFunctionAlphaAndBeta (V, 1, 0, 0, 1, -10, -42);
+    Real alphan = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.0001, -1, -10, -50);
+    Real betan  = GeneralFunctionAlphaAndBeta (V, 0.002, -80, 0, 0, 1, -90);
 
-    Real taum=alpham + betam;
-    Real taun=alphan + betan;
-    Real tauh=alphah + betah;
+    Real taum = alpham + betam;
+    Real taun = alphan + betan;
+    Real tauh = alphah + betah;
 
-    Real mInf=alpham /(taum);
-    Real nInf=alphan /(taun);
-    Real hInf=alphah /(tauh);
+    Real mInf = alpham / (taum);
+    Real nInf = alphan / (taun);
+    Real hInf = alphah / (tauh);
 
-    v[1]=mInf+(v[1]-mInf)*exp(-dt*taum);
-    v[2]=nInf+(v[2]-nInf)*exp(-dt*taun);
-    v[3]=hInf+(v[3]-hInf)*exp(-dt*tauh);
+    v[1] = mInf + (v[1] - mInf) * exp (-dt * taum);
+    v[2] = nInf + (v[2] - nInf) * exp (-dt * taun);
+    v[3] = hInf + (v[3] - hInf) * exp (-dt * tauh);
 
 }
 

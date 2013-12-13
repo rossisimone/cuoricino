@@ -119,21 +119,31 @@ Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, 
     Real stimulusRadius = 0.1; // monodomainList.get ("stimulusRadius", 0.1);
 
     if (  ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
-                    <= ( stimulusRadius * stimulusRadius ) )
+            <= ( stimulusRadius * stimulusRadius ) )
+    {
         return 1.0;
+    }
     else
+    {
         return 0.0;
+    }
 }
 
 //Initiation of a plane wave
 Real PlaneWave (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( x<= 0.05 )
+    if ( x <= 0.05 )
+    {
         return 1.0;
-    else if( x<= 0.1)
-        return 1.0*( 0.1 - x )/(0.05);
+    }
+    else if ( x <= 0.1)
+    {
+        return 1.0 * ( 0.1 - x ) / (0.05);
+    }
     else
+    {
         return 0.0;
+    }
 }
 
 
@@ -163,7 +173,7 @@ Int main ( Int argc, char** argv )
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
-                                    const Real& z,
+                                    const Real & z,
                                     const ID&   /*i*/ ) >   function_Type;
 
     typedef ElectroETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
@@ -204,46 +214,46 @@ Int main ( Int argc, char** argv )
 
 
     // +-----------------------------------------------+
-   // |               Loading the mesh                |
-   // +-----------------------------------------------+
-   if ( Comm->MyPID() == 0 )
-   {
-       std::cout << std::endl << "[Loading the mesh]" << std::endl;
-   }
+    // |               Loading the mesh                |
+    // +-----------------------------------------------+
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << std::endl << "[Loading the mesh]" << std::endl;
+    }
 
-   meshPtr_Type fullMeshPtr ( new mesh_Type ( Comm ) );
+    meshPtr_Type fullMeshPtr ( new mesh_Type ( Comm ) );
 
-   VectorSmall<3> meshDim;
-   meshDim[0] =  monodomainList.get ("meshDim_X", 10 );
-   meshDim[1] =  monodomainList.get ("meshDim_Y", 10 );
-   meshDim[2] =  monodomainList.get ("meshDim_Z", 10 );
-   VectorSmall<3> domain;
-   domain[0] =  monodomainList.get ("domain_X", 1. );
-   domain[1] =  monodomainList.get ("domain_Y", 1. );
-   domain[2] =  monodomainList.get ("domain_Z", 1. );
+    VectorSmall<3> meshDim;
+    meshDim[0] =  monodomainList.get ("meshDim_X", 10 );
+    meshDim[1] =  monodomainList.get ("meshDim_Y", 10 );
+    meshDim[2] =  monodomainList.get ("meshDim_Z", 10 );
+    VectorSmall<3> domain;
+    domain[0] =  monodomainList.get ("domain_X", 1. );
+    domain[1] =  monodomainList.get ("domain_Y", 1. );
+    domain[2] =  monodomainList.get ("domain_Z", 1. );
 
-   // Building the mesh from the source
-   regularMesh3D ( *fullMeshPtr,
-                   1,
-                   meshDim[0], meshDim[1], meshDim[2],
-                   false,
-                   domain[0], domain[1], domain[2],
-                   0.0, 0.0, 0.0 );
+    // Building the mesh from the source
+    regularMesh3D ( *fullMeshPtr,
+                    1,
+                    meshDim[0], meshDim[1], meshDim[2],
+                    false,
+                    domain[0], domain[1], domain[2],
+                    0.0, 0.0, 0.0 );
 
-   if ( Comm->MyPID() == 0 )
-   {
-       std::cout << "Mesh size  : " << MeshUtility::MeshStatistics::computeSize ( *fullMeshPtr ).maxH << std::endl;
-   }
-   if ( Comm->MyPID() == 0 )
-   {
-       std::cout << "Partitioning the mesh ... " << std::endl;
-   }
-   meshPtr_Type meshPtr;
-   {
-       MeshPartitioner< mesh_Type > meshPart ( fullMeshPtr, Comm );
-       meshPtr = meshPart.meshPartition();
-   }
-   fullMeshPtr.reset(); //Freeing the global mesh to save memory
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Mesh size  : " << MeshUtility::MeshStatistics::computeSize ( *fullMeshPtr ).maxH << std::endl;
+    }
+    if ( Comm->MyPID() == 0 )
+    {
+        std::cout << "Partitioning the mesh ... " << std::endl;
+    }
+    meshPtr_Type meshPtr;
+    {
+        MeshPartitioner< mesh_Type > meshPart ( fullMeshPtr, Comm );
+        meshPtr = meshPart.meshPartition();
+    }
+    fullMeshPtr.reset(); //Freeing the global mesh to save memory
 
     //********************************************//
     // We need the GetPot datafile for to setup   //
@@ -283,7 +293,7 @@ Int main ( Int argc, char** argv )
         cout << "\nInitializing potential:  " ;
     }
 
-//    function_Type f = &Stimulus;
+    //    function_Type f = &Stimulus;
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f );
 
@@ -344,32 +354,38 @@ Int main ( Int argc, char** argv )
     Real endTime = monodomainList.get ("endTime", 10.);
     Real initialTime = monodomainList.get ("initialTime", 0.);
 
-    vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
-    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+    vectorPtr_Type previousPotential0Ptr ( new vector_Type ( FESpacePtr->map() ) );
+    * (previousPotential0Ptr) = * (splitting->globalSolution().at (0) );
 
-    int iter((Savedt / timeStep)+ 1e-9);
+    int iter ( (Savedt / timeStep) + 1e-9);
     int nbTimeStep (1);
-    int k(0);
-    if (endTime > timeStep) {
-        for (Real t = initialTime; t < endTime;){
+    int k (0);
+    if (endTime > timeStep)
+    {
+        for (Real t = initialTime; t < endTime;)
+        {
 
             t += timeStep;
             k++;
-            if (nbTimeStep==1) {
-                    splitting->solveOneReactionStepFE();
-                    (*(splitting->rhsPtrUnique())) *= 0;
-                    splitting->updateRhs();
-                    splitting->solveOneDiffusionStepBE();
-                    splitting->exportSolution(exporterSplitting, t);
-            }else{
-                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
-                splitting->solveOneReactionStepFE(2);
-                (*(splitting->rhsPtrUnique())) *= 0;
+            if (nbTimeStep == 1)
+            {
+                splitting->solveOneReactionStepFE();
+                (* (splitting->rhsPtrUnique() ) ) *= 0;
                 splitting->updateRhs();
-                splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
-                splitting->solveOneReactionStepFE(2);
-                if (k % iter == 0) {
-                    splitting->exportSolution(exporterSplitting, t);
+                splitting->solveOneDiffusionStepBE();
+                splitting->exportSolution (exporterSplitting, t);
+            }
+            else
+            {
+                * (previousPotential0Ptr) = * (splitting->globalSolution().at (0) );
+                splitting->solveOneReactionStepFE (2);
+                (* (splitting->rhsPtrUnique() ) ) *= 0;
+                splitting->updateRhs();
+                splitting->solveOneDiffusionStepBDF2 (previousPotential0Ptr);
+                splitting->solveOneReactionStepFE (2);
+                if (k % iter == 0)
+                {
+                    splitting->exportSolution (exporterSplitting, t);
                 }
             }
             nbTimeStep++;

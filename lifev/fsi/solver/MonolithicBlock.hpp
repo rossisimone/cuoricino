@@ -174,7 +174,7 @@ public:
     //! If not present in the derived class it must not be called (gives an assertion fail)
     virtual void setRecompute (UInt /*position*/, bool /*flag*/)
     {
-      //  assert (false);
+        //  assert (false);
     }
 
     //! replaces a block

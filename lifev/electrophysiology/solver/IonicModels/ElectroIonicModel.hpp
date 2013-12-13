@@ -67,11 +67,11 @@ public:
     typedef RegionMesh<LinearTetra>                 mesh_Type;
     typedef MatrixEpetra<Real> matrix_Type;
     typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
-	typedef FESpace<mesh_Type, MapEpetra> feSpace_Type;
-	typedef boost::shared_ptr<feSpace_Type> feSpacePtr_Type;
-	typedef boost::function<
-			Real(const Real& t, const Real& x, const Real& y, const Real& z,
-					const ID& i)> function_Type;
+    typedef FESpace<mesh_Type, MapEpetra> feSpace_Type;
+    typedef boost::shared_ptr<feSpace_Type> feSpacePtr_Type;
+    typedef boost::function <
+    Real (const Real& t, const Real& x, const Real& y, const Real& z,
+          const ID& i) > function_Type;
     //@}
 
     //! @name Constructors & Destructor
@@ -106,15 +106,15 @@ public:
     }
     inline const Real membraneCapacitance() const
     {
-    	return M_membraneCapacitance;
+        return M_membraneCapacitance;
     }
     inline const Real appliedCurrent() const
     {
-    	return M_appliedCurrent;
+        return M_appliedCurrent;
     }
     inline vectorPtr_Type appliedCurrentPtr()
     {
-    	return M_appliedCurrentPtr;
+        return M_appliedCurrentPtr;
     }
 
     inline const std::vector<Real> restingConditions() const
@@ -123,45 +123,49 @@ public:
     }
     inline const function_Type pacaingProtocol() const
     {
-    	return M_pacingProtocol;
+        return M_pacingProtocol;
     }
 
-    inline void setMembraneCapacitance( const Real p )
+    inline void setMembraneCapacitance ( const Real p )
     {
-    	M_membraneCapacitance = p;
+        M_membraneCapacitance = p;
     }
-    inline void setAppliedCurrent(const Real p)
+    inline void setAppliedCurrent (const Real p)
     {
-    	M_appliedCurrent = p;
+        M_appliedCurrent = p;
     }
 
-	inline void setAppliedCurrentPtr(const vectorPtr_Type p) {
-		this->M_appliedCurrentPtr = p;
-	}
-	inline void setAppliedCurrent(const vector_Type& p) {
-		M_appliedCurrentPtr.reset( new vector_Type( p ) );
-	}
-	inline void setAppliedCurrentFromFunction(function_Type& f, feSpacePtr_Type feSpacePtr,
-	                                          Real time = 0.0) {
+    inline void setAppliedCurrentPtr (const vectorPtr_Type p)
+    {
+        this->M_appliedCurrentPtr = p;
+    }
+    inline void setAppliedCurrent (const vector_Type& p)
+    {
+        M_appliedCurrentPtr.reset ( new vector_Type ( p ) );
+    }
+    inline void setAppliedCurrentFromFunction (function_Type& f, feSpacePtr_Type feSpacePtr,
+                                               Real time = 0.0)
+    {
 
-	    feSpacePtr -> interpolate(
-	                    static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(f),
-	                    *M_appliedCurrentPtr, time);
-	}
-	inline void setAppliedCurrentFromCardiacStimulus( CardiacStimulus& stimulus, feSpacePtr_Type feSpacePtr, Real time = 0.0) {
+        feSpacePtr -> interpolate (
+            static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type> (f),
+            *M_appliedCurrentPtr, time);
+    }
+    inline void setAppliedCurrentFromCardiacStimulus ( CardiacStimulus& stimulus, feSpacePtr_Type feSpacePtr, Real time = 0.0)
+    {
 
-	    // boost::ref() is needed here because otherwise a copy of the base object is reinstantiated
-	    function_Type f = boost::bind(&CardiacStimulus::appliedCurrent, boost::ref(stimulus), _1, _2, _3, _4, _5 );
+        // boost::ref() is needed here because otherwise a copy of the base object is reinstantiated
+        function_Type f = boost::bind (&CardiacStimulus::appliedCurrent, boost::ref (stimulus), _1, _2, _3, _4, _5 );
 
-	    feSpacePtr -> interpolate(
-	                    static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(f),
-	                    *M_appliedCurrentPtr, time);
-	}
+        feSpacePtr -> interpolate (
+            static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type> (f),
+            *M_appliedCurrentPtr, time);
+    }
 
-	inline void setPacingProtocol( function_Type pacingProtocol )
-	{
-		M_pacingProtocol = pacingProtocol;
-	}
+    inline void setPacingProtocol ( function_Type pacingProtocol )
+    {
+        M_pacingProtocol = pacingProtocol;
+    }
 
 
     //virtual void updateRepeated( )=0;
@@ -177,15 +181,18 @@ public:
 
     ElectroIonicModel& operator= ( const ElectroIonicModel& Ionic );
 
-    virtual matrix_Type getJac(const vector_Type& v, Real h=1.0e-8);
+    virtual matrix_Type getJac (const vector_Type& v, Real h = 1.0e-8);
 
-    virtual vector< vector<Real> > getJac(const vector<Real>& v, Real h=1.0e-8);
+    virtual vector< vector<Real> > getJac (const vector<Real>& v, Real h = 1.0e-8);
 
     virtual void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs ) = 0;
 
     virtual void computeNonGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs )
     {
-    	if(M_numberOfGatingVariables == 0 ) computeGatingRhs(v, rhs);
+        if (M_numberOfGatingVariables == 0 )
+        {
+            computeGatingRhs (v, rhs);
+        }
     };
 
 
@@ -214,9 +221,9 @@ public:
                                           FESpace<mesh_Type, MapEpetra>&  uFESpace );
 
     virtual void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
-                                              std::vector<vectorPtr_Type>&        rhs,
-                                              FESpace<mesh_Type, MapEpetra>&  uFESpace,
-                                              const QuadratureRule& qr );
+                                          std::vector<vectorPtr_Type>&        rhs,
+                                          FESpace<mesh_Type, MapEpetra>&  uFESpace,
+                                          const QuadratureRule& qr );
 
     virtual void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
                                           std::vector<vectorPtr_Type>&        rhs,
@@ -228,10 +235,10 @@ public:
     virtual void showMe() = 0;
 
     //initialize with given conditions
-    virtual void initialize( std::vector<Real>& v );
+    virtual void initialize ( std::vector<Real>& v );
 
     //initialize with given conditions
-    virtual void initialize( std::vector<vectorPtr_Type>& v );
+    virtual void initialize ( std::vector<vectorPtr_Type>& v );
     //@}
 
 protected:

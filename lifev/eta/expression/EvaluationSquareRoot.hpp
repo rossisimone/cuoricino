@@ -171,34 +171,46 @@ public:
     //! Getter a value
     return_Type value_q (const UInt& q) const
     {
-    	if(M_evaluationBase.value_q (q) >= 0 ) return std::sqrt (M_evaluationBase.value_q (q) );
-    	else
-    	{ //try to save the simulation
-    		return 0.0;
-//    		return std::sqrt ( std::abs( M_evaluationBase.value_q (q) ) );
-    	}
+        if (M_evaluationBase.value_q (q) >= 0 )
+        {
+            return std::sqrt (M_evaluationBase.value_q (q) );
+        }
+        else
+        {
+            //try to save the simulation
+            return 0.0;
+            //          return std::sqrt ( std::abs( M_evaluationBase.value_q (q) ) );
+        }
     }
 
     //! Getter for the value for a vector
     return_Type value_qi (const UInt& q, const UInt& i) const
     {
-    	if(M_evaluationBase.value_qi (q, i) >= 0 )  return std::sqrt (M_evaluationBase.value_qi (q, i) );
-    	else
-    	{ //try to save the simulation
-    		return 0.0;
-//    		return std::sqrt ( std::abs( M_evaluationBase.value_qi (q, i) ) );
-    	}
+        if (M_evaluationBase.value_qi (q, i) >= 0 )
+        {
+            return std::sqrt (M_evaluationBase.value_qi (q, i) );
+        }
+        else
+        {
+            //try to save the simulation
+            return 0.0;
+            //          return std::sqrt ( std::abs( M_evaluationBase.value_qi (q, i) ) );
+        }
     }
 
     //! Getter for the value for a matrix
     return_Type value_qij (const UInt& q, const UInt& i, const UInt& j) const
     {
-    	if(M_evaluationBase.value_qij (q, i, j) >= 0 )  return std::sqrt (M_evaluationBase.value_qij (q, i, j) );
-    	else
-    	{ //try to save the simulation
-    		return 0.0;
-//   		return std::sqrt ( std::abs( M_evaluationBase.value_qij (q, i, j) ) );
-    	}
+        if (M_evaluationBase.value_qij (q, i, j) >= 0 )
+        {
+            return std::sqrt (M_evaluationBase.value_qij (q, i, j) );
+        }
+        else
+        {
+            //try to save the simulation
+            return 0.0;
+            //          return std::sqrt ( std::abs( M_evaluationBase.value_qij (q, i, j) ) );
+        }
     }
 
     //@}

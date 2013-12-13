@@ -144,37 +144,41 @@ public:
     }
 
 
-    inline static Real GeneralFunctionAlphaAndBeta (const Real & V, const Real& C1,const Real& C2,const Real& C3,const Real& C4,const Real& C5,const Real & V_0)
+    inline static Real GeneralFunctionAlphaAndBeta (const Real& V, const Real& C1, const Real& C2, const Real& C3, const Real& C4, const Real& C5, const Real& V_0)
     {
-        if(!(C1!=0 && C2==0))
-            return (C1*std::exp((V-V_0)/C2) + C3*(V-V_0))/(1+C4*std::exp((V-V_0)/C5)) ;
+        if (! (C1 != 0 && C2 == 0) )
+        {
+            return (C1 * std::exp ( (V - V_0) / C2) + C3 * (V - V_0) ) / (1 + C4 * std::exp ( (V - V_0) / C5) ) ;
+        }
         else
-            return (C1 + C3*(V-V_0))/(1+C4*std::exp((V-V_0)/C5)) ;
+        {
+            return (C1 + C3 * (V - V_0) ) / (1 + C4 * std::exp ( (V - V_0) / C5) ) ;
+        }
     }
 
 
-    inline static Real mInf (const Real & V)
+    inline static Real mInf (const Real& V)
     {
-        Real alpham = GeneralFunctionAlphaAndBeta(V,0,1,0.1,-1,-15,-48);
-        Real betam  = GeneralFunctionAlphaAndBeta(V,0,1,-0.12,-1,5,-8);
-        Real taum=alpham + betam;
-        return alpham /(taum);
+        Real alpham = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.1, -1, -15, -48);
+        Real betam  = GeneralFunctionAlphaAndBeta (V, 0, 1, -0.12, -1, 5, -8);
+        Real taum = alpham + betam;
+        return alpham / (taum);
     }
 
-    inline static Real hInf (const Real & V)
+    inline static Real hInf (const Real& V)
     {
-        Real alphah = GeneralFunctionAlphaAndBeta(V,0.17,-20,0,0,1,-90);
-        Real betah  = GeneralFunctionAlphaAndBeta(V,1,0,0,1,-10,-42);
-        Real tauh=alphah + betah;
-        return alphah /(tauh);
+        Real alphah = GeneralFunctionAlphaAndBeta (V, 0.17, -20, 0, 0, 1, -90);
+        Real betah  = GeneralFunctionAlphaAndBeta (V, 1, 0, 0, 1, -10, -42);
+        Real tauh = alphah + betah;
+        return alphah / (tauh);
     }
 
-    inline static Real nInf (const Real & V)
+    inline static Real nInf (const Real& V)
     {
-        Real alphan = GeneralFunctionAlphaAndBeta(V,0,1,0.0001,-1,-10,-50);
-        Real betan  = GeneralFunctionAlphaAndBeta(V,0.002,-80,0,0,1,-90);
-        Real taun=alphan + betan;
-        return alphan /(taun);
+        Real alphan = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.0001, -1, -10, -50);
+        Real betan  = GeneralFunctionAlphaAndBeta (V, 0.002, -80, 0, 0, 1, -90);
+        Real taun = alphan + betan;
+        return alphan / (taun);
     }
     //inline const short int& Size() const { return M_numberOfEquations; }
     //@}

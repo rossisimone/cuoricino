@@ -77,6 +77,7 @@ each time step and with the BDF method!!
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinear.hpp>
 #include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
 #include <lifev/structure/solver/ExponentialMaterialNonLinear.hpp>
+#include <lifev/structure/solver/SecondOrderExponentialMaterialNonLinear.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinearPenalized.hpp>
 
 #include <lifev/core/filter/Exporter.hpp>
@@ -243,34 +244,88 @@ struct Structure::Private
 
     }
 
-    static Real smoothPressure(const Real& t, const Real&  x, const Real& y, const Real& /*Z*/, const ID& i)
+    static Real smoothPressure (const Real& t, const Real&  x, const Real& y, const Real& /*Z*/, const ID& i)
     {
-        Real radius = 0.1;
-        Real pressure( 14663 );
+        Real radius = std::sqrt ( x * x + y * y );
+        Real pressure ( 0 );
+        Real highestPressure ( 199950 );
+        Real totalTime = 4.5;
+        Real halfTime = totalTime / 2.0;
 
-        //Real highestPressure(146630);
-        // Real totalTime = 3.0;
-        // Real halfTime = totalTime / 2.0;
+        Real a = ( highestPressure / 2 ) * ( 1 / ( halfTime * halfTime ) );
 
-        // Real a = ( highestPressure / 2 ) * ( 1/ ((totalTime/2)*(totalTime/2)) );
+        if ( t <= halfTime )
+        {
+            pressure = a * t * t;
+        }
 
-        // if ( t <= halfTime )
-        //     pressure = a * t*t;
-
-        // if ( t > halfTime )
-        //     pressure = - a * (t - totalTime)*(t - totalTime) + highestPressure;
+        if ( t > halfTime )
+        {
+            pressure = - a * (t - totalTime) * (t - totalTime) + highestPressure;
+        }
 
         switch (i)
         {
-        case 0:
-            return  pressure *  ( x / radius ) ;
-            break;
-        case 1:
-            return  pressure *  ( y / radius ) ;
-            break;
-        case 2:
-            return 0.0;
-            break;
+            case 0:
+                return  pressure *  ( x / radius ) ;
+                break;
+            case 1:
+                return  pressure *  ( y / radius ) ;
+                break;
+            case 2:
+                return 0.0;
+                break;
+
+        }
+        return 0;
+
+    }
+
+    static Real mergingPressures (const Real& t, const Real&  x, const Real& y, const Real& /*Z*/, const ID& i)
+    {
+        Real radius = std::sqrt ( x * x + y * y );
+        Real pressure ( 0 );
+
+        Real highestPressure ( 199950 );
+
+        Real totalTime = 9.0;
+        Real halfTime = totalTime / 2.0;
+        Real quarterTime = halfTime / 2.0;
+
+        Real aA = ( highestPressure / 2 ) * ( 1 / ( quarterTime * quarterTime ) );
+        Real aD = ( 2 * highestPressure ) * ( 1 / ( halfTime * halfTime ) );
+
+        if ( t <= quarterTime )
+        {
+            pressure = aA * t * t;
+        }
+
+        if ( t > quarterTime && t <= halfTime )
+        {
+            pressure = - aA * (t - halfTime) * (t - halfTime) + highestPressure;
+        }
+
+        if ( t > halfTime && t <= 3 * quarterTime )
+        {
+            pressure = - aD * (t - halfTime) * (t - halfTime) + highestPressure;
+        }
+
+        if ( t > 3 * quarterTime && t <= 4 * quarterTime )
+        {
+            pressure = aD * (t - totalTime) * (t - totalTime);
+        }
+
+        switch (i)
+        {
+            case 0:
+                return  pressure *  ( x / radius ) ;
+                break;
+            case 1:
+                return  pressure *  ( y / radius ) ;
+                break;
+            case 2:
+                return 0.0;
+                break;
 
         }
         return 0;
@@ -368,7 +423,7 @@ Structure::run3d()
         const std::string partsFileName (dataFile ("partitioningOffline/hdf5_file_name", "NO_DEFAULT_VALUE.h5") );
 
         boost::shared_ptr<Epetra_MpiComm> mpiComm =
-            boost::dynamic_pointer_cast<Epetra_MpiComm>(parameters->comm);
+            boost::dynamic_pointer_cast<Epetra_MpiComm> (parameters->comm);
         PartitionIO<mesh_Type> partitionIO (partsFileName, mpiComm);
 
 
@@ -441,18 +496,11 @@ Structure::run3d()
     //! BC for StructuredCube4_test_structuralsolver.mesh
     //! =================================================================================
     //Condition for Inflation
+
     BCh->addBC ("EdgesIn",      200, Natural,   Full, pressure, 3);
-    BCh->addBC ("EdgesIn",      210,  Natural,   Full, zero, 3);
-    BCh->addBC ("EdgesIn",      20,  EssentialVertices, Full, zero, 3);
-    BCh->addBC ("EdgesIn",      30,  EssentialVertices, Full, zero, 3);
-    BCh->addBC ("EdgesIn",      2,  Essential, Full, zero, 3);
-    BCh->addBC ("EdgesIn",      3,  Essential, Full, zero, 3);
-
-
-    // BCh->addBC ("EdgesIn",      200, Natural,   Full, pressure, 3);
-    // BCh->addBC ("EdgesIn",      40,  Natural,   Full, zero, 3);
-    // BCh->addBC ("EdgesIn",      70,  Essential, Full, zero, 3);
-    // BCh->addBC ("EdgesIn",      60,  Essential, Full, zero, 3);
+    BCh->addBC ("EdgesIn",      40,  Natural,   Full, zero, 3);
+    BCh->addBC ("EdgesIn",      70,  Essential, Full, zero, 3);
+    BCh->addBC ("EdgesIn",      60,  Essential, Full, zero, 3);
 
     //! 1. Constructor of the structuralSolver
     StructuralOperator< RegionMesh<LinearTetra> > solid;
@@ -674,10 +722,10 @@ Structure::run3d()
 
     //! 6. Setting the pillow saving for restart
     UInt tol = dataStructure->dataTimeAdvance()->orderBDF() + 1;
-    UInt saveEvery = dataFile( "exporter/saveEvery", 1);
-    UInt r(0);
-    UInt d(0);
-    UInt iter(0);
+    UInt saveEvery = dataFile ( "exporter/saveEvery", 1);
+    UInt r (0);
+    UInt d (0);
+    UInt iter (0);
 
     //! =============================================================================
     //! Temporal loop
@@ -731,10 +779,10 @@ Structure::run3d()
         r = iter % saveEvery;
         d = iter - r;
 
-        if ( (iter - d) <= tol || ( (std::floor(d/saveEvery) + 1)*saveEvery - iter ) <= tol )
+        if ( (iter - d) <= tol || ( (std::floor (d / saveEvery) + 1) *saveEvery - iter ) <= tol )
         {
-            exporterSolid->postProcess( time );
-            exporterCheck->postProcess( time );
+            exporterSolid->postProcess ( time );
+            exporterCheck->postProcess ( time );
         }
 
         //!--------------------------------------------------------------------------------------------------

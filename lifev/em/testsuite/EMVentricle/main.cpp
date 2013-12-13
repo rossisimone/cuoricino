@@ -44,9 +44,9 @@ Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real&
 
     if ( t <= 2.0 )
     {
-        if ( std::abs( x ) <= 0.5 &&
-                        std::abs( y ) <= 0.5 &&
-                        std::abs( z ) <= 0.2 )
+        if ( std::abs ( x ) <= 0.5 &&
+                std::abs ( y ) <= 0.5 &&
+                std::abs ( z ) <= 0.2 )
         {
             returnValue = 10;
         }
@@ -56,7 +56,8 @@ Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real&
 }
 
 
-int main(int argc, char** argv) {
+int main (int argc, char** argv)
+{
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
     typedef boost::function < Real (const Real& /*t*/,
@@ -65,22 +66,22 @@ int main(int argc, char** argv) {
                                     const Real& /*z*/,
                                     const ID&   /*i*/ ) >   function_Type;
 
-   	typedef IonicMinimalModel	                                     ionicModel_Type;
+    typedef IonicMinimalModel                                        ionicModel_Type;
     typedef boost::shared_ptr<ionicModel_Type>                       ionicModelPtr_Type;
     typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type > monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >               monodomainSolverPtr_Type;
 
-    typedef VectorEpetra				                             vector_Type;
+    typedef VectorEpetra                                             vector_Type;
     typedef boost::shared_ptr<vector_Type>                           vectorPtr_Type;
 
-    typedef EMSolver<mesh_Type, ionicModel_Type>	emSolver_Type;
+    typedef EMSolver<mesh_Type, ionicModel_Type>    emSolver_Type;
     typedef boost::shared_ptr<emSolver_Type> emSolverPtr_Type;
 
 #ifdef HAVE_MPI
-	MPI_Init ( &argc, &argv );
+    MPI_Init ( &argc, &argv );
 #endif
 
-	boost::shared_ptr<Epetra_Comm> comm(new Epetra_MpiComm(MPI_COMM_WORLD));
+    boost::shared_ptr<Epetra_Comm> comm (new Epetra_MpiComm (MPI_COMM_WORLD) );
 
 
 
@@ -117,14 +118,14 @@ int main(int argc, char** argv) {
         std::cout << " Done!" << endl;
     }
 
-	//********************************************//
-	// We need the GetPot datafile to setup       //
-	//                                            //
-	//********************************************//
-	GetPot command_line(argc, argv);
-	const string data_file_name = command_line.follow("data", 2, "-f",
-			"--file");
-	GetPot dataFile(data_file_name);
+    //********************************************//
+    // We need the GetPot datafile to setup       //
+    //                                            //
+    //********************************************//
+    GetPot command_line (argc, argv);
+    const string data_file_name = command_line.follow ("data", 2, "-f",
+                                                       "--file");
+    GetPot dataFile (data_file_name);
 
     //********************************************//
     // We create three solvers to solve with:     //
@@ -135,11 +136,14 @@ int main(int argc, char** argv) {
         std::cout << "Building Monodomain Solvers... ";
     }
 
-	emSolverPtr_Type emSolverPtr( new emSolver_Type(monodomainList, data_file_name, comm));
+    emSolverPtr_Type emSolverPtr ( new emSolver_Type (monodomainList, data_file_name, comm) );
 
-	if ( comm->MyPID() == 0 )
+    if ( comm->MyPID() == 0 )
     {
-        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: constructor";
+        if (emSolverPtr -> monodomainPtr() -> displacementPtr() )
+        {
+            std::cout << "\nI've set the displacement ptr in monodomain: constructor";
+        }
     }
 
 
@@ -158,11 +162,14 @@ int main(int argc, char** argv) {
 
 
     function_Type stimulus;
-   	stimulus = &PacingProtocolMM;
-    emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction(stimulus, 0.0);
+    stimulus = &PacingProtocolMM;
+    emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction (stimulus, 0.0);
     if ( comm->MyPID() == 0 )
     {
-        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: applied current";
+        if (emSolverPtr -> monodomainPtr() -> displacementPtr() )
+        {
+            std::cout << "\nI've set the displacement ptr in monodomain: applied current";
+        }
     }
     if ( comm->MyPID() == 0 )
     {
@@ -177,12 +184,15 @@ int main(int argc, char** argv) {
         cout << "\nSetting fibers:  " ;
     }
 
-    emSolverPtr -> setFibersAndSheets(monodomainList);
+    emSolverPtr -> setFibersAndSheets (monodomainList);
 
-	emSolverPtr -> exportFibersAndSheetsFields( problemFolder);
+    emSolverPtr -> exportFibersAndSheetsFields ( problemFolder);
     if ( comm->MyPID() == 0 )
     {
-        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: fibers";
+        if (emSolverPtr -> monodomainPtr() -> displacementPtr() )
+        {
+            std::cout << "\nI've set the displacement ptr in monodomain: fibers";
+        }
     }
 
     if ( comm->MyPID() == 0 )
@@ -192,24 +202,27 @@ int main(int argc, char** argv) {
 
     if ( comm->MyPID() == 0 )
     {
-        if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain";
+        if (emSolverPtr -> monodomainPtr() -> displacementPtr() )
+        {
+            std::cout << "\nI've set the displacement ptr in monodomain";
+        }
     }
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
 
-    emSolverPtr -> setup(monodomainList, data_file_name);
+    emSolverPtr -> setup (monodomainList, data_file_name);
 
     {
         cout << "\nPointer 2:  " << emSolverPtr -> activationPtr() -> gammafPtr() ;
     }
 
-	emSolverPtr -> setupExporters(problemFolder);
+    emSolverPtr -> setupExporters (problemFolder);
     //********************************************//
-    // Activation time						      //
+    // Activation time                            //
     //********************************************//
-	emSolverPtr -> registerActivationTime(0.0, 0.8);
-	emSolverPtr -> exportSolution( 0.0);
+    emSolverPtr -> registerActivationTime (0.0, 0.8);
+    emSolverPtr -> exportSolution ( 0.0);
 
     //********************************************//
     // Solving the system                         //
@@ -225,29 +238,29 @@ int main(int argc, char** argv) {
     Int reactionSubiter = monodomainList.get ("reaction_subiteration", 100);
     Int solidIter = monodomainList.get ("emdt", 1.0) / dt;
     bool coupling = monodomainList.get ("coupling", false);
-//    if ( comm->MyPID() == 0 )
-//      {
-//        std::cout << "\ndt: " << dt;
-//        std::cout << "\nTF: " << TF;
-//        std::cout << "\nIter: " << iter;
-//        std::cout << "\nsubiter: " << reactionSubiter;
-//        std::cout << "\nsolid iterations: " << solidIter;
-//        std::cout << "\nSolving coupled problem: " << coupling;
-//      }
-    Int k(0);
+    //    if ( comm->MyPID() == 0 )
+    //      {
+    //        std::cout << "\ndt: " << dt;
+    //        std::cout << "\nTF: " << TF;
+    //        std::cout << "\nIter: " << iter;
+    //        std::cout << "\nsubiter: " << reactionSubiter;
+    //        std::cout << "\nsolid iterations: " << solidIter;
+    //        std::cout << "\nSolving coupled problem: " << coupling;
+    //      }
+    Int k (0);
 
-//    Real timeReac = 0.0;
-//    Real timeDiff = 0.0;
-//    Real timeReacDiff = 0.0;
+    //    Real timeReac = 0.0;
+    //    Real timeDiff = 0.0;
+    //    Real timeReacDiff = 0.0;
 
     std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
 
 
     for ( Real t = 0.0; t < TF - dt; )
     {
-    	//register activation time
-		k++;
-		t = t + dt;
+        //register activation time
+        k++;
+        t = t + dt;
 
         if ( comm->MyPID() == 0 )
         {
@@ -268,67 +281,72 @@ int main(int argc, char** argv) {
         }
 
         emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction ( stimulus, t );
-        if(solutionMethod == "splitting")
-        {
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nSplitting: Solving reactions";
-			}
-			for(int j(0); j<reactionSubiter; j++)
-				emSolverPtr -> monodomainPtr() -> solveOneReactionStepFE(reactionSubiter);
-			//solve diffusion step
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nSplitting: : Solving diffusion";
-			}
-			emSolverPtr -> solveOneDiffusionStep();
-        }
-        if(solutionMethod == "HLS")
-              {
-      			*(emSolverPtr -> monodomainPtr() -> appliedCurrentPtr()) *= 10.0;
-    			if ( comm->MyPID() == 0 )
-    			{
-    				cout << "\nHLS: Solving gating variables ";
-    			}
-            	emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
-    			if ( comm->MyPID() == 0 )
-    			{
-    				cout << "\nHLS: Solving potential ";
-    			}
-            	emSolverPtr -> monodomainPtr() ->solveOneICIStep( *(emSolverPtr -> activationPtr() -> massMatrixPtr()) );
-              }
-        if(solutionMethod == "ICI")
-        {
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nICI: Solving gating variables ";
-			}
-        	emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nICI: Solving potential ";
-			}
-        	emSolverPtr -> monodomainPtr() ->solveOneICIStep();
-        }
-        if(solutionMethod == "SVI")
+        if (solutionMethod == "splitting")
         {
             if ( comm->MyPID() == 0 )
             {
-                if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: exporters";
+                cout << "\nSplitting: Solving reactions";
             }
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nSVI: Solving gating variables ";
-			}
-        	emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
-			if ( comm->MyPID() == 0 )
-			{
-				cout << "\nSVI: Solving potential ";
-			}
-        	emSolverPtr -> monodomainPtr() -> solveOneSVIStep();
+            for (int j (0); j < reactionSubiter; j++)
+            {
+                emSolverPtr -> monodomainPtr() -> solveOneReactionStepFE (reactionSubiter);
+            }
+            //solve diffusion step
+            if ( comm->MyPID() == 0 )
+            {
+                cout << "\nSplitting: : Solving diffusion";
+            }
+            emSolverPtr -> solveOneDiffusionStep();
+        }
+        if (solutionMethod == "HLS")
+        {
+            * (emSolverPtr -> monodomainPtr() -> appliedCurrentPtr() ) *= 10.0;
+            if ( comm->MyPID() == 0 )
+            {
+                cout << "\nHLS: Solving gating variables ";
+            }
+            emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
+            if ( comm->MyPID() == 0 )
+            {
+                cout << "\nHLS: Solving potential ";
+            }
+            emSolverPtr -> monodomainPtr() ->solveOneICIStep ( * (emSolverPtr -> activationPtr() -> massMatrixPtr() ) );
+        }
+        if (solutionMethod == "ICI")
+        {
+            if ( comm->MyPID() == 0 )
+            {
+                cout << "\nICI: Solving gating variables ";
+            }
+            emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
+            if ( comm->MyPID() == 0 )
+            {
+                cout << "\nICI: Solving potential ";
+            }
+            emSolverPtr -> monodomainPtr() ->solveOneICIStep();
+        }
+        if (solutionMethod == "SVI")
+        {
+            if ( comm->MyPID() == 0 )
+            {
+                if (emSolverPtr -> monodomainPtr() -> displacementPtr() )
+                {
+                    std::cout << "\nI've set the displacement ptr in monodomain: exporters";
+                }
+            }
+            if ( comm->MyPID() == 0 )
+            {
+                cout << "\nSVI: Solving gating variables ";
+            }
+            emSolverPtr -> monodomainPtr() -> solveOneStepGatingVariablesFE();
+            if ( comm->MyPID() == 0 )
+            {
+                cout << "\nSVI: Solving potential ";
+            }
+            emSolverPtr -> monodomainPtr() -> solveOneSVIStep();
         }
 
-        if(coupling == true)
+        if (coupling == true)
         {
             if ( comm->MyPID() == 0 )
             {
@@ -336,22 +354,25 @@ int main(int argc, char** argv) {
                 cout << "\nActive Strain Solver ";
                 cout << "\n---------------------";
             }
-        	emSolverPtr -> solveOneActivationStep();
+            emSolverPtr -> solveOneActivationStep();
             if ( comm->MyPID() == 0 )
             {
-                if(emSolverPtr -> monodomainPtr() -> displacementPtr()) std::cout << "\nI've set the displacement ptr in monodomain: activation";
+                if (emSolverPtr -> monodomainPtr() -> displacementPtr() )
+                {
+                    std::cout << "\nI've set the displacement ptr in monodomain: activation";
+                }
             }
 
 
-        	if( k % solidIter == 0 )
-        	{
+            if ( k % solidIter == 0 )
+            {
                 if ( comm->MyPID() == 0 )
                 {
                     cout << "\n---------------------";
                     cout << "\nInterpolating gammaf ";
                     cout << "\n---------------------";
                 }
-        		emSolverPtr -> updateSolid();
+                emSolverPtr -> updateSolid();
                 if ( comm->MyPID() == 0 )
                 {
                     cout << "\n------------------";
@@ -366,18 +387,18 @@ int main(int argc, char** argv) {
                     cout << "\n---------------------------";
                 }
                 emSolverPtr -> updateMonodomain();
-        	}
+            }
 
 
         }
-        if( k % iter == 0 )
+        if ( k % iter == 0 )
         {
             if ( comm->MyPID() == 0 )
             {
                 cout << "\nExporting solutions";
             }
-        	emSolverPtr -> registerActivationTime(t, 0.8);
-        	emSolverPtr -> exportSolution(t);
+            emSolverPtr -> registerActivationTime (t, 0.8);
+            emSolverPtr -> exportSolution (t);
         }
 
     }
@@ -387,22 +408,24 @@ int main(int argc, char** argv) {
         cout << "\nExporting Activation Time";
     }
 
-	emSolverPtr -> exportActivationTime(problemFolder);
+    emSolverPtr -> exportActivationTime (problemFolder);
 
-	emSolverPtr -> closeExporters();
+    emSolverPtr -> closeExporters();
     if ( comm->MyPID() == 0 )
-          std::cout << "\nExporting fibers: " << std::endl;
+    {
+        std::cout << "\nExporting fibers: " << std::endl;
+    }
 
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
-    emSolverPtr -> monodomainPtr() -> exportFiberDirection(problemFolder);
+    emSolverPtr -> monodomainPtr() -> exportFiberDirection (problemFolder);
 
     std::cout << "\n\nThank you for using EMSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
 
 #ifdef HAVE_MPI
-	MPI_Finalize();
+    MPI_Finalize();
 #endif
-	return 0;
+    return 0;
 }
 

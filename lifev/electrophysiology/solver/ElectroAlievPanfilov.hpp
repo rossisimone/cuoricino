@@ -81,9 +81,9 @@ public:
      * @param Epetra communicator
      */
     ElectroAlievPanfilov ( const data_Type& dataType,
-                         const Mesh& mesh,
-                         FESpace<Mesh, MapEpetra>& uFEspace,
-                         Epetra_Comm& comm );
+                           const Mesh& mesh,
+                           FESpace<Mesh, MapEpetra>& uFEspace,
+                           Epetra_Comm& comm );
 
     //! Destructor
     virtual ~ElectroAlievPanfilov();
@@ -170,9 +170,9 @@ public:
 template<typename Mesh, typename SolverType>
 ElectroAlievPanfilov<Mesh, SolverType>::
 ElectroAlievPanfilov ( const data_Type& dataType,
-                     const Mesh& mesh,
-                     FESpace<Mesh, MapEpetra>& uFEspace,
-                     Epetra_Comm& comm ) :
+                       const Mesh& mesh,
+                       FESpace<Mesh, MapEpetra>& uFEspace,
+                       Epetra_Comm& comm ) :
     ElectroIonicSolver<Mesh, SolverType> ( dataType, mesh, uFEspace, comm),
     M_recoveryVariable ( ElectroIonicSolver<Mesh, SolverType>::M_localMap ),
     M_potential ( ElectroIonicSolver<Mesh, SolverType>::M_localMap ),
@@ -309,9 +309,9 @@ void ElectroAlievPanfilov<Mesh, SolverType>::solveIonicModel ( ElectroFunctors& 
 
 template<typename Mesh, typename SolverType>
 void ElectroAlievPanfilov<Mesh, SolverType>::computeIonicCurrent (  Real,
-                                                                  VectorElemental& elvec,
-                                                                  VectorElemental& elvec_u,
-                                                                  FESpace<Mesh, MapEpetra>& uFESpace )
+                                                                    VectorElemental& elvec,
+                                                                    VectorElemental& elvec_u,
+                                                                    FESpace<Mesh, MapEpetra>& uFESpace )
 {
 
     Real k       = 8.00;

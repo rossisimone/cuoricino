@@ -174,8 +174,8 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF     = ionicMParameterList.get( "endTime", 5.0 );
-    Real dt     = ionicMParameterList.get( "timeStep", 1e-3 );
+    Real TF     = ionicMParameterList.get ( "endTime", 5.0 );
+    Real dt     = ionicMParameterList.get ( "timeStep", 1e-3 );
 
     Real tStim  ( 0 );
 
@@ -196,20 +196,20 @@ Int main ( Int argc, char** argv )
 
     cout << "Time loop starts...\n";
 
-    int iter(0);
-    int savedt( ionicMParameterList.get( "savedt", 1.0) / dt );
+    int iter (0);
+    int savedt ( ionicMParameterList.get ( "savedt", 1.0) / dt );
     int NbStimulus ( 0 );
 
     for ( Real t = 0; t < TF; )
     {
 
-    	//********************************************//
+        //********************************************//
         // Gives the appropriate Iapp (stimulation .  //
         // current ) according to time variable.      //
         //********************************************//
 
-    	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
-    	// The list of protocols are described in the StimulationProtocol.hpp
+        stimulation.pacingProtocolChoice ( t, dt, NbStimulus, Iapp ); // Protocol stimulation
+        // The list of protocols are described in the StimulationProtocol.hpp
 
         cout << "\r " << t << " ms.       " << std::flush;
 
@@ -218,55 +218,61 @@ Int main ( Int argc, char** argv )
         //********************************************//
 
         model.computeRhs ( unknowns, Iapp, rhs );
-        std::vector<Real> gateInf ( model.gateInf( unknowns ) );
+        std::vector<Real> gateInf ( model.gateInf ( unknowns ) );
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
 
-       	iter++;
+        iter++;
 
-       	if( iter % savedt == 0)
-      	{
-        	output  << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
-        			<< unknowns.at (2) << ", " << unknowns.at (3) << ", "
-        			<< unknowns.at (4) << ", " << unknowns.at (5) << ", "
-        			<< unknowns.at (6) << ", " << unknowns.at (7) << ", "
-        			<< unknowns.at (8) << ", " << unknowns.at (9) << ", "
-        			<< unknowns.at (10) << ", " << unknowns.at (11) << ", "
-        			<< unknowns.at (12) << ", " << unknowns.at (13) << ", "
-        			<< unknowns.at (14) << ", " << unknowns.at (15) << ", "
-        			<< unknowns.at (16) << "\n";
+        if ( iter % savedt == 0)
+        {
+            output  << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
+                    << unknowns.at (2) << ", " << unknowns.at (3) << ", "
+                    << unknowns.at (4) << ", " << unknowns.at (5) << ", "
+                    << unknowns.at (6) << ", " << unknowns.at (7) << ", "
+                    << unknowns.at (8) << ", " << unknowns.at (9) << ", "
+                    << unknowns.at (10) << ", " << unknowns.at (11) << ", "
+                    << unknowns.at (12) << ", " << unknowns.at (13) << ", "
+                    << unknowns.at (14) << ", " << unknowns.at (15) << ", "
+                    << unknowns.at (16) << "\n";
         }
 
-       	tStim = stimulation.timeSt();
+        tStim = stimulation.timeSt();
 
-       	if ( t >= tStim && t <= tStim + dt )
-       		outputStimPro << t << "," << unknowns.at(0) << "," << NbStimulus << "\n";
+        if ( t >= tStim && t <= tStim + dt )
+        {
+            outputStimPro << t << "," << unknowns.at (0) << "," << NbStimulus << "\n";
+        }
 
 
-         //********************************************//
-         // Use forward Euler method to advance the    //
-         // solution in time for the concentration     //
-         // and Rush and Larsen for the gating         //
-         // variables                                  //
-         //********************************************//
+        //********************************************//
+        // Use forward Euler method to advance the    //
+        // solution in time for the concentration     //
+        // and Rush and Larsen for the gating         //
+        // variables                                  //
+        //********************************************//
 
-         for(int j(0); j <= 16; ++j)
-         {
-			if ( j < 13 && j != 0 )
-        	 	 unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
-    		else
-    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+        for (int j (0); j <= 16; ++j)
+        {
+            if ( j < 13 && j != 0 )
+            {
+                unknowns.at (j) = gateInf.at (j - 1) + ( unknowns.at (j) - gateInf.at (j - 1) ) * exp ( dt * rhs.at (j) );
+            }
+            else
+            {
+                unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+            }
 
-         }
+        }
 
-         //********************************************//
-         // Update the time.                           //
-         //********************************************//
+        //********************************************//
+        // Update the time.                           //
+        //********************************************//
 
-         t = t + dt;
-       }
+        t = t + dt;
+    }
 
     cout << "\n...Time loop ends.\n";
     cout << "Solution written on file: " << filename << " and " << filenameStimPro << "\n";
@@ -282,4 +288,4 @@ Int main ( Int argc, char** argv )
     //! Finalizing Epetra communicator
     MPI_Finalize();
     return ( EXIT_SUCCESS );
-   }
+}

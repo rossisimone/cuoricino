@@ -111,9 +111,9 @@ public:
      * @param Epetra communicator
      */
     ElectroIonicSolver ( const data_Type& dataType,
-                       const Mesh& mesh,
-                       FESpace<Mesh, MapEpetra>& uFEspace,
-                       Epetra_Comm& comm );
+                         const Mesh& mesh,
+                         FESpace<Mesh, MapEpetra>& uFEspace,
+                         Epetra_Comm& comm );
 
     //! Destructor
     virtual ~ElectroIonicSolver() {}
@@ -198,9 +198,9 @@ protected:
 template<typename Mesh, typename SolverType>
 ElectroIonicSolver<Mesh, SolverType>::
 ElectroIonicSolver ( const data_Type& dataType,
-                   const Mesh& mesh,
-                   FESpace<Mesh, MapEpetra>& uFEspace,
-                   Epetra_Comm& comm ) :
+                     const Mesh& mesh,
+                     FESpace<Mesh, MapEpetra>& uFEspace,
+                     Epetra_Comm& comm ) :
     M_data                   ( dataType ),
     M_mesh                   ( mesh ),
     M_uFESpace               ( uFEspace ),

@@ -39,77 +39,89 @@
 namespace LifeV
 {
 
-VectorStandard::VectorStandard(UInt size, Real r)
-: std::vector<Real>(size, r)
+VectorStandard::VectorStandard (UInt size, Real r)
+    : std::vector<Real> (size, r)
 {
 }
 
 Real VectorStandard::norm2() const
 {
-	Real norm(0.0);
+    Real norm (0.0);
 
-	for(UInt i = 0; i<this->size(); i++)
-		norm += (this->at(i))*(this->at(i));
+    for (UInt i = 0; i < this->size(); i++)
+    {
+        norm += (this->at (i) ) * (this->at (i) );
+    }
 
-	return std::sqrt(norm);
+    return std::sqrt (norm);
 }
 
 VectorStandard VectorStandard::operator+ (const VectorStandard& w) const
 {
-	return VectorStandard(*this) += w;
+    return VectorStandard (*this) += w;
 }
 
-VectorStandard& VectorStandard::operator+=(const VectorStandard& w)
+VectorStandard& VectorStandard::operator+= (const VectorStandard& w)
 {
-	for(Int i=0; i<this->size(); i++)
-		this->at(i) += w[i];
+    for (Int i = 0; i < this->size(); i++)
+    {
+        this->at (i) += w[i];
+    }
 
-	return *this;
+    return *this;
 }
 
 VectorStandard VectorStandard::operator- (const VectorStandard& w) const
 {
-	return VectorStandard(*this) -= w;
+    return VectorStandard (*this) -= w;
 }
 
-VectorStandard& VectorStandard::operator-=(const VectorStandard& w)
+VectorStandard& VectorStandard::operator-= (const VectorStandard& w)
 {
-	for(Int i=0; i<this->size(); i++)
-		this->at(i) -= w[i];
+    for (Int i = 0; i < this->size(); i++)
+    {
+        this->at (i) -= w[i];
+    }
 
-	return *this;
+    return *this;
 }
 
 VectorStandard VectorStandard::operator* (const Real r) const
 {
-	return VectorStandard(*this) *= r;
+    return VectorStandard (*this) *= r;
 }
 
-VectorStandard& VectorStandard::operator*=(const Real r)
+VectorStandard& VectorStandard::operator*= (const Real r)
 {
-	for(Int i=0; i<this->size(); i++)
-		this->at(i) *= r;
+    for (Int i = 0; i < this->size(); i++)
+    {
+        this->at (i) *= r;
+    }
 
-	return *this;
+    return *this;
 }
 
 VectorStandard VectorStandard::operator/ (const Real r) const
 {
-	return VectorStandard(*this) /= r;
+    return VectorStandard (*this) /= r;
 }
 
-VectorStandard& VectorStandard::operator/=(const Real r)
+VectorStandard& VectorStandard::operator/= (const Real r)
 {
-	for(Int i=0; i<this->size(); i++)
-		this->at(i) /= r;
+    for (Int i = 0; i < this->size(); i++)
+    {
+        this->at (i) /= r;
+    }
 
-	return *this;
+    return *this;
 }
 
 void VectorStandard::disp() const
 {
-	for(UInt i=0; i<this->size(); i++)
-		cout<<"   "<<this->at(i);
+    for (UInt i = 0; i < this->size(); i++)
+    {
+        cout << "   " << this->at (i);
+    }
 }
 
 

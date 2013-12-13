@@ -74,14 +74,14 @@ public:
 
     return_Type operator() (const LifeV::Real& I1)
     {
-        return M_a/2. * std::exp(M_b * (I1 - 3));
+        return M_a / 2. * std::exp (M_b * (I1 - 3) );
     }
 
-    dW1(LifeV::Real a, LifeV::Real b)
-        : M_a(a), M_b(b)
+    dW1 (LifeV::Real a, LifeV::Real b)
+        : M_a (a), M_b (b)
     {}
     dW1 (const dW1& copy)
-        : M_a(copy.M_a), M_b(copy.M_b)
+        : M_a (copy.M_a), M_b (copy.M_b)
     {}
     ~dW1() {}
 
@@ -96,14 +96,14 @@ public:
 
     return_Type operator() (const LifeV::Real& I1)
     {
-        return M_a*M_b/2. * std::exp(M_b * (I1 - 3));
+        return M_a * M_b / 2. * std::exp (M_b * (I1 - 3) );
     }
 
-    d2W1(LifeV::Real a, LifeV::Real b)
-        : M_a(a), M_b(b)
+    d2W1 (LifeV::Real a, LifeV::Real b)
+        : M_a (a), M_b (b)
     {}
     d2W1 (const d2W1& copy)
-        : M_a(copy.M_a), M_b(copy.M_b)
+        : M_a (copy.M_a), M_b (copy.M_b)
     {}
     ~d2W1() {}
 
@@ -120,15 +120,15 @@ public:
     return_Type operator() (const LifeV::Real& I4)
     {
         return M_a * (I4 >= 1.)
-                * (I4 - 1)
-                * std::exp(M_b * pow(I4 - 1, 2));
+               * (I4 - 1)
+               * std::exp (M_b * pow (I4 - 1, 2) );
     }
 
-    dW4(LifeV::Real a, LifeV::Real b)
-        : M_a(a), M_b(b)
+    dW4 (LifeV::Real a, LifeV::Real b)
+        : M_a (a), M_b (b)
     {}
     dW4 (const dW4& copy)
-        : M_a(copy.M_a), M_b(copy.M_b)
+        : M_a (copy.M_a), M_b (copy.M_b)
     {}
     ~dW4() {}
 
@@ -144,15 +144,15 @@ public:
     return_Type operator() (const LifeV::Real& I4)
     {
         return M_a * (I4 >= 1.)
-                * (1.0 + 2.0 * M_b * pow(I4 - 1, 2))
-                * std::exp(M_b * pow(I4 - 1, 2));
+               * (1.0 + 2.0 * M_b * pow (I4 - 1, 2) )
+               * std::exp (M_b * pow (I4 - 1, 2) );
     }
 
-    d2W4(LifeV::Real a, LifeV::Real b)
-        : M_a(a), M_b(b)
+    d2W4 (LifeV::Real a, LifeV::Real b)
+        : M_a (a), M_b (b)
     {}
     d2W4 (const d2W4& copy)
-        : M_a(copy.M_a), M_b(copy.M_b)
+        : M_a (copy.M_a), M_b (copy.M_b)
     {}
     ~d2W4() {}
 
@@ -168,14 +168,14 @@ public:
 
     return_Type operator() (const LifeV::Real& I8)
     {
-        return M_a * I8 * std::exp(M_b * pow(I8, 2));
+        return M_a * I8 * std::exp (M_b * pow (I8, 2) );
     }
 
-    dW8(LifeV::Real a, LifeV::Real b)
-        : M_a(a), M_b(b)
+    dW8 (LifeV::Real a, LifeV::Real b)
+        : M_a (a), M_b (b)
     {}
     dW8 (const dW8& copy)
-        : M_a(copy.M_a), M_b(copy.M_b)
+        : M_a (copy.M_a), M_b (copy.M_b)
     {}
     ~dW8() {}
 
@@ -190,15 +190,15 @@ public:
 
     return_Type operator() (const LifeV::Real& I8)
     {
-        return  M_a * (1.0 + 2.0 * M_b * pow(I8, 2))
-                    * std::exp(M_b * pow(I8, 2));
+        return  M_a * (1.0 + 2.0 * M_b * pow (I8, 2) )
+                * std::exp (M_b * pow (I8, 2) );
     }
 
-    d2W8(LifeV::Real a, LifeV::Real b)
-        : M_a(a), M_b(b)
+    d2W8 (LifeV::Real a, LifeV::Real b)
+        : M_a (a), M_b (b)
     {}
     d2W8 (const d2W8& copy)
-        : M_a(copy.M_a), M_b(copy.M_b)
+        : M_a (copy.M_a), M_b (copy.M_b)
     {}
     ~d2W8() {}
 
@@ -214,14 +214,14 @@ public:
 
     return_Type operator() (const LifeV::Real& J)
     {
-        return M_kappa/2. * (J - 1./J);
+        return M_kappa / 2. * (J - 1. / J);
     }
 
-    dWvol(LifeV::Real kappa)
-        : M_kappa(kappa)
+    dWvol (LifeV::Real kappa)
+        : M_kappa (kappa)
     {}
-    dWvol(const dWvol& copy)
-        : M_kappa(copy.M_kappa)
+    dWvol (const dWvol& copy)
+        : M_kappa (copy.M_kappa)
     {}
     ~dWvol() {}
 
@@ -236,15 +236,15 @@ public:
 
     return_Type operator() (const LifeV::Real& J)
     {
-        LifeV::Real Jm1 = 1./J;
-        return M_kappa/2. * (1 + Jm1*Jm1);
+        LifeV::Real Jm1 = 1. / J;
+        return M_kappa / 2. * (1 + Jm1 * Jm1);
     }
 
-    d2Wvol(LifeV::Real kappa)
-        : M_kappa(kappa)
+    d2Wvol (LifeV::Real kappa)
+        : M_kappa (kappa)
     {}
-    d2Wvol(const d2Wvol& copy)
-        : M_kappa(copy.M_kappa)
+    d2Wvol (const d2Wvol& copy)
+        : M_kappa (copy.M_kappa)
     {}
     ~d2Wvol() {}
 
@@ -296,9 +296,9 @@ public:
 
     typedef typename super::FESpacePtr_Type          FESpacePtr_Type;
     typedef typename super::ETFESpacePtr_Type        ETFESpacePtr_Type;
-    typedef typename super::ETFESpace_Type				ETFESpace_Type;
+    typedef typename super::ETFESpace_Type              ETFESpace_Type;
 
-    typedef MeshType										mesh_Type;
+    typedef MeshType                                        mesh_Type;
     typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 >                        scalarETFESpace_Type;
     typedef boost::shared_ptr<ETFESpace< mesh_Type, MapEpetra, 3, 1 > >    scalarETFESpacePtr_Type;
 
@@ -331,10 +331,10 @@ public:
       \param offset: the offset parameter used assembling the matrices
     */
     inline void setup ( const FESpacePtr_Type& dFESpace,
-                         const ETFESpacePtr_Type& dETFESpace,
-                         const boost::shared_ptr<const MapEpetra>&   monolithicMap,
-                         const UInt offset, const dataPtr_Type& dataMaterial,
-                         const displayerPtr_Type& displayer  );
+                        const ETFESpacePtr_Type& dETFESpace,
+                        const boost::shared_ptr<const MapEpetra>&   monolithicMap,
+                        const UInt offset, const dataPtr_Type& dataMaterial,
+                        const displayerPtr_Type& displayer  );
 
 
     void setup ( const FESpacePtr_Type& dFESpace,
@@ -501,47 +501,56 @@ public:
 
     //! @name set Methods
     //@{
-    inline void setGammaf( const vector_Type& gammaf) { M_Gammaf.reset( new vector_Type( gammaf ) ); }
+    inline void setGammaf ( const vector_Type& gammaf)
+    {
+        M_Gammaf.reset ( new vector_Type ( gammaf ) );
+    }
 
-    inline void setFiberVector( const vector_Type& fiberVector) { M_fiberVector.reset( new vector_Type( fiberVector ) ); }
+    inline void setFiberVector ( const vector_Type& fiberVector)
+    {
+        M_fiberVector.reset ( new vector_Type ( fiberVector ) );
+    }
 
-    inline void setSheetVector( const vector_Type& sheetVector) { M_sheetVector.reset( new vector_Type( sheetVector ) ); }
+    inline void setSheetVector ( const vector_Type& sheetVector)
+    {
+        M_sheetVector.reset ( new vector_Type ( sheetVector ) );
+    }
 
     //@}
 
     //! @name Methods
     //@{
 
-    inline void setupFiberVector( std::string& name, boost::shared_ptr<mesh_Type> mesh )
+    inline void setupFiberVector ( std::string& name, boost::shared_ptr<mesh_Type> mesh )
     {
-        HeartUtility::importFibers( M_fiberVector, name, mesh  );
+        HeartUtility::importFibers ( M_fiberVector, name, mesh  );
     }
 
-    inline void setupFiberVector( std::string& name, std::string& path )
+    inline void setupFiberVector ( std::string& name, std::string& path )
     {
-        HeartUtility::importFibers( M_fiberVector, name, path  );
+        HeartUtility::importFibers ( M_fiberVector, name, path  );
     }
 
-    void setupFiberVector( Real& fx, Real& fy, Real& fz )
+    void setupFiberVector ( Real& fx, Real& fy, Real& fz )
     {
-        HeartUtility::setupFibers( *M_fiberVector, fx, fy, fz  );
+        HeartUtility::setupFibers ( *M_fiberVector, fx, fy, fz  );
     }
 
-    inline void setupSheetVector( std::string& name, boost::shared_ptr<mesh_Type> mesh )
+    inline void setupSheetVector ( std::string& name, boost::shared_ptr<mesh_Type> mesh )
     {
-        HeartUtility::importFibers( M_sheetVector, name, mesh  );
+        HeartUtility::importFibers ( M_sheetVector, name, mesh  );
     }
 
-    inline void setupSheetVector( std::string& name, std::string& path )
+    inline void setupSheetVector ( std::string& name, std::string& path )
     {
-        HeartUtility::importFibers( M_sheetVector, name, path  );
+        HeartUtility::importFibers ( M_sheetVector, name, path  );
     }
 
-    void setupSheetVector( Real& sx, Real& sy, Real& sz )
+    void setupSheetVector ( Real& sx, Real& sy, Real& sz )
     {
-        HeartUtility::setupFibers( *M_sheetVector, sx, sy, sz);
+        HeartUtility::setupFibers ( *M_sheetVector, sx, sy, sz);
     }
-            //@}
+    //@}
 
 protected:
 
@@ -554,11 +563,11 @@ protected:
 
     //! Vector: stiffness non-linear
     vectorPtr_Type                      M_stiff;
-    vectorPtr_Type						M_fiberVector;
-    vectorPtr_Type						M_sheetVector;
+    vectorPtr_Type                      M_fiberVector;
+    vectorPtr_Type                      M_sheetVector;
 
-    vectorPtr_Type						M_Gammaf;
-    scalarETFESpacePtr_Type				M_activationSpace;
+    vectorPtr_Type                      M_Gammaf;
+    scalarETFESpacePtr_Type             M_activationSpace;
 
 };
 
@@ -566,9 +575,9 @@ template <typename MeshType>
 HolzapfelOgdenMaterial<MeshType>::HolzapfelOgdenMaterial() :
     super           ( ),
     M_stiff         ( ),
-    M_Gammaf		( ),
-    M_fiberVector	( ),
-    M_sheetVector	( ),
+    M_Gammaf        ( ),
+    M_fiberVector   ( ),
+    M_sheetVector   ( ),
     M_activationSpace( )
 {
 }
@@ -585,10 +594,10 @@ HolzapfelOgdenMaterial<MeshType>::~HolzapfelOgdenMaterial()
 template <typename MeshType>
 void
 HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
-                     const ETFESpacePtr_Type& dETFESpace,
-                     const boost::shared_ptr<const MapEpetra>&   monolithicMap,
-                     const UInt offset, const dataPtr_Type& dataMaterial,
-                     const displayerPtr_Type& displayer  )
+                                          const ETFESpacePtr_Type& dETFESpace,
+                                          const boost::shared_ptr<const MapEpetra>&   monolithicMap,
+                                          const UInt offset, const dataPtr_Type& dataMaterial,
+                                          const displayerPtr_Type& displayer  )
 {
 
     this->M_displayer = displayer;
@@ -596,7 +605,7 @@ HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
 
     //    std::cout<<"I am setting up the Material"<<std::endl;
 
-//    M_stiff.
+    //    M_stiff.
     this->M_dispFESpace                 = dFESpace;
     this->M_dispETFESpace               = dETFESpace;
     this->M_localMap                    = monolithicMap;
@@ -605,16 +614,16 @@ HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
     this->M_displayer                   = displayer;
 
     M_stiff.reset                   ( new vector_Type (*this->M_localMap) );
-    M_fiberVector.reset				( new vector_Type (*this->M_localMap) );
-    M_sheetVector.reset				( new vector_Type (*this->M_localMap) );
-    M_activationSpace.reset 		( new scalarETFESpace_Type(	dETFESpace -> mesh(),
-    															&feTetraP1,
-                                                                dFESpace->map().commPtr()) );
-    M_Gammaf.reset 					( new vector_Type ( M_activationSpace -> map() ) );
+    M_fiberVector.reset             ( new vector_Type (*this->M_localMap) );
+    M_sheetVector.reset             ( new vector_Type (*this->M_localMap) );
+    M_activationSpace.reset         ( new scalarETFESpace_Type ( dETFESpace -> mesh(),
+                                                                 &feTetraP1,
+                                                                 dFESpace->map().commPtr() ) );
+    M_Gammaf.reset                  ( new vector_Type ( M_activationSpace -> map() ) );
 
 
 
- //   this->setDefaultParams();
+    //   this->setDefaultParams();
 
     // The 2 is because the law uses three parameters (mu, bulk).
     // another way would be to set up the number of constitutive parameters of the law
@@ -631,19 +640,25 @@ void HolzapfelOgdenMaterial<MeshType>::setDefaultParams()
     // Bulk modulus
     M_kappa = 350.0; // in [kPa]
     // Scalar parameters used in the model (default value, from G\"oktepe, 2011)
-    M_aiso = 0.496; M_af = 15.193; M_as =  3.283; M_afs = 0.662; // in [kPa]
-    M_biso = 7.209; M_bf = 20.417; M_bs = 11.176; M_bfs = 9.466; // adimensional
+    M_aiso = 0.496;
+    M_af = 15.193;
+    M_as =  3.283;
+    M_afs = 0.662; // in [kPa]
+    M_biso = 7.209;
+    M_bf = 20.417;
+    M_bs = 11.176;
+    M_bfs = 9.466; // adimensional
 }
 
 template <typename MeshType>
 void
 HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
-                                               const ETFESpacePtr_Type&                    dETFESpace,
-                                               const ETFESpacePtr_Type& activationSpace,
-                                               const boost::shared_ptr<const MapEpetra>&   monolithicMap,
-                                               const UInt                                  offset,
-                                               const dataPtr_Type&                         dataMaterial,
-                                               const displayerPtr_Type&                    displayer)
+                                          const ETFESpacePtr_Type&                    dETFESpace,
+                                          const ETFESpacePtr_Type& activationSpace,
+                                          const boost::shared_ptr<const MapEpetra>&   monolithicMap,
+                                          const UInt                                  offset,
+                                          const dataPtr_Type&                         dataMaterial,
+                                          const displayerPtr_Type&                    displayer)
 {
     this->M_displayer = displayer;
     this->M_dataMaterial  = dataMaterial;
@@ -656,14 +671,14 @@ HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                
     this->M_offset                      = offset;
     this->M_dataMaterial                = dataMaterial;
     this->M_displayer                   = displayer;
-    M_activationSpace 				= activationSpace;
+    M_activationSpace               = activationSpace;
     M_stiff.reset                   ( new vector_Type (*this->M_localMap) );
-    M_fiberVector.reset				( new vector_Type (*this->M_localMap) );
-    M_sheetVector.reset				( new vector_Type (*this->M_localMap) );
-    M_Gammaf.reset 					( new vector_Type ( M_activationSpace -> map() ) );
+    M_fiberVector.reset             ( new vector_Type (*this->M_localMap) );
+    M_sheetVector.reset             ( new vector_Type (*this->M_localMap) );
+    M_Gammaf.reset                  ( new vector_Type ( M_activationSpace -> map() ) );
 
 
-//    this->setDefaultParams();
+    //    this->setDefaultParams();
 
     // This parameters are not used, but we are keeping them to avoid
     // inconsistencies among different materials
@@ -675,31 +690,31 @@ HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                
 template <typename MeshType>
 void
 HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
-                                               const ETFESpacePtr_Type&                    dETFESpace,
-                                               const ETFESpacePtr_Type& activationSpace,
-                                               const boost::shared_ptr<const MapEpetra>&   monolithicMap,
-                                               const UInt                                  offset,
-                                               const dataPtr_Type&                         dataMaterial,
-                                               const displayerPtr_Type&                    displayer,
-                                               const vector_Type&							gammaf   )
+                                          const ETFESpacePtr_Type&                    dETFESpace,
+                                          const ETFESpacePtr_Type& activationSpace,
+                                          const boost::shared_ptr<const MapEpetra>&   monolithicMap,
+                                          const UInt                                  offset,
+                                          const dataPtr_Type&                         dataMaterial,
+                                          const displayerPtr_Type&                    displayer,
+                                          const vector_Type&                           gammaf   )
 {
-	setup ( dFESpace, dETFESpace, activationSpace, monolithicMap, offset, dataMaterial, displayer);
-	M_Gammaf = gammaf;
+    setup ( dFESpace, dETFESpace, activationSpace, monolithicMap, offset, dataMaterial, displayer);
+    M_Gammaf = gammaf;
 }
 
 template <typename MeshType>
 void
 HolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
-                                               const ETFESpacePtr_Type&                    dETFESpace,
-                                               const ETFESpacePtr_Type& activationSpace,
-                                               const boost::shared_ptr<const MapEpetra>&   monolithicMap,
-                                               const UInt                                  offset,
-                                               const dataPtr_Type&                         dataMaterial,
-                                               const displayerPtr_Type&                    displayer,
-                                               const vector_Type&							gammaf,
-                                               const vector_Type&							fiberVector)
+                                          const ETFESpacePtr_Type&                    dETFESpace,
+                                          const ETFESpacePtr_Type& activationSpace,
+                                          const boost::shared_ptr<const MapEpetra>&   monolithicMap,
+                                          const UInt                                  offset,
+                                          const dataPtr_Type&                         dataMaterial,
+                                          const displayerPtr_Type&                    displayer,
+                                          const vector_Type&                           gammaf,
+                                          const vector_Type&                           fiberVector)
 {
-	setup ( dFESpace, dETFESpace, activationSpace, monolithicMap, offset, dataMaterial, displayer, gammaf );
+    setup ( dFESpace, dETFESpace, activationSpace, monolithicMap, offset, dataMaterial, displayer, gammaf );
     M_fiberVector = fiberVector;
 }
 
@@ -731,23 +746,23 @@ HolzapfelOgdenMaterial<MeshType>::setupVectorsParameters ( void )
         ( (* (this->M_vectorsParameters) ) [0]) [ i ] = mu;
         ( (* (this->M_vectorsParameters) ) [1]) [ i ] = bulk;
 
-        M_aiso  = this->M_dataMaterial->A( markerID );
-        M_af    = this->M_dataMaterial->Af( markerID );
-        M_as    = this->M_dataMaterial->As( markerID );
-        M_afs   = this->M_dataMaterial->Afs( markerID );
-        M_biso  = this->M_dataMaterial->B( markerID );
-        M_bf    = this->M_dataMaterial->Bf( markerID );
-        M_as    = this->M_dataMaterial->Bs( markerID );
-        M_bfs   = this->M_dataMaterial->Bfs( markerID );
-        M_kappa = this->M_dataMaterial->bulk( markerID );
+        M_aiso  = this->M_dataMaterial->A ( markerID );
+        M_af    = this->M_dataMaterial->Af ( markerID );
+        M_as    = this->M_dataMaterial->As ( markerID );
+        M_afs   = this->M_dataMaterial->Afs ( markerID );
+        M_biso  = this->M_dataMaterial->B ( markerID );
+        M_bf    = this->M_dataMaterial->Bf ( markerID );
+        M_as    = this->M_dataMaterial->Bs ( markerID );
+        M_bfs   = this->M_dataMaterial->Bfs ( markerID );
+        M_kappa = this->M_dataMaterial->bulk ( markerID );
     }
 }
 
 
 template <typename MeshType>
 void HolzapfelOgdenMaterial<MeshType>::computeLinearStiff (dataPtr_Type& /*dataMaterial*/,
-                                                                const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
-                                                                const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/)
+                                                           const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
+                                                           const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/)
 {
     //! Empty method for neo-hookean material
 }
@@ -755,10 +770,10 @@ void HolzapfelOgdenMaterial<MeshType>::computeLinearStiff (dataPtr_Type& /*dataM
 
 template <typename MeshType>
 void HolzapfelOgdenMaterial<MeshType>::updateJacobianMatrix ( const vector_Type&       disp,
-                                                                   const dataPtr_Type&      dataMaterial,
-                                                                   const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                                   const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
-                                                                   const displayerPtr_Type& displayer )
+                                                              const dataPtr_Type&      dataMaterial,
+                                                              const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
+                                                              const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+                                                              const displayerPtr_Type& displayer )
 {
     this->M_jacobian.reset (new matrix_Type (*this->M_localMap) );
 
@@ -772,166 +787,169 @@ void HolzapfelOgdenMaterial<MeshType>::updateJacobianMatrix ( const vector_Type&
 
 template <typename MeshType>
 void HolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_Type&       jacobian,
-                                                                           const vector_Type&    disp,
-                                                                           const dataPtr_Type&   dataMaterial,
-                                                                           const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                                           const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
-                                                                           const displayerPtr_Type&  displayer )
+                                                                      const vector_Type&    disp,
+                                                                      const dataPtr_Type&   dataMaterial,
+                                                                      const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
+                                                                      const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+                                                                      const displayerPtr_Type&  displayer )
 {
-	{
-    using namespace ExpressionAssembly;
-
-    displayer->leaderPrint ("   Non-Linear S-  updating non linear terms in the Jacobian Matrix (Holzapfel-Ogden)");
-
-    * (jacobian) *= 0.0;
-
-    // Activation is Fa = gamma (fo x fo) + 1/sqrt(gamma) * (I - fo x fo)
-    BOOST_AUTO_TPL(gamma,  value(1.0) + value(this->M_activationSpace, *M_Gammaf));
-
-    MatrixSmall<3,3> Id;
-    Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
-    Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
-    Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
-
-    // Strain-energy terms
-    boost::shared_ptr<StrainEnergyHO::dW1> dW1fun(new StrainEnergyHO::dW1(M_aiso, M_biso));
-    boost::shared_ptr<StrainEnergyHO::d2W1> d2W1fun(new StrainEnergyHO::d2W1(M_aiso, M_biso));
-
-    boost::shared_ptr<StrainEnergyHO::dW4> dW4ffun(new StrainEnergyHO::dW4(M_af, M_bf));
-    boost::shared_ptr<StrainEnergyHO::d2W4> d2W4ffun(new StrainEnergyHO::d2W4(M_af, M_bf));
-
-    boost::shared_ptr<StrainEnergyHO::dW4> dW4sfun(new StrainEnergyHO::dW4(M_as, M_bs));
-    boost::shared_ptr<StrainEnergyHO::d2W4> d2W4sfun(new StrainEnergyHO::d2W4(M_as, M_bs));
-
-    boost::shared_ptr<StrainEnergyHO::dW8> dW8fsfun(new StrainEnergyHO::dW8(M_afs, M_bfs));
-    boost::shared_ptr<StrainEnergyHO::d2W8> d2W8fsfun(new StrainEnergyHO::d2W8(M_afs, M_bfs));
-
-    boost::shared_ptr<StrainEnergyHO::dWvol> dWvolfun(new StrainEnergyHO::dWvol(M_kappa));
-    boost::shared_ptr<StrainEnergyHO::d2Wvol> d2Wvolfun(new StrainEnergyHO::d2Wvol(M_kappa));
-
-    // Kinematics
-    BOOST_AUTO_TPL(I,      value(Id));
-    BOOST_AUTO_TPL(Grad_u, grad(this->M_dispETFESpace, disp, this->M_offset));
-    BOOST_AUTO_TPL(F,      Grad_u + I);
-    BOOST_AUTO_TPL(FmT,    minusT(F));
-    BOOST_AUTO_TPL(J,      det(F));
-    // Fibres
-    BOOST_AUTO_TPL(f0,     value(this->M_dispETFESpace, *M_fiberVector));
-    BOOST_AUTO_TPL(s0,     value(this->M_dispETFESpace, *M_sheetVector));
-    // Invariants
-    BOOST_AUTO_TPL(I1,     dot(F, F));
-    BOOST_AUTO_TPL(I4f,    dot(F*f0, F*f0));
-    BOOST_AUTO_TPL(I4s,    dot(F*s0, F*s0));
-    BOOST_AUTO_TPL(I8fs,   dot(F*f0, F*s0));
-    // Reduced invariants
-    BOOST_AUTO_TPL(Jm23,    pow(J, -2./3));
-    BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
-    BOOST_AUTO_TPL(I4fiso,  Jm23 * I4f);
-    BOOST_AUTO_TPL(I4siso,  Jm23 * I4s);
-    BOOST_AUTO_TPL(I8fsiso, Jm23 * I8fs);
-    // Generalised invariants
-    BOOST_AUTO_TPL(gammac, pow(gamma, -2) - gamma);
-
-    BOOST_AUTO_TPL(I1eiso,   gamma * I1iso + gammac * I4fiso);
-    BOOST_AUTO_TPL(I4feiso,  pow(gamma, -2) * I4fiso);
-    BOOST_AUTO_TPL(I4seiso,  gamma * I4siso);
-    BOOST_AUTO_TPL(I8fseiso, pow(gamma, -1./2) * I8fsiso);
-
-    // Strain-energy derivatives
-    BOOST_AUTO_TPL(dW1,    eval(dW1fun, I1eiso));
-    BOOST_AUTO_TPL(d2W1,   eval(d2W1fun, I1eiso));
-    BOOST_AUTO_TPL(dW4f,   eval(dW4ffun, I4feiso));
-    BOOST_AUTO_TPL(d2W4f,  eval(d2W4ffun, I4feiso));
-    BOOST_AUTO_TPL(dW4s,   eval(dW4sfun, I4seiso));
-    BOOST_AUTO_TPL(d2W4s,  eval(d2W4sfun, I4seiso));
-    BOOST_AUTO_TPL(dW8fs,  eval(dW8fsfun, I8fseiso));
-    BOOST_AUTO_TPL(d2W8fs, eval(d2W8fsfun, I8fseiso));
-
-    BOOST_AUTO_TPL(dWvol,  eval(dWvolfun, J));
-    BOOST_AUTO_TPL(d2Wvol, eval(d2Wvolfun, J));
-
-    // Deviatorics
-    BOOST_AUTO_TPL(Fdev1,   F - value(1./3)*I1*FmT);
-    BOOST_AUTO_TPL(Fdev4f,  outerProduct(F*f0, f0) - value(1./3)*I4f*FmT);
-    BOOST_AUTO_TPL(Fdev4s,  outerProduct(F*s0, s0) - value(1./3)*I4s*FmT);
-    BOOST_AUTO_TPL(Fdev8fs, value(0.5)*(outerProduct(F*s0, f0) + outerProduct(F*f0, s0)) - value(1./3)*I8fs*FmT);
-
-    // Derivatives
-    BOOST_AUTO_TPL(dF,   grad(phi_j));
-    BOOST_AUTO_TPL(dJ,   J*FmT);
-    BOOST_AUTO_TPL(dFmT, value(-1.0)*FmT*transpose(dF)*FmT);
-
-    BOOST_AUTO_TPL(dI1eiso,   value(2.)*Jm23*(gamma*Fdev1 + gammac*Fdev4f));
-    BOOST_AUTO_TPL(dI4feiso,  value(2.)*Jm23*pow(gamma, -2)*Fdev4f);
-    BOOST_AUTO_TPL(dI4seiso,  value(2.)*Jm23*gamma*Fdev4s);
-    BOOST_AUTO_TPL(dI8fseiso, value(2.)*Jm23*pow(gamma, -1./2)*Fdev8fs);
-
-    BOOST_AUTO_TPL(dFdev1,   dF + value(-1./3)*(value(2.0)*dot(F, dF)*FmT + I1*dFmT));
-    BOOST_AUTO_TPL(dFdev4f,  outerProduct(dF*f0, f0) - value(1./3)*(value(2.0)*dot(F*f0, dF*f0)*FmT + I4f*dFmT));
-    BOOST_AUTO_TPL(dFdev4s,  outerProduct(dF*s0, s0) - value(1./3)*(value(2.0)*dot(F*s0, dF*s0)*FmT + I4s*dFmT));
-    BOOST_AUTO_TPL(dFdev8fs,   value(0.5)*(outerProduct(dF*s0, f0) + outerProduct(dF*f0, s0))
-                             - value(1./3)*((dot(F*s0, dF*f0)+dot(F*f0, dF*s0))*FmT + I8fs*dFmT));
-
-    BOOST_AUTO_TPL(d2I1eiso,    value(2.)*Jm23*(gamma*dFdev1 + gammac*dFdev4f
-                              - value(2./3)*dot(FmT, dF)*(gamma*Fdev1 + gammac*Fdev4f)));
-    BOOST_AUTO_TPL(d2I4feiso,   value(2.)*Jm23*pow(gamma, -2)*(dFdev4f
-                              - value(2./3)*dot(FmT, dF)*Fdev4f));
-    BOOST_AUTO_TPL(d2I4seiso,   value(2.)*Jm23*gamma*(dFdev4s
-                              - value(2./3)*dot(FmT, dF)*Fdev4s));
-    BOOST_AUTO_TPL(d2I8fseiso,   value(2.)*Jm23*pow(gamma,-1./2)*(dFdev8fs
-                               - value(2./3)*dot(FmT, dF)*Fdev8fs));
-
-    // Isochoric part
-    BOOST_AUTO_TPL(Piso_1,   dW1*dI1eiso);
-    BOOST_AUTO_TPL(Piso_4f,  dW4f*dI4feiso);
-    BOOST_AUTO_TPL(Piso_4s,  dW4s*dI4seiso);
-    BOOST_AUTO_TPL(Piso_8fs, dW8fs*dI8fseiso);
-
-    BOOST_AUTO_TPL(dPiso_1,   d2W1*dot(dI1eiso, dF)*dI1eiso + dW1*d2I1eiso );
-    BOOST_AUTO_TPL(dPiso_4f,  d2W4f*dot(dI4feiso, dF)*dI4feiso + dW4f*d2I4feiso );
-    BOOST_AUTO_TPL(dPiso_4s,  d2W4s*dot(dI4seiso, dF)*dI4seiso + dW4s*d2I4seiso );
-    BOOST_AUTO_TPL(dPiso_8fs, d2W8fs*dot(dI8fseiso, dF)*dI8fseiso + dW8fs*d2I8fseiso );
-
-    // Volumetric part
-    BOOST_AUTO_TPL(Pvol,  dWvol*dJ);
-    BOOST_AUTO_TPL(dPvol, (d2Wvol + J*dWvol)*dot(FmT, dF)*dJ + dWvol*J*dFmT);
-
-    // Assembly
-    integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-                this->M_dispFESpace->qr(),
-                this->M_dispETFESpace,
-                this->M_dispETFESpace,
-                dot(dPiso_1 + dPvol, grad(phi_i))
-              ) >> jacobian;
-    if(M_af > 0)
     {
-		integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-					this->M_dispFESpace->qr(),
-					this->M_dispETFESpace,
-					this->M_dispETFESpace,
-					dot( dPiso_4f , grad(phi_i))
-				  ) >> jacobian;
-    }
-    if(M_as > 0)
-    {
-		integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-                this->M_dispFESpace->qr(),
-                this->M_dispETFESpace,
-                this->M_dispETFESpace,
-                dot( dPiso_4s, grad(phi_i))
-              ) >> jacobian;
-    }
-    if(M_afs > 0)
-    {
-    	integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
-                this->M_dispFESpace->qr(),
-                this->M_dispETFESpace,
-                this->M_dispETFESpace,
-                dot( dPiso_8fs, grad(phi_i))
-              ) >> jacobian;
-    }
+        using namespace ExpressionAssembly;
 
-	}
+        displayer->leaderPrint ("   Non-Linear S-  updating non linear terms in the Jacobian Matrix (Holzapfel-Ogden)");
+
+        * (jacobian) *= 0.0;
+
+        // Activation is Fa = gamma (fo x fo) + 1/sqrt(gamma) * (I - fo x fo)
+        BOOST_AUTO_TPL (gamma,  value (1.0) + value (this->M_activationSpace, *M_Gammaf) );
+
+        MatrixSmall<3, 3> Id;
+        Id (0, 0) = 1.;
+        Id (0, 1) = 0., Id (0, 2) = 0.;
+        Id (1, 0) = 0.;
+        Id (1, 1) = 1., Id (1, 2) = 0.;
+        Id (2, 0) = 0.;
+        Id (2, 1) = 0., Id (2, 2) = 1.;
+
+        // Strain-energy terms
+        boost::shared_ptr<StrainEnergyHO::dW1> dW1fun (new StrainEnergyHO::dW1 (M_aiso, M_biso) );
+        boost::shared_ptr<StrainEnergyHO::d2W1> d2W1fun (new StrainEnergyHO::d2W1 (M_aiso, M_biso) );
+
+        boost::shared_ptr<StrainEnergyHO::dW4> dW4ffun (new StrainEnergyHO::dW4 (M_af, M_bf) );
+        boost::shared_ptr<StrainEnergyHO::d2W4> d2W4ffun (new StrainEnergyHO::d2W4 (M_af, M_bf) );
+
+        boost::shared_ptr<StrainEnergyHO::dW4> dW4sfun (new StrainEnergyHO::dW4 (M_as, M_bs) );
+        boost::shared_ptr<StrainEnergyHO::d2W4> d2W4sfun (new StrainEnergyHO::d2W4 (M_as, M_bs) );
+
+        boost::shared_ptr<StrainEnergyHO::dW8> dW8fsfun (new StrainEnergyHO::dW8 (M_afs, M_bfs) );
+        boost::shared_ptr<StrainEnergyHO::d2W8> d2W8fsfun (new StrainEnergyHO::d2W8 (M_afs, M_bfs) );
+
+        boost::shared_ptr<StrainEnergyHO::dWvol> dWvolfun (new StrainEnergyHO::dWvol (M_kappa) );
+        boost::shared_ptr<StrainEnergyHO::d2Wvol> d2Wvolfun (new StrainEnergyHO::d2Wvol (M_kappa) );
+
+        // Kinematics
+        BOOST_AUTO_TPL (I,      value (Id) );
+        BOOST_AUTO_TPL (Grad_u, grad (this->M_dispETFESpace, disp, this->M_offset) );
+        BOOST_AUTO_TPL (F,      Grad_u + I);
+        BOOST_AUTO_TPL (FmT,    minusT (F) );
+        BOOST_AUTO_TPL (J,      det (F) );
+        // Fibres
+        BOOST_AUTO_TPL (f0,     value (this->M_dispETFESpace, *M_fiberVector) );
+        BOOST_AUTO_TPL (s0,     value (this->M_dispETFESpace, *M_sheetVector) );
+        // Invariants
+        BOOST_AUTO_TPL (I1,     dot (F, F) );
+        BOOST_AUTO_TPL (I4f,    dot (F * f0, F * f0) );
+        BOOST_AUTO_TPL (I4s,    dot (F * s0, F * s0) );
+        BOOST_AUTO_TPL (I8fs,   dot (F * f0, F * s0) );
+        // Reduced invariants
+        BOOST_AUTO_TPL (Jm23,    pow (J, -2. / 3) );
+        BOOST_AUTO_TPL (I1iso,   Jm23 * I1);
+        BOOST_AUTO_TPL (I4fiso,  Jm23 * I4f);
+        BOOST_AUTO_TPL (I4siso,  Jm23 * I4s);
+        BOOST_AUTO_TPL (I8fsiso, Jm23 * I8fs);
+        // Generalised invariants
+        BOOST_AUTO_TPL (gammac, pow (gamma, -2) - gamma);
+
+        BOOST_AUTO_TPL (I1eiso,   gamma * I1iso + gammac * I4fiso);
+        BOOST_AUTO_TPL (I4feiso,  pow (gamma, -2) * I4fiso);
+        BOOST_AUTO_TPL (I4seiso,  gamma * I4siso);
+        BOOST_AUTO_TPL (I8fseiso, pow (gamma, -1. / 2) * I8fsiso);
+
+        // Strain-energy derivatives
+        BOOST_AUTO_TPL (dW1,    eval (dW1fun, I1eiso) );
+        BOOST_AUTO_TPL (d2W1,   eval (d2W1fun, I1eiso) );
+        BOOST_AUTO_TPL (dW4f,   eval (dW4ffun, I4feiso) );
+        BOOST_AUTO_TPL (d2W4f,  eval (d2W4ffun, I4feiso) );
+        BOOST_AUTO_TPL (dW4s,   eval (dW4sfun, I4seiso) );
+        BOOST_AUTO_TPL (d2W4s,  eval (d2W4sfun, I4seiso) );
+        BOOST_AUTO_TPL (dW8fs,  eval (dW8fsfun, I8fseiso) );
+        BOOST_AUTO_TPL (d2W8fs, eval (d2W8fsfun, I8fseiso) );
+
+        BOOST_AUTO_TPL (dWvol,  eval (dWvolfun, J) );
+        BOOST_AUTO_TPL (d2Wvol, eval (d2Wvolfun, J) );
+
+        // Deviatorics
+        BOOST_AUTO_TPL (Fdev1,   F - value (1. / 3) *I1 * FmT);
+        BOOST_AUTO_TPL (Fdev4f,  outerProduct (F * f0, f0) - value (1. / 3) *I4f * FmT);
+        BOOST_AUTO_TPL (Fdev4s,  outerProduct (F * s0, s0) - value (1. / 3) *I4s * FmT);
+        BOOST_AUTO_TPL (Fdev8fs, value (0.5) * (outerProduct (F * s0, f0) + outerProduct (F * f0, s0) ) - value (1. / 3) *I8fs * FmT);
+
+        // Derivatives
+        BOOST_AUTO_TPL (dF,   grad (phi_j) );
+        BOOST_AUTO_TPL (dJ,   J * FmT);
+        BOOST_AUTO_TPL (dFmT, value (-1.0) *FmT * transpose (dF) *FmT);
+
+        BOOST_AUTO_TPL (dI1eiso,   value (2.) *Jm23 * (gamma * Fdev1 + gammac * Fdev4f) );
+        BOOST_AUTO_TPL (dI4feiso,  value (2.) *Jm23 * pow (gamma, -2) *Fdev4f);
+        BOOST_AUTO_TPL (dI4seiso,  value (2.) *Jm23 * gamma * Fdev4s);
+        BOOST_AUTO_TPL (dI8fseiso, value (2.) *Jm23 * pow (gamma, -1. / 2) *Fdev8fs);
+
+        BOOST_AUTO_TPL (dFdev1,   dF + value (-1. / 3) * (value (2.0) *dot (F, dF) *FmT + I1 * dFmT) );
+        BOOST_AUTO_TPL (dFdev4f,  outerProduct (dF * f0, f0) - value (1. / 3) * (value (2.0) *dot (F * f0, dF * f0) *FmT + I4f * dFmT) );
+        BOOST_AUTO_TPL (dFdev4s,  outerProduct (dF * s0, s0) - value (1. / 3) * (value (2.0) *dot (F * s0, dF * s0) *FmT + I4s * dFmT) );
+        BOOST_AUTO_TPL (dFdev8fs,   value (0.5) * (outerProduct (dF * s0, f0) + outerProduct (dF * f0, s0) )
+                        - value (1. / 3) * ( (dot (F * s0, dF * f0) + dot (F * f0, dF * s0) ) *FmT + I8fs * dFmT) );
+
+        BOOST_AUTO_TPL (d2I1eiso,    value (2.) *Jm23 * (gamma * dFdev1 + gammac * dFdev4f
+                                                         - value (2. / 3) *dot (FmT, dF) * (gamma * Fdev1 + gammac * Fdev4f) ) );
+        BOOST_AUTO_TPL (d2I4feiso,   value (2.) *Jm23 * pow (gamma, -2) * (dFdev4f
+                                                                           - value (2. / 3) *dot (FmT, dF) *Fdev4f) );
+        BOOST_AUTO_TPL (d2I4seiso,   value (2.) *Jm23 * gamma * (dFdev4s
+                                                                 - value (2. / 3) *dot (FmT, dF) *Fdev4s) );
+        BOOST_AUTO_TPL (d2I8fseiso,   value (2.) *Jm23 * pow (gamma, -1. / 2) * (dFdev8fs
+                                                                                 - value (2. / 3) *dot (FmT, dF) *Fdev8fs) );
+
+        // Isochoric part
+        BOOST_AUTO_TPL (Piso_1,   dW1 * dI1eiso);
+        BOOST_AUTO_TPL (Piso_4f,  dW4f * dI4feiso);
+        BOOST_AUTO_TPL (Piso_4s,  dW4s * dI4seiso);
+        BOOST_AUTO_TPL (Piso_8fs, dW8fs * dI8fseiso);
+
+        BOOST_AUTO_TPL (dPiso_1,   d2W1 * dot (dI1eiso, dF) *dI1eiso + dW1 * d2I1eiso );
+        BOOST_AUTO_TPL (dPiso_4f,  d2W4f * dot (dI4feiso, dF) *dI4feiso + dW4f * d2I4feiso );
+        BOOST_AUTO_TPL (dPiso_4s,  d2W4s * dot (dI4seiso, dF) *dI4seiso + dW4s * d2I4seiso );
+        BOOST_AUTO_TPL (dPiso_8fs, d2W8fs * dot (dI8fseiso, dF) *dI8fseiso + dW8fs * d2I8fseiso );
+
+        // Volumetric part
+        BOOST_AUTO_TPL (Pvol,  dWvol * dJ);
+        BOOST_AUTO_TPL (dPvol, (d2Wvol + J * dWvol) *dot (FmT, dF) *dJ + dWvol * J * dFmT);
+
+        // Assembly
+        integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                    this->M_dispFESpace->qr(),
+                    this->M_dispETFESpace,
+                    this->M_dispETFESpace,
+                    dot (dPiso_1 + dPvol, grad (phi_i) )
+                  ) >> jacobian;
+        if (M_af > 0)
+        {
+            integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                        this->M_dispFESpace->qr(),
+                        this->M_dispETFESpace,
+                        this->M_dispETFESpace,
+                        dot ( dPiso_4f , grad (phi_i) )
+                      ) >> jacobian;
+        }
+        if (M_as > 0)
+        {
+            integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                        this->M_dispFESpace->qr(),
+                        this->M_dispETFESpace,
+                        this->M_dispETFESpace,
+                        dot ( dPiso_4s, grad (phi_i) )
+                      ) >> jacobian;
+        }
+        if (M_afs > 0)
+        {
+            integrate ( elements ( this->M_dispETFESpace->mesh() ) ,
+                        this->M_dispFESpace->qr(),
+                        this->M_dispETFESpace,
+                        this->M_dispETFESpace,
+                        dot ( dPiso_8fs, grad (phi_i) )
+                      ) >> jacobian;
+        }
+
+    }
 
 
     jacobian->globalAssemble();
@@ -949,11 +967,11 @@ void HolzapfelOgdenMaterial<MeshType>::apply ( const vector_Type& sol, vector_Ty
 
 template <typename MeshType>
 void HolzapfelOgdenMaterial<MeshType>::computeStiffness ( const vector_Type&       disp,
-                                                       Real                     /*factor*/,
-                                                       const dataPtr_Type&      dataMaterial,
-                                                       const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
-                                                       const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
-                                                       const displayerPtr_Type& displayer )
+                                                          Real                     /*factor*/,
+                                                          const dataPtr_Type&      dataMaterial,
+                                                          const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
+                                                          const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
+                                                          const displayerPtr_Type& displayer )
 {
     using namespace ExpressionAssembly;
 
@@ -967,149 +985,152 @@ void HolzapfelOgdenMaterial<MeshType>::computeStiffness ( const vector_Type&    
     * (M_stiff) *= 0.0;
 
     // Activation is Fa = gamma (fo x fo) + 1/sqrt(gamma) * (I - fo x fo)
-    BOOST_AUTO_TPL(gamma,  value(1.0) + value(this->M_activationSpace, *M_Gammaf));
+    BOOST_AUTO_TPL (gamma,  value (1.0) + value (this->M_activationSpace, *M_Gammaf) );
 
-    MatrixSmall<3,3> Id;
-    Id(0,0) = 1.; Id(0,1) = 0., Id(0,2) = 0.;
-    Id(1,0) = 0.; Id(1,1) = 1., Id(1,2) = 0.;
-    Id(2,0) = 0.; Id(2,1) = 0., Id(2,2) = 1.;
+    MatrixSmall<3, 3> Id;
+    Id (0, 0) = 1.;
+    Id (0, 1) = 0., Id (0, 2) = 0.;
+    Id (1, 0) = 0.;
+    Id (1, 1) = 1., Id (1, 2) = 0.;
+    Id (2, 0) = 0.;
+    Id (2, 1) = 0., Id (2, 2) = 1.;
 
     // Strain-energy terms
-    boost::shared_ptr<StrainEnergyHO::dW1> dW1fun(new StrainEnergyHO::dW1(M_aiso, M_biso));
-    boost::shared_ptr<StrainEnergyHO::d2W1> d2W1fun(new StrainEnergyHO::d2W1(M_aiso, M_biso));
+    boost::shared_ptr<StrainEnergyHO::dW1> dW1fun (new StrainEnergyHO::dW1 (M_aiso, M_biso) );
+    boost::shared_ptr<StrainEnergyHO::d2W1> d2W1fun (new StrainEnergyHO::d2W1 (M_aiso, M_biso) );
 
-    boost::shared_ptr<StrainEnergyHO::dW4> dW4ffun(new StrainEnergyHO::dW4(M_af, M_bf));
-    boost::shared_ptr<StrainEnergyHO::d2W4> d2W4ffun(new StrainEnergyHO::d2W4(M_af, M_bf));
+    boost::shared_ptr<StrainEnergyHO::dW4> dW4ffun (new StrainEnergyHO::dW4 (M_af, M_bf) );
+    boost::shared_ptr<StrainEnergyHO::d2W4> d2W4ffun (new StrainEnergyHO::d2W4 (M_af, M_bf) );
 
-    boost::shared_ptr<StrainEnergyHO::dW4> dW4sfun(new StrainEnergyHO::dW4(M_as, M_bs));
-    boost::shared_ptr<StrainEnergyHO::d2W4> d2W4sfun(new StrainEnergyHO::d2W4(M_as, M_bs));
+    boost::shared_ptr<StrainEnergyHO::dW4> dW4sfun (new StrainEnergyHO::dW4 (M_as, M_bs) );
+    boost::shared_ptr<StrainEnergyHO::d2W4> d2W4sfun (new StrainEnergyHO::d2W4 (M_as, M_bs) );
 
-    boost::shared_ptr<StrainEnergyHO::dW8> dW8fsfun(new StrainEnergyHO::dW8(M_afs, M_bfs));
-    boost::shared_ptr<StrainEnergyHO::d2W8> d2W8fsfun(new StrainEnergyHO::d2W8(M_afs, M_bfs));
+    boost::shared_ptr<StrainEnergyHO::dW8> dW8fsfun (new StrainEnergyHO::dW8 (M_afs, M_bfs) );
+    boost::shared_ptr<StrainEnergyHO::d2W8> d2W8fsfun (new StrainEnergyHO::d2W8 (M_afs, M_bfs) );
 
-    boost::shared_ptr<StrainEnergyHO::dWvol> dWvolfun(new StrainEnergyHO::dWvol(M_kappa));
-    boost::shared_ptr<StrainEnergyHO::d2Wvol> d2Wvolfun(new StrainEnergyHO::d2Wvol(M_kappa));
+    boost::shared_ptr<StrainEnergyHO::dWvol> dWvolfun (new StrainEnergyHO::dWvol (M_kappa) );
+    boost::shared_ptr<StrainEnergyHO::d2Wvol> d2Wvolfun (new StrainEnergyHO::d2Wvol (M_kappa) );
 
     // Kinematics
-    BOOST_AUTO_TPL(I,      value(Id));
-    BOOST_AUTO_TPL(Grad_u, grad(this->M_dispETFESpace, disp, this->M_offset));
-    BOOST_AUTO_TPL(F,      Grad_u + I);
-    BOOST_AUTO_TPL(FmT,    minusT(F));
-    BOOST_AUTO_TPL(J,      det(F));
+    BOOST_AUTO_TPL (I,      value (Id) );
+    BOOST_AUTO_TPL (Grad_u, grad (this->M_dispETFESpace, disp, this->M_offset) );
+    BOOST_AUTO_TPL (F,      Grad_u + I);
+    BOOST_AUTO_TPL (FmT,    minusT (F) );
+    BOOST_AUTO_TPL (J,      det (F) );
     // Fibres
-    BOOST_AUTO_TPL(f0,     value(this->M_dispETFESpace, *M_fiberVector));
-    BOOST_AUTO_TPL(s0,     value(this->M_dispETFESpace, *M_sheetVector));
+    BOOST_AUTO_TPL (f0,     value (this->M_dispETFESpace, *M_fiberVector) );
+    BOOST_AUTO_TPL (s0,     value (this->M_dispETFESpace, *M_sheetVector) );
     // Invariants
-    BOOST_AUTO_TPL(I1,     dot(F, F));
-    BOOST_AUTO_TPL(I4f,    dot(F*f0, F*f0));
-    BOOST_AUTO_TPL(I4s,    dot(F*s0, F*s0));
-    BOOST_AUTO_TPL(I8fs,   dot(F*f0, F*s0));
+    BOOST_AUTO_TPL (I1,     dot (F, F) );
+    BOOST_AUTO_TPL (I4f,    dot (F * f0, F * f0) );
+    BOOST_AUTO_TPL (I4s,    dot (F * s0, F * s0) );
+    BOOST_AUTO_TPL (I8fs,   dot (F * f0, F * s0) );
     // Reduced invariants
-    BOOST_AUTO_TPL(Jm23,    pow(J, -2./3));
-    BOOST_AUTO_TPL(I1iso,   Jm23 * I1);
-    BOOST_AUTO_TPL(I4fiso,  Jm23 * I4f);
-    BOOST_AUTO_TPL(I4siso,  Jm23 * I4s);
-    BOOST_AUTO_TPL(I8fsiso, Jm23 * I8fs);
+    BOOST_AUTO_TPL (Jm23,    pow (J, -2. / 3) );
+    BOOST_AUTO_TPL (I1iso,   Jm23 * I1);
+    BOOST_AUTO_TPL (I4fiso,  Jm23 * I4f);
+    BOOST_AUTO_TPL (I4siso,  Jm23 * I4s);
+    BOOST_AUTO_TPL (I8fsiso, Jm23 * I8fs);
     // Generalised invariants
-    BOOST_AUTO_TPL(gammac, pow(gamma, -2) - gamma);
+    BOOST_AUTO_TPL (gammac, pow (gamma, -2) - gamma);
 
-    BOOST_AUTO_TPL(I1eiso,   gamma * I1iso + gammac * I4fiso);
-    BOOST_AUTO_TPL(I4feiso,  pow(gamma, -2) * I4fiso);
-    BOOST_AUTO_TPL(I4seiso,  gamma * I4siso);
-    BOOST_AUTO_TPL(I8fseiso, pow(gamma, -1./2) * I8fsiso);
+    BOOST_AUTO_TPL (I1eiso,   gamma * I1iso + gammac * I4fiso);
+    BOOST_AUTO_TPL (I4feiso,  pow (gamma, -2) * I4fiso);
+    BOOST_AUTO_TPL (I4seiso,  gamma * I4siso);
+    BOOST_AUTO_TPL (I8fseiso, pow (gamma, -1. / 2) * I8fsiso);
 
     // Strain-energy derivatives
-    BOOST_AUTO_TPL(dW1,    eval(dW1fun, I1eiso));
-    BOOST_AUTO_TPL(d2W1,   eval(d2W1fun, I1eiso));
-    BOOST_AUTO_TPL(dW4f,   eval(dW4ffun, I4feiso));
-    BOOST_AUTO_TPL(d2W4f,  eval(d2W4ffun, I4feiso));
-    BOOST_AUTO_TPL(dW4s,   eval(dW4sfun, I4seiso));
-    BOOST_AUTO_TPL(d2W4s,  eval(d2W4sfun, I4seiso));
-    BOOST_AUTO_TPL(dW8fs,  eval(dW8fsfun, I8fseiso));
-    BOOST_AUTO_TPL(d2W8fs, eval(d2W8fsfun, I8fseiso));
+    BOOST_AUTO_TPL (dW1,    eval (dW1fun, I1eiso) );
+    BOOST_AUTO_TPL (d2W1,   eval (d2W1fun, I1eiso) );
+    BOOST_AUTO_TPL (dW4f,   eval (dW4ffun, I4feiso) );
+    BOOST_AUTO_TPL (d2W4f,  eval (d2W4ffun, I4feiso) );
+    BOOST_AUTO_TPL (dW4s,   eval (dW4sfun, I4seiso) );
+    BOOST_AUTO_TPL (d2W4s,  eval (d2W4sfun, I4seiso) );
+    BOOST_AUTO_TPL (dW8fs,  eval (dW8fsfun, I8fseiso) );
+    BOOST_AUTO_TPL (d2W8fs, eval (d2W8fsfun, I8fseiso) );
 
-    BOOST_AUTO_TPL(dWvol,  eval(dWvolfun, J));
-    BOOST_AUTO_TPL(d2Wvol, eval(d2Wvolfun, J));
+    BOOST_AUTO_TPL (dWvol,  eval (dWvolfun, J) );
+    BOOST_AUTO_TPL (d2Wvol, eval (d2Wvolfun, J) );
 
     // Deviatorics
-    BOOST_AUTO_TPL(Fdev1,   F - value(1./3)*I1*FmT);
-    BOOST_AUTO_TPL(Fdev4f,  outerProduct(F*f0, f0) - value(1./3)*I4f*FmT);
-    BOOST_AUTO_TPL(Fdev4s,  outerProduct(F*s0, s0) - value(1./3)*I4s*FmT);
-    BOOST_AUTO_TPL(Fdev8fs, value(0.5)*(outerProduct(F*s0, f0) + outerProduct(F*f0, s0)) - value(1./3)*I8fs*FmT);
+    BOOST_AUTO_TPL (Fdev1,   F - value (1. / 3) *I1 * FmT);
+    BOOST_AUTO_TPL (Fdev4f,  outerProduct (F * f0, f0) - value (1. / 3) *I4f * FmT);
+    BOOST_AUTO_TPL (Fdev4s,  outerProduct (F * s0, s0) - value (1. / 3) *I4s * FmT);
+    BOOST_AUTO_TPL (Fdev8fs, value (0.5) * (outerProduct (F * s0, f0) + outerProduct (F * f0, s0) ) - value (1. / 3) *I8fs * FmT);
 
     // Derivatives
-    BOOST_AUTO_TPL(dF,   grad(phi_j));
-    BOOST_AUTO_TPL(dJ,   J*FmT);
-    BOOST_AUTO_TPL(dFmT, value(-1.0)*FmT*transpose(dF)*FmT);
+    BOOST_AUTO_TPL (dF,   grad (phi_j) );
+    BOOST_AUTO_TPL (dJ,   J * FmT);
+    BOOST_AUTO_TPL (dFmT, value (-1.0) *FmT * transpose (dF) *FmT);
 
-    BOOST_AUTO_TPL(dI1eiso,   value(2.)*Jm23*(gamma*Fdev1 + gammac*Fdev4f));
-    BOOST_AUTO_TPL(dI4feiso,  value(2.)*Jm23*pow(gamma, -2)*Fdev4f);
-    BOOST_AUTO_TPL(dI4seiso,  value(2.)*Jm23*gamma*Fdev4s);
-    BOOST_AUTO_TPL(dI8fseiso, value(2.)*Jm23*pow(gamma, -1./2)*Fdev8fs);
+    BOOST_AUTO_TPL (dI1eiso,   value (2.) *Jm23 * (gamma * Fdev1 + gammac * Fdev4f) );
+    BOOST_AUTO_TPL (dI4feiso,  value (2.) *Jm23 * pow (gamma, -2) *Fdev4f);
+    BOOST_AUTO_TPL (dI4seiso,  value (2.) *Jm23 * gamma * Fdev4s);
+    BOOST_AUTO_TPL (dI8fseiso, value (2.) *Jm23 * pow (gamma, -1. / 2) *Fdev8fs);
 
-    BOOST_AUTO_TPL(dFdev1,   dF + value(-1./3)*(value(2.0)*dot(F, dF)*FmT + I1*dFmT));
-    BOOST_AUTO_TPL(dFdev4f,  outerProduct(dF*f0, f0) - value(1./3)*(value(2.0)*dot(F*f0, dF*f0)*FmT + I4f*dFmT));
-    BOOST_AUTO_TPL(dFdev4s,  outerProduct(dF*s0, s0) - value(1./3)*(value(2.0)*dot(F*s0, dF*s0)*FmT + I4s*dFmT));
-    BOOST_AUTO_TPL(dFdev8fs,   value(0.5)*(outerProduct(dF*s0, f0) + outerProduct(dF*f0, s0))
-                             - value(1./3)*((dot(F*s0, dF*f0)+dot(F*f0, dF*s0))*FmT + I8fs*dFmT));
+    BOOST_AUTO_TPL (dFdev1,   dF + value (-1. / 3) * (value (2.0) *dot (F, dF) *FmT + I1 * dFmT) );
+    BOOST_AUTO_TPL (dFdev4f,  outerProduct (dF * f0, f0) - value (1. / 3) * (value (2.0) *dot (F * f0, dF * f0) *FmT + I4f * dFmT) );
+    BOOST_AUTO_TPL (dFdev4s,  outerProduct (dF * s0, s0) - value (1. / 3) * (value (2.0) *dot (F * s0, dF * s0) *FmT + I4s * dFmT) );
+    BOOST_AUTO_TPL (dFdev8fs,   value (0.5) * (outerProduct (dF * s0, f0) + outerProduct (dF * f0, s0) )
+                    - value (1. / 3) * ( (dot (F * s0, dF * f0) + dot (F * f0, dF * s0) ) *FmT + I8fs * dFmT) );
 
-    BOOST_AUTO_TPL(d2I1eiso,    value(2.)*Jm23*(gamma*dFdev1 + gammac*dFdev4f
-                              - value(2./3)*dot(FmT, dF)*(gamma*Fdev1 + gammac*Fdev4f)));
-    BOOST_AUTO_TPL(d2I4feiso,   value(2.)*Jm23*pow(gamma, -2)*(dFdev4f
-                              - value(2./3)*dot(FmT, dF)*Fdev4f));
-    BOOST_AUTO_TPL(d2I4seiso,   value(2.)*Jm23*gamma*(dFdev4s
-                              - value(2./3)*dot(FmT, dF)*Fdev4s));
-    BOOST_AUTO_TPL(d2I8fseiso,   value(2.)*Jm23*pow(gamma,-1./2)*(dFdev8fs
-                               - value(2./3)*dot(FmT, dF)*Fdev8fs));
+    BOOST_AUTO_TPL (d2I1eiso,    value (2.) *Jm23 * (gamma * dFdev1 + gammac * dFdev4f
+                                                     - value (2. / 3) *dot (FmT, dF) * (gamma * Fdev1 + gammac * Fdev4f) ) );
+    BOOST_AUTO_TPL (d2I4feiso,   value (2.) *Jm23 * pow (gamma, -2) * (dFdev4f
+                                                                       - value (2. / 3) *dot (FmT, dF) *Fdev4f) );
+    BOOST_AUTO_TPL (d2I4seiso,   value (2.) *Jm23 * gamma * (dFdev4s
+                                                             - value (2. / 3) *dot (FmT, dF) *Fdev4s) );
+    BOOST_AUTO_TPL (d2I8fseiso,   value (2.) *Jm23 * pow (gamma, -1. / 2) * (dFdev8fs
+                                                                             - value (2. / 3) *dot (FmT, dF) *Fdev8fs) );
 
     // Isochoric part
-    BOOST_AUTO_TPL(Piso_1,   dW1*dI1eiso);
-    BOOST_AUTO_TPL(Piso_4f,  dW4f*dI4feiso);
-    BOOST_AUTO_TPL(Piso_4s,  dW4s*dI4seiso);
-    BOOST_AUTO_TPL(Piso_8fs, dW8fs*dI8fseiso);
+    BOOST_AUTO_TPL (Piso_1,   dW1 * dI1eiso);
+    BOOST_AUTO_TPL (Piso_4f,  dW4f * dI4feiso);
+    BOOST_AUTO_TPL (Piso_4s,  dW4s * dI4seiso);
+    BOOST_AUTO_TPL (Piso_8fs, dW8fs * dI8fseiso);
 
-    BOOST_AUTO_TPL(dPiso_1,   d2W1*dot(dI1eiso, dF)*dI1eiso + dW1*d2I1eiso );
-    BOOST_AUTO_TPL(dPiso_4f,  d2W4f*dot(dI4feiso, dF)*dI4feiso + dW4f*d2I4feiso );
-    BOOST_AUTO_TPL(dPiso_4s,  d2W4s*dot(dI4seiso, dF)*dI4seiso + dW4s*d2I4seiso );
-    BOOST_AUTO_TPL(dPiso_8fs, d2W8fs*dot(dI8fseiso, dF)*dI8fseiso + dW8fs*d2I8fseiso );
+    BOOST_AUTO_TPL (dPiso_1,   d2W1 * dot (dI1eiso, dF) *dI1eiso + dW1 * d2I1eiso );
+    BOOST_AUTO_TPL (dPiso_4f,  d2W4f * dot (dI4feiso, dF) *dI4feiso + dW4f * d2I4feiso );
+    BOOST_AUTO_TPL (dPiso_4s,  d2W4s * dot (dI4seiso, dF) *dI4seiso + dW4s * d2I4seiso );
+    BOOST_AUTO_TPL (dPiso_8fs, d2W8fs * dot (dI8fseiso, dF) *dI8fseiso + dW8fs * d2I8fseiso );
 
     // Volumetric part
-    BOOST_AUTO_TPL(Pvol,  dWvol*dJ);
-    BOOST_AUTO_TPL(dPvol, (d2Wvol + J*dWvol)*dot(FmT, dF)*dJ + dWvol*J*dFmT);
+    BOOST_AUTO_TPL (Pvol,  dWvol * dJ);
+    BOOST_AUTO_TPL (dPvol, (d2Wvol + J * dWvol) *dot (FmT, dF) *dJ + dWvol * J * dFmT);
 
     // Assemble residual
     integrate ( elements ( this->M_dispETFESpace->mesh() ),
                 this->M_dispFESpace->qr(),
                 this->M_dispETFESpace,
-                dot(Piso_1 + Pvol, grad(phi_i))
+                dot (Piso_1 + Pvol, grad (phi_i) )
               ) >> M_stiff;
     // Assemble residual
-    if(M_af > 0)
+    if (M_af > 0)
     {
-    	integrate ( elements ( this->M_dispETFESpace->mesh() ),
-                this->M_dispFESpace->qr(),
-                this->M_dispETFESpace,
-                dot( Piso_4f , grad(phi_i))
-              ) >> M_stiff;
+        integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                    this->M_dispFESpace->qr(),
+                    this->M_dispETFESpace,
+                    dot ( Piso_4f , grad (phi_i) )
+                  ) >> M_stiff;
     }
     // Assemble residual
-    if(M_as > 0)
+    if (M_as > 0)
     {
 
-    integrate ( elements ( this->M_dispETFESpace->mesh() ),
-                this->M_dispFESpace->qr(),
-                this->M_dispETFESpace,
-                dot( Piso_4s , grad(phi_i))
-              ) >> M_stiff;
+        integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                    this->M_dispFESpace->qr(),
+                    this->M_dispETFESpace,
+                    dot ( Piso_4s , grad (phi_i) )
+                  ) >> M_stiff;
     }
     // Assemble residual
-    if(M_afs > 0)
+    if (M_afs > 0)
     {
-    integrate ( elements ( this->M_dispETFESpace->mesh() ),
-                this->M_dispFESpace->qr(),
-                this->M_dispETFESpace,
-                dot( Piso_8fs, grad(phi_i))
-              ) >> M_stiff;
+        integrate ( elements ( this->M_dispETFESpace->mesh() ),
+                    this->M_dispFESpace->qr(),
+                    this->M_dispETFESpace,
+                    dot ( Piso_8fs, grad (phi_i) )
+                  ) >> M_stiff;
     }
     this->M_stiff->globalAssemble();
 }
@@ -1124,12 +1145,12 @@ void HolzapfelOgdenMaterial<MeshType>::showMe ( std::string const& fileNameStiff
 
 template <typename MeshType>
 void HolzapfelOgdenMaterial<MeshType>::computeLocalFirstPiolaKirchhoffTensor ( Epetra_SerialDenseMatrix& /*firstPiola*/,
-        const Epetra_SerialDenseMatrix& /*tensorF*/,
-        const Epetra_SerialDenseMatrix& /*cofactorF*/,
-        const std::vector<Real>& /*invariants*/,
-        const UInt /*marker*/)
+                                                                               const Epetra_SerialDenseMatrix& /*tensorF*/,
+                                                                               const Epetra_SerialDenseMatrix& /*cofactorF*/,
+                                                                               const std::vector<Real>& /*invariants*/,
+                                                                               const UInt /*marker*/)
 {
-    assert("Not implemented yet for Holzapfel-Ogden material!");
+    assert ("Not implemented yet for Holzapfel-Ogden material!");
 }
 
 
@@ -1140,7 +1161,7 @@ inline StructuralConstitutiveLaw<MeshType>* createHolzapfelOgdenMaterial()
 }
 namespace
 {
-static bool registerHO = StructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct("HolzapfelOgden", &createHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
+static bool registerHO = StructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ("HolzapfelOgden", &createHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
 }
 
 } //Namespace LifeV

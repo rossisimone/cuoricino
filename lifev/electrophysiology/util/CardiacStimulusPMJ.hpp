@@ -51,7 +51,8 @@ public:
 
     /*! @struct CardiacStimulusPMJ_Activation
      */
-    struct CardiacStimulusPMJ_Activation {
+    struct CardiacStimulusPMJ_Activation
+    {
         Real x;
         Real y;
         Real z;
@@ -89,16 +90,16 @@ public:
 
     //! @name Set Methods
     //@{
-    void setPMJFromFile( std::string fileName );
-    void setPMJAddJunction( Real x, Real y, Real z, Real time, Real duration );
+    void setPMJFromFile ( std::string fileName );
+    void setPMJAddJunction ( Real x, Real y, Real z, Real time, Real duration );
 
-    inline void setRadius( Real r )
+    inline void setRadius ( Real r )
     {
         ASSERT (r > 0, "Invalid radius value.");
         M_radius = r;
     }
 
-    inline void setTotalCurrent( Real I )
+    inline void setTotalCurrent ( Real I )
     {
         ASSERT (I >= 0, "Invalid current value.");
         M_totalCurrent = I;
@@ -113,7 +114,7 @@ public:
 
     //! @name Methods
     //@{
-    Real appliedCurrent( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i );
+    Real appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i );
 
     //@}
 

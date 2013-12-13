@@ -184,7 +184,7 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.setAppliedCurrent(Iapp);
+        model.setAppliedCurrent (Iapp);
         model.computeRhs ( unknowns, rhs);
         rhs[0] += Iapp;
 
@@ -216,7 +216,7 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
 
     Real returnValue;
-    if (std::abs(unknowns.at (1) - 0.0932961) > 1e-4 )
+    if (std::abs (unknowns.at (1) - 0.0932961) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

@@ -39,7 +39,8 @@
 
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 
-namespace LifeV {
+namespace LifeV
+{
 
 template <typename mesh_Type>
 class RBFrescaledScalar: public RBFInterpolation<mesh_Type>
@@ -102,7 +103,7 @@ public:
 
     void solutionrbf (vectorPtr_Type& Solution_rbf);
 
-    void updateRhs(vectorPtr_Type newRhs);
+    void updateRhs (vectorPtr_Type newRhs);
 
     void setRadius ( double radius );
 
@@ -132,8 +133,8 @@ private:
 };
 
 template <typename mesh_Type>
-RBFrescaledScalar<mesh_Type>::RBFrescaledScalar():
-    M_radius(0)
+RBFrescaledScalar<mesh_Type>::RBFrescaledScalar() :
+    M_radius (0)
 {}
 
 template <typename mesh_Type>
@@ -174,8 +175,10 @@ void RBFrescaledScalar<mesh_Type>::buildOperators()
     this->interpolationOperator();
     this->projectionOperator();
     TimeBuilding.stop();
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "Time to assembly operators = " << TimeBuilding.diff() << std::endl;
+    }
 
     this->buildRhs();
     this->interpolateCostantField();
@@ -184,7 +187,7 @@ void RBFrescaledScalar<mesh_Type>::buildOperators()
 template <typename mesh_Type>
 void RBFrescaledScalar<mesh_Type>::interpolationOperator()
 {
-    ASSERT(M_radius!=0, "Please set the basis radius using RBFrescaledScalar<mesh_Type>::setRadius(double radius)")
+    ASSERT (M_radius != 0, "Please set the basis radius using RBFrescaledScalar<mesh_Type>::setRadius(double radius)")
     this->identifyNodes (M_localMeshKnown, M_GIdsKnownMesh, M_knownField);
     M_neighbors.reset ( new neighbors_Type ( M_fullMeshKnown, M_localMeshKnown, M_knownField->mapPtr(), M_knownField->mapPtr()->commPtr() ) );
     if (M_flags[0] == -1)
@@ -444,7 +447,7 @@ double RBFrescaledScalar<mesh_Type>::rbf (double x1, double y1, double z1, doubl
 }
 
 template <typename mesh_Type>
-void RBFrescaledScalar<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
+void RBFrescaledScalar<mesh_Type>::updateRhs (vectorPtr_Type newRhs)
 {
     *M_RhsF *= 0;
     *M_RhsF = *newRhs;
@@ -465,7 +468,7 @@ void RBFrescaledScalar<mesh_Type>::solutionrbf (vectorPtr_Type& Solution_rbf)
 
 //! Factory create function
 template <typename mesh_Type>
-inline RBFInterpolation<mesh_Type> * createRBFrescaledScalar()
+inline RBFInterpolation<mesh_Type>* createRBFrescaledScalar()
 {
     return new RBFrescaledScalar< mesh_Type > ();
 }

@@ -178,10 +178,10 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF     = parameterList.get( "endTime", 5.0 );
-    Real dt     = parameterList.get( "timeStep", 5.77e-5 );
-    Real timeSt = parameterList.get( "stimuliTime", 1.0 );
-    Real stInt  = parameterList.get( "stimuliInterval", 400.0 );
+    Real TF     = parameterList.get ( "endTime", 5.0 );
+    Real dt     = parameterList.get ( "timeStep", 5.77e-5 );
+    Real timeSt = parameterList.get ( "stimuliTime", 1.0 );
+    Real stInt  = parameterList.get ( "stimuliInterval", 400.0 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -200,83 +200,87 @@ Int main ( Int argc, char** argv )
 
 
     int iter       ( 0 );
-    int savedt     ( parameterList.get( "savedt", 1.0) / dt );
+    int savedt     ( parameterList.get ( "savedt", 1.0) / dt );
 
     for ( Real t = 0; t < TF; )
     {
 
-    	//********************************************//
-        // Set the stimulus over time 				  //
+        //********************************************//
+        // Set the stimulus over time                 //
         // according to different pacing protocol     //
         //********************************************//
 
 
-    	if ( t >= timeSt && t <= timeSt + 0.5 )
-    	{
-    		Iapp = - 0.516289;
-    	  	if ( t >= timeSt + 0.5 - dt && t <= timeSt + 0.5 )
+        if ( t >= timeSt && t <= timeSt + 0.5 )
+        {
+            Iapp = - 0.516289;
+            if ( t >= timeSt + 0.5 - dt && t <= timeSt + 0.5 )
 
-    			timeSt = timeSt + stInt;
-    	 }
-    	 else
-    	   	Iapp = 0;
+            {
+                timeSt = timeSt + stInt;
+            }
+        }
+        else
+        {
+            Iapp = 0;
+        }
 
         cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.setAppliedCurrent(Iapp);
+        model.setAppliedCurrent (Iapp);
         model.computeRhs ( unknowns, rhs );
-//        std::vector<Real> gateInf     ( model.gateInf( unknowns ) );
-//        std::vector<Real> otherVarInf ( model.otherVarInf( unknowns ) );
+        //        std::vector<Real> gateInf     ( model.gateInf( unknowns ) );
+        //        std::vector<Real> otherVarInf ( model.otherVarInf( unknowns ) );
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
 
         iter++;
-        if( iter % savedt == 0)
+        if ( iter % savedt == 0)
         {
-        	output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
-        		<< unknowns.at (2) << ", " << unknowns.at (3) << ", "
-        		<< unknowns.at (4) << ", " << unknowns.at (5) << ", "
-        		<< unknowns.at (6) << ", " << unknowns.at (7) << ", "
-        		<< unknowns.at (8) << ", " << unknowns.at (9) << ", "
-        		<< unknowns.at (10) << ", " << unknowns.at (11) << ", "
-        		<< unknowns.at (12) << ", " << unknowns.at (13) << ", "
-        		<< unknowns.at (14) << ", " << unknowns.at (15) << ", "
-        		<< unknowns.at (16) << ", " << unknowns.at (17) << ", "
-        		<< unknowns.at (18) << ", " << unknowns.at (19) << ", "
-        		<< unknowns.at (20) << ", " << unknowns.at (21) << ", "
-             	<< unknowns.at (22) << ", " << unknowns.at (23) << ", "
-             	<< unknowns.at (24) << ", " << unknowns.at (25) << ", "
-             	<< unknowns.at (26) << ", " << unknowns.at (27) << ", "
-             	<< unknowns.at (28) << ", " << unknowns.at (29) << ", "
-             	<< unknowns.at (30) << "\n";
+            output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
+                   << unknowns.at (2) << ", " << unknowns.at (3) << ", "
+                   << unknowns.at (4) << ", " << unknowns.at (5) << ", "
+                   << unknowns.at (6) << ", " << unknowns.at (7) << ", "
+                   << unknowns.at (8) << ", " << unknowns.at (9) << ", "
+                   << unknowns.at (10) << ", " << unknowns.at (11) << ", "
+                   << unknowns.at (12) << ", " << unknowns.at (13) << ", "
+                   << unknowns.at (14) << ", " << unknowns.at (15) << ", "
+                   << unknowns.at (16) << ", " << unknowns.at (17) << ", "
+                   << unknowns.at (18) << ", " << unknowns.at (19) << ", "
+                   << unknowns.at (20) << ", " << unknowns.at (21) << ", "
+                   << unknowns.at (22) << ", " << unknowns.at (23) << ", "
+                   << unknowns.at (24) << ", " << unknowns.at (25) << ", "
+                   << unknowns.at (26) << ", " << unknowns.at (27) << ", "
+                   << unknowns.at (28) << ", " << unknowns.at (29) << ", "
+                   << unknowns.at (30) << "\n";
         }
 
 
-         //********************************************//
-         // Use forward Euler method to advance the    //
-         // solution in time for all the variables     //
-         // different that the ionic concentrations.   //
-         // This ones are treated with Euler implicit  //
-         // method and Newton algorithm.               //
-         //********************************************//
+        //********************************************//
+        // Use forward Euler method to advance the    //
+        // solution in time for all the variables     //
+        // different that the ionic concentrations.   //
+        // This ones are treated with Euler implicit  //
+        // method and Newton algorithm.               //
+        //********************************************//
 
-        for(int j(0); j <= 30; ++j)
+        for (int j (0); j <= 30; ++j)
         {
-//    		if ( ( j <= 4 ) || ( j >= 12 ) )
-    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+            //          if ( ( j <= 4 ) || ( j >= 12 ) )
+            unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
 
-//    		if( j == 0 || j >= 12 )
-//    			unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-//    		else if ( ( j <= 4 ) && ( j != 0 ) )
-//    			unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
-//			else if ( j >= 12 )
-//				unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
-         }
+            //          if( j == 0 || j >= 12 )
+            //              unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+            //          else if ( ( j <= 4 ) && ( j != 0 ) )
+            //              unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
+            //          else if ( j >= 12 )
+            //              unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
+        }
 
         unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
         unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
@@ -286,12 +290,12 @@ Int main ( Int argc, char** argv )
         unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
         unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
 
-    	 //********************************************//
-         // Update the time.                           //
-         //********************************************//
+        //********************************************//
+        // Update the time.                           //
+        //********************************************//
 
         t = t + dt;
-       }
+    }
 
     cout << "\n...Time loop ends.\n";
     cout << "Solution written on file: " << filename << "\n";
@@ -307,7 +311,7 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    if (std::abs(unknowns.at (5) - 10.2063) > 1e-4 )
+    if (std::abs (unknowns.at (5) - 10.2063) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
@@ -316,4 +320,4 @@ Int main ( Int argc, char** argv )
         returnValue = EXIT_SUCCESS;
     }
     return ( returnValue );
-   }
+}

@@ -140,7 +140,7 @@ Int main ( Int argc, char** argv )
     std::string meshName = APParameterList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = APParameterList.get ("mesh_path", "./");
 
-    MeshUtility::fillWithMesh( meshPtr, meshName, meshPath );
+    MeshUtility::fillWithMesh ( meshPtr, meshName, meshPath );
 
 
     //********************************************//
@@ -282,7 +282,7 @@ Int main ( Int argc, char** argv )
         // Compute the rhs using the model equations  //
         //********************************************//
         typedef ElectroIonicModel super;
-        model.setAppliedCurrent(*Iapp);
+        model.setAppliedCurrent (*Iapp);
         model.super::computeRhs (unknowns, rhs);
         //********************************************//
         // Use forward Euler method to advance the    //

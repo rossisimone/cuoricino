@@ -40,16 +40,10 @@
 #ifndef _EPETRAVECTOR_HPP_
 #define _EPETRAVECTOR_HPP_
 
-// Tell the compiler to ignore specific kind of warnings:
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #include <Epetra_FEVector.h>
 #include <Epetra_Export.h>
 
-// Tell the compiler to ignore specific kind of warnings:
-#pragma GCC diagnostic warning "-Wunused-variable"
-#pragma GCC diagnostic warning "-Wunused-parameter"
 
 #include <lifev/core/LifeV.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
@@ -747,7 +741,10 @@ public:
     }
 
 
-    inline void setMapType(MapEpetraType type) { M_mapType = type; }
+    inline void setMapType (MapEpetraType type)
+    {
+        M_mapType = type;
+    }
     //! Return the size of the vector
     Int size() const;
 

@@ -107,7 +107,7 @@ IonicFitzHughNagumo& IonicFitzHughNagumo::operator= ( const IonicFitzHughNagumo&
 // ===================================================
 //Only gating variables
 void IonicFitzHughNagumo::computeGatingRhs (    const   std::vector<Real>&  v,
-                                          std::vector<Real>& rhs )
+                                                std::vector<Real>& rhs )
 {
     Real dr = M_Eta * v[0] - M_Gamma * v[1] ;
 
@@ -142,54 +142,56 @@ Real IonicFitzHughNagumo::computeLocalPotentialRhs ( const std::vector<Real>& v)
 
 vector< vector<Real> > IonicFitzHughNagumo::getJac (const std::vector<Real>& v, Real /*h*/)
 {
-	vector< vector<Real> > J(2, vector<Real>(2,0.0));
-	J[0][0] = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
-	J[0][1] = -M_Eta1 * v[0];
-	J[1][0] = M_Eta;
-	J[1][1] = -M_Gamma;
+    vector< vector<Real> > J (2, vector<Real> (2, 0.0) );
+    J[0][0] = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
+    J[0][1] = -M_Eta1 * v[0];
+    J[1][0] = M_Eta;
+    J[1][1] = -M_Gamma;
 
-	return J;
+    return J;
 }
 
-MatrixSmall<2,2> IonicFitzHughNagumo::getJac (const VectorSmall<2>& v, Real /*h*/)
+MatrixSmall<2, 2> IonicFitzHughNagumo::getJac (const VectorSmall<2>& v, Real /*h*/)
 {
-	MatrixSmall<2,2> J;
-    J(0,0) = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
-    J(0,1) = -M_Eta1 * v[0];
-    J(1,0) = M_Eta;
-    J(1,1) = -M_Gamma;
+    MatrixSmall<2, 2> J;
+    J (0, 0) = - ( M_G / ( M_Vth * M_Vp ) ) * ( M_Vth * ( M_Vp - 2.0 * v[0] ) + v[0] * ( 3.0 * v[0] - 2.0 * M_Vp ) ) - M_Eta1 * v[1];
+    J (0, 1) = -M_Eta1 * v[0];
+    J (1, 0) = M_Eta;
+    J (1, 1) = -M_Gamma;
 
     return J;
 }
 
 matrix_Type IonicFitzHughNagumo::getJac (const vector_Type& v, Real h)
 {
-	matrix_Type J(v.map(), M_numberOfEquations, false);
-	const Int* k = v.blockMap().MyGlobalElements();
+    matrix_Type J (v.map(), M_numberOfEquations, false);
+    const Int* k = v.blockMap().MyGlobalElements();
 
-	int* Indices = new int[M_numberOfEquations];
-	double* Values =  new double[M_numberOfEquations];
-	Indices[0] = 0;
-	Indices[1] = 1;
+    int* Indices = new int[M_numberOfEquations];
+    double* Values =  new double[M_numberOfEquations];
+    Indices[0] = 0;
+    Indices[1] = 1;
 
-	MatrixSmall<2,2> df;
-	VectorSmall<2> y;
-	y(0) = v[k[0]];
-	y(1) = v[k[1]];
+    MatrixSmall<2, 2> df;
+    VectorSmall<2> y;
+    y (0) = v[k[0]];
+    y (1) = v[k[1]];
 
-	df = getJac(y, h);
+    df = getJac (y, h);
 
-	Values[0] = df(0,0);	Values[1] = df(0,1);
-	J.matrixPtr()->InsertGlobalValues (0, M_numberOfEquations, Values, Indices);
-	Values[0] = df(1,0);	Values[1] = df(1,1);
-	J.matrixPtr()->InsertGlobalValues (1, M_numberOfEquations, Values, Indices);
+    Values[0] = df (0, 0);
+    Values[1] = df (0, 1);
+    J.matrixPtr()->InsertGlobalValues (0, M_numberOfEquations, Values, Indices);
+    Values[0] = df (1, 0);
+    Values[1] = df (1, 1);
+    J.matrixPtr()->InsertGlobalValues (1, M_numberOfEquations, Values, Indices);
 
-	J.globalAssemble();
+    J.globalAssemble();
 
-	delete[] Indices;
-	delete[] Values;
+    delete[] Indices;
+    delete[] Values;
 
-	return J;
+    return J;
 }
 
 void IonicFitzHughNagumo::showMe()

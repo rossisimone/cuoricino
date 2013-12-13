@@ -161,10 +161,10 @@ public:
     }
 
     //! Getter for the diagonal matrix
-//    diagonalMatrix_Type matrix() const
-//    {
-//        return M_matrix;
-//    }
+    //    diagonalMatrix_Type matrix() const
+    //    {
+    //        return M_matrix;
+    //    }
 
     // @}
 
@@ -186,7 +186,7 @@ private:
     vector_Type M_vector2;
     vector_Type M_vector3;
 
-//    diagonalMatrix_Type M_matrix;
+    //    diagonalMatrix_Type M_matrix;
 };
 
 //! Simple function to be used in the construction of an expression

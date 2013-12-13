@@ -110,7 +110,7 @@ public:
         return M_gsi;
     }
 
-//    //Time dependent potassium current
+    //    //Time dependent potassium current
     inline const Real K0()             const
     {
         return M_K0;
@@ -124,7 +124,7 @@ public:
         return M_EK;
     }
 
-//    //Time independent potassium current
+    //    //Time independent potassium current
     inline const Real gK1()             const
     {
         return M_gK1;
@@ -134,7 +134,7 @@ public:
         return M_EK1;
     }
 
-//    //Plateau Current
+    //    //Plateau Current
     inline const Real EKp()             const
     {
         return M_EKp;
@@ -144,7 +144,7 @@ public:
         return M_gKp;
     }
 
-//    //Background Current
+    //    //Background Current
     inline const Real gb()             const
     {
         return M_gb;
@@ -167,12 +167,12 @@ public:
         M_gsi = p;
     }
 
-//    //Time dependent potassium current
+    //    //Time dependent potassium current
     inline void setK0  ( const Real p )
     {
         M_K0 = p;
-        M_gK = computeGK(M_K0);
-        M_gK1 = computeGK1(M_K0);
+        M_gK = computeGK (M_K0);
+        M_gK1 = computeGK1 (M_K0);
     }
     inline void setGK  ( const Real p )
     {
@@ -183,7 +183,7 @@ public:
         M_EK = p;
     }
 
-//    //Time independent potassium current
+    //    //Time independent potassium current
     inline void setGK1  ( const Real p )
     {
         M_gK1 = p;
@@ -193,7 +193,7 @@ public:
         M_EK1 = p;
     }
 
-//    //Plateau Current
+    //    //Plateau Current
     inline void setEKp  ( const Real p )
     {
         M_EKp = p;
@@ -203,7 +203,7 @@ public:
         M_gKp = p;
     }
 
-//    //Background Current
+    //    //Background Current
     inline void setGb  ( const Real p )
     {
         M_gb = p;
@@ -218,248 +218,269 @@ public:
     //Fast inward current
     //===================
     //gating variable m
-    inline Real am( Real V )
+    inline Real am ( Real V )
     {
-    	return ( 0.32 * ( V + 47.13 ) / ( 1.0 - std::exp( - 0.1 * ( V + 47.13 ) ) ) );
+        return ( 0.32 * ( V + 47.13 ) / ( 1.0 - std::exp ( - 0.1 * ( V + 47.13 ) ) ) );
     }
-    inline Real bm( Real V )
+    inline Real bm ( Real V )
     {
-    	return ( 0.08 * std::exp( - V / 11.0 ) );
+        return ( 0.08 * std::exp ( - V / 11.0 ) );
     }
-    inline Real tm(Real V)
+    inline Real tm (Real V)
     {
-    	return ( 1.0 / ( am(V) + bm(V) ) );
+        return ( 1.0 / ( am (V) + bm (V) ) );
     }
-    inline Real minf(Real V)
+    inline Real minf (Real V)
     {
-    	return ( am(V) * tm(V) );
+        return ( am (V) * tm (V) );
     }
-    inline Real dm(Real V, Real m)
+    inline Real dm (Real V, Real m)
     {
-    	return ( am(V) * (1.0 - m ) - bm(V) * m );
+        return ( am (V) * (1.0 - m ) - bm (V) * m );
     }
 
     //gating variable m
-    inline Real ah( Real V )
+    inline Real ah ( Real V )
     {
-    	if( V < - 40.0 )
-    		return ( 0.135 * std::exp( - ( V + 80 ) / 6.8 ) );
-    	else return 0.0;
+        if ( V < - 40.0 )
+        {
+            return ( 0.135 * std::exp ( - ( V + 80 ) / 6.8 ) );
+        }
+        else
+        {
+            return 0.0;
+        }
     }
-    inline Real bh( Real V )
+    inline Real bh ( Real V )
     {
-    	if( V < - 40.0 )
-    		return ( ( 3.56  * std::exp( 0.079 * V ) + 3.1 * 1e5 * std::exp( 0.35 * V) ) );
-    	else
-    		return ( 1.0 / ( 0.13 * ( 1 + std::exp( - ( V + 10.66 ) / 11.1 ) ) ) );
+        if ( V < - 40.0 )
+        {
+            return ( ( 3.56  * std::exp ( 0.079 * V ) + 3.1 * 1e5 * std::exp ( 0.35 * V) ) );
+        }
+        else
+        {
+            return ( 1.0 / ( 0.13 * ( 1 + std::exp ( - ( V + 10.66 ) / 11.1 ) ) ) );
+        }
     }
-    inline Real th(Real V)
+    inline Real th (Real V)
     {
-    	return ( 1.0 / ( ah(V) + bh(V) ) );
+        return ( 1.0 / ( ah (V) + bh (V) ) );
     }
-    inline Real hinf(Real V)
+    inline Real hinf (Real V)
     {
-    	return ( ah(V) * th(V) );
+        return ( ah (V) * th (V) );
     }
-    inline Real dh(Real V, Real h)
+    inline Real dh (Real V, Real h)
     {
-    	return ( ah(V) * (1.0 - h ) - bh(V) * h );
+        return ( ah (V) * (1.0 - h ) - bh (V) * h );
     }
 
     //gating variable j
-    inline Real aj( Real V )
+    inline Real aj ( Real V )
     {
-    	if( V < - 40.0 )
-    		return ( ( -1.2714 * 1e5 * std::exp( 0.2444 * V ) - 3.474 * 1e-5 * std::exp( - 0.04391 * V ) )
-    			 * ( V + 37.78 ) / ( 1 + std::exp( 0.311 * ( V +79.23 ) ) ) );
-    	else return 0.0;
+        if ( V < - 40.0 )
+            return ( ( -1.2714 * 1e5 * std::exp ( 0.2444 * V ) - 3.474 * 1e-5 * std::exp ( - 0.04391 * V ) )
+                     * ( V + 37.78 ) / ( 1 + std::exp ( 0.311 * ( V + 79.23 ) ) ) );
+        else
+        {
+            return 0.0;
+        }
     }
-    inline Real bj( Real V )
+    inline Real bj ( Real V )
     {
-    	if( V < - 40.0 )
-    		return ( 0.1212 * std::exp( - 0.01052 * V ) / ( 1 + std::exp( -0.1378 * ( V + 40.14 ) ) ) );
-    	else
-    		return ( 0.3 * std::exp( -2.535 * 1e-7 * V ) / ( 1 + std::exp( -0.1 * ( V + 32 ) ) ) );
+        if ( V < - 40.0 )
+        {
+            return ( 0.1212 * std::exp ( - 0.01052 * V ) / ( 1 + std::exp ( -0.1378 * ( V + 40.14 ) ) ) );
+        }
+        else
+        {
+            return ( 0.3 * std::exp ( -2.535 * 1e-7 * V ) / ( 1 + std::exp ( -0.1 * ( V + 32 ) ) ) );
+        }
     }
-    inline Real tj(Real V)
+    inline Real tj (Real V)
     {
-    	return ( 1.0 / ( aj(V) + bj(V) ) );
+        return ( 1.0 / ( aj (V) + bj (V) ) );
     }
-    inline Real jinf(Real V)
+    inline Real jinf (Real V)
     {
-    	return ( aj(V) * tj(V) );
+        return ( aj (V) * tj (V) );
     }
-    inline Real dj(Real V, Real j)
+    inline Real dj (Real V, Real j)
     {
-    	return ( aj(V) * (1.0 - j ) - bj(V) * j );
+        return ( aj (V) * (1.0 - j ) - bj (V) * j );
     }
 
     //Fast Inward Current
-    inline Real INa(Real V, Real m, Real h, Real j)
+    inline Real INa (Real V, Real m, Real h, Real j)
     {
-    	return ( M_gNa * m * m * m * h * j * ( V - M_ENa ) );
+        return ( M_gNa * m * m * m * h * j * ( V - M_ENa ) );
     }
 
-//    // slow inward current %%
-//    //=========================
-      inline Real Esi( Real Ca )
-      {
-    	  return ( 7.7 - 13.0287 * std::log(Ca) );
-      }
-      //gating variable d
-      inline Real ad( Real V )
-      {
-    	  return ( 0.095 * std::exp( - 0.01 * ( V - 5 ) ) / ( 1 + std::exp( - 0.072 * ( V - 5 ) ) ) );
-      }
-      inline Real bd( Real V )
-      {
-    	  return ( 0.07 * std::exp( - 0.017 * ( V + 44) ) / ( 1 + std::exp( 0.05 * ( V + 44) ) ) );
-      }
-      inline Real td(Real V)
-      {
-      	return ( 1.0 / ( ad(V) + bd(V) ) );
-      }
-      inline Real dinf(Real V)
-      {
-      	return ( ad(V) * td(V) );
-      }
-      inline Real dd(Real V, Real d)
-      {
-      	return ( ad(V) * (1.0 - d ) - bd(V) * d );
-      }
+    //    // slow inward current %%
+    //    //=========================
+    inline Real Esi ( Real Ca )
+    {
+        return ( 7.7 - 13.0287 * std::log (Ca) );
+    }
+    //gating variable d
+    inline Real ad ( Real V )
+    {
+        return ( 0.095 * std::exp ( - 0.01 * ( V - 5 ) ) / ( 1 + std::exp ( - 0.072 * ( V - 5 ) ) ) );
+    }
+    inline Real bd ( Real V )
+    {
+        return ( 0.07 * std::exp ( - 0.017 * ( V + 44) ) / ( 1 + std::exp ( 0.05 * ( V + 44) ) ) );
+    }
+    inline Real td (Real V)
+    {
+        return ( 1.0 / ( ad (V) + bd (V) ) );
+    }
+    inline Real dinf (Real V)
+    {
+        return ( ad (V) * td (V) );
+    }
+    inline Real dd (Real V, Real d)
+    {
+        return ( ad (V) * (1.0 - d ) - bd (V) * d );
+    }
 
-      //gating variable f
-      inline Real af( Real V )
-      {
-    	  return ( 0.012 * std::exp( - 0.008 * ( V + 28 ) ) / ( 1 + std::exp( 0.15 * ( V + 28 ) ) ) );
-      }
-      inline Real bf( Real V )
-      {
-    	  return ( 0.0065 * std::exp( - 0.02 * ( V + 30 ) ) / ( 1 + std::exp( - 0.2  * ( V + 30 ) ) ) );
-      }
-      inline Real tf(Real V)
-      {
-      	return ( 1.0 / ( af(V) + bf(V) ) );
-      }
-      inline Real finf(Real V)
-      {
-      	return ( af(V) * tf(V) );
-      }
-      inline Real df(Real V, Real f)
-      {
-      	return ( af(V) * (1.0 - f ) - bf(V) * f );
-      }
+    //gating variable f
+    inline Real af ( Real V )
+    {
+        return ( 0.012 * std::exp ( - 0.008 * ( V + 28 ) ) / ( 1 + std::exp ( 0.15 * ( V + 28 ) ) ) );
+    }
+    inline Real bf ( Real V )
+    {
+        return ( 0.0065 * std::exp ( - 0.02 * ( V + 30 ) ) / ( 1 + std::exp ( - 0.2  * ( V + 30 ) ) ) );
+    }
+    inline Real tf (Real V)
+    {
+        return ( 1.0 / ( af (V) + bf (V) ) );
+    }
+    inline Real finf (Real V)
+    {
+        return ( af (V) * tf (V) );
+    }
+    inline Real df (Real V, Real f)
+    {
+        return ( af (V) * (1.0 - f ) - bf (V) * f );
+    }
 
-      //Slow inward current
-      inline Real Isi(Real V, Real d, Real f, Real Ca)
-      {
-    	  return ( M_gsi * d * f * ( V - Esi(Ca) ));
-      }
+    //Slow inward current
+    inline Real Isi (Real V, Real d, Real f, Real Ca)
+    {
+        return ( M_gsi * d * f * ( V - Esi (Ca) ) );
+    }
 
-      //Calcium concentration
-      inline Real dCa(Real V, Real d, Real f, Real Ca)
-      {
-    	  return ( - 1e-4 * Isi(V, d, f, Ca) + 0.07 * ( 1e-4 - Ca ) );
-      }
+    //Calcium concentration
+    inline Real dCa (Real V, Real d, Real f, Real Ca)
+    {
+        return ( - 1e-4 * Isi (V, d, f, Ca) + 0.07 * ( 1e-4 - Ca ) );
+    }
 
-      //Time dependent potassium current %%
-      //===================================
-      inline Real computeGK(Real K0)
-      {
-    	  return ( 0.282 * std::sqrt( K0 / 5.4) );
-      }
+    //Time dependent potassium current %%
+    //===================================
+    inline Real computeGK (Real K0)
+    {
+        return ( 0.282 * std::sqrt ( K0 / 5.4) );
+    }
 
-      //gating variable X
-      inline Real aX( Real V )
-      {
-    	  return ( 0.0005 * std::exp(  0.083 * ( V + 50 ) ) / ( 1 + std::exp( 0.057 * ( V + 50 ) ) ) );
-      }
-      inline Real bX( Real V )
-      {
-    	  return ( 0.0013 * std::exp( - 0.06 * ( V + 20 ) ) / ( 1 + std::exp( - 0.04  * ( V + 20 ) ) ) );
-      }
-      inline Real tX(Real V)
-      {
-      	return ( 1.0 / ( aX(V) + bX(V) ) );
-      }
-      inline Real Xinf(Real V)
-      {
-      	return ( aX(V) * tX(V) );
-      }
-      inline Real dX(Real V, Real X)
-      {
-      	return ( aX(V) * (1.0 - X ) - bX(V) * X );
-      }
+    //gating variable X
+    inline Real aX ( Real V )
+    {
+        return ( 0.0005 * std::exp (  0.083 * ( V + 50 ) ) / ( 1 + std::exp ( 0.057 * ( V + 50 ) ) ) );
+    }
+    inline Real bX ( Real V )
+    {
+        return ( 0.0013 * std::exp ( - 0.06 * ( V + 20 ) ) / ( 1 + std::exp ( - 0.04  * ( V + 20 ) ) ) );
+    }
+    inline Real tX (Real V)
+    {
+        return ( 1.0 / ( aX (V) + bX (V) ) );
+    }
+    inline Real Xinf (Real V)
+    {
+        return ( aX (V) * tX (V) );
+    }
+    inline Real dX (Real V, Real X)
+    {
+        return ( aX (V) * (1.0 - X ) - bX (V) * X );
+    }
 
-      //gating Xi
-      inline Real Xi (Real V)
-      {
-    	  if( V > -100 )
-    		  return ( 2.837 * ( std::exp( 0.04 * ( V + 77 ) ) - 1 ) / ( ( V +77 ) * std::exp( 0.04 * ( V + 35 ) ) ) );
-    	  else return 1.0;
-      }
-      //Time dependent potassium current
-      inline Real IK(Real V, Real X)
-      {
-    	  return M_gK * X * Xi(V) * ( V - M_EK );
-      }
+    //gating Xi
+    inline Real Xi (Real V)
+    {
+        if ( V > -100 )
+        {
+            return ( 2.837 * ( std::exp ( 0.04 * ( V + 77 ) ) - 1 ) / ( ( V + 77 ) * std::exp ( 0.04 * ( V + 35 ) ) ) );
+        }
+        else
+        {
+            return 1.0;
+        }
+    }
+    //Time dependent potassium current
+    inline Real IK (Real V, Real X)
+    {
+        return M_gK * X * Xi (V) * ( V - M_EK );
+    }
 
-      //Time independent potassium current
-      //===================================
-      inline Real computeGK1(Real K0)
-      {
-    	  return ( 0.6047 * std::sqrt( K0 / 5.4) );
-      }
+    //Time independent potassium current
+    //===================================
+    inline Real computeGK1 (Real K0)
+    {
+        return ( 0.6047 * std::sqrt ( K0 / 5.4) );
+    }
 
-      //gating variable K1
-      inline Real aK1( Real V )
-      {
-    	  return ( 1.02 / ( 1 + std::exp( 0.2385 * ( V - M_EK1 - 59.2915 ) ) ) );
-      }
-      inline Real bK1( Real V )
-      {
-    	  return ( ( 0.49124 * std::exp( 0.08032 * ( V - M_EK1 + 5.4760 ) )
-    	           + exp( 0.06175 * ( V - M_EK1 - 594.31 ) ) ) / ( 1 + std::exp( - 0.5143  * ( V - M_EK1 + 4.753 ) ) ) );
-      }
-      inline Real tK1(Real V)
-      {
-      	return ( 1.0 / ( aK1(V) + bK1(V) ) );
-      }
-      inline Real K1inf(Real V)
-      {
-      	return ( aK1(V) * tK1(V) );
-      }
+    //gating variable K1
+    inline Real aK1 ( Real V )
+    {
+        return ( 1.02 / ( 1 + std::exp ( 0.2385 * ( V - M_EK1 - 59.2915 ) ) ) );
+    }
+    inline Real bK1 ( Real V )
+    {
+        return ( ( 0.49124 * std::exp ( 0.08032 * ( V - M_EK1 + 5.4760 ) )
+                   + exp ( 0.06175 * ( V - M_EK1 - 594.31 ) ) ) / ( 1 + std::exp ( - 0.5143  * ( V - M_EK1 + 4.753 ) ) ) );
+    }
+    inline Real tK1 (Real V)
+    {
+        return ( 1.0 / ( aK1 (V) + bK1 (V) ) );
+    }
+    inline Real K1inf (Real V)
+    {
+        return ( aK1 (V) * tK1 (V) );
+    }
 
-      //Time independent potassium current
-      inline Real IK1(Real V)
-      {
-    	  return M_gK1 * K1inf(V) * ( V - M_EK1 );
-      }
+    //Time independent potassium current
+    inline Real IK1 (Real V)
+    {
+        return M_gK1 * K1inf (V) * ( V - M_EK1 );
+    }
 
-      //Plateau Current
-      //====================
-      inline Real Kp( Real V )
-      {
-    	  return ( 1.0 / ( 1 + std::exp( ( 7.488 - V ) / 5.98 ) ) );
-      }
-      inline Real IKp(Real V)
-      {
-    	  return M_gKp * Kp(V) * ( V - M_EKp );
-      }
+    //Plateau Current
+    //====================
+    inline Real Kp ( Real V )
+    {
+        return ( 1.0 / ( 1 + std::exp ( ( 7.488 - V ) / 5.98 ) ) );
+    }
+    inline Real IKp (Real V)
+    {
+        return M_gKp * Kp (V) * ( V - M_EKp );
+    }
 
-      //Background Current
-      //====================
-      inline Real Ib(Real V)
-      {
-    	  return M_gb * ( V + 59.87 );
-      }
+    //Background Current
+    //====================
+    inline Real Ib (Real V)
+    {
+        return M_gb * ( V + 59.87 );
+    }
 
-      //Total current
-      //=============
-      inline Real Itot(Real V, Real m, Real h, Real j, Real d, Real f, Real X, Real Ca)
-      {
-    	  return ( INa(V,m,h,j) + Isi(V, d, f, Ca) + IK(V, X) + IK1(V) + IKp(V) + Ib(V) );
-      }
+    //Total current
+    //=============
+    inline Real Itot (Real V, Real m, Real h, Real j, Real d, Real f, Real X, Real Ca)
+    {
+        return ( INa (V, m, h, j) + Isi (V, d, f, Ca) + IK (V, X) + IK1 (V) + IKp (V) + Ib (V) );
+    }
     //Compute the rhs on a single node or for the 0D case
     void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
 

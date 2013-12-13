@@ -39,113 +39,125 @@
 namespace LifeV
 {
 
-VectorLU::VectorLU(UInt n, Real r)
-:M_n(n), M_v(n, r)
+VectorLU::VectorLU (UInt n, Real r)
+    : M_n (n), M_v (n, r)
 {
 }
 
-VectorLU::VectorLU(const std::vector<Real>& v)
-: M_n(v.size()), M_v(M_n, 0.0)
+VectorLU::VectorLU (const std::vector<Real>& v)
+    : M_n (v.size() ), M_v (M_n, 0.0)
 {
-	for(Int i=0; i<M_n; i++)
-		M_v[i] = v[i];
+    for (Int i = 0; i < M_n; i++)
+    {
+        M_v[i] = v[i];
+    }
 }
 
 Real VectorLU::norm2() const
 {
-	Real norm(0.0);
+    Real norm (0.0);
 
-	for(UInt i = 0; i<M_n; i++)
-		norm += M_v[i]*M_v[i];
+    for (UInt i = 0; i < M_n; i++)
+    {
+        norm += M_v[i] * M_v[i];
+    }
 
-	return std::sqrt(norm);
+    return std::sqrt (norm);
 }
 
 UInt VectorLU::size() const
 {
-	return M_n;
+    return M_n;
 }
 
 std::vector<Real>& VectorLU::getVector()
 {
-	return M_v;
+    return M_v;
 }
 
-Real& VectorLU::operator[](UInt i)
+Real& VectorLU::operator[] (UInt i)
 {
-	return M_v[i];
+    return M_v[i];
 }
 
-Real& VectorLU::operator()(UInt i)
+Real& VectorLU::operator() (UInt i)
 {
-	return M_v[i];
+    return M_v[i];
 }
 
-const Real& VectorLU::operator[](UInt i) const
+const Real& VectorLU::operator[] (UInt i) const
 {
-	return M_v[i];
+    return M_v[i];
 }
 
-const Real& VectorLU::operator()(UInt i) const
+const Real& VectorLU::operator() (UInt i) const
 {
-	return M_v[i];
+    return M_v[i];
 }
 
 VectorLU VectorLU::operator+ (const VectorLU& w) const
 {
-	return VectorLU(*this) += w;
+    return VectorLU (*this) += w;
 }
 
-VectorLU& VectorLU::operator+=(const VectorLU& w)
+VectorLU& VectorLU::operator+= (const VectorLU& w)
 {
-	for(Int i=0; i<M_n; i++)
-		M_v[i] += w[i];
+    for (Int i = 0; i < M_n; i++)
+    {
+        M_v[i] += w[i];
+    }
 
-	return *this;
+    return *this;
 }
 
 VectorLU VectorLU::operator- (const VectorLU& w) const
 {
-	return VectorLU(*this) -= w;
+    return VectorLU (*this) -= w;
 }
 
-VectorLU& VectorLU::operator-=(const VectorLU& w)
+VectorLU& VectorLU::operator-= (const VectorLU& w)
 {
-	for(Int i=0; i<M_n; i++)
-		M_v[i] -= w[i];
+    for (Int i = 0; i < M_n; i++)
+    {
+        M_v[i] -= w[i];
+    }
 
-	return *this;
+    return *this;
 }
 
 VectorLU VectorLU::operator* (const Real r) const
 {
-	return VectorLU(*this) *= r;
+    return VectorLU (*this) *= r;
 }
 
-VectorLU& VectorLU::operator*=(const Real r)
+VectorLU& VectorLU::operator*= (const Real r)
 {
-	for(Int i=0; i<M_n; i++)
-		M_v[i] *= r;
+    for (Int i = 0; i < M_n; i++)
+    {
+        M_v[i] *= r;
+    }
 
-	return *this;
+    return *this;
 }
 
 VectorLU VectorLU::operator/ (const Real r) const
 {
-	return (*this)*(1.0/r);
+    return (*this) * (1.0 / r);
 }
 
-VectorLU& VectorLU::operator/=(const Real r)
+VectorLU& VectorLU::operator/= (const Real r)
 {
-	*this *= (1.0/r);
+    *this *= (1.0 / r);
 
-	return *this;
+    return *this;
 }
 
 void VectorLU::disp()
 {
-	for(UInt i=0; i<M_n; i++)
-		cout<<"   "<<M_v[i];
+    for (UInt i = 0; i < M_n; i++)
+    {
+        cout << "   " << M_v[i];
+    }
 }
 
 

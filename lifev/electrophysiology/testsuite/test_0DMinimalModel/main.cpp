@@ -86,10 +86,10 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     GetPot commandLine ( argc, argv );
-    std::string xmlParameterFilename = commandLine.follow ("Parameters.xml", 2, "-i","--file"); ;
+    std::string xmlParameterFilename = commandLine.follow ("Parameters.xml", 2, "-i", "--file"); ;
 
     std::cout << "Importing parameters list...";
-//    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "Parameters.xml" ) );
+    //    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "Parameters.xml" ) );
     Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( xmlParameterFilename ) );
     std::cout << " Done!" << endl;
 
@@ -101,7 +101,7 @@ Int main ( Int argc, char** argv )
     // parameter list in the constructor          //
     //********************************************//
     std::cout << "Building Constructor for Minimal  Model with parameters ... ";
-    IonicMinimalModel  ionicModel(ParameterList);
+    IonicMinimalModel  ionicModel (ParameterList);
     std::cout << " Done!" << endl;
 
 
@@ -121,11 +121,11 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.Size(), 0);
-//    states.at (0) = 0.0;
-//    states.at (1) = 1.0;
-//    states.at (2) = 1.0;
-//    states.at (3) = 0.021553043080281;
-    ionicModel.initialize(states);
+    //    states.at (0) = 0.0;
+    //    states.at (1) = 1.0;
+    //    states.at (2) = 1.0;
+    //    states.at (3) = 0.021553043080281;
+    ionicModel.initialize (states);
     std::vector<Real>& rStates = states;
     std::cout << " Done!" << endl;
 
@@ -180,14 +180,20 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if( t >= 50 && t <= 52 ) Iapp = 0.4;
-        else Iapp = 0.0;
+        if ( t >= 50 && t <= 52 )
+        {
+            Iapp = 0.4;
+        }
+        else
+        {
+            Iapp = 0.0;
+        }
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        ionicModel.setAppliedCurrent(Iapp);
+        ionicModel.setAppliedCurrent (Iapp);
         ionicModel.computeRhs ( states, rhs);
         rhs[0] += Iapp;
 
@@ -227,7 +233,7 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    if (std::abs(rStates.at ( ionicModel.Size() - 2 ) - 0.962965) > 1e-4 )
+    if (std::abs (rStates.at ( ionicModel.Size() - 2 ) - 0.962965) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

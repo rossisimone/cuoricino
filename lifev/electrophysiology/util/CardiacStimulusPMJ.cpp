@@ -43,8 +43,8 @@ namespace LifeV
 //! Constructors
 // ===================================================
 CardiacStimulusPMJ::CardiacStimulusPMJ() :
-                                            M_radius( 0 ),
-                                            M_activationData ( *(new activationData_type()) )
+    M_radius ( 0 ),
+    M_activationData ( * (new activationData_type() ) )
 {
 
 }
@@ -52,10 +52,10 @@ CardiacStimulusPMJ::CardiacStimulusPMJ() :
 // ===================================================
 //! Setters
 // ===================================================
-void CardiacStimulusPMJ::setPMJFromFile( std::string fileName )
+void CardiacStimulusPMJ::setPMJFromFile ( std::string fileName )
 {
     std::ifstream fin;
-    Real x,y,z,time,duration;
+    Real x, y, z, time, duration;
 
     fin.open ( fileName.c_str() );
     while ( !fin.fail() )
@@ -66,12 +66,12 @@ void CardiacStimulusPMJ::setPMJFromFile( std::string fileName )
         fin >> junction.z;
         fin >> junction.time;
         fin >> junction.duration;
-        M_activationData.push_back( junction );
+        M_activationData.push_back ( junction );
     }
     fin.close();
 }
 
-void CardiacStimulusPMJ::setPMJAddJunction( Real x, Real y, Real z, Real time, Real duration )
+void CardiacStimulusPMJ::setPMJAddJunction ( Real x, Real y, Real z, Real time, Real duration )
 {
     CardiacStimulusPMJ_Activation junction;
     junction.x = x;
@@ -79,23 +79,23 @@ void CardiacStimulusPMJ::setPMJAddJunction( Real x, Real y, Real z, Real time, R
     junction.z = z;
     junction.time = time;
     junction.duration = duration;
-    M_activationData.push_back( junction );
+    M_activationData.push_back ( junction );
 }
 
 // ===================================================
 //! Methods
 // ===================================================
-Real CardiacStimulusPMJ::appliedCurrent( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i )
+Real CardiacStimulusPMJ::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i )
 {
     Real current = 0;
-    const Real volumeOfBall = (4./3.) * M_PI * M_radius * M_radius * M_radius;
+    const Real volumeOfBall = (4. / 3.) * M_PI * M_radius * M_radius * M_radius;
 
-    for(activationData_type::iterator it = M_activationData.begin(); it != M_activationData.end(); ++it)
+    for (activationData_type::iterator it = M_activationData.begin(); it != M_activationData.end(); ++it)
     {
-        Real distance = std::sqrt((x-it->x)*(x-it->x) + (y-it->y)*(y-it->y) + (z-it->z)*(z-it->z));
+        Real distance = std::sqrt ( (x - it->x) * (x - it->x) + (y - it->y) * (y - it->y) + (z - it->z) * (z - it->z) );
 
 
-        if (distance <= M_radius && t >= (it->time) && t <= (it->time + it->duration))
+        if (distance <= M_radius && t >= (it->time) && t <= (it->time + it->duration) )
         {
             current += M_totalCurrent / volumeOfBall;
         }

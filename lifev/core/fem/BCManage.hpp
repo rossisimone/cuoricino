@@ -2312,7 +2312,7 @@ void bcRobinManageResidual ( VectorType& residual,
     if (solution.mapType() == Repeated)
     {
         //SR: REMOVING OUTPUT
-    	//std::cout << "pass me a non-repeated solution" << std::endl;
+        //std::cout << "pass me a non-repeated solution" << std::endl;
         VectorType uniqueSolution (solution, Unique, Zero);
         bcRobinManageResidual (  residual,
                                  rightHandSide,

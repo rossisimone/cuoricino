@@ -63,63 +63,65 @@ namespace LifeV
 
 class MatrixStandard : public std::vector< std::vector <Real> >
 {
-	typedef std::vector<std::vector <Real> > Matrix;
-	typedef std::vector<Real> Vector;
+    typedef std::vector<std::vector <Real> > Matrix;
+    typedef std::vector<Real> Vector;
 
 public:
-	MatrixStandard(){};
-	MatrixStandard(UInt n);
-	MatrixStandard(UInt n, UInt m, Real r = 0.0);
-	MatrixStandard(Matrix A);
-	virtual ~MatrixStandard(){};
+    MatrixStandard() {};
+    MatrixStandard (UInt n);
+    MatrixStandard (UInt n, UInt m, Real r = 0.0);
+    MatrixStandard (Matrix A);
+    virtual ~MatrixStandard() {};
 
-	void setIdentity(UInt n = 0);
-	void setValues(Real r);
-	void setCol(UInt j, const VectorStandard& v);
-	void setLine(UInt i, const VectorStandard& v);
+    void setIdentity (UInt n = 0);
+    void setValues (Real r);
+    void setCol (UInt j, const VectorStandard& v);
+    void setLine (UInt i, const VectorStandard& v);
 
-	VectorStandard getLine(UInt i) const;
-	VectorStandard getCol(UInt j) const;
-	void getLine(UInt i, VectorStandard& v) const;
-	void getCol(UInt j, VectorStandard& v) const;
+    VectorStandard getLine (UInt i) const;
+    VectorStandard getCol (UInt j) const;
+    void getLine (UInt i, VectorStandard& v) const;
+    void getCol (UInt j, VectorStandard& v) const;
 
-	MatrixStandard triU() const;
-	MatrixStandard triL() const;
-	void triU(MatrixStandard& U) const;
-	void triL(MatrixStandard& L) const;
+    MatrixStandard triU() const;
+    MatrixStandard triL() const;
+    void triU (MatrixStandard& U) const;
+    void triL (MatrixStandard& L) const;
 
-	MatrixStandard  operator+ (const MatrixStandard& B) const;
-	MatrixStandard& operator+=(const MatrixStandard& B);
-	MatrixStandard  operator- (const MatrixStandard& B) const;
-	MatrixStandard& operator-=(const MatrixStandard& B);
-	MatrixStandard& operator-=(const Matrix& B);
-	MatrixStandard  operator* (const MatrixStandard& B) const;
-	MatrixStandard  operator* (const Real r) const;
-	MatrixStandard& operator*=(const Real r);
-	MatrixStandard  operator/ (const Real r) const;
-	MatrixStandard& operator/=(const Real r);
-	Vector 	  operator* (const Vector& x) const;
-	VectorStandard  operator* (const VectorStandard& x) const;
-	Vector&   operator[](UInt i);
-	const Vector&   operator[](UInt i) const;
+    MatrixStandard  operator+ (const MatrixStandard& B) const;
+    MatrixStandard& operator+= (const MatrixStandard& B);
+    MatrixStandard  operator- (const MatrixStandard& B) const;
+    MatrixStandard& operator-= (const MatrixStandard& B);
+    MatrixStandard& operator-= (const Matrix& B);
+    MatrixStandard  operator* (const MatrixStandard& B) const;
+    MatrixStandard  operator* (const Real r) const;
+    MatrixStandard& operator*= (const Real r);
+    MatrixStandard  operator/ (const Real r) const;
+    MatrixStandard& operator/= (const Real r);
+    Vector    operator* (const Vector& x) const;
+    VectorStandard  operator* (const VectorStandard& x) const;
+    Vector&   operator[] (UInt i);
+    const Vector&   operator[] (UInt i) const;
 
-	void times(const MatrixStandard& B, MatrixStandard& C) const;
-	void times(const VectorStandard& x, VectorStandard& b) const;
-	template<UInt s>
-	void  timesVectorSmall(const VectorSmall<s>& v, VectorStandard& b) const;
+    void times (const MatrixStandard& B, MatrixStandard& C) const;
+    void times (const VectorStandard& x, VectorStandard& b) const;
+    template<UInt s>
+    void  timesVectorSmall (const VectorSmall<s>& v, VectorStandard& b) const;
 
-	void disp();
+    void disp();
 };
 
 template<UInt s>
-void MatrixStandard::timesVectorSmall(const VectorSmall<s>& v, VectorStandard& b) const
+void MatrixStandard::timesVectorSmall (const VectorSmall<s>& v, VectorStandard& b) const
 {
-	for(UInt i = 0; i<this->size(); i++)
-	{
-		b[i] = (this->at(i).at(0))*v[0];
-		for(UInt j = 1; j<this->at(0).size(); j++)
-			b[i] += (this->at(i).at(j))*v[j];
-	}
+    for (UInt i = 0; i < this->size(); i++)
+    {
+        b[i] = (this->at (i).at (0) ) * v[0];
+        for (UInt j = 1; j < this->at (0).size(); j++)
+        {
+            b[i] += (this->at (i).at (j) ) * v[j];
+        }
+    }
 }
 
 }// namespace LifeV

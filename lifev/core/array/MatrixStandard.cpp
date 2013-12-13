@@ -39,244 +39,280 @@
 namespace LifeV
 {
 
-MatrixStandard::MatrixStandard(UInt n)
-: std::vector<std::vector <Real> >(n, std::vector<Real>(n,0.0))
+MatrixStandard::MatrixStandard (UInt n)
+    : std::vector<std::vector <Real> > (n, std::vector<Real> (n, 0.0) )
 {
-	setIdentity(n);
+    setIdentity (n);
 }
 
-MatrixStandard::MatrixStandard(UInt n, UInt m, Real r)
-: std::vector<std::vector <Real> >(n, std::vector<Real>(m, r))
-{
-}
-
-MatrixStandard::MatrixStandard(std::vector<std::vector<Real> > A)
-: std::vector<std::vector <Real> >(A)
+MatrixStandard::MatrixStandard (UInt n, UInt m, Real r)
+    : std::vector<std::vector <Real> > (n, std::vector<Real> (m, r) )
 {
 }
 
-void MatrixStandard::setIdentity(UInt n)
+MatrixStandard::MatrixStandard (std::vector<std::vector<Real> > A)
+    : std::vector<std::vector <Real> > (A)
 {
-	*this *= 0.0;
-
-	for(Int i = 0; i<n; i++)
-		this->at(i).at(i) = 1.0;
 }
 
-void MatrixStandard::setValues(Real r)
+void MatrixStandard::setIdentity (UInt n)
 {
-	for (UInt i=0; i<this->size(); i++)
-		for(UInt j=0; j<this->at(0).size(); j++)
-			this->at(i).at(j) = r;
+    *this *= 0.0;
+
+    for (Int i = 0; i < n; i++)
+    {
+        this->at (i).at (i) = 1.0;
+    }
 }
 
-void MatrixStandard::setCol(UInt j, const VectorStandard& v)
+void MatrixStandard::setValues (Real r)
 {
-	for(UInt i=0; i<this->size(); i++)
-		this->at(i).at(j) = v[i];
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = 0; j < this->at (0).size(); j++)
+        {
+            this->at (i).at (j) = r;
+        }
 }
 
-void MatrixStandard::setLine(UInt i, const VectorStandard& v)
+void MatrixStandard::setCol (UInt j, const VectorStandard& v)
 {
-	for(UInt j=0; j<this->at(0).size(); j++)
-		this->at(i).at(j) = v[j];
+    for (UInt i = 0; i < this->size(); i++)
+    {
+        this->at (i).at (j) = v[i];
+    }
 }
 
-VectorStandard MatrixStandard::getLine(UInt i) const
+void MatrixStandard::setLine (UInt i, const VectorStandard& v)
 {
-	VectorStandard v(this->at(0).size(), 0.0);
-	getLine(i, v);
-
-	return v;
+    for (UInt j = 0; j < this->at (0).size(); j++)
+    {
+        this->at (i).at (j) = v[j];
+    }
 }
 
-VectorStandard MatrixStandard::getCol(UInt j) const
+VectorStandard MatrixStandard::getLine (UInt i) const
 {
-	VectorStandard v(this->size(), 0.0);
-	getCol(j, v);
+    VectorStandard v (this->at (0).size(), 0.0);
+    getLine (i, v);
 
-	return v;
+    return v;
 }
 
-void MatrixStandard::getLine(UInt i, VectorStandard& v) const
+VectorStandard MatrixStandard::getCol (UInt j) const
 {
-	for(UInt j = 0; j<this->at(0).size(); j++)
-		v[j] = this->at(i).at(j);
+    VectorStandard v (this->size(), 0.0);
+    getCol (j, v);
+
+    return v;
 }
 
-void MatrixStandard::getCol(UInt j, VectorStandard& v) const
+void MatrixStandard::getLine (UInt i, VectorStandard& v) const
 {
-	for(UInt i = 0; i<this->size(); i++)
-		v[i] = this->at(i).at(j);
+    for (UInt j = 0; j < this->at (0).size(); j++)
+    {
+        v[j] = this->at (i).at (j);
+    }
+}
+
+void MatrixStandard::getCol (UInt j, VectorStandard& v) const
+{
+    for (UInt i = 0; i < this->size(); i++)
+    {
+        v[i] = this->at (i).at (j);
+    }
 }
 
 MatrixStandard MatrixStandard::triU() const
 {
-	MatrixStandard C(this->size(), this->at(0).size());
-	triU(C);
+    MatrixStandard C (this->size(), this->at (0).size() );
+    triU (C);
 
-	return C;
+    return C;
 }
 
 MatrixStandard MatrixStandard::triL() const
 {
-	MatrixStandard C(this->size(), this->at(0).size());
-	triL(C);
+    MatrixStandard C (this->size(), this->at (0).size() );
+    triL (C);
 
-	return C;
+    return C;
 }
 
-void MatrixStandard::triU(MatrixStandard& U) const
+void MatrixStandard::triU (MatrixStandard& U) const
 {
-	for(UInt i=0; i<this->size(); i++)
-		for(UInt j=i; j<this->at(0).size(); j++)
-			U[i][j] = this->at(i).at(j);
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = i; j < this->at (0).size(); j++)
+        {
+            U[i][j] = this->at (i).at (j);
+        }
 }
 
-void MatrixStandard::triL(MatrixStandard& L) const
+void MatrixStandard::triL (MatrixStandard& L) const
 {
-	for(UInt i=0; i<this->size(); i++)
-		for(UInt j=0; j<=i; j++)
-			L[i][j] = this->at(i).at(j);
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = 0; j <= i; j++)
+        {
+            L[i][j] = this->at (i).at (j);
+        }
 }
 
-MatrixStandard MatrixStandard::operator+(const MatrixStandard& B) const
+MatrixStandard MatrixStandard::operator+ (const MatrixStandard& B) const
 {
-	return MatrixStandard(*this) += B;
+    return MatrixStandard (*this) += B;
 }
 
-MatrixStandard& MatrixStandard::operator+=(const MatrixStandard& B)
+MatrixStandard& MatrixStandard::operator+= (const MatrixStandard& B)
 {
-	for(UInt i = 0; i<this->size(); i++)
-		for(UInt j = 0; j<this->at(0).size(); j++)
-			this->at(i).at(j) += B[i][j];
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = 0; j < this->at (0).size(); j++)
+        {
+            this->at (i).at (j) += B[i][j];
+        }
 
-	return *this;
+    return *this;
 }
 
-MatrixStandard MatrixStandard::operator-(const MatrixStandard& B) const
+MatrixStandard MatrixStandard::operator- (const MatrixStandard& B) const
 {
-	return MatrixStandard(*this) -= B;
+    return MatrixStandard (*this) -= B;
 }
 
-MatrixStandard& MatrixStandard::operator-=(const MatrixStandard& B)
+MatrixStandard& MatrixStandard::operator-= (const MatrixStandard& B)
 {
-	for(UInt i = 0; i<this->size(); i++)
-		for(UInt j = 0; j<this->at(0).size(); j++)
-			this->at(i).at(j) -= B[i][j];
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = 0; j < this->at (0).size(); j++)
+        {
+            this->at (i).at (j) -= B[i][j];
+        }
 
-	return *this;
+    return *this;
 }
 
-MatrixStandard& MatrixStandard::operator-=(const std::vector<std::vector<Real> >& B)
+MatrixStandard& MatrixStandard::operator-= (const std::vector<std::vector<Real> >& B)
 {
-	for(UInt i = 0; i<this->size(); i++)
-		for(UInt j = 0; j<this->at(0).size(); j++)
-			this->at(i).at(j) -= B[i][j];
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = 0; j < this->at (0).size(); j++)
+        {
+            this->at (i).at (j) -= B[i][j];
+        }
 
-	return *this;
+    return *this;
 }
 
-MatrixStandard  MatrixStandard::operator*(const MatrixStandard& B) const
+MatrixStandard  MatrixStandard::operator* (const MatrixStandard& B) const
 {
-	MatrixStandard C(this->size(), B.at(0).size());
+    MatrixStandard C (this->size(), B.at (0).size() );
 
-	for(UInt i = 0; i<this->size(); i++)
-		for(UInt j = 0; j<B.at(0).size(); j++)
-			for(UInt k = 0; k<B.size(); k++)
-				C[i][j] += (this->at(i).at(k))*B[k][j];
-	return C;
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = 0; j < B.at (0).size(); j++)
+            for (UInt k = 0; k < B.size(); k++)
+            {
+                C[i][j] += (this->at (i).at (k) ) * B[k][j];
+            }
+    return C;
 }
 
-void MatrixStandard::times(const MatrixStandard& B, MatrixStandard& C) const
+void MatrixStandard::times (const MatrixStandard& B, MatrixStandard& C) const
 {
-	for(UInt i = 0; i<this->size(); i++)
-	{
-		for(UInt j = 0; j<B.at(0).size(); j++)
-		{
-			C[i][j] = this->at(i).at(0)*B[0][j];
-			for(UInt k = 1; k<B.size(); k++)
-				C[i][j] += (this->at(i).at(k))*B[k][j];
-		}
-	}
+    for (UInt i = 0; i < this->size(); i++)
+    {
+        for (UInt j = 0; j < B.at (0).size(); j++)
+        {
+            C[i][j] = this->at (i).at (0) * B[0][j];
+            for (UInt k = 1; k < B.size(); k++)
+            {
+                C[i][j] += (this->at (i).at (k) ) * B[k][j];
+            }
+        }
+    }
 }
 
-MatrixStandard MatrixStandard::operator*(const Real r) const
+MatrixStandard MatrixStandard::operator* (const Real r) const
 {
-	return MatrixStandard(*this) *= r;
+    return MatrixStandard (*this) *= r;
 }
 
-MatrixStandard& MatrixStandard::operator*=(const Real r)
+MatrixStandard& MatrixStandard::operator*= (const Real r)
 {
-	for(UInt i = 0; i<this->size(); i++)
-		for(UInt j = 0; j<this->at(0).size(); j++)
-			this->at(i).at(j) *= r;
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = 0; j < this->at (0).size(); j++)
+        {
+            this->at (i).at (j) *= r;
+        }
 
-	return *this;
+    return *this;
 }
 
-MatrixStandard MatrixStandard::operator/(const Real r) const
+MatrixStandard MatrixStandard::operator/ (const Real r) const
 {
-	return MatrixStandard(*this)*=(1.0/r);
+    return MatrixStandard (*this) *= (1.0 / r);
 }
 
-MatrixStandard& MatrixStandard::operator/=(const Real r)
+MatrixStandard& MatrixStandard::operator/= (const Real r)
 {
-	*this *= (1.0/r);
+    *this *= (1.0 / r);
 
-	return *this;
+    return *this;
 }
 
-std::vector<Real> MatrixStandard::operator*(const std::vector<Real>& x) const
+std::vector<Real> MatrixStandard::operator* (const std::vector<Real>& x) const
 {
-	std::vector<Real> b(this->size(), 0.0);
+    std::vector<Real> b (this->size(), 0.0);
 
-	for(UInt i = 0; i<this->size(); i++)
-		for(UInt j = 0; j<this->at(0).size(); j++)
-			b[i] += (this->at(i).at(j))*x[j];
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = 0; j < this->at (0).size(); j++)
+        {
+            b[i] += (this->at (i).at (j) ) * x[j];
+        }
 
-	return b;
+    return b;
 }
 
-VectorStandard MatrixStandard::operator*(const VectorStandard& x) const
+VectorStandard MatrixStandard::operator* (const VectorStandard& x) const
 {
-	VectorStandard b(this->size(), 0.0);
+    VectorStandard b (this->size(), 0.0);
 
-	for(UInt i = 0; i<this->size(); i++)
-		for(UInt j = 0; j<x.size(); j++)
-			b[i] += (this->at(i).at(j))*x[j];
+    for (UInt i = 0; i < this->size(); i++)
+        for (UInt j = 0; j < x.size(); j++)
+        {
+            b[i] += (this->at (i).at (j) ) * x[j];
+        }
 
-	return b;
+    return b;
 }
 
-void MatrixStandard::times(const VectorStandard& x, VectorStandard& b) const
+void MatrixStandard::times (const VectorStandard& x, VectorStandard& b) const
 {
-	for(UInt i = 0; i<this->size(); i++)
-	{
-		b[i] = (this->at(i).at(0))*x[0];
-		for(UInt j = 1; j<x.size(); j++)
-			b[i] += (this->at(i).at(j))*x[j];
-	}
+    for (UInt i = 0; i < this->size(); i++)
+    {
+        b[i] = (this->at (i).at (0) ) * x[0];
+        for (UInt j = 1; j < x.size(); j++)
+        {
+            b[i] += (this->at (i).at (j) ) * x[j];
+        }
+    }
 }
 
-std::vector<Real>& MatrixStandard::operator[](UInt i)
+std::vector<Real>& MatrixStandard::operator[] (UInt i)
 {
-	return this->at(i);
+    return this->at (i);
 }
 
-const std::vector<Real>& MatrixStandard::operator[](UInt i) const
+const std::vector<Real>& MatrixStandard::operator[] (UInt i) const
 {
-	return this->at(i);
+    return this->at (i);
 }
 
 void MatrixStandard::disp()
 {
-	for(UInt i = 0; i<this->size(); i++)
-	{
-		for(UInt j = 0; j<this->at(0).size(); j++)
-			cout<<"   "<<this->at(i).at(j);
-		cout<<"\n";
-	}
+    for (UInt i = 0; i < this->size(); i++)
+    {
+        for (UInt j = 0; j < this->at (0).size(); j++)
+        {
+            cout << "   " << this->at (i).at (j);
+        }
+        cout << "\n";
+    }
 }
 
 } //namespace LifeV

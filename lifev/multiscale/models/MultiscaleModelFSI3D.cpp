@@ -112,12 +112,12 @@ MultiscaleModelFSI3D::MultiscaleModelFSI3D() :
 
     MonolithicBlockMatrix::Factory_Type::instance().registerProduct ("AdditiveSchwarz",   &MonolithicBlockMatrix::createAdditiveSchwarz ) ;
     MonolithicBlockMatrix::Factory_Type::instance().registerProduct ("AdditiveSchwarzRN", &MonolithicBlockMatrixRN::createAdditiveSchwarzRN ) ;
-/*
-    FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "linearVenantKirchhoff",    &FSIOperator::createVenantKirchhoffLinear );
-    FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "nonLinearVenantKirchhoff", &FSIOperator::createVenantKirchhoffNonLinear );
-    FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "exponential",              &FSIOperator::createExponentialMaterialNonLinear );
-    FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "neoHookean",               &FSIOperator::createNeoHookeanMaterialNonLinear );
-*/
+    /*
+        FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "linearVenantKirchhoff",    &FSIOperator::createVenantKirchhoffLinear );
+        FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "nonLinearVenantKirchhoff", &FSIOperator::createVenantKirchhoffNonLinear );
+        FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "exponential",              &FSIOperator::createExponentialMaterialNonLinear );
+        FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "neoHookean",               &FSIOperator::createNeoHookeanMaterialNonLinear );
+    */
 }
 
 // ===================================================
@@ -168,7 +168,7 @@ MultiscaleModelFSI3D::setupData ( const std::string& fileName )
     }
 
     // Set verbosite level for NonLinearRichardson
-    M_verbosityLevel = dataFile("problem/verbose", 1);
+    M_verbosityLevel = dataFile ("problem/verbose", 1);
 
 #ifndef FSI_WITHOUT_VELOCITYPROFILE
     std::map< std::string, FSI3DBoundaryFlowRate_Type > boundaryFlowRateMap;
@@ -319,12 +319,15 @@ MultiscaleModelFSI3D::solveModel()
     {
         // Set initial guess as extrapolation from previous time step only if this is the first
         // MS iteration, otherwise use the solution at the last MS iteration as initial guess.
-    	M_FSIoperator->extrapolation ( *M_stateVariable );
+        M_FSIoperator->extrapolation ( *M_stateVariable );
     }
 
     // Non-linear Richardson solver
     UInt maxSubIterationNumber = M_data->maxSubIterationNumber();
-    if ( !M_data->reuseSolution() )  M_FSIoperator->extrapolation ( *M_stateVariable );
+    if ( !M_data->reuseSolution() )
+    {
+        M_FSIoperator->extrapolation ( *M_stateVariable );
+    }
 
     NonLinearRichardson ( *M_stateVariable, *M_FSIoperator,
                           M_data->absoluteTolerance(), M_data->relativeTolerance(),

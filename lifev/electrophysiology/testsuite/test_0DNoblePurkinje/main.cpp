@@ -117,11 +117,11 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.Size(), 0);
-    ionicModel.initialize(states);
-//    states.at (0) = -80.0;
-//    states.at (1) = ionicModel.mInf(-80.0);
-//    states.at (2) = ionicModel.nInf(-80.0);
-//    states.at (3) = ionicModel.hInf(-80.0);
+    ionicModel.initialize (states);
+    //    states.at (0) = -80.0;
+    //    states.at (1) = ionicModel.mInf(-80.0);
+    //    states.at (2) = ionicModel.nInf(-80.0);
+    //    states.at (3) = ionicModel.hInf(-80.0);
     std::vector<Real>& rStates = states;
     std::cout << " Done!" << endl;
 
@@ -155,7 +155,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     Real TF (4000);
     Real dt (0.005);
-    int useRushLarsen(1);
+    int useRushLarsen (1);
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -176,20 +176,26 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if( t > 1.5 && t < 2 ) Iapp = 240.0;
-        else Iapp = 0;
-//        Iapp = 0;
+        if ( t > 1.5 && t < 2 )
+        {
+            Iapp = 240.0;
+        }
+        else
+        {
+            Iapp = 0;
+        }
+        //        Iapp = 0;
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        ionicModel.setAppliedCurrent(Iapp);
-        if(useRushLarsen)
+        ionicModel.setAppliedCurrent (Iapp);
+        if (useRushLarsen)
         {
-            ionicModel.computeGatingVariablesWithRushLarsen(states,dt);
-            Real RHS=ionicModel.computeLocalPotentialRhs ( states);
-            RHS+=Iapp;
+            ionicModel.computeGatingVariablesWithRushLarsen (states, dt);
+            Real RHS = ionicModel.computeLocalPotentialRhs ( states);
+            RHS += Iapp;
             //********************************************//
             // Use forward Euler method to advance the    //
             // solution in time.                          //
@@ -203,7 +209,7 @@ Int main ( Int argc, char** argv )
         else
         {
             ionicModel.computeRhs ( states, rhs);
-            rhs[0]+=Iapp;
+            rhs[0] += Iapp;
             //********************************************//
             // Use forward Euler method to advance the    //
             // solution in time.                          //
@@ -241,7 +247,7 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    if (std::abs(rStates.at ( ionicModel.Size() - 2 ) - 0.456093) > 1e-4 )
+    if (std::abs (rStates.at ( ionicModel.Size() - 2 ) - 0.456093) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

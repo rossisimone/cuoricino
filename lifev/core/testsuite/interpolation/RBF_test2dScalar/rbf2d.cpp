@@ -58,7 +58,7 @@ along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 #include <Teuchos_XMLParameterListHelpers.hpp>
 #include <Teuchos_RCP.hpp>
 
-#define PI 3.14159265 
+#define PI 3.14159265
 
 //Tell the compiler to restore the warning previously silented
 #pragma GCC diagnostic warning "-Wunused-variable"
@@ -149,15 +149,19 @@ int main (int argc, char** argv )
 
     interpolationPtr_Type RBFinterpolant;
 
-    RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject (dataFile("interpolation/interpolation_Type","none")));
+    RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject (dataFile ("interpolation/interpolation_Type", "none") ) );
 
-    RBFinterpolant->setup(Solid_mesh_ptr, Solid_localMesh, Fluid_mesh_ptr, Fluid_localMesh, flags);
+    RBFinterpolant->setup (Solid_mesh_ptr, Solid_localMesh, Fluid_mesh_ptr, Fluid_localMesh, flags);
 
-    if(dataFile("interpolation/interpolation_Type","none")=="RBFscalar")
-        RBFinterpolant->setBasis(dataFile("interpolation/basis","none"));
+    if (dataFile ("interpolation/interpolation_Type", "none") == "RBFscalar")
+    {
+        RBFinterpolant->setBasis (dataFile ("interpolation/basis", "none") );
+    }
 
-    if(dataFile("interpolation/interpolation_Type","none")!="RBFlocallyRescaledScalar")
-        RBFinterpolant->setRadius((double) MeshUtility::MeshStatistics::computeSize (*Solid_mesh_ptr).maxH);
+    if (dataFile ("interpolation/interpolation_Type", "none") != "RBFlocallyRescaledScalar")
+    {
+        RBFinterpolant->setRadius ( (double) MeshUtility::MeshStatistics::computeSize (*Solid_mesh_ptr).maxH);
+    }
 
     RBFinterpolant->setupRBFData (Solid_vector, Fluid_solution, dataFile, belosList);
 
@@ -182,9 +186,9 @@ int main (int argc, char** argv )
         }
 
     Real err_Inf = myError->normInf();
-    Real err_L2  = myError->norm2()/Solid_mesh_ptr->numVertices();
+    Real err_L2  = myError->norm2() / Solid_mesh_ptr->numVertices();
 
-    if(Comm->MyPID()==0)
+    if (Comm->MyPID() == 0)
     {
         std::cout << "Error, norm_Inf = " <<  err_Inf  << std::endl;
         std::cout << "Error, normL2   = " <<  err_L2   << std::endl;

@@ -135,7 +135,9 @@ Int main ( Int argc, char** argv )
     LifeChrono chronoinitialsettings;
 
     if ( Comm->MyPID() == 0 )
+    {
         chronoinitialsettings.start();
+    }
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -147,15 +149,21 @@ Int main ( Int argc, char** argv )
     const string monodomain_datafile_name = command_line.follow ("MonodomainSolverParamList.xml", 2, "-f", "--file");
     Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
 
-    std::string ionic_model( monodomainList.get ("ionic_model", "minimalModel") );
+    std::string ionic_model ( monodomainList.get ("ionic_model", "minimalModel") );
 
     ionicModelPtr_Type  model;
-    if( ionic_model == "LuoRudyI" )
-        model.reset( new IonicLuoRudyI() );
+    if ( ionic_model == "LuoRudyI" )
+    {
+        model.reset ( new IonicLuoRudyI() );
+    }
     else if ( ionic_model == "TenTusscher06")
-        model.reset(new IonicTenTusscher06() );
+    {
+        model.reset (new IonicTenTusscher06() );
+    }
     else
-        model.reset( new IonicMinimalModel() );
+    {
+        model.reset ( new IonicMinimalModel() );
+    }
 
 
     //********************************************//
@@ -190,13 +198,13 @@ Int main ( Int argc, char** argv )
     solver -> setInitialConditions();
 
     CardiacStimulusPMJ stimulus;
-    stimulus.setRadius( monodomainList.get("applied_current_radius", 0.2) );
-    stimulus.setTotalCurrent( monodomainList.get("applied_total_current", 0.2) );
+    stimulus.setRadius ( monodomainList.get ("applied_current_radius", 0.2) );
+    stimulus.setTotalCurrent ( monodomainList.get ("applied_total_current", 0.2) );
 
     std::string purkinjeFile = problemFolder + command_line.follow ("default", 2, "-m", "--model") + "_activation.txt";
-    stimulus.setPMJFromFile(purkinjeFile);
+    stimulus.setPMJFromFile (purkinjeFile);
 
-    solver -> setAppliedCurrentFromCardiacStimulus(stimulus, 0.0);
+    solver -> setAppliedCurrentFromCardiacStimulus (stimulus, 0.0);
 
     //********************************************//
     // Setting up the time data                   //
@@ -210,22 +218,26 @@ Int main ( Int argc, char** argv )
     ( new FESpace< mesh_Type, MapEpetra > ( solver -> localMeshPtr(), "P1", 3, solver -> commPtr() ) );
 
     boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
-    std::string nm = problemFolder + monodomainList.get("fiber_file","FiberDirection") ;
-    HeartUtility::importFibers( fiber, nm, solver -> localMeshPtr() );
+    std::string nm = problemFolder + monodomainList.get ("fiber_file", "FiberDirection") ;
+    HeartUtility::importFibers ( fiber, nm, solver -> localMeshPtr() );
 
-    solver -> setFiberPtr(fiber);
+    solver -> setFiberPtr (fiber);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
     bool lumpedMass = monodomainList.get ("lumped_mass", false);
-    if( lumpedMass)
+    if ( lumpedMass)
+    {
         solver -> setupLumpedMassMatrix();
+    }
     else
+    {
         solver -> setupMassMatrix();
+    }
 
 
-    solver -> setupStiffnessMatrix( solver -> diffusionTensor() );
+    solver -> setupStiffnessMatrix ( solver -> diffusionTensor() );
     solver -> setupGlobalMatrix();
 
     //********************************************//
@@ -234,21 +246,21 @@ Int main ( Int argc, char** argv )
     ExporterHDF5< RegionMesh <LinearTetra> > exporter;
 
     solver -> setupExporter ( exporter, monodomainList.get ("outputFile", command_line.follow ("default", 2, "-m", "--model") + "_solution") );
-    exporter.setPostDir(problemFolder);
+    exporter.setPostDir (problemFolder);
     solver -> exportSolution ( exporter, 0);
 
     //********************************************//
-    // Activation time						      //
+    // Activation time                            //
     //********************************************//
-    vectorPtr_Type activationTimeVector( new vector_Type( solver -> potentialPtr() -> map() ) );
+    vectorPtr_Type activationTimeVector ( new vector_Type ( solver -> potentialPtr() -> map() ) );
     *activationTimeVector = -1.0;
 
     ExporterHDF5< RegionMesh <LinearTetra> > activationTimeExporter;
-    activationTimeExporter.setMeshProcId(solver -> localMeshPtr(), solver -> commPtr() ->MyPID());
-    activationTimeExporter.addVariable(ExporterData<mesh_Type>::ScalarField, "Activation Time",
-                                       solver -> feSpacePtr(), activationTimeVector, UInt(0));
-    activationTimeExporter.setPrefix(command_line.follow ("default", 2, "-m", "--model") + "_activationTime");
-    activationTimeExporter.setPostDir(problemFolder);
+    activationTimeExporter.setMeshProcId (solver -> localMeshPtr(), solver -> commPtr() ->MyPID() );
+    activationTimeExporter.addVariable (ExporterData<mesh_Type>::ScalarField, "Activation Time",
+                                        solver -> feSpacePtr(), activationTimeVector, UInt (0) );
+    activationTimeExporter.setPrefix (command_line.follow ("default", 2, "-m", "--model") + "_activationTime");
+    activationTimeExporter.setPostDir (problemFolder);
 
     //********************************************//
     // Solving the system                         //
@@ -261,7 +273,7 @@ Int main ( Int argc, char** argv )
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
-    Int k(0);
+    Int k (0);
 
     Real timeReac = 0.0;
     Real timeDiff = 0.0;
@@ -275,65 +287,65 @@ Int main ( Int argc, char** argv )
     {
         solver -> setAppliedCurrentFromCardiacStimulus ( stimulus, t );
 
-        if( solutionMethod == "splitting" )
+        if ( solutionMethod == "splitting" )
         {
             chrono.reset();
             chrono.start();
             solver->solveOneReactionStepFE( );
             chrono.stop();
 
-            timeReac += chrono.globalDiff( *Comm );
+            timeReac += chrono.globalDiff ( *Comm );
 
-            (*solver->rhsPtrUnique()) *= 0.0;
+            (*solver->rhsPtrUnique() ) *= 0.0;
             solver->updateRhs();
 
             chrono.reset();
             chrono.start();
             solver->solveOneDiffusionStepBE();
             chrono.stop();
-            timeDiff += chrono.globalDiff( *Comm );
+            timeDiff += chrono.globalDiff ( *Comm );
         }
-        else if( solutionMethod == "ICI" )
+        else if ( solutionMethod == "ICI" )
         {
             chrono.reset();
             chrono.start();
             solver -> solveOneStepGatingVariablesFE();
             solver -> solveOneICIStep();
             chrono.stop();
-            timeReacDiff += chrono.globalDiff( *Comm );
+            timeReacDiff += chrono.globalDiff ( *Comm );
         }
-        else if( solutionMethod == "Mixed" )
+        else if ( solutionMethod == "Mixed" )
         {
             chrono.reset();
             chrono.start();
             solver -> solveOneStepGatingVariablesFE();
             solver -> solveOneMixedStep();
             chrono.stop();
-            timeReacDiff += chrono.globalDiff( *Comm );
+            timeReacDiff += chrono.globalDiff ( *Comm );
         }
-        else if( solutionMethod == "SVI" )
+        else if ( solutionMethod == "SVI" )
         {
             chrono.reset();
             chrono.start();
             solver -> solveOneStepGatingVariablesFE();
             solver -> solveOneSVIStep();
             chrono.stop();
-            timeReacDiff += chrono.globalDiff( *Comm );
+            timeReacDiff += chrono.globalDiff ( *Comm );
         }
 
         //register activation time
         k++;
         t = t + dt;
-        solver -> registerActivationTime(*activationTimeVector, t, 1.0);
+        solver -> registerActivationTime (*activationTimeVector, t, 1.0);
 
-        if( k % iter == 0 )
+        if ( k % iter == 0 )
         {
             solver -> exportSolution (exporter, t);
         }
     }
 
     exporter.closeFile();
-    activationTimeExporter.postProcess(0);
+    activationTimeExporter.postProcess (0);
     activationTimeExporter.closeFile();
 
     chronoinitialsettings.stop();

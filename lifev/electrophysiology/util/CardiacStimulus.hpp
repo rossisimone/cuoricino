@@ -39,9 +39,11 @@
 
 #include <lifev/core/array/VectorEpetra.hpp>
 
-namespace LifeV {
+namespace LifeV
+{
 
-class CardiacStimulus {
+class CardiacStimulus
+{
 
 public:
 
@@ -83,7 +85,7 @@ public:
 
     //! @name Methods
     //@{
-    inline virtual Real appliedCurrent( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i )
+    inline virtual Real appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i )
     {
         return 0.0;
     }

@@ -118,10 +118,14 @@ Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, 
     Real stimulusRadius = 0.1; // monodomainList.get ("stimulusRadius", 0.1);
 
     if (  ( ( x - pacingSite_X ) * ( x - pacingSite_X ) +  ( y - pacingSite_Y ) * ( y - pacingSite_Y ) +  ( z - pacingSite_Z ) * ( z - pacingSite_Z )  )
-                    <= ( stimulusRadius * stimulusRadius ) )
+            <= ( stimulusRadius * stimulusRadius ) )
+    {
         return -14.7;
+    }
     else
+    {
         return -94.7;
+    }
 }
 
 Int main ( Int argc, char** argv )
@@ -235,8 +239,8 @@ Int main ( Int argc, char** argv )
     // In the parameter list we need to specify   //
     // the mesh name and the mesh path.           //
     //********************************************//
-//    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
-//    std::string meshPath = monodomainList.get ("mesh_path", "./");
+    //    std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
+    //    std::string meshPath = monodomainList.get ("mesh_path", "./");
 
     //********************************************//
     // We need the GetPot datafile for to setup   //
@@ -278,7 +282,7 @@ Int main ( Int argc, char** argv )
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
 
-    * ( splitting -> globalSolution().at (1) ) = FoxParameterList.get ("gatingM",2.4676e-4);
+    * ( splitting -> globalSolution().at (1) ) = FoxParameterList.get ("gatingM", 2.4676e-4);
     * ( splitting -> globalSolution().at (2) ) = FoxParameterList.get ("gatingH", 0.99869);
     * ( splitting -> globalSolution().at (3) ) = FoxParameterList.get ("gatingJ", 0.99887);
     * ( splitting -> globalSolution().at (4) ) = FoxParameterList.get ("gatingXKR", 0.229);
@@ -344,33 +348,41 @@ Int main ( Int argc, char** argv )
     Real initialTime = monodomainList.get ("initialTime", 0.);
 
 
-    splitting   -> solveSplitting(exporterSplitting,Savedt);
+    splitting   -> solveSplitting (exporterSplitting, Savedt);
 
-    vectorPtr_Type previousPotential0Ptr( new vector_Type ( FESpacePtr->map() ) );
-    *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
+    vectorPtr_Type previousPotential0Ptr ( new vector_Type ( FESpacePtr->map() ) );
+    * (previousPotential0Ptr) = * (splitting->globalSolution().at (0) );
 
-    int iter((Savedt / timeStep)+ 1e-9);
+    int iter ( (Savedt / timeStep) + 1e-9);
     int nbTimeStep (1);
-    int k(0);
-    if (endTime > timeStep) {
-        for (Real t = initialTime; t < endTime;) {
+    int k (0);
+    if (endTime > timeStep)
+    {
+        for (Real t = initialTime; t < endTime;)
+        {
             t += timeStep;
             k++;
-            if (nbTimeStep==1) {
-                    splitting->solveOneReactionStepFE();
-                    (*(splitting->rhsPtrUnique())) *= 0;
-                    splitting->updateRhs();
-                    splitting->solveOneDiffusionStepBE();
-                    splitting->exportSolution(exporterSplitting, t);
-            }else{
-                *(previousPotential0Ptr) = *(splitting->globalSolution().at(0));
-                splitting->solveOneReactionStepFE(2);
-                (*(splitting->rhsPtrUnique())) *= 0;
+            if (nbTimeStep == 1)
+            {
+                splitting->solveOneReactionStepFE();
+                (* (splitting->rhsPtrUnique() ) ) *= 0;
                 splitting->updateRhs();
-//                splitting->solveOneDiffusionStepBE();
-                splitting->solveOneDiffusionStepBDF2(previousPotential0Ptr);
-                splitting->solveOneReactionStepFE(2);
-                if (k % iter == 0) splitting->exportSolution(exporterSplitting, t);
+                splitting->solveOneDiffusionStepBE();
+                splitting->exportSolution (exporterSplitting, t);
+            }
+            else
+            {
+                * (previousPotential0Ptr) = * (splitting->globalSolution().at (0) );
+                splitting->solveOneReactionStepFE (2);
+                (* (splitting->rhsPtrUnique() ) ) *= 0;
+                splitting->updateRhs();
+                //                splitting->solveOneDiffusionStepBE();
+                splitting->solveOneDiffusionStepBDF2 (previousPotential0Ptr);
+                splitting->solveOneReactionStepFE (2);
+                if (k % iter == 0)
+                {
+                    splitting->exportSolution (exporterSplitting, t);
+                }
             }
             nbTimeStep++;
         }

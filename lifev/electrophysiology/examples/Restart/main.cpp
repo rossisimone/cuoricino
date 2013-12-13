@@ -94,23 +94,24 @@ Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z
     Real pacingSite_Y = 0.0;
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
-//    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
-//    Real stimulusValue =  monodomainList.get ("stimulus_value", 0.0);
+    //    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    //    Real stimulusValue =  monodomainList.get ("stimulus_value", 0.0);
     Real stimulusValue = 10;
 
     Real returnValue;
 
-    if ( std::abs( x - pacingSite_X ) <= stimulusRadius
-    		 &&
-    	 std::abs( z - pacingSite_Z ) <= stimulusRadius
-    	 	 &&
-    	 std::abs( y - pacingSite_Y ) <= stimulusRadius
-    	 	 &&
-    	 t <= 2)
+    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius
+            &&
+            std::abs ( z - pacingSite_Z ) <= stimulusRadius
+            &&
+            std::abs ( y - pacingSite_Y ) <= stimulusRadius
+            &&
+            t <= 2)
     {
-    	returnValue = stimulusValue;
+        returnValue = stimulusValue;
     }
-    else{
+    else
+    {
         returnValue = 0.;
     }
 
@@ -157,14 +158,16 @@ Int main ( Int argc, char** argv )
 
     typedef ElectroETAMonodomainSolver< mesh_Type, IonicMinimalModel >        monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >  monodomainSolverPtr_Type;
-    typedef VectorEpetra				vector_Type;
+    typedef VectorEpetra                vector_Type;
     typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
 
 
     LifeChrono chronoinitialsettings;
 
     if ( Comm->MyPID() == 0 )
-      	chronoinitialsettings.start();
+    {
+        chronoinitialsettings.start();
+    }
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -267,10 +270,10 @@ Int main ( Int argc, char** argv )
     }
 
     VectorSmall<3> fibers;
-    fibers[0]=0.0;
-    fibers[1]=0.0;
-    fibers[2]=1.0;
-    solver -> setupFibers( fibers );
+    fibers[0] = 0.0;
+    fibers[1] = 0.0;
+    fibers[2] = 1.0;
+    solver -> setupFibers ( fibers );
 
     if ( Comm->MyPID() == 0 )
     {
@@ -285,7 +288,7 @@ Int main ( Int argc, char** argv )
         cout << "\nSetup operators:  " ;
     }
 
-   	solver -> setupLumpedMassMatrix();
+    solver -> setupLumpedMassMatrix();
 
     solver -> setupStiffnessMatrix();
     solver -> setupGlobalMatrix();
@@ -312,43 +315,49 @@ Int main ( Int argc, char** argv )
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
-    Int k(0);
+    Int k (0);
 
 
 
     std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
 
-    Real normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
+    Real normSolution = ( ( solver -> globalSolution().at (0) )->norm2() );
     if ( Comm->MyPID() == 0 )
-            std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+    {
+        std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+    }
 
     for ( Real t = 0.0; t < TF; )
     {
         solver -> setAppliedCurrentFromFunction ( stimulus, t );
 
-		solver->solveOneReactionStepFE( );
+        solver->solveOneReactionStepFE( );
 
-		(*solver->rhsPtrUnique()) *= 0.0;
-		solver->updateRhs();
+        (*solver->rhsPtrUnique() ) *= 0.0;
+        solver->updateRhs();
 
-		solver->solveOneDiffusionStepBE();
+        solver->solveOneDiffusionStepBE();
 
         t = t + dt;
         k++;
 
-        if( k % iter == 0 )
+        if ( k % iter == 0 )
         {
-           	solver -> exportSolution (exporter, t);
+            solver -> exportSolution (exporter, t);
         }
 
 
 
         if ( Comm->MyPID() == 0 )
-        	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+        {
+            std::cout << "\n\n\nActual time : " << t << std::endl << std::endl << std::endl;
+        }
 
-        normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
+        normSolution = ( ( solver -> globalSolution().at (0) )->norm2() );
         if ( Comm->MyPID() == 0 )
-                std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+        {
+            std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+        }
 
     }
 
@@ -358,25 +367,27 @@ Int main ( Int argc, char** argv )
 
 
     //*************************///
-    // RESTART				   ///
+    // RESTART                 ///
     //*************************///
 
     //******************************///
     // Setting the solution to zero ///
     //******************************///
-    for(int i(0); i < model -> Size(); i++)
+    for (int i (0); i < model -> Size(); i++)
     {
-    *(solver -> globalSolution().at(i)) *= 0;
+        * (solver -> globalSolution().at (i) ) *= 0;
     }
 
-    normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
+    normSolution = ( ( solver -> globalSolution().at (0) )->norm2() );
     if ( Comm->MyPID() == 0 )
+    {
         std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+    }
 
     //*************************///
-    // Importing			   ///
+    // Importing               ///
     //*************************///
-    solver -> importSolution(dataFile, monodomainList.get ("InputFile", "Solution"), problemFolder, 0.3 );
+    solver -> importSolution (dataFile, monodomainList.get ("InputFile", "Solution"), problemFolder, 0.3 );
 
 
     //*************************///
@@ -385,23 +396,27 @@ Int main ( Int argc, char** argv )
     ExporterHDF5< RegionMesh <LinearTetra> > restartExporter;
 
     solver -> setupExporter ( restartExporter, monodomainList.get ("RestartedOutputFile", "RestartedSolution"), problemFolder );
-    solver -> exportSolution( restartExporter, 0.3 );
-    normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
+    solver -> exportSolution ( restartExporter, 0.3 );
+    normSolution = ( ( solver -> globalSolution().at (0) )->norm2() );
     if ( Comm->MyPID() == 0 )
+    {
         std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+    }
     restartExporter.closeFile();
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
     if ( Comm->MyPID() == 0 )
+    {
         std::cout << "\nExporting fiber direction: " << std::endl;
+    }
     solver -> exportFiberDirection();
 
 
     if ( Comm->MyPID() == 0 )
     {
-    	chronoinitialsettings.stop();
-    	std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
+        chronoinitialsettings.stop();
+        std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
         std::cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
 

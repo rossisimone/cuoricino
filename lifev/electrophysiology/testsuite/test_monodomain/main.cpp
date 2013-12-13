@@ -92,7 +92,7 @@ Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, 
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
 
-    if ( std::abs( x - pacingSite_X ) <= stimulusRadius && std::abs( z - pacingSite_Z ) <= stimulusRadius && std::abs( y - pacingSite_Y ) <= stimulusRadius)
+    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius && std::abs ( z - pacingSite_Z ) <= stimulusRadius && std::abs ( y - pacingSite_Y ) <= stimulusRadius)
     {
         return 1.0;
     }
@@ -113,9 +113,12 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
 
     Real returnValue1;
 
-    if ( std::abs( x - pacingSite_X ) <= stimulusRadius && std::abs( z - pacingSite_Z ) <= stimulusRadius && std::abs( y - pacingSite_Y ) <= stimulusRadius){
+    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius && std::abs ( z - pacingSite_Z ) <= stimulusRadius && std::abs ( y - pacingSite_Y ) <= stimulusRadius)
+    {
         returnValue1 = stimulusValue;
-    }else{
+    }
+    else
+    {
         returnValue1 = 0.;
     }
 
@@ -149,13 +152,15 @@ Int main ( Int argc, char** argv )
 
     typedef ElectroETAMonodomainSolver< mesh_Type, IonicMinimalModel > monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >                 monodomainSolverPtr_Type;
-    typedef VectorEpetra				                               vector_Type;
+    typedef VectorEpetra                                               vector_Type;
     typedef boost::shared_ptr<vector_Type>                             vectorPtr_Type;
 
     LifeChrono chronoinitialsettings;
 
     if ( Comm->MyPID() == 0 )
+    {
         chronoinitialsettings.start();
+    }
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -236,13 +241,13 @@ Int main ( Int argc, char** argv )
     function_Type pacing = &PacingProtocol;
     splitting -> initializePotential();
 
-    HeartUtility::setValueOnBoundary( *(splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 6 );
+    HeartUtility::setValueOnBoundary ( * (splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 6 );
 
     function_Type f = &smoothing;
-    vectorPtr_Type smoother( new vector_Type( splitting -> potentialPtr() -> map() ) );
+    vectorPtr_Type smoother ( new vector_Type ( splitting -> potentialPtr() -> map() ) );
     splitting -> feSpacePtr() -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *smoother , 0);
-    (*smoother) *= *(splitting -> potentialPtr() );
-    splitting -> setPotentialPtr(smoother);
+    (*smoother) *= * (splitting -> potentialPtr() );
+    splitting -> setPotentialPtr (smoother);
 
     //setting up initial conditions
     * ( splitting -> globalSolution().at (1) ) = 1.0;
@@ -271,9 +276,9 @@ Int main ( Int argc, char** argv )
     ( new FESpace< mesh_Type, MapEpetra > ( splitting -> localMeshPtr(), "P1", 3, splitting -> commPtr() ) );
 
     boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
-    std::string nm = monodomainList.get("fiber_file","FiberDirection") ;
+    std::string nm = monodomainList.get ("fiber_file", "FiberDirection") ;
     HeartUtility::setupFibers ( *fiber, 0.0, 0.0, 1.0 );
-    splitting -> setFiberPtr(fiber);
+    splitting -> setFiberPtr (fiber);
 
     if ( Comm->MyPID() == 0 )
     {
@@ -315,15 +320,15 @@ Int main ( Int argc, char** argv )
     monodomainSolver_Type::vectorPtr_Type dtVec ( new VectorEpetra ( splitting->feSpacePtr() -> map(), LifeV::Unique ) );
     ExporterHDF5<mesh_Type> Exp;
     Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
-    Exp.setPrefix (monodomainList.get ("OutputTimeSteps", "TimeSteps"));
+    Exp.setPrefix (monodomainList.get ("OutputTimeSteps", "TimeSteps") );
     Exp.addVariable ( ExporterData<mesh_Type>::ScalarField,  "dt", splitting->feSpacePtr(), dtVec, UInt (0) );
 
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
     Int meth = monodomainList.get ("meth", 1 );
-    Real dt_min = dt/50.0;
-    Int k(0),j(0);
+    Real dt_min = dt / 50.0;
+    Int k (0), j (0);
     Int nodes;
 
     Real timeReac = 0.0;
@@ -336,7 +341,7 @@ Int main ( Int argc, char** argv )
     for ( Real t = 0.0; t < TF; )
     {
 
-        if (  t >=stimulusStart &&   t <=  stimulusStop + dt )
+        if (  t >= stimulusStart &&   t <=  stimulusStop + dt )
         {
             splitting -> setAppliedCurrentFromFunction ( pacing );
         }
@@ -350,15 +355,15 @@ Int main ( Int argc, char** argv )
         splitting->solveOneStepGatingVariablesFE( );
         chrono.stop();
 
-        timeReac += chrono.globalDiff( *Comm );
+        timeReac += chrono.globalDiff ( *Comm );
 
         chrono.reset();
         chrono.start();
         splitting -> solveOneSVIStep();
         chrono.stop();
-        timeDiff += chrono.globalDiff( *Comm );
+        timeDiff += chrono.globalDiff ( *Comm );
 
-        if( k % iter == 0 )
+        if ( k % iter == 0 )
         {
             splitting -> exportSolution (exporterSplitting, t);
             Exp.postProcess (t);
@@ -366,12 +371,14 @@ Int main ( Int argc, char** argv )
 
         nodes = dtVec->epetraVector().MyLength();
         j = dtVec->blockMap().GID (0);
-        dt_min = (*dtVec)[j];
-        for(int i=1; i<nodes; i++)
+        dt_min = (*dtVec) [j];
+        for (int i = 1; i < nodes; i++)
         {
             j = dtVec->blockMap().GID (i);
-            if(dt_min>(*dtVec)[j])
-                dt_min = (*dtVec)[j];
+            if (dt_min > (*dtVec) [j])
+            {
+                dt_min = (*dtVec) [j];
+            }
         }
 
         k++;
@@ -379,13 +386,17 @@ Int main ( Int argc, char** argv )
         t = t + dt;
 
         if ( Comm->MyPID() == 0 )
-            std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+        {
+            std::cout << "\n\n\nActual time : " << t << std::endl << std::endl << std::endl;
+        }
 
     }
 
-    Real normSolution = ( ( splitting -> globalSolution().at (0) )->norm2());
+    Real normSolution = ( ( splitting -> globalSolution().at (0) )->norm2() );
     if ( Comm->MyPID() == 0 )
+    {
         std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+    }
 
     exporterSplitting.closeFile();
     Exp.closeFile();
@@ -401,8 +412,8 @@ Int main ( Int argc, char** argv )
     {
         chronoinitialsettings.stop();
         std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
-        std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
-        std::cout<<"Reaction time : "<<timeReac<<std::endl;
+        std::cout << "Diffusion time : " << timeDiff << std::endl;
+        std::cout << "Reaction time : " << timeReac << std::endl;
         cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
     MPI_Barrier (MPI_COMM_WORLD);
@@ -410,7 +421,7 @@ Int main ( Int argc, char** argv )
 
     Real returnValue;
 
-    if (std::abs(normSolution - 3.37828) > 1e-4 )
+    if (std::abs (normSolution - 3.37828) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

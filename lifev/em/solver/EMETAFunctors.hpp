@@ -69,35 +69,37 @@ public:
 
     return_Type operator() (const VectorSmall<1>& I4f)
     {
-    	Real i4f = I4f[0];
-    	Real Force = this->operator()(i4f);
-    	return Force;
+        Real i4f = I4f[0];
+        Real Force = this->operator() (i4f);
+        return Force;
     }
 
     return_Type operator() (const Real& I4f)
     {
 
-    	if(I4f > 0.87277 && I4f < 1.334)
-    	{
-			Real d0 = -4.333618335582119e3;
-			Real d1 = 2.570395355352195e3;
-			Real e1 = -2.051827278991976e3;
-			Real d2 = 1.329536116891330e3;
-			Real e2 = 0.302216784558222e3;
-			Real d3 = 0.104943770305116e3;
-			Real e3 = 0.218375174229422e3;
-			Real l0 = 1.95;
+        if (I4f > 0.87277 && I4f < 1.334)
+        {
+            Real d0 = -4.333618335582119e3;
+            Real d1 = 2.570395355352195e3;
+            Real e1 = -2.051827278991976e3;
+            Real d2 = 1.329536116891330e3;
+            Real e2 = 0.302216784558222e3;
+            Real d3 = 0.104943770305116e3;
+            Real e3 = 0.218375174229422e3;
+            Real l0 = 1.95;
 
-			Real Force = d0/2 + d1 * std::sin(I4f * l0)
-							  + e1 * std::cos(I4f * l0)
-							  + d2 * std::sin(2 * I4f * l0)
-							  + e2 * std::cos(2 * I4f * l0)
-							  + d3 * std::sin(3 * I4f * l0)
-							  + e3 * std::cos(3 * I4f * l0);
-			return Force;
-    	}
-    	else
-    		return 0.0;
+            Real Force = d0 / 2 + d1 * std::sin (I4f * l0)
+                         + e1 * std::cos (I4f * l0)
+                         + d2 * std::sin (2 * I4f * l0)
+                         + e2 * std::cos (2 * I4f * l0)
+                         + d3 * std::sin (3 * I4f * l0)
+                         + e3 * std::cos (3 * I4f * l0);
+            return Force;
+        }
+        else
+        {
+            return 0.0;
+        }
     }
 
     FLRelationship() {}
@@ -118,35 +120,37 @@ public:
 
     return_Type operator() (const VectorSmall<1>& gamma)
     {
-    	Real g = gamma[0];
-    	Real Force = this->operator()(g);
-    	return Force;
+        Real g = gamma[0];
+        Real Force = this->operator() (g);
+        return Force;
     }
 
     return_Type operator() (const Real& g)
     {
 
-    	if(g>-0.0657788 && g<0.154989)
-    	{
-			Real d0 = -4.333618335582119e3;
-			Real d1 = 2.570395355352195e3;
-			Real e1 = -2.051827278991976e3;
-			Real d2 = 1.329536116891330e3;
-			Real e2 = 0.302216784558222e3;
-			Real d3 = 0.104943770305116e3;
-			Real e3 = 0.218375174229422e3;
-			Real l0 = 1.95;
+        if (g > -0.0657788 && g < 0.154989)
+        {
+            Real d0 = -4.333618335582119e3;
+            Real d1 = 2.570395355352195e3;
+            Real e1 = -2.051827278991976e3;
+            Real d2 = 1.329536116891330e3;
+            Real e2 = 0.302216784558222e3;
+            Real d3 = 0.104943770305116e3;
+            Real e3 = 0.218375174229422e3;
+            Real l0 = 1.95;
 
-			Real Force = d0/2 + d1 * std::sin( ( 1.0 + g ) * ( 1.0 + g ) * l0)
-							  + e1 * std::cos( ( 1.0 + g ) * ( 1.0 + g ) * l0)
-							  + d2 * std::sin( 2 * ( 1.0 + g ) * ( 1.0 + g ) * l0)
-							  + e2 * std::cos( 2 * ( 1.0 + g ) * ( 1.0 + g ) * l0)
-							  + d3 * std::sin( 3 * ( 1.0 + g ) * ( 1.0 + g ) * l0)
-							  + e3 * std::cos( 3 * ( 1.0 + g ) * ( 1.0 + g ) * l0);
-			return Force;
-    	}
-    	else
-    		return 0.0;
+            Real Force = d0 / 2 + d1 * std::sin ( ( 1.0 + g ) * ( 1.0 + g ) * l0)
+                         + e1 * std::cos ( ( 1.0 + g ) * ( 1.0 + g ) * l0)
+                         + d2 * std::sin ( 2 * ( 1.0 + g ) * ( 1.0 + g ) * l0)
+                         + e2 * std::cos ( 2 * ( 1.0 + g ) * ( 1.0 + g ) * l0)
+                         + d3 * std::sin ( 3 * ( 1.0 + g ) * ( 1.0 + g ) * l0)
+                         + e3 * std::cos ( 3 * ( 1.0 + g ) * ( 1.0 + g ) * l0);
+            return Force;
+        }
+        else
+        {
+            return 0.0;
+        }
     }
 
     FLRelationshipGamma() {}
@@ -164,22 +168,22 @@ public:
 
     return_Type operator() (const VectorSmall<1>& g)
     {
-    	Real p = g[0];
-    	Real F = this->operator()(p);
-    	return F;
+        Real p = g[0];
+        Real F = this->operator() (p);
+        return F;
     }
 
     return_Type operator() (const Real& p)
     {
-    	if(p > 0.0 )
-    	{
-    		//cout << "\n\nSono positivo\n\n";
-			return p;
-    	}
-    	else
-    	{
-    		return 0.0;
-    	}
+        if (p > 0.0 )
+        {
+            //cout << "\n\nSono positivo\n\n";
+            return p;
+        }
+        else
+        {
+            return 0.0;
+        }
     }
 
     HeavisideFct() {}
@@ -197,8 +201,14 @@ public:
 
     return_Type operator() (const Real& a)
     {
-    	if(a!=0) return std::exp( a );
-    	else return 1.0;
+        if (a != 0)
+        {
+            return std::exp ( a );
+        }
+        else
+        {
+            return 1.0;
+        }
     }
 
 
@@ -215,8 +225,14 @@ public:
 
     return_Type operator() (const Real& a)
     {
-    	if(a!=0) return std::exp( a * a );
-    	else return 1.0;
+        if (a != 0)
+        {
+            return std::exp ( a * a );
+        }
+        else
+        {
+            return 1.0;
+        }
     }
 
 
@@ -233,25 +249,25 @@ public:
 
     return_Type operator() (const Real& a)
     {
-    	std::cout.precision(15);
-    	std::cout << "value is: " << a <<" \n";
-    	return 1.0;
+        std::cout.precision (15);
+        std::cout << "value is: " << a << " \n";
+        return 1.0;
     }
 
     return_Type operator() (const VectorSmall<3>& a)
     {
-    	std::cout << "value is: " << a[0]  <<" \n" << a[1]  <<" \n" << a[2]  <<" \n";
-    	return 1.0;
+        std::cout << "value is: " << a[0]  << " \n" << a[1]  << " \n" << a[2]  << " \n";
+        return 1.0;
     }
 
-    return_Type operator() (const MatrixSmall<3,3>& a)
+    return_Type operator() (const MatrixSmall<3, 3>& a)
     {
-    	std::cout << "value is\n";
-    	std::cout << a[0][0]  <<" \t" << a[0][1]  <<" \t" << a[0][2]  <<" \n";
-    	std::cout << a[1][0]  <<" \t" << a[1][1]  <<" \t" << a[1][2]  <<" \n";
-    	std::cout << a[2][0]  <<" \t" << a[2][1]  <<" \t" << a[2][2]  <<" \n";
+        std::cout << "value is\n";
+        std::cout << a[0][0]  << " \t" << a[0][1]  << " \t" << a[0][2]  << " \n";
+        std::cout << a[1][0]  << " \t" << a[1][1]  << " \t" << a[1][2]  << " \n";
+        std::cout << a[2][0]  << " \t" << a[2][1]  << " \t" << a[2][2]  << " \n";
 
-    	return 1.0;
+        return 1.0;
     }
 
 
@@ -268,7 +284,7 @@ public:
 
     return_Type operator() (const Real& af, const Real& bf, const Real& I4f)
     {
-    	return ( 2.0 * af * std::exp( bf * (I4f - 1.0 ) * (I4f - 1.0 ) ) );
+        return ( 2.0 * af * std::exp ( bf * (I4f - 1.0 ) * (I4f - 1.0 ) ) );
     }
 
     Psi4f() {}

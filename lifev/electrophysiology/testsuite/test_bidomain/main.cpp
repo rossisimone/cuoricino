@@ -93,7 +93,7 @@ Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, 
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
 
-    if ( std::abs( x - pacingSite_X ) <= stimulusRadius && std::abs( z - pacingSite_Z ) <= stimulusRadius && std::abs( y - pacingSite_Y ) <= stimulusRadius)
+    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius && std::abs ( z - pacingSite_Z ) <= stimulusRadius && std::abs ( y - pacingSite_Y ) <= stimulusRadius)
     {
         return 1.0;
     }
@@ -104,7 +104,7 @@ Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, 
 }
 
 Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
-    {
+{
 
     Real pacingSite_X = 0.0;
     Real pacingSite_Y = 0.0;
@@ -114,24 +114,27 @@ Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Rea
 
     Real returnValue1;
 
-    if ( std::abs( x - pacingSite_X ) <= stimulusRadius && std::abs( z - pacingSite_Z ) <= stimulusRadius && std::abs( y - pacingSite_Y ) <= stimulusRadius){
+    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius && std::abs ( z - pacingSite_Z ) <= stimulusRadius && std::abs ( y - pacingSite_Y ) <= stimulusRadius)
+    {
         returnValue1 = stimulusValue;
-    }else{
+    }
+    else
+    {
         returnValue1 = 0.;
     }
 
     return returnValue1;
 }
 
-    static Real bcDirichletZero(const Real&, const Real&, const Real&, const Real&, const LifeV::ID&)
-    {
-       return 0.000;
-    }
+static Real bcDirichletZero (const Real&, const Real&, const Real&, const Real&, const LifeV::ID&)
+{
+    return 0.000;
+}
 
-    static Real bcDirichletOne(const Real&, const Real&, const Real&, const Real&, const LifeV::ID&)
-    {
-       return 1;
-    }
+static Real bcDirichletOne (const Real&, const Real&, const Real&, const Real&, const LifeV::ID&)
+{
+    return 1;
+}
 
 
 Int main ( Int argc, char** argv )
@@ -160,13 +163,15 @@ Int main ( Int argc, char** argv )
 
     typedef ElectroETABidomainSolver< mesh_Type, IonicMinimalModel > bidomainSolver_Type;
     typedef boost::shared_ptr< bidomainSolver_Type >                 bidomainSolverPtr_Type;
-    typedef VectorEpetra				                               vector_Type;
+    typedef VectorEpetra                                               vector_Type;
     typedef boost::shared_ptr<vector_Type>                             vectorPtr_Type;
 
     LifeChrono chronoinitialsettings;
 
     if ( Comm->MyPID() == 0 )
-      	chronoinitialsettings.start();
+    {
+        chronoinitialsettings.start();
+    }
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -273,29 +278,29 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Settung up the Boundary condition          //
     //********************************************//
-    
-     if ( Comm->MyPID() == 0 )
+
+    if ( Comm->MyPID() == 0 )
     {
         std::cout << "-- Reading bc ..";
     }
 
-    boost::shared_ptr<LifeV::BCHandler> bcs(new LifeV::BCHandler());
+    boost::shared_ptr<LifeV::BCHandler> bcs (new LifeV::BCHandler() );
 
-    LifeV::BCFunctionBase zero(bcDirichletZero);
-    
-    std::vector<LifeV::ID> compx(1, 0), compy(1, 1), compz(1, 2);
-    bcs->addBC("boundaryDirichletZero", 600, LifeV::Essential, LifeV::Full, zero,3);
-    
+    LifeV::BCFunctionBase zero (bcDirichletZero);
+
+    std::vector<LifeV::ID> compx (1, 0), compy (1, 1), compz (1, 2);
+    bcs->addBC ("boundaryDirichletZero", 600, LifeV::Essential, LifeV::Full, zero, 3);
+
     //bcs->addBC("boundaryNeumannBase", 99, LifeV::Natural, LifeV::Full, one,1);
-    //partition mesh 	
+    //partition mesh
     bcs->bcUpdate ( *splitting->localMeshPtr(), splitting->feSpacePtr()->feBd(), splitting->feSpacePtr()->dof() );
 
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << " Done!"<<std::endl;
+        std::cout << " Done!" << std::endl;
     }
 
-    
+
     //********************************************//
     // Create a fiber direction                   //
     //********************************************//
@@ -308,9 +313,9 @@ Int main ( Int argc, char** argv )
     ( new FESpace< mesh_Type, MapEpetra > ( splitting -> localMeshPtr(), "P1", 3, splitting -> commPtr() ) );
 
     boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
-	std::string nm = bidomainList.get("fiber_file","FiberDirection") ;
+    std::string nm = bidomainList.get ("fiber_file", "FiberDirection") ;
     HeartUtility::setupFibers ( *fiber, 0.0, 0.0, 1.0 );
-    splitting -> setFiberPtr(fiber);
+    splitting -> setFiberPtr (fiber);
 
     if ( Comm->MyPID() == 0 )
     {
@@ -353,15 +358,15 @@ Int main ( Int argc, char** argv )
     bidomainSolver_Type::vectorPtr_Type dtVec ( new VectorEpetra ( splitting->feSpacePtr() -> map(), LifeV::Unique ) );
     ExporterHDF5<mesh_Type> Exp;
     Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
-    Exp.setPrefix (bidomainList.get ("OutputTimeSteps", "TimeSteps"));
+    Exp.setPrefix (bidomainList.get ("OutputTimeSteps", "TimeSteps") );
     Exp.addVariable ( ExporterData<mesh_Type>::ScalarField,  "dt", splitting->feSpacePtr(), dtVec, UInt (0) );
 
     Real dt = bidomainList.get ("timeStep", 0.1);
     Real TF = bidomainList.get ("endTime", 150.0);
     Int iter = bidomainList.get ("saveStep", 1.0) / dt;
     Int meth = bidomainList.get ("meth", 1 );
-    Real dt_min = dt/50.0;
-    Int k(0),j(0);
+    Real dt_min = dt / 50.0;
+    Int k (0), j (0);
     Int nodes;
 
     Real timeReac = 0.0;
@@ -374,10 +379,10 @@ Int main ( Int argc, char** argv )
     for ( Real t = 0.0; t < TF; )
     {
 
-        if (  (t >=stimulusStart )&&   (t <=  stimulusStop + dt) )
+        if (  (t >= stimulusStart ) &&   (t <=  stimulusStop + dt) )
         {
             splitting -> setAppliedCurrentFromFunctionIntra ( pacing );
-	 //   splitting->appliedCurrentIntraPtr()->showMe();
+            //   splitting->appliedCurrentIntraPtr()->showMe();
         }
         else
         {
@@ -385,47 +390,49 @@ Int main ( Int argc, char** argv )
         }
 
         chrono.reset();
-        if(meth==1)
+        if (meth == 1)
         {
             chrono.start();
-//            splitting->solveOneReactionStepROS3P(dtVec, dt_min);
+            //            splitting->solveOneReactionStepROS3P(dtVec, dt_min);
             chrono.stop();
         }
         else
         {
             chrono.start();
-           	splitting->solveOneReactionStepFE( );
-           	chrono.stop();
+            splitting->solveOneReactionStepFE( );
+            chrono.stop();
         }
 
-        timeReac += chrono.globalDiff( *Comm );
+        timeReac += chrono.globalDiff ( *Comm );
 
-        (*splitting->rhsPtrUnique()) *= 0.0;
+        (*splitting->rhsPtrUnique() ) *= 0.0;
         splitting->updateRhs();
 
         chrono.reset();
-	//bcManage ( *splitting->stiffnessMatrixPtr() , *splitting->rhsPtrUnique(), *splitting->localMeshPtr(), splitting->feSpacePtr()->dof(), *bcs,  splitting->feSpacePtr()->feBd(), 1.0, t );
-       //splitting->rhsPtrUnique()->spy("rhs.dat");
-       //splitting->stiffnessMatrixPtr()->spy("Stiffness");
-	chrono.start();
+        //bcManage ( *splitting->stiffnessMatrixPtr() , *splitting->rhsPtrUnique(), *splitting->localMeshPtr(), splitting->feSpacePtr()->dof(), *bcs,  splitting->feSpacePtr()->feBd(), 1.0, t );
+        //splitting->rhsPtrUnique()->spy("rhs.dat");
+        //splitting->stiffnessMatrixPtr()->spy("Stiffness");
+        chrono.start();
         splitting->solveOneDiffusionStepBE();
         chrono.stop();
-        timeDiff += chrono.globalDiff( *Comm );
+        timeDiff += chrono.globalDiff ( *Comm );
 
-        if( k % iter == 0 )
+        if ( k % iter == 0 )
         {
-           	splitting -> exportSolution (exporterSplitting, t);
-           	Exp.postProcess (t);
+            splitting -> exportSolution (exporterSplitting, t);
+            Exp.postProcess (t);
         }
 
         nodes = dtVec->epetraVector().MyLength();
         j = dtVec->blockMap().GID (0);
-        dt_min = (*dtVec)[j];
-        for(int i=1; i<nodes; i++)
+        dt_min = (*dtVec) [j];
+        for (int i = 1; i < nodes; i++)
         {
-        	j = dtVec->blockMap().GID (i);
-        	if(dt_min>(*dtVec)[j])
-        		dt_min = (*dtVec)[j];
+            j = dtVec->blockMap().GID (i);
+            if (dt_min > (*dtVec) [j])
+            {
+                dt_min = (*dtVec) [j];
+            }
         }
 
         k++;
@@ -433,13 +440,17 @@ Int main ( Int argc, char** argv )
         t = t + dt;
 
         if ( Comm->MyPID() == 0 )
-        	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+        {
+            std::cout << "\n\n\nActual time : " << t << std::endl << std::endl << std::endl;
+        }
 
     }
 
-    Real normSolution = ( ( splitting -> globalSolution().at (0) )->norm2());
+    Real normSolution = ( ( splitting -> globalSolution().at (0) )->norm2() );
     if ( Comm->MyPID() == 0 )
+    {
         std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+    }
 
     exporterSplitting.closeFile();
     Exp.closeFile();
@@ -453,10 +464,10 @@ Int main ( Int argc, char** argv )
 
     if ( Comm->MyPID() == 0 )
     {
-    	chronoinitialsettings.stop();
-    	std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
-    	std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
-    	std::cout<<"Reaction time : "<<timeReac<<std::endl;
+        chronoinitialsettings.stop();
+        std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
+        std::cout << "Diffusion time : " << timeDiff << std::endl;
+        std::cout << "Reaction time : " << timeReac << std::endl;
         cout << "\nThank you for using ETA_bidomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }
     MPI_Barrier (MPI_COMM_WORLD);
@@ -464,7 +475,7 @@ Int main ( Int argc, char** argv )
 
     Real returnValue;
 
-    if (std::abs(normSolution - 14.182) > 1e-4 )
+    if (std::abs (normSolution - 14.182) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

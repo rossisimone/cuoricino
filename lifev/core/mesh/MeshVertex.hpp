@@ -132,7 +132,7 @@ public:
     {
         return M_coordinates[ 0 ];
     }
-    inline  void setX(Real p)
+    inline  void setX (Real p)
     {
         M_coordinates[ 0 ] = p;
     }
@@ -145,7 +145,7 @@ public:
     {
         return M_coordinates[ 1 ];
     }
-    inline  void setY(Real p)
+    inline  void setY (Real p)
     {
         M_coordinates[ 1 ] = p;
     }
@@ -159,7 +159,7 @@ public:
     {
         return M_coordinates[ 2 ];
     }
-    inline void setZ(Real p)
+    inline void setZ (Real p)
     {
         M_coordinates[ 2 ] = p;
     }

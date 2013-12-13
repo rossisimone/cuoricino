@@ -154,7 +154,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     Real TF (40);
     Real dt (0.005);
-    int useRushLarsen(1);
+    int useRushLarsen (1);
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -175,20 +175,26 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if( t > 20.5 && t < 21 ) Iapp = 380.0;
-        else Iapp = 0;
-//        Iapp = 0;
+        if ( t > 20.5 && t < 21 )
+        {
+            Iapp = 380.0;
+        }
+        else
+        {
+            Iapp = 0;
+        }
+        //        Iapp = 0;
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        ionicModel.setAppliedCurrent(Iapp);
-        if(useRushLarsen)
+        ionicModel.setAppliedCurrent (Iapp);
+        if (useRushLarsen)
         {
-            ionicModel.computeGatingVariablesWithRushLarsen(states,dt);
-            Real RHS=ionicModel.computeLocalPotentialRhs ( states);
-            RHS+=Iapp;
+            ionicModel.computeGatingVariablesWithRushLarsen (states, dt);
+            Real RHS = ionicModel.computeLocalPotentialRhs ( states);
+            RHS += Iapp;
             //********************************************//
             // Use forward Euler method to advance the    //
             // solution in time.                          //
@@ -202,7 +208,7 @@ Int main ( Int argc, char** argv )
         else
         {
             ionicModel.computeRhs ( states, rhs);
-            rhs[0]+=Iapp;
+            rhs[0] += Iapp;
             //********************************************//
             // Use forward Euler method to advance the    //
             // solution in time.                          //
@@ -241,7 +247,7 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    if (std::abs(rStates.at ( ionicModel.Size() - 2 ) - 0.315185) > 1e-4 )
+    if (std::abs (rStates.at ( ionicModel.Size() - 2 ) - 0.315185) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

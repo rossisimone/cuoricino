@@ -64,25 +64,25 @@ public:
 
     //! @name Public Types
     //@{
-	typedef MultiscaleModel									base;
+    typedef MultiscaleModel                                 base;
     typedef MultiscaleModelFSI3D                             super;
-	typedef super::mesh_Type								mesh_Type;
-	typedef boost::shared_ptr<mesh_Type>					meshPtr_Type;
+    typedef super::mesh_Type                                mesh_Type;
+    typedef boost::shared_ptr<mesh_Type>                    meshPtr_Type;
 
 
-    typedef IonicMinimalModel							  minimalModel_Type;
+    typedef IonicMinimalModel                             minimalModel_Type;
     typedef boost::shared_ptr< minimalModel_Type >        minimalModelPtr_Type;
     typedef ElectroETAMonodomainSolver< mesh_Type, minimalModel_Type >        monoSolver_Type;
-//    typedef Heart
+    //    typedef Heart
     typedef boost::shared_ptr< monoSolver_Type >         monoSolverPtr_Type;
 
     typedef boost::function < Real (const Real& t,
-                                    const Real &   x,
-                                    const Real &   y,
+                                    const Real&    x,
+                                    const Real&    y,
                                     const Real& z,
                                     const LifeV::ID&   i ) >   function_Type;
     typedef boost::shared_ptr < function_Type >                     functionPtr_Type;
-    typedef VectorEpetra				vector_Type;
+    typedef VectorEpetra                vector_Type;
     typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
 
     typedef Exporter< mesh_Type >                              IOFile_Type;
@@ -102,8 +102,8 @@ public:
     typedef LifeV::PreconditionerIfpack prec_Type;
     typedef boost::shared_ptr<prec_Type> precPtr_Type;
 
-	typedef MatrixEpetra<Real> matrix_Type;
-	typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
+    typedef MatrixEpetra<Real> matrix_Type;
+    typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
 
     typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 >       scalarETFESpace_Type;
     typedef boost::shared_ptr<scalarETFESpace_Type>                      scalarETFESpacePtr_Type;
@@ -121,7 +121,7 @@ public:
 
     enum FSI3DActivated_ActivationType
     {
-    	TransverselyIsotropic,
+        TransverselyIsotropic,
         Orthotropic
     };
 
@@ -156,7 +156,7 @@ public:
      */
     void setupData ( const std::string& fileName );
 
-    LifeV::Real activationFunction(const Real& t, const Real& x, const Real& y, const Real& z, const LifeV::ID& i);
+    LifeV::Real activationFunction (const Real& t, const Real& x, const Real& y, const Real& z, const LifeV::ID& i);
 
     //! Setup the model.
     void setupModel();
@@ -203,10 +203,10 @@ public:
     /*!
      * @return FSI3D operator
      */
-//    const FSIOperatorPtr_Type& solver() const
-//    {
-//        return M_FSIoperator;
-//    }
+    //    const FSIOperatorPtr_Type& solver() const
+    //    {
+    //        return M_FSIoperator;
+    //    }
 
     //@}
 
@@ -229,8 +229,8 @@ private:
 
     //@}
 
-    meshPtr_Type   							M_fullSolidMesh;
-    vectorPtr_Type							M_fiber;
+    meshPtr_Type                            M_fullSolidMesh;
+    vectorPtr_Type                          M_fiber;
 
 
 
@@ -244,16 +244,16 @@ private:
     // Importers
     IOFilePtr_Type                          M_importerElectro;
 
-    vectorPtr_Type							M_gammaf;
-    vectorPtr_Type							M_gammas;
-    vectorPtr_Type							M_gamman;
+    vectorPtr_Type                          M_gammaf;
+    vectorPtr_Type                          M_gammas;
+    vectorPtr_Type                          M_gamman;
 
 
-    bool									M_usingDifferentMeshes;
-    bool									M_oneWayCoupling;
-    vectorPtr_Type							M_gammafSolid;
-    vectorPtr_Type							M_gammasSolid;
-    vectorPtr_Type							M_gammanSolid;
+    bool                                    M_usingDifferentMeshes;
+    bool                                    M_oneWayCoupling;
+    vectorPtr_Type                          M_gammafSolid;
+    vectorPtr_Type                          M_gammasSolid;
+    vectorPtr_Type                          M_gammanSolid;
     std::vector<Real>                       M_activationCenter;
     Real                                    M_activationRadius;
     UInt                                    M_activationMarker;
@@ -262,36 +262,36 @@ private:
     Real                                    M_activationCurrent;
     Real                                    M_activationLength;
 
- //   UInt                                    M_endocardiumMarker;
- //   UInt                                    M_epicardiumMarker;
-    std::string								M_dataFileName;
+    //   UInt                                    M_endocardiumMarker;
+    //   UInt                                    M_epicardiumMarker;
+    std::string                             M_dataFileName;
 
-    vectorPtr_Type							M_displacementMonodomain;
-    vectorialETFESpacePtr_Type				M_monodomainDisplacementETFESpace;
+    vectorPtr_Type                          M_displacementMonodomain;
+    vectorialETFESpacePtr_Type              M_monodomainDisplacementETFESpace;
 
-    interpolationPtr_Type					M_coarseToFineInterpolant;
-    interpolationPtr_Type					M_fineToCoarseInterpolant;
+    interpolationPtr_Type                   M_coarseToFineInterpolant;
+    interpolationPtr_Type                   M_fineToCoarseInterpolant;
     boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > M_activationSpacePtr;
-    Real									M_minCalciumLikeVariable;
-    Real									M_maxCalciumLikeVariable;
+    Real                                    M_minCalciumLikeVariable;
+    Real                                    M_maxCalciumLikeVariable;
 
 
     FSI3DActivated_ActivationModelType      M_activationModelType;
 
-    vectorPtr_Type							M_rescalingVector;
+    vectorPtr_Type                          M_rescalingVector;
     boost::shared_ptr<LinearSolver>         M_activationSolver;
 
 
     std::string                             M_interpolationType;
 
-    scalarETFESpacePtr_Type					M_activationETFESpace;
+    scalarETFESpacePtr_Type                 M_activationETFESpace;
 
-    FSI3DActivated_ActivationType      		M_activationType;
+    FSI3DActivated_ActivationType           M_activationType;
     FSI3DActivated_IonicCurrentType         M_ionicCurrentType;
-    Real 									M_orthotropicActivationAnisotropyRatio;
-    matrixPtr_Type 							M_activationOperator;
-    vectorPtr_Type							M_preloadVector;
-    bool									M_preloadInTime;
+    Real                                    M_orthotropicActivationAnisotropyRatio;
+    matrixPtr_Type                          M_activationOperator;
+    vectorPtr_Type                          M_preloadVector;
+    bool                                    M_preloadInTime;
 
 };
 

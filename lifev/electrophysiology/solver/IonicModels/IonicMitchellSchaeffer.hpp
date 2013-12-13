@@ -97,52 +97,52 @@ public:
 
     inline const Real& vGate() const
     {
-    	return M_vGate;
+        return M_vGate;
     }
 
-    inline void setVGate(const Real& vGate)
+    inline void setVGate (const Real& vGate)
     {
-    	this->M_vGate = vGate;
+        this->M_vGate = vGate;
     }
 
     inline const Real& tauClose() const
     {
-    	return M_tauClose;
+        return M_tauClose;
     }
 
-    inline void setTauClose(const Real& tauClose)
+    inline void setTauClose (const Real& tauClose)
     {
-    	this->M_tauClose = tauClose;
+        this->M_tauClose = tauClose;
     }
 
     inline const Real& tauOpen() const
-	{
-    	return M_tauOpen;
+    {
+        return M_tauOpen;
     }
 
-    inline void setTauOpen(const Real& tauOpen)
+    inline void setTauOpen (const Real& tauOpen)
     {
-    	this->M_tauOpen = tauOpen;
+        this->M_tauOpen = tauOpen;
     }
 
     inline const Real& tauIn() const
-  	{
-       	return M_tauIn;
+    {
+        return M_tauIn;
     }
 
-    inline void setTauIn(const Real& tauIn)
+    inline void setTauIn (const Real& tauIn)
     {
-      	this->M_tauIn = tauIn;
+        this->M_tauIn = tauIn;
     }
 
     inline const Real& tauOut() const
     {
-       	return M_tauOut;
+        return M_tauOut;
     }
 
-    inline void setTauOut(const Real& tauOut)
+    inline void setTauOut (const Real& tauOut)
     {
-      	this->M_tauOut = tauOut;
+        this->M_tauOut = tauOut;
     }
 
     //@}

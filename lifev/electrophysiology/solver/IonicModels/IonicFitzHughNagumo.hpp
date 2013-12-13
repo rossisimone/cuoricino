@@ -55,13 +55,13 @@ namespace LifeV
 //! XbModel - This class implements a mean field model.
 
 //! @name Type definitions
-    //@{
-    typedef ElectroIonicModel super;
-    typedef MatrixEpetra<Real> matrix_Type;
-    typedef VectorEpetra vector_Type;
-    typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
-    typedef RegionMesh<LinearTetra> mesh_Type;
-    //@}
+//@{
+typedef ElectroIonicModel super;
+typedef MatrixEpetra<Real> matrix_Type;
+typedef VectorEpetra vector_Type;
+typedef boost::shared_ptr<vector_Type> vectorPtr_Type;
+typedef RegionMesh<LinearTetra> mesh_Type;
+//@}
 
 class IonicFitzHughNagumo : public virtual ElectroIonicModel
 {
@@ -172,9 +172,9 @@ public:
     Real computeLocalPotentialRhs ( const std::vector<Real>& v );
 
     //compute the Jacobian
-    matrix_Type getJac(const vector_Type& v, Real h=1.0e-8);
-    vector< vector<Real> > getJac (const std::vector<Real>& v, Real h=1.0e-8);
-    MatrixSmall<2,2> getJac (const VectorSmall<2>& v, Real h=1.0e-8);
+    matrix_Type getJac (const vector_Type& v, Real h = 1.0e-8);
+    vector< vector<Real> > getJac (const std::vector<Real>& v, Real h = 1.0e-8);
+    MatrixSmall<2, 2> getJac (const VectorSmall<2>& v, Real h = 1.0e-8);
 
     //! Display information about the model
     void showMe();

@@ -152,7 +152,7 @@ FSIData::setup ( const GetPot& dataFile, const std::string& section )
 #ifdef HAVE_LIFEV_DEBUG
     if ( M_absoluteTolerance == 0 && M_reuseSolution )
     {
-        debugStream( 5000 ) << "Re-using the solution between nonlinear Richardson calls may lead to stagnation when using relative residual as stopping criteria.\n";
+        debugStream ( 5000 ) << "Re-using the solution between nonlinear Richardson calls may lead to stagnation when using relative residual as stopping criteria.\n";
     }
 #endif
 

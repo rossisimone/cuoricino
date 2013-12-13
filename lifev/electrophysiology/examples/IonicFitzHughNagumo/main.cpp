@@ -116,32 +116,50 @@ Real Stimulus1 (const Real& /*t*/, const Real& x, const Real& y, const Real& /*z
 
 Real Stimulus2 (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( x<= 0.1 )
-    	return 80.0;
-    else if( x<= 0.2)
-    	return 80.0*( 0.2 - x )/(0.1);
+    if ( x <= 0.1 )
+    {
+        return 80.0;
+    }
+    else if ( x <= 0.2)
+    {
+        return 80.0 * ( 0.2 - x ) / (0.1);
+    }
     else
-    	return 0.0;
+    {
+        return 0.0;
+    }
 }
 
 Real Stimulus3 (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( y<= 0.1 )
-    	return 80.0;
-    else if( y<= 0.2)
-    	return 80.0*( 0.2 - y )/(0.1);
+    if ( y <= 0.1 )
+    {
+        return 80.0;
+    }
+    else if ( y <= 0.2)
+    {
+        return 80.0 * ( 0.2 - y ) / (0.1);
+    }
     else
-    	return 0.0;
+    {
+        return 0.0;
+    }
 }
 
 Real Cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
-    if ( y<= 0.45 )
-    	return 1.0;
-    else if( y<= 0.55)
-    	return ( 0.55 - y )/(0.1);
+    if ( y <= 0.45 )
+    {
+        return 1.0;
+    }
+    else if ( y <= 0.55)
+    {
+        return ( 0.55 - y ) / (0.1);
+    }
     else
-    	return 0.0;
+    {
+        return 0.0;
+    }
 }
 
 Int main ( Int argc, char** argv )
@@ -243,7 +261,7 @@ Int main ( Int argc, char** argv )
         std::cout << " Splitting solver done... ";
     }
     chrono.stop();
-    time_mesh = chrono.globalDiff(*Comm);
+    time_mesh = chrono.globalDiff (*Comm);
 
     //********************************************//
     // Setting up the initial condition form      //
@@ -259,7 +277,7 @@ Int main ( Int argc, char** argv )
     function_Type f = &Stimulus2;
     splitting -> setPotentialFromFunction ( f ); //initialize potential
     chrono.stop();
-    time_potential = chrono.globalDiff(*Comm);
+    time_potential = chrono.globalDiff (*Comm);
 
     //setting up initial conditions
     * ( splitting -> globalSolution().at (1) ) = FHNParameterList.get ("W0", 0.011);
@@ -296,7 +314,7 @@ Int main ( Int argc, char** argv )
     splitting -> setupGlobalMatrix();
 
     chrono.stop();
-    time_matrix = chrono.globalDiff(*Comm);
+    time_matrix = chrono.globalDiff (*Comm);
 
     //********************************************//
     // Creating exporters to save the solution    //
@@ -320,12 +338,12 @@ Int main ( Int argc, char** argv )
 
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
-    Real TCut1 = monodomainList.get ("TCut", 35.0) - dt/2.0;
-    Real TCut2 = monodomainList.get ("TCut", 35.0) + dt/2.0;
+    Real TCut1 = monodomainList.get ("TCut", 35.0) - dt / 2.0;
+    Real TCut2 = monodomainList.get ("TCut", 35.0) + dt / 2.0;
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
     Int meth = monodomainList.get ("meth", 1.0);
-    Real dt_min = dt/50.0;;
-    Int k(0),j(0);
+    Real dt_min = dt / 50.0;;
+    Int k (0), j (0);
     Int nodes;
     time1 = 0;
     time2 = 0;
@@ -339,145 +357,151 @@ Int main ( Int argc, char** argv )
         monodomainSolver_Type::vectorPtr_Type dtVec ( new VectorEpetra ( splitting->feSpacePtr() -> map(), LifeV::Unique ) );
         ExporterHDF5<mesh_Type> Exp;
         Exp.setMeshProcId ( splitting -> localMeshPtr(), splitting -> commPtr() -> MyPID() );
-        Exp.setPrefix (monodomainList.get ("OutputTimeSteps", "TimeSteps"));
+        Exp.setPrefix (monodomainList.get ("OutputTimeSteps", "TimeSteps") );
         Exp.addVariable ( ExporterData<mesh_Type>::ScalarField,  "dt", splitting->feSpacePtr(), dtVec, UInt (0) );
 
-		//splitting   -> solveSplitting ( exporterSplitting );
+        //splitting   -> solveSplitting ( exporterSplitting );
 
         chrono_cycle.start();
-		for ( Real t = 0.0; t < TF; )
-		{
-			t = t + dt;
+        for ( Real t = 0.0; t < TF; )
+        {
+            t = t + dt;
 
-			if(meth==1)
-			{
-				chrono.start();
-				splitting->solveOneReactionStepROS3P(dtVec, dt_min);
-				//splitting->solveOneReactionStepROS3P();
-				chrono.stop();
-				time1 += chrono.globalDiff(*Comm);
-			}
-			else
-			{
-				chrono.start();
-				splitting->solveOneReactionStepFE();
-				chrono.stop();
-				time1 += chrono.globalDiff(*Comm);
-			}
+            if (meth == 1)
+            {
+                chrono.start();
+                splitting->solveOneReactionStepROS3P (dtVec, dt_min);
+                //splitting->solveOneReactionStepROS3P();
+                chrono.stop();
+                time1 += chrono.globalDiff (*Comm);
+            }
+            else
+            {
+                chrono.start();
+                splitting->solveOneReactionStepFE();
+                chrono.stop();
+                time1 += chrono.globalDiff (*Comm);
+            }
 
-			(*splitting->rhsPtrUnique()) *= 0.0;
-			splitting->updateRhs();
+            (*splitting->rhsPtrUnique() ) *= 0.0;
+            splitting->updateRhs();
 
-			chrono.start();
-			splitting->solveOneDiffusionStepBE();
-			chrono.stop();
-			time2 += chrono.globalDiff(*Comm);
+            chrono.start();
+            splitting->solveOneDiffusionStepBE();
+            chrono.stop();
+            time2 += chrono.globalDiff (*Comm);
 
-			if( k % iter == 0 )
-			{
-				chrono.start();
-				splitting -> exportSolution (exporterSplitting, t);
-				Exp.postProcess (t);
-				chrono.stop();
-				time3 += chrono.globalDiff(*Comm);
-			}
+            if ( k % iter == 0 )
+            {
+                chrono.start();
+                splitting -> exportSolution (exporterSplitting, t);
+                Exp.postProcess (t);
+                chrono.stop();
+                time3 += chrono.globalDiff (*Comm);
+            }
 
-			if(meth==1)
-			{
-				chrono.start();
-				nodes = dtVec->epetraVector().MyLength();
-				j = dtVec->blockMap().GID (0);
-				dt_min = (*dtVec)[j];
-				for(int i=1; i<nodes; i++)
-				{
-					j = dtVec->blockMap().GID (i);
-					if(dt_min>(*dtVec)[j])
-						dt_min = (*dtVec)[j];
-				}
-				chrono.stop();
-				time4 += chrono.globalDiff(*Comm);
-			}
+            if (meth == 1)
+            {
+                chrono.start();
+                nodes = dtVec->epetraVector().MyLength();
+                j = dtVec->blockMap().GID (0);
+                dt_min = (*dtVec) [j];
+                for (int i = 1; i < nodes; i++)
+                {
+                    j = dtVec->blockMap().GID (i);
+                    if (dt_min > (*dtVec) [j])
+                    {
+                        dt_min = (*dtVec) [j];
+                    }
+                }
+                chrono.stop();
+                time4 += chrono.globalDiff (*Comm);
+            }
 
 
-			k++;
+            k++;
 
-			if( t >= TCut1 && t<=TCut2)
-			{
-				function_Type g = &Cut;
-				vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
-				const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
-				feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
-				(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
-				*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
-				//*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
-			}
+            if ( t >= TCut1 && t <= TCut2)
+            {
+                function_Type g = &Cut;
+                vectorPtr_Type M_Cut (new VectorEpetra ( splitting->feSpacePtr()->map() ) );
+                const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
+                feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* > (&feSpace);
+                (*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
+                * (splitting->globalSolution().at (0) ) = * (splitting->globalSolution().at (0) ) * (*M_Cut);
+                //*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
+            }
 
-			if ( Comm->MyPID() == 0 )
-				std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+            if ( Comm->MyPID() == 0 )
+            {
+                std::cout << "\n\n\nActual time : " << t << std::endl << std::endl << std::endl;
+            }
 
-		}
+        }
 
-		chrono_cycle.stop();
-		time_cycle = chrono_cycle.globalDiff(*Comm);
+        chrono_cycle.stop();
+        time_cycle = chrono_cycle.globalDiff (*Comm);
 
-		Exp.closeFile();
+        Exp.closeFile();
 
     }
     else
     {
-    	chrono_cycle.start();
-    	for ( Real t = 0.0; t < TF; )
-    	{
-			t = t + dt;
+        chrono_cycle.start();
+        for ( Real t = 0.0; t < TF; )
+        {
+            t = t + dt;
 
-			chrono.start();
-			splitting -> solveOneStepGatingVariablesFE();
-			chrono.stop();
-			time1 += chrono.globalDiff(*Comm);
+            chrono.start();
+            splitting -> solveOneStepGatingVariablesFE();
+            chrono.stop();
+            time1 += chrono.globalDiff (*Comm);
 
 
-			if(meth==2)
-			{
-				chrono.start();
-				splitting -> solveOneICIStep ();
-				chrono.stop();
-				time2 += chrono.globalDiff(*Comm);
-			}
-			else
-			{
-				chrono.start();
-				splitting -> solveOneSVIStep ();
-				chrono.stop();
-				time2 += chrono.globalDiff(*Comm);
-			}
+            if (meth == 2)
+            {
+                chrono.start();
+                splitting -> solveOneICIStep ();
+                chrono.stop();
+                time2 += chrono.globalDiff (*Comm);
+            }
+            else
+            {
+                chrono.start();
+                splitting -> solveOneSVIStep ();
+                chrono.stop();
+                time2 += chrono.globalDiff (*Comm);
+            }
 
-			if( k % iter == 0 )
-			{
-				chrono.start();
-				splitting -> exportSolution (exporterSplitting, t);
-				chrono.stop();
-				time3 += chrono.globalDiff(*Comm);
-			}
+            if ( k % iter == 0 )
+            {
+                chrono.start();
+                splitting -> exportSolution (exporterSplitting, t);
+                chrono.stop();
+                time3 += chrono.globalDiff (*Comm);
+            }
 
-			k++;
+            k++;
 
-			if( t >= TCut1 && t<=TCut2)
-			{
-				function_Type g = &Cut;
-				vectorPtr_Type M_Cut(new VectorEpetra( splitting->feSpacePtr()->map() ));
-				const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
-				feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* >(&feSpace);
-				(*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
-				*(splitting->globalSolution().at(0)) = *(splitting->globalSolution().at(0))*(*M_Cut);
-				//*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
-			}
+            if ( t >= TCut1 && t <= TCut2)
+            {
+                function_Type g = &Cut;
+                vectorPtr_Type M_Cut (new VectorEpetra ( splitting->feSpacePtr()->map() ) );
+                const feSpacePtr_Type feSpace =  splitting->feSpacePtr();
+                feSpacePtr_Type* feSpace_noconst = const_cast< feSpacePtr_Type* > (&feSpace);
+                (*feSpace_noconst)->interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( g ), *M_Cut , 0);
+                * (splitting->globalSolution().at (0) ) = * (splitting->globalSolution().at (0) ) * (*M_Cut);
+                //*(splitting->globalSolution().at(1)) = *(splitting->globalSolution().at(1))*(*M_Cut);
+            }
 
-			if ( Comm->MyPID() == 0 )
-				std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
-    	}
+            if ( Comm->MyPID() == 0 )
+            {
+                std::cout << "\n\n\nActual time : " << t << std::endl << std::endl << std::endl;
+            }
+        }
 
-    	chrono_cycle.stop();
-    	time_cycle = chrono_cycle.globalDiff(*Comm);
+        chrono_cycle.stop();
+        time_cycle = chrono_cycle.globalDiff (*Comm);
     }
 
     exporterSplitting.closeFile();
@@ -488,37 +512,47 @@ Int main ( Int argc, char** argv )
     //********************************************//
     splitting -> exportFiberDirection();
     chrono_total.stop();
-    time_total = chrono_total.globalDiff(*Comm);
+    time_total = chrono_total.globalDiff (*Comm);
 
     if ( Comm->MyPID() == 0 )
     {
-    	ofstream output_time(monodomainList.get ("OutputTimes", "Times").c_str());
-    	output_time << "Total elapsed time : " << time_total << std::endl;
-    	output_time << "Total cycle time : " << time_cycle << std::endl;
-    	output_time<< "Time importing mesh : "<<time_mesh<<std::endl;
-    	output_time<< "Time creating matrices : "<<time_matrix<<endl;
-    	output_time<< "Time setting potential : "<<time_potential<<endl;
-    	if(meth<=1)
-    	{
-    		if(meth == 0)
-    			output_time<<"Time Reaction - explicit Euler : "<<time1<<endl;
-    		if(meth == 1)
-    			output_time<<"Time Reaction - Rosenbrock : "<<time1<<endl;
-    		output_time<<"Time Diffusion - BE : "<<time2<<endl;
-    		output_time<<"Time Postprocess : "<<time3<<endl;
-    		if(meth==1)
-    			output_time<<"Time to find minimal dt : "<<time4<<endl;
-    	}
-    	else
-    	{
-    		output_time<<"Time Gating variables - FE : "<<time1<<endl;
-    		if(meth == 2)
-    			output_time<<"Time ICI : "<<time2<<endl;
-    		if(meth == 3)
-    			output_time<<"Time SVI : "<<time2<<endl;
-    		output_time<<"Time Postprocess : "<<time3<<endl;
-    	}
-    	output_time.close();
+        ofstream output_time (monodomainList.get ("OutputTimes", "Times").c_str() );
+        output_time << "Total elapsed time : " << time_total << std::endl;
+        output_time << "Total cycle time : " << time_cycle << std::endl;
+        output_time << "Time importing mesh : " << time_mesh << std::endl;
+        output_time << "Time creating matrices : " << time_matrix << endl;
+        output_time << "Time setting potential : " << time_potential << endl;
+        if (meth <= 1)
+        {
+            if (meth == 0)
+            {
+                output_time << "Time Reaction - explicit Euler : " << time1 << endl;
+            }
+            if (meth == 1)
+            {
+                output_time << "Time Reaction - Rosenbrock : " << time1 << endl;
+            }
+            output_time << "Time Diffusion - BE : " << time2 << endl;
+            output_time << "Time Postprocess : " << time3 << endl;
+            if (meth == 1)
+            {
+                output_time << "Time to find minimal dt : " << time4 << endl;
+            }
+        }
+        else
+        {
+            output_time << "Time Gating variables - FE : " << time1 << endl;
+            if (meth == 2)
+            {
+                output_time << "Time ICI : " << time2 << endl;
+            }
+            if (meth == 3)
+            {
+                output_time << "Time SVI : " << time2 << endl;
+            }
+            output_time << "Time Postprocess : " << time3 << endl;
+        }
+        output_time.close();
 
         cout << "\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;
     }

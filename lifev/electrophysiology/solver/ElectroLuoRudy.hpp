@@ -25,9 +25,9 @@ public:
     typedef typename ElectroIonicSolver<Mesh, SolverType>::function_Type function_Type;
 
     ElectroLuoRudy ( const data_Type&          dataType,
-                   const Mesh&          mesh,
-                   FESpace<Mesh, MapEpetra>& uFEspace,
-                   Epetra_Comm&              comm );
+                     const Mesh&          mesh,
+                     FESpace<Mesh, MapEpetra>& uFEspace,
+                     Epetra_Comm&              comm );
 
     virtual ~ElectroLuoRudy() {}
 
@@ -161,9 +161,9 @@ private:
 //! Constructor
 template<typename Mesh, typename SolverType>
 ElectroLuoRudy<Mesh, SolverType>::ElectroLuoRudy ( const data_Type& dataType,
-                                               const Mesh& mesh,
-                                               FESpace<Mesh, MapEpetra>& uFEspace,
-                                               Epetra_Comm& comm ) :
+                                                   const Mesh& mesh,
+                                                   FESpace<Mesh, MapEpetra>& uFEspace,
+                                                   Epetra_Comm& comm ) :
     ElectroIonicSolver<Mesh, SolverType> ( dataType, mesh, uFEspace, comm),
     M_K0 (5.4),
     M_Ki (145.),
@@ -460,9 +460,9 @@ void ElectroLuoRudy<Mesh, SolverType>::computeODECoefficients ( const Real& u_ig
 
 template<typename Mesh, typename SolverType>
 void ElectroLuoRudy<Mesh, SolverType>::computeIonicCurrent (  Real Capacitance,
-                                                            VectorElemental& elvec,
-                                                            VectorElemental& /*elvec_u*/,
-                                                            FESpace<Mesh, MapEpetra>& uFESpace )
+                                                              VectorElemental& elvec,
+                                                              VectorElemental& /*elvec_u*/,
+                                                              FESpace<Mesh, MapEpetra>& uFESpace )
 {
     Real Iion_ig;
     for ( UInt ig = 0; ig < uFESpace.fe().nbQuadPt(); ig++ )

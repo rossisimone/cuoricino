@@ -201,7 +201,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     M_orthotropicActivationAnisotropyRatio = dataFile ( "electrophysiology/anisotropy_ratio", 3. );
     M_ionicCurrentType      = ionicCurrentTypeMap[ monodomainList.get ("solutionMethod", "SVI") ];
 
-  //  M_preloadInTime         = dataFile ("solid/physics/preload", 0);
+    //  M_preloadInTime         = dataFile ("solid/physics/preload", 0);
     typedef FESpace< RegionMesh<LinearTetra>, MapEpetra >          FESpace_Type;
     typedef boost::shared_ptr<FESpace_Type>                        FESpacePtr_Type;
 
@@ -265,11 +265,11 @@ MultiscaleModelFSI3DActivated::activationFunction (const Real& t, const Real& x,
 
     Real returnValue = 0;
 
-    if ( fmod(t - M_activationOffset, M_activationPeriod) <= M_activationLength )
+    if ( fmod (t - M_activationOffset, M_activationPeriod) <= M_activationLength )
     {
-        if ( std::abs( x - M_activationCenter[0] ) <= M_activationRadius &&
-                        std::abs( y - M_activationCenter[1] ) <= M_activationRadius &&
-                        std::abs( z - M_activationCenter[2] ) <= M_activationRadius )
+        if ( std::abs ( x - M_activationCenter[0] ) <= M_activationRadius &&
+                std::abs ( y - M_activationCenter[1] ) <= M_activationRadius &&
+                std::abs ( z - M_activationCenter[2] ) <= M_activationRadius )
         {
             returnValue = M_activationCurrent;
         }
@@ -299,7 +299,7 @@ MultiscaleModelFSI3DActivated::setupModel()
     M_monodomain -> setInitialConditions();
 
     function_Type stimulus ( boost::bind ( &MultiscaleModelFSI3DActivated::activationFunction, this, _1, _2, _3, _4, _5 ) );
-    M_monodomain -> setAppliedCurrentFromFunction(stimulus, 0.0);
+    M_monodomain -> setAppliedCurrentFromFunction (stimulus, 0.0);
 
     /*
     HeartUtility::setValueOnBoundary ( * (M_monodomain -> potentialPtr() ), M_monodomain -> fullMeshPtr(), 1.0, M_activationMarker );
@@ -423,158 +423,158 @@ MultiscaleModelFSI3DActivated::solveModel()
         function_Type stimulus ( boost::bind ( &MultiscaleModelFSI3DActivated::activationFunction, this, _1, _2, _3, _4, _5 ) );
         M_monodomain -> setAppliedCurrentFromFunction ( stimulus, tn );
 
-        if(M_comm -> MyPID() == 0)
+        if (M_comm -> MyPID() == 0)
         {
-        	std::cout << "\n*************************************";
-        	std::cout << "\nGloabal timestep: " << timeStep;
-        	std::cout << "\nGloabal time: " << tn;
-        	std::cout << "\nMonodomain timestep: " << M_monodomain -> timeStep();
-        	std::cout << "\n*************************************";
+            std::cout << "\n*************************************";
+            std::cout << "\nGloabal timestep: " << timeStep;
+            std::cout << "\nGloabal time: " << tn;
+            std::cout << "\nMonodomain timestep: " << M_monodomain -> timeStep();
+            std::cout << "\n*************************************";
         }
-        for(Real tt(tn); tt < tn + timeStep; )
+        for (Real tt (tn); tt < tn + timeStep; )
         {
-        	tt += M_monodomain -> timeStep() / 1000.0;
+            tt += M_monodomain -> timeStep() / 1000.0;
 
-        	switch (M_ionicCurrentType)
-        	{
-        	    case OperatorSplitting:
-        	        M_monodomain -> solveOneSplittingStep();
-        	    case SVI:
-        	        M_monodomain -> solveOneStepGatingVariablesFE();
-        	        M_monodomain -> solveOneSVIStep();
-        	    case ICI:
-        	        M_monodomain -> solveOneStepGatingVariablesFE();
-        	        M_monodomain -> solveOneICIStep();
-        	}
+            switch (M_ionicCurrentType)
+            {
+                case OperatorSplitting:
+                    M_monodomain -> solveOneSplittingStep();
+                case SVI:
+                    M_monodomain -> solveOneStepGatingVariablesFE();
+                    M_monodomain -> solveOneSVIStep();
+                case ICI:
+                    M_monodomain -> solveOneStepGatingVariablesFE();
+                    M_monodomain -> solveOneICIStep();
+            }
 
-        	switch (M_activationModelType)
-             {
-                 case Algebraic:
-                 {
-                     // Simplistic activation model (\gammaf = a * Ca2)
-                     *M_gammaf = *( M_monodomain -> globalSolution().at (3) );
-                     if ( M_maxCalciumLikeVariable < M_gammaf -> maxValue() )
-                     {
-                         M_maxCalciumLikeVariable = M_gammaf -> maxValue();
-                     }
-                     if ( M_minCalciumLikeVariable > M_gammaf -> minValue() )
-                     {
-                         M_minCalciumLikeVariable = M_gammaf -> minValue();
-                     }
+            switch (M_activationModelType)
+            {
+                case Algebraic:
+                {
+                    // Simplistic activation model (\gammaf = a * Ca2)
+                    *M_gammaf = * ( M_monodomain -> globalSolution().at (3) );
+                    if ( M_maxCalciumLikeVariable < M_gammaf -> maxValue() )
+                    {
+                        M_maxCalciumLikeVariable = M_gammaf -> maxValue();
+                    }
+                    if ( M_minCalciumLikeVariable > M_gammaf -> minValue() )
+                    {
+                        M_minCalciumLikeVariable = M_gammaf -> minValue();
+                    }
 
-                     Real beta = -0.3;
-                     HeartUtility::rescaleVector ( *M_gammaf, M_minCalciumLikeVariable, M_maxCalciumLikeVariable, beta);
-                     break;
-                 }
-                 case SimpleODE:
-                 {
-                     // More prolonged activation model (\gammaf' = a * Ca2 + b * \gammaf)
-                     *M_gammaf += timeStep * ( -0.02 * * ( M_monodomain -> globalSolution().at (3) ) * 0.5 - 0.04 * (*M_gammaf) );
-                     break;
-                 }
-                 case StretchDependentODE:
-                 {
-                     //ASSERT(false, "ERROR: Stretch-dependent activation is not yet implemented.");
+                    Real beta = -0.3;
+                    HeartUtility::rescaleVector ( *M_gammaf, M_minCalciumLikeVariable, M_maxCalciumLikeVariable, beta);
+                    break;
+                }
+                case SimpleODE:
+                {
+                    // More prolonged activation model (\gammaf' = a * Ca2 + b * \gammaf)
+                    *M_gammaf += timeStep * ( -0.02 * * ( M_monodomain -> globalSolution().at (3) ) * 0.5 - 0.04 * (*M_gammaf) );
+                    break;
+                }
+                case StretchDependentODE:
+                {
+                    //ASSERT(false, "ERROR: Stretch-dependent activation is not yet implemented.");
 
-                     switch (M_activationType)
-                     {
-                         case TransverselyIsotropic:
-                             *M_gammas *= 0.0;
-                             *M_gamman *= 0.0;
+                    switch (M_activationType)
+                    {
+                        case TransverselyIsotropic:
+                            *M_gammas *= 0.0;
+                            *M_gamman *= 0.0;
 
-                             *M_gammas = 1.0 ;
-                             *M_gammas /= ( 1.0 + *M_gammaf );
-                             M_gammas -> sqrt();
-                             *M_gammas -= 1.0;
-                             *M_gamman = *M_gammas;
-                             break;
-                         case Orthotropic:
-                             *M_gammas *= 0.0;
-                             *M_gamman *= 0.0;
+                            *M_gammas = 1.0 ;
+                            *M_gammas /= ( 1.0 + *M_gammaf );
+                            M_gammas -> sqrt();
+                            *M_gammas -= 1.0;
+                            *M_gamman = *M_gammas;
+                            break;
+                        case Orthotropic:
+                            *M_gammas *= 0.0;
+                            *M_gamman *= 0.0;
 
-                             *M_gamman = *M_gammaf;
-                             *M_gamman *= M_orthotropicActivationAnisotropyRatio;
-                             *M_gammas = 1.0 ;
-                             *M_gammas /= (1.0 + *M_gammaf);
-                             *M_gammas /= ( 1.0 + *M_gamman);
-                             *M_gammas -= 1.0;
-                             break;
-                     }
+                            *M_gamman = *M_gammaf;
+                            *M_gamman *= M_orthotropicActivationAnisotropyRatio;
+                            *M_gammas = 1.0 ;
+                            *M_gammas /= (1.0 + *M_gammaf);
+                            *M_gammas /= ( 1.0 + *M_gamman);
+                            *M_gammas -= 1.0;
+                            break;
+                    }
 
-                     //boost::shared_ptr<FLRelationshipGamma> flg (new FLRelationshipGamma);
-                     boost::shared_ptr<FLRelationship> fl (new FLRelationship);
+                    //boost::shared_ptr<FLRelationshipGamma> flg (new FLRelationshipGamma);
+                    boost::shared_ptr<FLRelationship> fl (new FLRelationship);
 
-                     boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
+                    boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
 
-                     //boost::shared_ptr<Exp> EXP(new Exp);
-                     //boost::shared_ptr<Exp2> EXP2(new Exp2);
-                     //boost::shared_ptr<Psi4f> psi4f (new Psi4f);
+                    //boost::shared_ptr<Exp> EXP(new Exp);
+                    //boost::shared_ptr<Exp2> EXP2(new Exp2);
+                    //boost::shared_ptr<Psi4f> psi4f (new Psi4f);
 
-                     MatrixSmall<3, 3> Id;
-                     Id (0, 0) = 1.;
-                     Id (0, 1) = 0., Id (0, 2) = 0.;
-                     Id (1, 0) = 0.;
-                     Id (1, 1) = 1., Id (1, 2) = 0.;
-                     Id (2, 0) = 0.;
-                     Id (2, 1) = 0., Id (2, 2) = 1.;
+                    MatrixSmall<3, 3> Id;
+                    Id (0, 0) = 1.;
+                    Id (0, 1) = 0., Id (0, 2) = 0.;
+                    Id (1, 0) = 0.;
+                    Id (1, 1) = 1., Id (1, 2) = 0.;
+                    Id (2, 0) = 0.;
+                    Id (2, 1) = 0., Id (2, 2) = 1.;
 
-                     vectorPtr_Type rhsActivation ( new vector_Type ( *M_gammaf ) );
-                     vectorPtr_Type tmpRhsActivation ( new vector_Type ( rhsActivation -> map(), Repeated ) );
-                     {
-
-
-                         {
-     						using namespace ExpressionAssembly;
+                    vectorPtr_Type rhsActivation ( new vector_Type ( *M_gammaf ) );
+                    vectorPtr_Type tmpRhsActivation ( new vector_Type ( rhsActivation -> map(), Repeated ) );
+                    {
 
 
-     						BOOST_AUTO_TPL (I,      value (Id) );
-     						BOOST_AUTO_TPL (Grad_u, grad ( M_monodomainDisplacementETFESpace, *M_displacementMonodomain, 0) );
-     						BOOST_AUTO_TPL (F,      ( Grad_u + I ) );
-     						BOOST_AUTO_TPL (J,       det (F) );
-     						BOOST_AUTO_TPL (Jm23,    pow (J, -2. / 3) );
-
-     						// Fibres
-     						BOOST_AUTO_TPL (f0,     value ( M_monodomainDisplacementETFESpace, * ( M_monodomain -> fiberPtr() ) ) );
-     						BOOST_AUTO_TPL (f,      F * f0 );
-     						BOOST_AUTO_TPL (I4f,    dot (f, f) );
-     						BOOST_AUTO_TPL (I4fiso,  Jm23 * I4f);
+                        {
+                            using namespace ExpressionAssembly;
 
 
-     						// shortenings
-     					   BOOST_AUTO_TPL (gf,  value (M_activationETFESpace, *M_gammaf) );
-     						// Fibres
-     						BOOST_AUTO_TPL(dW, value(2.0) * I4fiso * ( value(3.0) * gf + value(-6.0) * gf * gf + value(10.0) * gf * gf * gf + value(-15.0) * gf * gf * gf * gf  + value(21.0) * gf * gf * gf * gf * gf) );
+                            BOOST_AUTO_TPL (I,      value (Id) );
+                            BOOST_AUTO_TPL (Grad_u, grad ( M_monodomainDisplacementETFESpace, *M_displacementMonodomain, 0) );
+                            BOOST_AUTO_TPL (F,      ( Grad_u + I ) );
+                            BOOST_AUTO_TPL (J,       det (F) );
+                            BOOST_AUTO_TPL (Jm23,    pow (J, -2. / 3) );
 
-     						BOOST_AUTO_TPL (Ca,    value ( M_activationETFESpace, * ( M_monodomain -> globalSolution().at (3)  ) ) );
-     						BOOST_AUTO_TPL(Ca2, Ca * Ca );
+                            // Fibres
+                            BOOST_AUTO_TPL (f0,     value ( M_monodomainDisplacementETFESpace, * ( M_monodomain -> fiberPtr() ) ) );
+                            BOOST_AUTO_TPL (f,      F * f0 );
+                            BOOST_AUTO_TPL (I4f,    dot (f, f) );
+                            BOOST_AUTO_TPL (I4fiso,  Jm23 * I4f);
 
-     						Real viscosity = 0.00025;
-     						Real active_coefficient = -3.0;
-     						Real Ca_diastolic = 0.02155;
-     						BOOST_AUTO_TPL(dCa, ( Ca - value(Ca_diastolic) ) );
-     						BOOST_AUTO_TPL(Pa, value(active_coefficient) * eval(H, dCa) * eval(H, dCa) * eval(fl, I4fiso) );
-     						BOOST_AUTO_TPL(beta, value(viscosity ) );
-     						BOOST_AUTO_TPL(gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );
 
-         					{
-                                 integrate ( elements ( M_monodomain -> localMeshPtr() ),
-                                             M_monodomain -> feSpacePtr() -> qr() ,
-                                             M_monodomain -> ETFESpacePtr(),
-                                             gamma_dot * phi_i
-                                           ) >> tmpRhsActivation;
+                            // shortenings
+                            BOOST_AUTO_TPL (gf,  value (M_activationETFESpace, *M_gammaf) );
+                            // Fibres
+                            BOOST_AUTO_TPL (dW, value (2.0) * I4fiso * ( value (3.0) * gf + value (-6.0) * gf * gf + value (10.0) * gf * gf * gf + value (-15.0) * gf * gf * gf * gf  + value (21.0) * gf * gf * gf * gf * gf) );
 
-         					}
+                            BOOST_AUTO_TPL (Ca,    value ( M_activationETFESpace, * ( M_monodomain -> globalSolution().at (3)  ) ) );
+                            BOOST_AUTO_TPL (Ca2, Ca * Ca );
 
-                             *rhsActivation *= 0;
-                             *rhsActivation = ( (*M_activationOperator) * ( *M_gammaf ) );
-                             *rhsActivation += ( ( M_monodomain -> timeStep() * *tmpRhsActivation ) );
+                            Real viscosity = 0.00025;
+                            Real active_coefficient = -3.0;
+                            Real Ca_diastolic = 0.02155;
+                            BOOST_AUTO_TPL (dCa, ( Ca - value (Ca_diastolic) ) );
+                            BOOST_AUTO_TPL (Pa, value (active_coefficient) * eval (H, dCa) * eval (H, dCa) * eval (fl, I4fiso) );
+                            BOOST_AUTO_TPL (beta, value (viscosity ) );
+                            BOOST_AUTO_TPL (gamma_dot, beta / ( Ca2 ) * ( Pa - dW )  );
 
-                             M_activationSolver -> setRightHandSide (rhsActivation);
-                             M_activationSolver -> solve (M_gammaf);
+                            {
+                                integrate ( elements ( M_monodomain -> localMeshPtr() ),
+                                            M_monodomain -> feSpacePtr() -> qr() ,
+                                            M_monodomain -> ETFESpacePtr(),
+                                            gamma_dot * phi_i
+                                          ) >> tmpRhsActivation;
 
-                         }
-     ////
-                     }
+                            }
+
+                            *rhsActivation *= 0;
+                            *rhsActivation = ( (*M_activationOperator) * ( *M_gammaf ) );
+                            *rhsActivation += ( ( M_monodomain -> timeStep() * *tmpRhsActivation ) );
+
+                            M_activationSolver -> setRightHandSide (rhsActivation);
+                            M_activationSolver -> solve (M_gammaf);
+
+                        }
+                        ////
+                    }
 
                 }
             }
@@ -598,12 +598,12 @@ MultiscaleModelFSI3DActivated::solveModel()
             *M_gammafSolid *= 0.3 / 0.415;
         }
 
-//        *M_gammafSolid *= ( M_gammafSolid -> operator <= (0.0) );
-//        if (M_rescalingVector)
-//        {
-//            *M_gammafSolid /= 0.3;
-//            *M_gammafSolid *= *M_rescalingVector;
-//        }
+        //        *M_gammafSolid *= ( M_gammafSolid -> operator <= (0.0) );
+        //        if (M_rescalingVector)
+        //        {
+        //            *M_gammafSolid /= 0.3;
+        //            *M_gammafSolid *= *M_rescalingVector;
+        //        }
 
         super::solver() -> solid().material() -> setGammaf ( *M_gammafSolid );
         switch (M_activationType)

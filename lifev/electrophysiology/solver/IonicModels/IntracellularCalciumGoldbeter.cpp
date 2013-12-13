@@ -26,8 +26,8 @@
 
 /*!
   @file
-  @brief Intracellular Calcium model from Goldbeter et al. (1990). By "potential" we 
-  @brief refer to the cytosolic calcium concentration, whereas the gating variable 
+  @brief Intracellular Calcium model from Goldbeter et al. (1990). By "potential" we
+  @brief refer to the cytosolic calcium concentration, whereas the gating variable
   @brief represents the sarcoplasmic calcium concentration
   @date 09-2013
   @author Ricardo Ruiz <ricardo.ruizbaier@unil.ch>
@@ -62,8 +62,8 @@ IntracellularCalciumGoldbeter::IntracellularCalciumGoldbeter()    :
     M_k4       ( 0.7481)
 
 {
-	M_restingConditions.at(0) = 0.1;
-	M_restingConditions.at(1) = 1.6;
+    M_restingConditions.at (0) = 0.1;
+    M_restingConditions.at (1) = 1.6;
 }
 
 IntracellularCalciumGoldbeter::IntracellularCalciumGoldbeter ( Teuchos::ParameterList& parameterList   )   :
@@ -125,25 +125,25 @@ IntracellularCalciumGoldbeter& IntracellularCalciumGoldbeter::operator= ( const 
 // ===================================================
 //Only sarcoplasmic calcium
 void IntracellularCalciumGoldbeter::computeGatingRhs (    const   std::vector<Real>&  v,
-                                         std::vector<Real>& rhs )
+                                                          std::vector<Real>& rhs )
 {
 
-  Real dr = M_nu2 * std::pow( v[0], 2.0) / (M_k2 + std::pow(v[0],2.0)) - M_nu3 * std::pow(v[0],4.0) * std::pow(v[1],2.0) / 
-    ((M_k3 + std::pow(v[1],2.0))*(M_k4+std::pow(v[0],4.0))) - M_nu5 * v[1];
+    Real dr = M_nu2 * std::pow ( v[0], 2.0) / (M_k2 + std::pow (v[0], 2.0) ) - M_nu3 * std::pow (v[0], 4.0) * std::pow (v[1], 2.0) /
+              ( (M_k3 + std::pow (v[1], 2.0) ) * (M_k4 + std::pow (v[0], 4.0) ) ) - M_nu5 * v[1];
 
-  rhs[0] = dr;
+    rhs[0] = dr;
 
 }
 
 //Both cytosolic (V) and sarcoplasmic calcium (r)
 void IntracellularCalciumGoldbeter::computeRhs (    const   std::vector<Real>&  v,
-                                         std::vector<Real>& rhs )
+                                                    std::vector<Real>& rhs )
 {
 
-  Real dr = M_nu2 * std::pow(v[0],2.0) / (M_k2 + std::pow(v[0],2.0)) - M_nu3 * std::pow(v[0],4.0) * std::pow(v[1],2.0) / 
-    ((M_k3 + std::pow(v[1],2.0))*(M_k4+std::pow(v[0],4.0))) - M_nu5 * v[1];
-  Real dV = M_nu1 - M_nu2 * std::pow(v[0],2.0) / (M_k2 + std::pow(v[0],2.0)) + M_nu3 * std::pow(v[0],4.0) * std::pow(v[1],2.0) / 
-    ((M_k3 + std::pow(v[1],2.0))*(M_k4+std::pow(v[0],4.0))) - M_nu4 * v[0];
+    Real dr = M_nu2 * std::pow (v[0], 2.0) / (M_k2 + std::pow (v[0], 2.0) ) - M_nu3 * std::pow (v[0], 4.0) * std::pow (v[1], 2.0) /
+              ( (M_k3 + std::pow (v[1], 2.0) ) * (M_k4 + std::pow (v[0], 4.0) ) ) - M_nu5 * v[1];
+    Real dV = M_nu1 - M_nu2 * std::pow (v[0], 2.0) / (M_k2 + std::pow (v[0], 2.0) ) + M_nu3 * std::pow (v[0], 4.0) * std::pow (v[1], 2.0) /
+              ( (M_k3 + std::pow (v[1], 2.0) ) * (M_k4 + std::pow (v[0], 4.0) ) ) - M_nu4 * v[0];
 
     rhs[0] = dV;
     rhs[1] = dr;
@@ -153,8 +153,8 @@ void IntracellularCalciumGoldbeter::computeRhs (    const   std::vector<Real>&  
 
 Real IntracellularCalciumGoldbeter::computeLocalPotentialRhs ( const std::vector<Real>& v )
 {
-  return (M_nu1 - M_nu2 * std::pow(v[0],2.0) / (M_k2 + std::pow(v[0],2.0)) + M_nu3 * std::pow(v[0],4.0) * std::pow(v[1],2.0) / 
-	  ((M_k3 + std::pow(v[1],2.0))*(M_k4+std::pow(v[0],4.0))) - M_nu4 * v[0] );
+    return (M_nu1 - M_nu2 * std::pow (v[0], 2.0) / (M_k2 + std::pow (v[0], 2.0) ) + M_nu3 * std::pow (v[0], 4.0) * std::pow (v[1], 2.0) /
+            ( (M_k3 + std::pow (v[1], 2.0) ) * (M_k4 + std::pow (v[0], 4.0) ) ) - M_nu4 * v[0] );
 }
 
 
@@ -171,7 +171,7 @@ void IntracellularCalciumGoldbeter::showMe()
     std::cout << "nu3: " << this->Nu3() << std::endl;
     std::cout << "nu4: " << this->Nu4() << std::endl;
     std::cout << "nu5: " << this->Nu5() << std::endl;
- 
+
 
     std::cout << "k1: " << this->K1() << std::endl;
     std::cout << "k2: " << this->K2() << std::endl;

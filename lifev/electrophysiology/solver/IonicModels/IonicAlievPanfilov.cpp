@@ -56,8 +56,8 @@ IonicAlievPanfilov::IonicAlievPanfilov()    :
     M_a         ( 0.1 ),
     M_epsilon   ( 0.01 )
 {
-	M_restingConditions.at(0) = 0.0;
-	M_restingConditions.at(1) = 0.0;
+    M_restingConditions.at (0) = 0.0;
+    M_restingConditions.at (1) = 0.0;
 }
 
 IonicAlievPanfilov::IonicAlievPanfilov ( Teuchos::ParameterList& parameterList   )   :
@@ -106,7 +106,7 @@ IonicAlievPanfilov& IonicAlievPanfilov::operator= ( const IonicAlievPanfilov& mo
 // ===================================================
 //Only gating variables
 void IonicAlievPanfilov::computeGatingRhs (    const   std::vector<Real>&  v,
-                                         std::vector<Real>& rhs )
+                                               std::vector<Real>& rhs )
 {
 
     Real dr = - ( M_epsilon + M_mu1 * v[1] / ( M_mu2 + v[0] ) ) * ( v[1] + M_k * v[0] * ( v[0] - M_a  - 1.0 ) );

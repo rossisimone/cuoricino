@@ -104,13 +104,13 @@ Int main ( Int argc, char** argv )
     //********************************************//
     model.showMe();
 
-//    //********************************************//
-//    // Initialize the solution to 0. The model    //
-//    // consist of three state variables. Xe.Size()//
-//    // returns the number of state variables of   //
-//    // the model. rStates is the reference to the //
-//    // the vector states                          //
-//    //********************************************//
+    //    //********************************************//
+    //    // Initialize the solution to 0. The model    //
+    //    // consist of three state variables. Xe.Size()//
+    //    // returns the number of state variables of   //
+    //    // the model. rStates is the reference to the //
+    //    // the vector states                          //
+    //    //********************************************//
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
     unknowns[0] = - 94.7;
@@ -136,7 +136,7 @@ Int main ( Int argc, char** argv )
     // the differential equation.                 //
     //********************************************//
     cout << "Initializing rhs..." ;
-    std::vector<Real> rhs (model.Size()+1, 0);
+    std::vector<Real> rhs (model.Size() + 1, 0);
     cout << " Done! "  << endl;
 
     //********************************************//
@@ -150,10 +150,10 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF     = parameterList.get( "endTime", 5.0 );
-    Real dt     = parameterList.get( "timeStep", 0.005 );
-    Real timeSt = parameterList.get( "stimuliTime", 1.0 );
-    Real stInt  = parameterList.get( "stimuliInterval", 1000.0 );
+    Real TF     = parameterList.get ( "endTime", 5.0 );
+    Real dt     = parameterList.get ( "timeStep", 0.005 );
+    Real timeSt = parameterList.get ( "stimuliTime", 1.0 );
+    Real stInt  = parameterList.get ( "stimuliInterval", 1000.0 );
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -169,26 +169,28 @@ Int main ( Int argc, char** argv )
     cout << "Time loop starts...\n";
 
 
-    int iter(0);
-    int savedt( parameterList.get( "savedt", 1.0) / dt );
+    int iter (0);
+    int savedt ( parameterList.get ( "savedt", 1.0) / dt );
 
 
     for ( Real t = 0; t < TF; )
     {
 
-    	//********************************************//
+        //********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
         if ( t >= timeSt && t <= timeSt + 1.0 )
         {
-        	Iapp = 80.;  //0.516289;
-        	if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
-        		timeSt = timeSt + stInt;
+            Iapp = 80.;  //0.516289;
+            if ( t >= timeSt + 1.0 - dt && t <= timeSt + 1.0 )
+            {
+                timeSt = timeSt + stInt;
+            }
         }
         else
         {
-        	Iapp = 0.;
+            Iapp = 0.;
         }
 
         cout << "\r " << t << " ms.       " << std::flush;
@@ -196,7 +198,7 @@ Int main ( Int argc, char** argv )
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.setAppliedCurrent(Iapp);
+        model.setAppliedCurrent (Iapp);
         model.computeRhs ( unknowns, rhs );
 
 
@@ -205,31 +207,32 @@ Int main ( Int argc, char** argv )
         //********************************************//
 
         iter++;
-        if( iter % savedt == 0){
-            output << t <<", "<< unknowns.at (0) << " " << unknowns.at(10) << " " << unknowns.at(11)
-                            << " " << rhs.at(13) << "\n"; //
-//            for ( int j (0); j <= 2; j++)
-//            {
-//                output << unknowns.at (j) << ", ";
-//            }
-////            output << unknowns.at ( model.Size() - 1 ) << "\n";
-        }
-
-         //********************************************//
-         // Use forward Euler method to advance the    //
-         // solution in time.                          //
-         //********************************************//
-
-        for(int j(0); j <= 12; ++j)
+        if ( iter % savedt == 0)
         {
-    		unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+            output << t << ", " << unknowns.at (0) << " " << unknowns.at (10) << " " << unknowns.at (11)
+                   << " " << rhs.at (13) << "\n"; //
+            //            for ( int j (0); j <= 2; j++)
+            //            {
+            //                output << unknowns.at (j) << ", ";
+            //            }
+            ////            output << unknowns.at ( model.Size() - 1 ) << "\n";
         }
 
-    	 //********************************************//
-         // Update the time.                           //
-         //********************************************//
-         t = t + dt;
-       }
+        //********************************************//
+        // Use forward Euler method to advance the    //
+        // solution in time.                          //
+        //********************************************//
+
+        for (int j (0); j <= 12; ++j)
+        {
+            unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+        }
+
+        //********************************************//
+        // Update the time.                           //
+        //********************************************//
+        t = t + dt;
+    }
 
     cout << "\n...Time loop ends.\n";
     cout << "Solution written on file: " << filename << "\n";
@@ -243,7 +246,7 @@ Int main ( Int argc, char** argv )
     //! Finalizing Epetra communicator
     MPI_Finalize();
     Real returnValue;
-    if (std::abs(unknowns.at(10) - 0.990976) > 1e-4 )
+    if (std::abs (unknowns.at (10) - 0.990976) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
@@ -252,4 +255,4 @@ Int main ( Int argc, char** argv )
         returnValue = EXIT_SUCCESS;
     }
     return ( returnValue );
-   }
+}

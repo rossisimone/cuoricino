@@ -26,8 +26,8 @@
 
 /*!
   @file
-  @brief Intracellular Calcium model from Goldbeter et al. (1990). By "potential" we 
-  @brief refer to the cytosolic calcium concentration, whereas the gating variable 
+  @brief Intracellular Calcium model from Goldbeter et al. (1990). By "potential" we
+  @brief refer to the cytosolic calcium concentration, whereas the gating variable
   @brief represents the sarcoplasmic calcium concentration
   @date 09-2013
   @author Ricardo Ruiz <ricardo.ruizbaier@unil.ch>
@@ -162,16 +162,16 @@ public:
     {
         this->M_k2         = k2;
     }
-inline void setK3        ( const Real& k3 )
+    inline void setK3        ( const Real& k3 )
     {
         this->M_k3         = k3;
     }
-inline void setK4        ( const Real& k4 )
+    inline void setK4        ( const Real& k4 )
     {
         this->M_k4         = k4;
     }
 
-//@}
+    //@}
 
     //! @name Methods
     //@{

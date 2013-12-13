@@ -187,6 +187,7 @@ private:
     evaluation_Type M_evaluation;
 
     std::vector<ETCurrentBDFE<3>*> M_globalCFE;
+
     std::vector<ETCurrentFE<3, TestSpaceType::field_dim>*> M_testCFE;
     std::vector<ETCurrentFE<3, SolutionSpaceType::field_dim>*> M_solutionCFE;
 

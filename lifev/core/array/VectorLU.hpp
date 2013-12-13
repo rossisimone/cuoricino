@@ -61,37 +61,37 @@ namespace LifeV
 
 class VectorLU
 {
-	typedef std::vector< std::vector<Real> > Matrix;
-	typedef std::vector<Real> Vector;
+    typedef std::vector< std::vector<Real> > Matrix;
+    typedef std::vector<Real> Vector;
 
 public:
-	VectorLU(UInt n, Real r = 0.0);
-	VectorLU(const Vector& v);
-	virtual ~VectorLU(){};
+    VectorLU (UInt n, Real r = 0.0);
+    VectorLU (const Vector& v);
+    virtual ~VectorLU() {};
 
-	Real norm2() const;
-	UInt size() const;		//togli
+    Real norm2() const;
+    UInt size() const;      //togli
 
-	Vector& getVector();
-	void disp();
+    Vector& getVector();
+    void disp();
 
-	Real& operator[](UInt i);
-	Real& operator()(UInt i);
-	const Real& operator[](UInt i) const;
-	const Real& operator()(UInt i) const;
-	VectorLU operator+ (const VectorLU& w) const;
-	VectorLU& operator+=(const VectorLU& w);
-	VectorLU operator- (const VectorLU& w) const;
-	VectorLU& operator-=(const VectorLU& w);
-	VectorLU operator* (const Real r) const;
-	VectorLU& operator*=(const Real r);
-	VectorLU operator/ (const Real r) const;
-	VectorLU& operator/=(const Real r);
+    Real& operator[] (UInt i);
+    Real& operator() (UInt i);
+    const Real& operator[] (UInt i) const;
+    const Real& operator() (UInt i) const;
+    VectorLU operator+ (const VectorLU& w) const;
+    VectorLU& operator+= (const VectorLU& w);
+    VectorLU operator- (const VectorLU& w) const;
+    VectorLU& operator-= (const VectorLU& w);
+    VectorLU operator* (const Real r) const;
+    VectorLU& operator*= (const Real r);
+    VectorLU operator/ (const Real r) const;
+    VectorLU& operator/= (const Real r);
 
 
 private:
-	UInt M_n; //togli
-	Vector M_v;
+    UInt M_n; //togli
+    Vector M_v;
 };
 
 }// namespace LifeV

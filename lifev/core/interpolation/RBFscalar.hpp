@@ -39,7 +39,8 @@
 
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 
-namespace LifeV {
+namespace LifeV
+{
 
 template <typename mesh_Type>
 class RBFscalar: public RBFInterpolation<mesh_Type>
@@ -98,11 +99,11 @@ public:
 
     void solution (vectorPtr_Type& Solution);
 
-    void updateRhs(vectorPtr_Type newRhs);
+    void updateRhs (vectorPtr_Type newRhs);
 
     void setRadius ( double radius );
 
-    void setBasis (const std::string & basis);
+    void setBasis (const std::string& basis);
 
 private:
 
@@ -132,8 +133,8 @@ private:
 };
 
 template <typename mesh_Type>
-RBFscalar<mesh_Type>::RBFscalar():
-    M_radius(0)
+RBFscalar<mesh_Type>::RBFscalar() :
+    M_radius (0)
 {}
 
 template <typename mesh_Type>
@@ -166,7 +167,7 @@ void RBFscalar<mesh_Type>::setRadius ( double radius )
 }
 
 template <typename mesh_Type>
-void RBFscalar<mesh_Type>::setBasis ( const std::string & basis )
+void RBFscalar<mesh_Type>::setBasis ( const std::string& basis )
 {
     M_basis = basis;
 }
@@ -178,15 +179,19 @@ void RBFscalar<mesh_Type>::buildOperators()
     TimeBuilding.start();
     this->interpolationOperator();
     TimeBuilding.stop();
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "Time to assembly operators = " << TimeBuilding.diff() << std::endl;
+    }
 
     LifeChrono TimeBuildingp;
     TimeBuildingp.start();
     this->projectionOperator();
     TimeBuildingp.stop();
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "Time to assembly operators = " << TimeBuildingp.diff() << std::endl;
+    }
 
     this->buildRhs();
 
@@ -195,13 +200,14 @@ void RBFscalar<mesh_Type>::buildOperators()
 template <typename mesh_Type>
 void RBFscalar<mesh_Type>::interpolationOperator()
 {
-    ASSERT(M_radius!=0, "Please set the basis radius using RBFscalar<mesh_Type>::setRadius(double radius)");
+    ASSERT (M_radius != 0, "Please set the basis radius using RBFscalar<mesh_Type>::setRadius(double radius)");
 
-    if(M_basis=="TPS"||M_basis=="IMQ"){
+    if (M_basis == "TPS" || M_basis == "IMQ")
+    {
         this->identifyNodes (M_localMeshKnown, M_GIdsKnownMesh, M_knownField);
         int LocalNodesNumber = M_GIdsKnownMesh.size();
         M_globalNodesNumber = 0;
-        MPI_Allreduce(&LocalNodesNumber,&M_globalNodesNumber,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce (&LocalNodesNumber, &M_globalNodesNumber, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
         int* ElementsPerRow = new int[LocalNodesNumber];
         int* GlobalID = new int[LocalNodesNumber];
         int k = 0;
@@ -224,7 +230,7 @@ void RBFscalar<mesh_Type>::interpolationOperator()
             k = 0;
             for ( int j = 0; j < M_fullMeshKnown->numVertices(); ++j)
             {
-                if(isInside(M_fullMeshKnown->point (j).markerID(),M_flags))
+                if (isInside (M_fullMeshKnown->point (j).markerID(), M_flags) )
                 {
                     Indices[k] = j;
                     Values[k]  = rbf ( M_fullMeshKnown->point (GlobalID[i]).x(),
@@ -245,7 +251,8 @@ void RBFscalar<mesh_Type>::interpolationOperator()
         delete ElementsPerRow;
         delete GlobalID;
     }
-    if(M_basis=="BW"){
+    if (M_basis == "BW")
+    {
         this->identifyNodes (M_localMeshKnown, M_GIdsKnownMesh, M_knownField);
         M_neighbors.reset ( new neighbors_Type ( M_fullMeshKnown, M_localMeshKnown, M_knownField->mapPtr(), M_knownField->mapPtr()->commPtr() ) );
         if (M_flags[0] == -1)
@@ -315,7 +322,8 @@ void RBFscalar<mesh_Type>::projectionOperator()
     this->identifyNodes (M_localMeshUnknown, M_GIdsUnknownMesh, M_unknownField);
     int LocalNodesNumber = M_GIdsUnknownMesh.size();
 
-    if(M_basis=="TPS"||M_basis=="IMQ"){
+    if (M_basis == "TPS" || M_basis == "IMQ")
+    {
 
         int* ElementsPerRow = new int[LocalNodesNumber];
         int* GlobalID = new int[LocalNodesNumber];
@@ -339,7 +347,7 @@ void RBFscalar<mesh_Type>::projectionOperator()
             k = 0;
             for ( int j = 0; j < M_fullMeshKnown->numVertices(); ++j)
             {
-                if(isInside(M_fullMeshKnown->point(j).markerID(),M_flags))
+                if (isInside (M_fullMeshKnown->point (j).markerID(), M_flags) )
                 {
                     Indices[k] = j;
                     Values[k]  = rbf ( M_fullMeshUnknown->point (GlobalID[i]).x(),
@@ -361,7 +369,8 @@ void RBFscalar<mesh_Type>::projectionOperator()
         delete GlobalID;
     }
 
-    if(M_basis=="BW"){
+    if (M_basis == "BW")
+    {
 
         std::vector<std::set<ID> > MatrixGraph (LocalNodesNumber);
         int* ElementsPerRow = new int[LocalNodesNumber];
@@ -497,8 +506,10 @@ template <typename mesh_Type>
 bool RBFscalar<mesh_Type>::isInside (ID pointMarker, flagContainer_Type flags)
 {
     int check = 0;
-    if(flags[0]==-1)
+    if (flags[0] == -1)
+    {
         return true;
+    }
     else
     {
         for (UInt i = 0; i < flags.size(); ++i)
@@ -515,20 +526,28 @@ double RBFscalar<mesh_Type>::rbf (double x1, double y1, double z1, double x2, do
 {
     double distance = sqrt ( pow (x1 - x2, 2) + pow (y1 - y2, 2) + pow (z1 - z2, 2) );
 
-    if(M_basis=="BW")
+    if (M_basis == "BW")
+    {
         return pow (1 - distance / radius, 4) * (4 * distance / radius + 1);
-    else if(M_basis=="TPS")
+    }
+    else if (M_basis == "TPS")
         if (distance == 0)
+        {
             return 0;
+        }
         else
-            return abs(distance/radius)*abs(distance/radius)*log(distance/radius);
-    else if(M_basis=="IMQ")
-        return 1/sqrt( abs(distance)*abs(distance) + radius*radius);
+        {
+            return abs (distance / radius) * abs (distance / radius) * log (distance / radius);
+        }
+    else if (M_basis == "IMQ")
+    {
+        return 1 / sqrt ( abs (distance) * abs (distance) + radius * radius);
+    }
 
 }
 
 template <typename mesh_Type>
-void RBFscalar<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
+void RBFscalar<mesh_Type>::updateRhs (vectorPtr_Type newRhs)
 {
     *M_RhsF *= 0;
     *M_RhsF = *newRhs;
@@ -542,7 +561,7 @@ void RBFscalar<mesh_Type>::solution (vectorPtr_Type& Solution)
 
 //! Factory create function
 template <typename mesh_Type>
-inline RBFInterpolation<mesh_Type> * createRBFscalar()
+inline RBFInterpolation<mesh_Type>* createRBFscalar()
 {
     return new RBFscalar< mesh_Type > ();
 }

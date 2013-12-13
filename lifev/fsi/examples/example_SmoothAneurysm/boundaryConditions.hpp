@@ -142,9 +142,9 @@ FSIOperator::fluidBchandlerPtr_Type BCh_monolithicFluid (FSIOperator& _oper, boo
     //BCFunctionBase bcfw0 (w0);
 
     //Inlets
-    BCh_fluid->addBC ("InFlow" , INLET,  Essential, Full, InletVect, 3);
+    BCh_fluid->addBC ("InFlow" , INLET,  EssentialVertices, Full, InletVect, 3);
+    BCh_fluid->addBC ("InFlow" , 20,  EssentialVertices, Full, bcf, 3);
 
-    //Absorbing BC on outlet 2and3 caused instabilities
     BCh_fluid->addBC ("out3", OUTLET, Natural,  Normal, out_press3);
 
     return BCh_fluid;
@@ -166,9 +166,7 @@ FSIOperator::solidBchandlerPtr_Type BCh_monolithicSolid (FSIOperator& _oper)
 
     //Inlets & Outlets
     BCh_solid->addBC ("BORDERS",   INLETWALL, Essential, Full, bcf,  3);
-    //BCh_solid->addBC ("BORDERS-RIN",   INLETWALL_INTRING, EssentialVertices, Full, bcf,  3);
     BCh_solid->addBC ("BORDERS",   OUTLETWALL, Essential, Full, bcf,  3);
-    //BCh_solid->addBC ("BORDERS-rin",   OUTLETWALL_INTRING, EssentialVertices, Full, bcf,  3);
 
     //Robin BC
     BCFunctionBase hyd (fZero);

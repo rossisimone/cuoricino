@@ -173,18 +173,18 @@ struct Structure::Private
 
     static Real d0 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
     {
-   	   Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
-   	   Real M_gammaf = list.get ( "gammaf", 0.0);
+        Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
+        Real M_gammaf = list.get ( "gammaf", 0.0);
         switch (i)
         {
             case 0:
                 return  M_gammaf * x;
                 break;
             case 1:
-                return ( std::sqrt( 1.0 / ( 1.0 + M_gammaf ) ) - 1.0 ) * y;
+                return ( std::sqrt ( 1.0 / ( 1.0 + M_gammaf ) ) - 1.0 ) * y;
                 break;
             case 2:
-                return ( std::sqrt( 1.0 / ( 1.0 + M_gammaf ) ) - 1.0 ) * z;
+                return ( std::sqrt ( 1.0 / ( 1.0 + M_gammaf ) ) - 1.0 ) * z;
                 break;
             default:
                 ERROR_MSG ("This entry is not allowed: ud_functions.hpp");
@@ -196,8 +196,8 @@ struct Structure::Private
 
     static Real boundaryLoad (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
     {
-   	   Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
-   	   Real traction = list.get ( "traction", 0.0);
+        Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
+        Real traction = list.get ( "traction", 0.0);
         switch (i)
         {
             case 0:
@@ -219,8 +219,8 @@ struct Structure::Private
 
     static Real gf (const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
     {
-    	Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
-    	Real M_gammaf = list.get ( "gammaf", 0.0 );
+        Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
+        Real M_gammaf = list.get ( "gammaf", 0.0 );
         return  ( M_gammaf );
     }
 
@@ -245,7 +245,7 @@ Structure::Structure ( int                                   argc,
     parameters->bulk    = dataFile ( "solid/physics/bulk",    1. );
     parameters->alpha   = dataFile ( "solid/physics/alpha",   1. );
     parameters->gamma   = dataFile ( "solid/physics/gamma",   1. );
-  //  M_gammaf  = dataFile ( "solid/physics/gammaf",  0. );
+    //  M_gammaf  = dataFile ( "solid/physics/gammaf",  0. );
 
     std::cout << "density = " << parameters->rho     << std::endl
               << "young   = " << parameters->young   << std::endl
@@ -353,28 +353,31 @@ Structure::run()
     BCh->addBC ("SymmetryX",    200,  Essential, Component, zero,    compz);
     BCh->addBC ("SymmetryY",    300,  Essential, Component, zero,    compy);
 
-	Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
-	Real tract = list.get ( "traction", 0.0 );
-	Real Rgammaf = list.get("gammaf",0.0);
-	if(tract != 0 ) BCh->addBC ("EdgesIn",      600,  Natural,   Component, load, compx);
+    Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "xmlParameters.xml" ) );
+    Real tract = list.get ( "traction", 0.0 );
+    Real Rgammaf = list.get ("gammaf", 0.0);
+    if (tract != 0 )
+    {
+        BCh->addBC ("EdgesIn",      600,  Natural,   Component, load, compx);
+    }
     BCh->addBC ("edgetwo",      10,  EssentialEdges, Component, zero,    compxz);
     BCh->addBC ("edgetwo",      20,  EssentialEdges, Component, zero,    compxy);
     BCh->addBC ("edgetwo",      30,  EssentialEdges, Component, zero,    compyz);
-//    BCh->addBC ("edgetwo",      10,  EssentialVertices, Component, zero,    compxz);
-//    BCh->addBC ("edgetwo",      20,  EssentialVertices, Component, zero,    compxy);
-//    BCh->addBC ("edgetwo",      30,  EssentialVertices, Component, zero,    compyz);
+    //    BCh->addBC ("edgetwo",      10,  EssentialVertices, Component, zero,    compxz);
+    //    BCh->addBC ("edgetwo",      20,  EssentialVertices, Component, zero,    compxy);
+    //    BCh->addBC ("edgetwo",      30,  EssentialVertices, Component, zero,    compyz);
     //! =================================================================================
 
 
     //! 1. Constructor of the structuralSolver
     StructuralOperator< RegionMesh<LinearTetra> > solid;
 
-//    //! 2. Setup of the structuralSolver
-//    solid.setup (dataStructure,
-//                 dFESpace,
-//                 dETFESpace,
-//                 BCh,
-//                 parameters->comm);
+    //    //! 2. Setup of the structuralSolver
+    //    solid.setup (dataStructure,
+    //                 dFESpace,
+    //                 dETFESpace,
+    //                 BCh,
+    //                 parameters->comm);
 
     //! 2. Setup of the structuralSolver
     solid.setup (dataStructure,
@@ -384,28 +387,34 @@ Structure::run()
                  parameters->comm);
 
 
-    solidFESpacePtr_Type gammaFESpace( new solidFESpace_Type (meshPart, dOrder, 1, parameters->comm) );
-    VectorEpetra gammaf( gammaFESpace -> map() );
+    solidFESpacePtr_Type gammaFESpace ( new solidFESpace_Type (meshPart, dOrder, 1, parameters->comm) );
+    VectorEpetra gammaf ( gammaFESpace -> map() );
     typedef boost::function<Real ( Real const&, Real const&, Real const&, Real const&, ID const& ) > fct_type;
-    fct_type fg = &(Private::gf);
+    fct_type fg = & (Private::gf);
 
     gammaFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fg ), gammaf , 0);
     //solidFESpacePtr_Type initd( new solidFESpace_Type (meshPart, dOrder, 3, parameters->comm) );
 
-    fct_type exsol = &(Private::d0);
-    vectorPtr_Type initd( new vector_Type( dFESpace -> map() ) );
+    fct_type exsol = & (Private::d0);
+    vectorPtr_Type initd ( new vector_Type ( dFESpace -> map() ) );
     dFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( exsol ), *initd , 0);
 
 
-    if( dataStructure->solidType() == "neoHookeanActivated" ) solid.material() -> setGammaf(gammaf);
+    if ( dataStructure->solidType() == "neoHookeanActivated" )
+    {
+        solid.material() -> setGammaf (gammaf);
+    }
     //! 3. Setting data from getPot
     solid.setDataFromGetPot (dataFile);
 
 
-    Real fx=1.0;
+    Real fx = 1.0;
     Real fy = 0.0;
     Real fz = 0.0;
-    if( dataStructure->solidType() == "neoHookeanActivated" ) solid.material() -> setupFiberVector(fx, fy, fz);
+    if ( dataStructure->solidType() == "neoHookeanActivated" )
+    {
+        solid.material() -> setupFiberVector (fx, fy, fz);
+    }
 
 
 
@@ -468,20 +477,20 @@ Structure::run()
         }
     }
 
-//    timeAdvance->setInitialCondition (uv0);
+    //    timeAdvance->setInitialCondition (uv0);
 
-//    timeAdvance->setTimeStep ( dt );
+    //    timeAdvance->setTimeStep ( dt );
 
-//    timeAdvance->updateRHSContribution ( dt );
+    //    timeAdvance->updateRHSContribution ( dt );
 
-//    if ( !dataStructure->solidType().compare ("secondOrderExponential") )
-//    {
-        solid.initialize ( initialDisplacement );
-//    }
-//    else
-//    {
-//        solid.initialize ( disp );
-//    }
+    //    if ( !dataStructure->solidType().compare ("secondOrderExponential") )
+    //    {
+    solid.initialize ( initialDisplacement );
+    //    }
+    //    else
+    //    {
+    //        solid.initialize ( disp );
+    //    }
 
     MPI_Barrier (MPI_COMM_WORLD);
 
@@ -516,49 +525,50 @@ Structure::run()
     exporter->setMeshProcId ( meshPart.meshPartition(), parameters->comm->MyPID() );
 
     vectorPtr_Type solidDisp ( new vector_Type (solid.displacement(), exporter->mapType() ) );
-//    vectorPtr_Type solidVel  ( new vector_Type (solid.displacement(), exporter->mapType() ) );
-//    vectorPtr_Type solidAcc  ( new vector_Type (solid.displacement(), exporter->mapType() ) );
+    //    vectorPtr_Type solidVel  ( new vector_Type (solid.displacement(), exporter->mapType() ) );
+    //    vectorPtr_Type solidAcc  ( new vector_Type (solid.displacement(), exporter->mapType() ) );
 
 
     exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "displacement", dFESpace, solidDisp, UInt (0) );
     exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "initd", dFESpace, initd, UInt (0) );
-//    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "velocity",     dFESpace, solidVel,  UInt (0) );
-//    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "acceleration", dFESpace, solidAcc,  UInt (0) );
-    if( dataStructure->solidType() == "neoHookeanActivated" ) {
-    	 vectorPtr_Type solidgamma  ( new vector_Type ( *( solid.material() -> gammaf() ), exporter->mapType() ) );
-    	exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "gamma_function", gammaFESpace, solidgamma,  UInt (0) );
+    //    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "velocity",     dFESpace, solidVel,  UInt (0) );
+    //    exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "acceleration", dFESpace, solidAcc,  UInt (0) );
+    if ( dataStructure->solidType() == "neoHookeanActivated" )
+    {
+        vectorPtr_Type solidgamma  ( new vector_Type ( * ( solid.material() -> gammaf() ), exporter->mapType() ) );
+        exporter->addVariable ( ExporterData<RegionMesh<LinearTetra> >::ScalarField, "gamma_function", gammaFESpace, solidgamma,  UInt (0) );
     }
 
 
     exporter->postProcess ( 0 );
 
 
-     Real normVect;
-     normVect =  solid.displacement().norm2();
-     std::cout << "The norm 2 of the displacement field is: " << normVect << std::endl;
+    Real normVect;
+    normVect =  solid.displacement().norm2();
+    std::cout << "The norm 2 of the displacement field is: " << normVect << std::endl;
 
-     //! =============================================================================
-     //! Solving loop
-     //! =============================================================================
+    //! =============================================================================
+    //! Solving loop
+    //! =============================================================================
 
-         //! 7. Iterate --> Calling Newton
-         solid.iterate ( BCh );
+    //! 7. Iterate --> Calling Newton
+    solid.iterate ( BCh );
 
- //        timeAdvance->shiftRight ( solid.displacement() );
+    //        timeAdvance->shiftRight ( solid.displacement() );
 
-         *solidDisp = solid.displacement();
-         //*solidVel  = timeAdvance->firstDerivative();
-         //*solidAcc  = timeAdvance->secondDerivative();
+    *solidDisp = solid.displacement();
+    //*solidVel  = timeAdvance->firstDerivative();
+    //*solidAcc  = timeAdvance->secondDerivative();
 
-         exporter->postProcess ( 1.0 );
+    exporter->postProcess ( 1.0 );
 
-         normVect =  solid.displacement().norm2();
-         std::cout << "The norm 2 of the displacement field is: " << normVect << std::endl;
+    normVect =  solid.displacement().norm2();
+    std::cout << "The norm 2 of the displacement field is: " << normVect << std::endl;
 
 
 
-         //!--------------------------------------------------------------------------------------------------
-        MPI_Barrier (MPI_COMM_WORLD);
+    //!--------------------------------------------------------------------------------------------------
+    MPI_Barrier (MPI_COMM_WORLD);
     //}
 }
 

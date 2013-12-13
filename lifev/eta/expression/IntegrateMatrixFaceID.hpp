@@ -177,6 +177,7 @@ private:
     evaluation_Type M_evaluation;
 
     std::vector<ETCurrentBDFE<3>*> M_globalCFE;
+
     std::vector<ETCurrentFE<3, TestSpaceType::field_dim>*> M_testCFE;
     std::vector<ETCurrentFE<3, SolutionSpaceType::field_dim>*> M_solutionCFE;
 
@@ -217,13 +218,13 @@ IntegrateMatrixFaceID (const boost::shared_ptr<MeshType>& mesh,
     {
         M_globalCFE[i] = new ETCurrentBDFE<3> (geometricMapFromMesh<MeshType>()
                                                , M_quadratureBoundary.qr (i) );
+
         M_testCFE[i] = new ETCurrentFE<3, TestSpaceType::field_dim> (testSpace->refFE()
                                                                      , testSpace->geoMap()
                                                                      , M_quadratureBoundary.qr (i) );
         M_solutionCFE[i] = new ETCurrentFE<3, SolutionSpaceType::field_dim> (solutionSpace->refFE()
                                                                              , solutionSpace->geoMap()
                                                                              , M_quadratureBoundary.qr (i) );
-
     }
 
     // Set the tangent on the different faces

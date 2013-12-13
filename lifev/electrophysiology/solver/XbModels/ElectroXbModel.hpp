@@ -122,7 +122,7 @@ ElectroXbModel::ElectroXbModel ( const ElectroXbModel& Xb ) :
 // ===================================================
 ElectroXbModel& ElectroXbModel::operator = ( const ElectroXbModel& Xb )
 {
-	M_numberOfEquations = Xb.M_numberOfEquations;
+    M_numberOfEquations = Xb.M_numberOfEquations;
     return      *this;
 }
 

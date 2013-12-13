@@ -46,15 +46,15 @@ namespace LifeV
 class MatrixStandardSolver
 {
 public:
-	MatrixStandardSolver(){};
-	virtual ~MatrixStandardSolver(){};
+    MatrixStandardSolver() {};
+    virtual ~MatrixStandardSolver() {};
 
-	void LU(MatrixStandard& A, MatrixStandard& P, MatrixStandard& Q, MatrixStandard& L, MatrixStandard& U) const;
-	void LU(MatrixStandard& A, MatrixStandard& P, MatrixStandard& Q, MatrixStandard& L, MatrixStandard& U,
-			const MatrixStandard& I) const;
-	void Pivot(const MatrixStandard& A, MatrixStandard& Pk, MatrixStandard& Qk, UInt k) const;
-	void solveU(const MatrixStandard& A, VectorStandard& b) const;
-	void solveL(const MatrixStandard& A, VectorStandard& b) const;
+    void LU (MatrixStandard& A, MatrixStandard& P, MatrixStandard& Q, MatrixStandard& L, MatrixStandard& U) const;
+    void LU (MatrixStandard& A, MatrixStandard& P, MatrixStandard& Q, MatrixStandard& L, MatrixStandard& U,
+             const MatrixStandard& I) const;
+    void Pivot (const MatrixStandard& A, MatrixStandard& Pk, MatrixStandard& Qk, UInt k) const;
+    void solveU (const MatrixStandard& A, VectorStandard& b) const;
+    void solveL (const MatrixStandard& A, VectorStandard& b) const;
 
 };
 

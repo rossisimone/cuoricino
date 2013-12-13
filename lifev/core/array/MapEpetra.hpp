@@ -41,7 +41,6 @@
 #ifndef _EPETRAMAP_
 #define _EPETRAMAP_
 
-// Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-pedantic"

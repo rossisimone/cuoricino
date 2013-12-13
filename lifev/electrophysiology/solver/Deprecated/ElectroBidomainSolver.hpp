@@ -105,10 +105,10 @@ public:
      * @param Epetra communicator
      */
     ElectroBidomainSolver ( const data_type&          dataType,
-                          FESpace<Mesh, MapEpetra>& pFESpace,
-                          FESpace<Mesh, MapEpetra>& uFESpace,
-                          BCHandler&                bcHandler,
-                          boost::shared_ptr<Epetra_Comm>& comm );
+                            FESpace<Mesh, MapEpetra>& pFESpace,
+                            FESpace<Mesh, MapEpetra>& uFESpace,
+                            BCHandler&                bcHandler,
+                            boost::shared_ptr<Epetra_Comm>& comm );
 
     //! Destructor
     virtual ~ElectroBidomainSolver();
@@ -330,10 +330,10 @@ private:
 template<typename Mesh, typename SolverType>
 ElectroBidomainSolver<Mesh, SolverType>::
 ElectroBidomainSolver ( const data_type&          dataType,
-                      FESpace<Mesh, MapEpetra>& pFESpace,
-                      FESpace<Mesh, MapEpetra>& uFESpace,
-                      BCHandler&                BCh_u,
-                      boost::shared_ptr<Epetra_Comm>&  comm ) :
+                        FESpace<Mesh, MapEpetra>& pFESpace,
+                        FESpace<Mesh, MapEpetra>& uFESpace,
+                        BCHandler&                BCh_u,
+                        boost::shared_ptr<Epetra_Comm>&  comm ) :
     M_data                   ( dataType ),
     M_pFESpace               ( pFESpace ),
     M_uFESpace               ( uFESpace ),
@@ -790,7 +790,7 @@ void ElectroBidomainSolver<Mesh, SolverType>::PDEiterate ( bchandlerRaw_Type& bc
 
 template<typename Mesh, typename SolverType>
 void ElectroBidomainSolver<Mesh, SolverType>::solveSystem ( matrixPtr_Type  matrFull,
-                                                          vector_Type&    rhsFull )
+                                                            vector_Type&    rhsFull )
 {
     Chrono chrono;
 
@@ -888,8 +888,8 @@ void ElectroBidomainSolver<Mesh, SolverType>::solveSystem ( matrixPtr_Type  matr
 
 template<typename Mesh, typename SolverType>
 void ElectroBidomainSolver<Mesh, SolverType>::applyBoundaryConditions (matrix_Type& matrix,
-                                                                     vector_Type& rhs,
-                                                                     bchandlerRaw_Type& BCh )
+                                                                       vector_Type& rhs,
+                                                                       bchandlerRaw_Type& BCh )
 {
     // BC manage for the PDE
     if ( !BCh.bdUpdateDone() )

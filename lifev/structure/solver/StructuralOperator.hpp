@@ -42,14 +42,10 @@ along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef _STRUCTURALOPERATOR_H_
 #define _STRUCTURALOPERATOR_H_ 1
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #include <Epetra_Vector.h>
 #include <EpetraExt_MatrixMatrix.h>
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #include <lifev/core/util/LifeChrono.hpp>
 #include <lifev/core/util/Displayer.hpp>
@@ -486,7 +482,7 @@ public:
     //! Set the data fields with the Getpot data file for preconditioners and solver
     void setDataFromGetPot ( const GetPot& dataFile );
 
-    void setTimeAdvance( const timeAdvancePtr_Type& timeAdvancePtr )
+    void setTimeAdvance ( const timeAdvancePtr_Type& timeAdvancePtr )
     {
         M_timeAdvance = timeAdvancePtr;
     }
@@ -678,7 +674,7 @@ public:
 
     inline meshPtr_Type mesh() const
     {
-    	return M_dispFESpace -> mesh();
+        return M_dispFESpace -> mesh();
     }
 
     //@}
@@ -1083,13 +1079,13 @@ StructuralOperator<Mesh>::iterate ( const bcHandler_Type& bch )
 
     M_BCh = bch;
 
-//    Int argc; char** argv;
-//    GetPot command_line (argc, argv);
-//    string data_file_name = command_line.follow ("data", 2, "-f", "--file");
-//    GetPot dataFile ( data_file_name );
-//
-//    Real abstol  = dataFile ( "solid/Newton/abstol", 1.e-7 );
-//    Real reltol  = dataFile ( "solid/Newton/reltol", 1.e-7 );
+    //    Int argc; char** argv;
+    //    GetPot command_line (argc, argv);
+    //    string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+    //    GetPot dataFile ( data_file_name );
+    //
+    //    Real abstol  = dataFile ( "solid/Newton/abstol", 1.e-7 );
+    //    Real reltol  = dataFile ( "solid/Newton/reltol", 1.e-7 );
     Real abstol = 1e-6;
     Real reltol = 1e-6;
     UInt maxiter = 200;
@@ -1700,7 +1696,7 @@ solveJacobian (vector_Type&           step,
     //Setting up the quantities
     M_linearSolver->setOperator ( matrFull );
     M_linearSolver->setRightHandSide ( pointerToRes );
-    M_linearSolver-> setTolerance( linear_rel_tol );
+    M_linearSolver-> setTolerance ( linear_rel_tol );
     //Solving the system
     M_linearSolver->solve ( pointerToStep );
 

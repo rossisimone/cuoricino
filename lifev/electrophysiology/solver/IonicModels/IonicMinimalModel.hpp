@@ -352,10 +352,10 @@ public:
 
     //compute SVI with ETA (Yuppi Doo!!!)
     void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
-                                            std::vector<vectorPtr_Type>&        rhs,
-                                            FESpace<mesh_Type, MapEpetra>&  uFESpace,
-                                            vector_Type& disp,
-                                            boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace);
+                                  std::vector<vectorPtr_Type>&        rhs,
+                                  FESpace<mesh_Type, MapEpetra>&  uFESpace,
+                                  vector_Type& disp,
+                                  boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace);
 
     //
     void computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt );
@@ -438,13 +438,25 @@ public:
 
     return_Type operator() (const VectorSmall<1>& p)
     {
-    	if(p[0] > 0.0) return 1.0;
-    	else return 0.0;
+        if (p[0] > 0.0)
+        {
+            return 1.0;
+        }
+        else
+        {
+            return 0.0;
+        }
     }
     return_Type operator() (const Real& p)
     {
-    	if(p > 0.0) return 1.0;
-    	else return 0.0;
+        if (p > 0.0)
+        {
+            return 1.0;
+        }
+        else
+        {
+            return 0.0;
+        }
     }
 
 
@@ -460,13 +472,13 @@ public:
 
     return_Type operator() (const VectorSmall<1>& p)
     {
-        std::cout.precision(15);
-    	std::cout << "\nvalue: " << p[0];
+        std::cout.precision (15);
+        std::cout << "\nvalue: " << p[0];
     }
     return_Type operator() (const Real& p)
     {
-        std::cout.precision(15);
-    	std::cout << "\nvalue: " << p;
+        std::cout.precision (15);
+        std::cout << "\nvalue: " << p;
     }
 
 

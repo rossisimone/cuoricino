@@ -105,13 +105,19 @@ public:
 
     void solutionrbf (vectorPtr_Type& Solution_rbf);
 
-    void updateRhs(vectorPtr_Type newRhs);
+    void updateRhs (vectorPtr_Type newRhs);
 
     void setRadius ( double radius );
 
-    void getinterpolationOperatorMap(mapPtr_Type& map){ map.reset(new map_Type(*M_interpolationOperatorMap)); }
+    void getinterpolationOperatorMap (mapPtr_Type& map)
+    {
+        map.reset (new map_Type (*M_interpolationOperatorMap) );
+    }
 
-    void getprojectionOperatorMap(mapPtr_Type& map){ map.reset(new map_Type(*M_projectionOperatorMap)); }
+    void getprojectionOperatorMap (mapPtr_Type& map)
+    {
+        map.reset (new map_Type (*M_projectionOperatorMap) );
+    }
 
 private:
 
@@ -163,26 +169,26 @@ void RBFlocallyRescaledScalar<mesh_Type>::setup ( meshPtr_Type fullMeshKnown, me
     M_localMeshUnknown = localMeshUnknown;
     M_flags = flags;
 
-    M_kx.resize(M_fullMeshKnown->numVertices());
-    M_ky.resize(M_fullMeshKnown->numVertices());
-    M_kz.resize(M_fullMeshKnown->numVertices());
+    M_kx.resize (M_fullMeshKnown->numVertices() );
+    M_ky.resize (M_fullMeshKnown->numVertices() );
+    M_kz.resize (M_fullMeshKnown->numVertices() );
 
     for (int j = 0; j <  M_fullMeshKnown->numVertices(); ++j)
     {
-    	M_kx[j] =  M_fullMeshKnown->point(j).x();
-    	M_ky[j] =  M_fullMeshKnown->point(j).y();
-    	M_kz[j] =  M_fullMeshKnown->point(j).z();
+        M_kx[j] =  M_fullMeshKnown->point (j).x();
+        M_ky[j] =  M_fullMeshKnown->point (j).y();
+        M_kz[j] =  M_fullMeshKnown->point (j).z();
     }
 
-    M_ukx.resize(M_fullMeshUnknown->numVertices());
-    M_uky.resize(M_fullMeshUnknown->numVertices());
-    M_ukz.resize(M_fullMeshUnknown->numVertices());
+    M_ukx.resize (M_fullMeshUnknown->numVertices() );
+    M_uky.resize (M_fullMeshUnknown->numVertices() );
+    M_ukz.resize (M_fullMeshUnknown->numVertices() );
 
     for (int j = 0; j <  M_fullMeshUnknown->numVertices(); ++j)
     {
-        M_ukx[j] =  M_fullMeshUnknown->point(j).x();
-        M_uky[j] =  M_fullMeshUnknown->point(j).y();
-        M_ukz[j] =  M_fullMeshUnknown->point(j).z();
+        M_ukx[j] =  M_fullMeshUnknown->point (j).x();
+        M_uky[j] =  M_fullMeshUnknown->point (j).y();
+        M_ukz[j] =  M_fullMeshUnknown->point (j).z();
     }
 
 }
@@ -210,8 +216,10 @@ void RBFlocallyRescaledScalar<Mesh>::buildOperators()
     this->interpolationOperator();
     this->projectionOperator();
     TimeBuilding.stop();
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "Time to assembly operators = " << TimeBuilding.diff() << std::endl;
+    }
 
     this->buildRhs();
     this->interpolateCostantField();
@@ -267,14 +275,14 @@ void RBFlocallyRescaledScalar<Mesh>::interpolationOperator()
         {
             Indices[k] = *it;
             Values[k]  = rbf ( M_kx[GlobalID[i]], M_ky[GlobalID[i]], M_kz[GlobalID[i]],
-                                               M_kx[*it], M_ky[*it], M_kz[*it],
-                                               RBF_radius[i]);
+                               M_kx[*it], M_ky[*it], M_kz[*it],
+                               RBF_radius[i]);
             ++k;
         }
         M_interpolationOperator->matrixPtr()->InsertGlobalValues (GlobalID[i], k, Values, Indices);
     }
     M_interpolationOperator->globalAssemble();
-    M_interpolationOperator->spy("TEST");
+    M_interpolationOperator->spy ("TEST");
 
     delete [] Indices;
     delete [] Values;
@@ -342,7 +350,7 @@ void RBFlocallyRescaledScalar<mesh_Type>::projectionOperator()
         {
             Indices[k] = *it;
             Values[k]  = rbf ( M_ukx[GlobalID[i]], M_uky[GlobalID[i]], M_ukz[GlobalID[i]],
-            				   M_kx[*it], M_ky[*it], M_kz[*it], RBF_radius[i]);
+                               M_kx[*it], M_ky[*it], M_kz[*it], RBF_radius[i]);
             ++k;
         }
         M_projectionOperator->matrixPtr()->InsertGlobalValues (GlobalID[i], k, Values, Indices);
@@ -488,7 +496,7 @@ double RBFlocallyRescaledScalar<mesh_Type>::rbf (double x1, double y1, double z1
 }
 
 template <typename mesh_Type>
-void RBFlocallyRescaledScalar<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
+void RBFlocallyRescaledScalar<mesh_Type>::updateRhs (vectorPtr_Type newRhs)
 {
     *M_RhsF *= 0;
     *M_RhsF = *newRhs;
@@ -508,7 +516,7 @@ void RBFlocallyRescaledScalar<mesh_Type>::solutionrbf (vectorPtr_Type& Solution_
 
 //! Factory create function
 template <typename mesh_Type>
-inline RBFInterpolation<mesh_Type> * createRBFlocallyRescaledScalar()
+inline RBFInterpolation<mesh_Type>* createRBFlocallyRescaledScalar()
 {
     return new RBFlocallyRescaledScalar< mesh_Type > ();
 }

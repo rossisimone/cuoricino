@@ -111,10 +111,10 @@ IonicMinimalModel::IonicMinimalModel()  :
     M_tauwinf   ( 0.07  ),
     M_winfstar  ( 0.94  )
 {
-	M_restingConditions.at(0) = 0.0;
-	M_restingConditions.at(1) = 1.0;
-	M_restingConditions.at(2) = 1.0;
-	M_restingConditions.at(3) = 0.021553043080281;
+    M_restingConditions.at (0) = 0.0;
+    M_restingConditions.at (1) = 1.0;
+    M_restingConditions.at (2) = 1.0;
+    M_restingConditions.at (3) = 0.021553043080281;
 
 }
 
@@ -150,10 +150,10 @@ IonicMinimalModel::IonicMinimalModel ( Teuchos::ParameterList& parameterList    
     M_tauwinf   =  parameterList.get ("tauwinf", 0.01    );
     M_winfstar  =  parameterList.get ("winfstar", 0.5     );
 
-	M_restingConditions.at(0) = 0.0;
-	M_restingConditions.at(1) = 1.0;
-	M_restingConditions.at(2) = 1.0;
-	M_restingConditions.at(3) = 0.021553043080281;
+    M_restingConditions.at (0) = 0.0;
+    M_restingConditions.at (1) = 1.0;
+    M_restingConditions.at (2) = 1.0;
+    M_restingConditions.at (3) = 0.021553043080281;
 }
 
 IonicMinimalModel::IonicMinimalModel ( const IonicMinimalModel& model )
@@ -239,7 +239,7 @@ IonicMinimalModel& IonicMinimalModel::operator= ( const IonicMinimalModel& model
 //! Methods
 // ===================================================
 void IonicMinimalModel::computeGatingRhs ( const   std::vector<Real>&  v,
-                                     std::vector<Real>& rhs )
+                                           std::vector<Real>& rhs )
 {
 
     Real U = v[0];
@@ -293,37 +293,37 @@ void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
 void IonicMinimalModel::computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt )
 {
 
-	std::cout << "\n\nRush Larsen method, for minimal model not implemented!!!\n";
-//    Real U = v[0];
-//    Real V = v[1];
-//    Real W = v[2];
-//    Real S = v[3];
-//
-//    Real tauv;
-//    Real tauw;
-//
-////    if( Heaviside(U-M_tetav) < 0)
-////    {
-////     tauv = M_tauvp;
-////    }
-////    else
-////    {
-//    tauv = ( 1.0 - Heaviside ( U - M_tetavm ) ) * M_tauv1 + Heaviside ( U - M_tetavm ) * M_tauv2;
-////    }
-////    if( Heaviside(U-M_tetaw) < 0)
-////    {
-//     tauw = M_tauwp;
-////    }
-////    else
-////    {
-////    tauw = M_tauw1 + ( M_tauw2  - M_tauw1  ) * ( 1.0 + std::tanh ( M_kw  * ( U - M_uw  ) ) ) / 2.0;
-////    }
-//    Real vinf  = Heaviside ( M_tetavm - U );
-//    Real winf  = ( 1.0 - Heaviside ( U - M_tetao ) ) * ( 1.0 - U / M_tauwinf ) + Heaviside ( U - M_tetao ) * M_winfstar;
-//
-//
-//    v[1] = vinf - ( vinf - V ) * std::exp(- dt / tauv );
-//    v[2] = winf - ( winf - W ) * std::exp(- dt / tauw );
+    std::cout << "\n\nRush Larsen method, for minimal model not implemented!!!\n";
+    //    Real U = v[0];
+    //    Real V = v[1];
+    //    Real W = v[2];
+    //    Real S = v[3];
+    //
+    //    Real tauv;
+    //    Real tauw;
+    //
+    ////    if( Heaviside(U-M_tetav) < 0)
+    ////    {
+    ////     tauv = M_tauvp;
+    ////    }
+    ////    else
+    ////    {
+    //    tauv = ( 1.0 - Heaviside ( U - M_tetavm ) ) * M_tauv1 + Heaviside ( U - M_tetavm ) * M_tauv2;
+    ////    }
+    ////    if( Heaviside(U-M_tetaw) < 0)
+    ////    {
+    //     tauw = M_tauwp;
+    ////    }
+    ////    else
+    ////    {
+    ////    tauw = M_tauw1 + ( M_tauw2  - M_tauw1  ) * ( 1.0 + std::tanh ( M_kw  * ( U - M_uw  ) ) ) / 2.0;
+    ////    }
+    //    Real vinf  = Heaviside ( M_tetavm - U );
+    //    Real winf  = ( 1.0 - Heaviside ( U - M_tetao ) ) * ( 1.0 - U / M_tauwinf ) + Heaviside ( U - M_tetao ) * M_winfstar;
+    //
+    //
+    //    v[1] = vinf - ( vinf - V ) * std::exp(- dt / tauv );
+    //    v[2] = winf - ( winf - W ) * std::exp(- dt / tauw );
 }
 
 
@@ -344,8 +344,8 @@ Real IonicMinimalModel::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real Jsi   = - Heaviside ( U - M_tetaw ) * W * S / M_tausi;
 
     dPotential = - ( Jfi + Jso  + Jsi );
-//    std::cout.precision(15);
-//    std::cout << "\nValue: " << Jso;
+    //    std::cout.precision(15);
+    //    std::cout << "\nValue: " << Jso;
     return dPotential;
 }
 
@@ -355,102 +355,102 @@ void IonicMinimalModel::showMe()
 
     std::cout << "\n\tHi, I'm the minimal model\n\t See you soon\n\n";
 
-            std::cout << "\nuo " <<       M_uo      ;
-            std::cout << "\nuu " <<       M_uu     ;
-         std::cout << "\ntetav " <<    M_tetav     ;
-         std::cout << "\ntetaw " <<    M_tetaw    ;
-        std::cout << "\ntetavm " <<   M_tetavm     ;
-         std::cout << "\ntetao " <<    M_tetao    ;
-       std::cout << "\ntauv1 " <<    M_tauv1      ;
-         std::cout << "\ntauv2 " <<    M_tauv2   ;
-         std::cout << "\ntauvp " <<    M_tauvp   ;
-         std::cout << "\ntauw1 " <<    M_tauw1     ;
-         std::cout << "\ntauw2 " <<    M_tauw2      ;
-            std::cout << "\nkw " <<       M_kw    ;
-            std::cout << "\nuw " <<       M_uw    ;
-         std::cout << "\ntauwp " <<    M_tauwp    ;
-         std::cout << "\ntaufi " <<    M_taufi    ;
-         std::cout << "\ntauo1 " <<    M_tauo1   ;
-         std::cout << "\ntauo2 " <<    M_tauo2      ;
-        std::cout << "\ntauso1 " <<   M_tauso1     ;
-        std::cout << "\ntauso2 " <<   M_tauso2      ;
-          std::cout << "\nkso " <<     M_kso       ;
-           std::cout << "\nuso " <<      M_uso      ;
-        std::cout << "\ntaus1 " <<    M_taus1    ;
-         std::cout << "\ntaus2 " <<   M_taus2      ;
-            std::cout << "\nks " <<       M_ks   ;
-            std::cout << "\nus " <<       M_us   ;
-         std::cout << "\ntausi " <<    M_tausi   ;
-       std::cout << "\ntauwinf " <<  M_tauwinf     ;
-     std::cout << "\nwinfstar " <<   M_winfstar    << "\n"  ;
+    std::cout << "\nuo " <<       M_uo      ;
+    std::cout << "\nuu " <<       M_uu     ;
+    std::cout << "\ntetav " <<    M_tetav     ;
+    std::cout << "\ntetaw " <<    M_tetaw    ;
+    std::cout << "\ntetavm " <<   M_tetavm     ;
+    std::cout << "\ntetao " <<    M_tetao    ;
+    std::cout << "\ntauv1 " <<    M_tauv1      ;
+    std::cout << "\ntauv2 " <<    M_tauv2   ;
+    std::cout << "\ntauvp " <<    M_tauvp   ;
+    std::cout << "\ntauw1 " <<    M_tauw1     ;
+    std::cout << "\ntauw2 " <<    M_tauw2      ;
+    std::cout << "\nkw " <<       M_kw    ;
+    std::cout << "\nuw " <<       M_uw    ;
+    std::cout << "\ntauwp " <<    M_tauwp    ;
+    std::cout << "\ntaufi " <<    M_taufi    ;
+    std::cout << "\ntauo1 " <<    M_tauo1   ;
+    std::cout << "\ntauo2 " <<    M_tauo2      ;
+    std::cout << "\ntauso1 " <<   M_tauso1     ;
+    std::cout << "\ntauso2 " <<   M_tauso2      ;
+    std::cout << "\nkso " <<     M_kso       ;
+    std::cout << "\nuso " <<      M_uso      ;
+    std::cout << "\ntaus1 " <<    M_taus1    ;
+    std::cout << "\ntaus2 " <<   M_taus2      ;
+    std::cout << "\nks " <<       M_ks   ;
+    std::cout << "\nus " <<       M_us   ;
+    std::cout << "\ntausi " <<    M_tausi   ;
+    std::cout << "\ntauwinf " <<  M_tauwinf     ;
+    std::cout << "\nwinfstar " <<   M_winfstar    << "\n"  ;
 }
 
 
 
 void IonicMinimalModel::computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
-																std::vector<vectorPtr_Type>&        rhs,
-																FESpace<mesh_Type, MapEpetra>&  uFESpace,
-																vector_Type& disp,
-																boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace)
+                                                 std::vector<vectorPtr_Type>&        rhs,
+                                                 FESpace<mesh_Type, MapEpetra>&  uFESpace,
+                                                 vector_Type& disp,
+                                                 boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace)
 {
-	typedef ETFESpace<mesh_Type, MapEpetra, 3, 1> ETFESpace_Type;
-	typedef boost::shared_ptr<ETFESpace_Type> ETFESpacePtr_Type;
+    typedef ETFESpace<mesh_Type, MapEpetra, 3, 1> ETFESpace_Type;
+    typedef boost::shared_ptr<ETFESpace_Type> ETFESpacePtr_Type;
 
-	typedef ETFESpace<mesh_Type, MapEpetra, 3, 3> ETFESpaceVectorial_Type;
-	typedef boost::shared_ptr<ETFESpaceVectorial_Type> ETFESpaceVectorialPtr_Type;
+    typedef ETFESpace<mesh_Type, MapEpetra, 3, 3> ETFESpaceVectorial_Type;
+    typedef boost::shared_ptr<ETFESpaceVectorial_Type> ETFESpaceVectorialPtr_Type;
 
-	*(rhs[0]) *= 0.0;
+    * (rhs[0]) *= 0.0;
 
-	if(uFESpace.mapPtr() -> commPtr() -> MyPID() == 0)
-	{
-		std::cout << "\nMinimal Model: Assembling SVI using ETA!\n";
-	}
-	ETFESpaceVectorialPtr_Type spaceVectorial(
-					new ETFESpaceVectorial_Type(uFESpace.mesh(), &feTetraP1, uFESpace.mapPtr() -> commPtr() ) );
-	ETFESpacePtr_Type spaceScalar(
-					new ETFESpace_Type(uFESpace.mesh(), &feTetraP1, uFESpace.mapPtr() -> commPtr()  ) );
+    if (uFESpace.mapPtr() -> commPtr() -> MyPID() == 0)
+    {
+        std::cout << "\nMinimal Model: Assembling SVI using ETA!\n";
+    }
+    ETFESpaceVectorialPtr_Type spaceVectorial (
+        new ETFESpaceVectorial_Type (uFESpace.mesh(), &feTetraP1, uFESpace.mapPtr() -> commPtr() ) );
+    ETFESpacePtr_Type spaceScalar (
+        new ETFESpace_Type (uFESpace.mesh(), &feTetraP1, uFESpace.mapPtr() -> commPtr()  ) );
 
-	{
-		using namespace ExpressionAssembly;
+    {
+        using namespace ExpressionAssembly;
 
-		boost::shared_ptr<MMTanhFunctor> tanh (new MMTanhFunctor);
-		boost::shared_ptr<MMHFunctor> H (new MMHFunctor);
-		boost::shared_ptr<MMSV> sv (new MMSV);
+        boost::shared_ptr<MMTanhFunctor> tanh (new MMTanhFunctor);
+        boost::shared_ptr<MMHFunctor> H (new MMHFunctor);
+        boost::shared_ptr<MMSV> sv (new MMSV);
 
-		MatrixSmall<3,3> id;
-		id(0, 0) = 1.0;
-		id(0, 1) = 0.0;
-		id(0, 2) = 0.0;
-		id(1, 0) = 0.0;
-		id(1, 1) = 1.0;
-		id(1, 2) = 0.0;
-		id(2, 0) = 0.0;
-		id(2, 1) = 0.0;
-		id(2, 2) = 1.0;
+        MatrixSmall<3, 3> id;
+        id (0, 0) = 1.0;
+        id (0, 1) = 0.0;
+        id (0, 2) = 0.0;
+        id (1, 0) = 0.0;
+        id (1, 1) = 1.0;
+        id (1, 2) = 0.0;
+        id (2, 0) = 0.0;
+        id (2, 1) = 0.0;
+        id (2, 2) = 1.0;
 
-		BOOST_AUTO_TPL(I, value(id));
-		BOOST_AUTO_TPL(Grad_u, grad(spaceVectorial, disp));
-		BOOST_AUTO_TPL(F, (Grad_u + I));
-		BOOST_AUTO_TPL(J, det (F));
-		BOOST_AUTO_TPL(U, value(spaceScalar, *(v[0] ) ) );
-		BOOST_AUTO_TPL(V, value(spaceScalar, *(v[1] ) ) );
-		BOOST_AUTO_TPL(W, value(spaceScalar, *(v[2] ) ) );
-		BOOST_AUTO_TPL(S, value(spaceScalar, *(v[3] ) ) );
-		BOOST_AUTO_TPL(Iapp, value(spaceScalar, *M_appliedCurrentPtr ) );
+        BOOST_AUTO_TPL (I, value (id) );
+        BOOST_AUTO_TPL (Grad_u, grad (spaceVectorial, disp) );
+        BOOST_AUTO_TPL (F, (Grad_u + I) );
+        BOOST_AUTO_TPL (J, det (F) );
+        BOOST_AUTO_TPL (U, value (spaceScalar, * (v[0] ) ) );
+        BOOST_AUTO_TPL (V, value (spaceScalar, * (v[1] ) ) );
+        BOOST_AUTO_TPL (W, value (spaceScalar, * (v[2] ) ) );
+        BOOST_AUTO_TPL (S, value (spaceScalar, * (v[3] ) ) );
+        BOOST_AUTO_TPL (Iapp, value (spaceScalar, *M_appliedCurrentPtr ) );
 
 
-		BOOST_AUTO_TPL(tauso, M_tauso1 + ( M_tauso2 - M_tauso1 ) * ( 1.0 + eval(tanh, M_kso * ( U - M_uso ) ) ) / 2.0);
-		BOOST_AUTO_TPL(tauo, ( 1.0 - eval(H, U - M_tetao ) ) * M_tauo1 + eval(H, U - M_tetao ) * M_tauo2);
-		BOOST_AUTO_TPL(Jfi, value(-1.0) * V * eval(H, U - M_tetav ) * ( U - M_tetav ) * ( M_uu - U ) / M_taufi);
-		BOOST_AUTO_TPL(Jso,  ( U - M_uo ) * ( 1.0 - eval(H, U - M_tetaw )  ) / tauo + eval(H, U - M_tetaw ) / tauso);
-		BOOST_AUTO_TPL(Jsi, value(-1.0) * eval(H, U - M_tetaw ) * W * S / M_tausi);
+        BOOST_AUTO_TPL (tauso, M_tauso1 + ( M_tauso2 - M_tauso1 ) * ( 1.0 + eval (tanh, M_kso * ( U - M_uso ) ) ) / 2.0);
+        BOOST_AUTO_TPL (tauo, ( 1.0 - eval (H, U - M_tetao ) ) * M_tauo1 + eval (H, U - M_tetao ) * M_tauo2);
+        BOOST_AUTO_TPL (Jfi, value (-1.0) * V * eval (H, U - M_tetav ) * ( U - M_tetav ) * ( M_uu - U ) / M_taufi);
+        BOOST_AUTO_TPL (Jso,  ( U - M_uo ) * ( 1.0 - eval (H, U - M_tetaw )  ) / tauo + eval (H, U - M_tetaw ) / tauso);
+        BOOST_AUTO_TPL (Jsi, value (-1.0) * eval (H, U - M_tetaw ) * W * S / M_tausi);
 
-		integrate( elements( uFESpace.mesh() ), uFESpace.qr(),
-					spaceScalar, J * ( Iapp - ( Jfi +  Jso + Jsi )  ) * phi_i )
-				>> rhs.at(0);
-	}
+        integrate ( elements ( uFESpace.mesh() ), uFESpace.qr(),
+                    spaceScalar, J * ( Iapp - ( Jfi +  Jso + Jsi )  ) * phi_i )
+                >> rhs.at (0);
+    }
 
-	rhs.at(0) -> globalAssemble();
+    rhs.at (0) -> globalAssemble();
 }
 
 

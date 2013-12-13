@@ -63,14 +63,14 @@ namespace EMUtility
  *
  *
  */
-void EpetraSqrt( VectorEpetra& vec)
+void EpetraSqrt ( VectorEpetra& vec)
 {
-	Int size = vec.epetraVector().MyLength();
-	for(int j(0); j < size; j++ )
-	{
-		int gid = vec.blockMap().GID(j);
-     	vec[gid] = std::sqrt(vec[gid]);
-	}
+    Int size = vec.epetraVector().MyLength();
+    for (int j (0); j < size; j++ )
+    {
+        int gid = vec.blockMap().GID (j);
+        vec[gid] = std::sqrt (vec[gid]);
+    }
 }
 
 } // namespace EMUtility

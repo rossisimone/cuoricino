@@ -47,35 +47,35 @@ namespace LifeV
 // ===================================================
 IonicLuoRudyI::IonicLuoRudyI()  :
     super       (  8 , 6  ),
-    M_ENa		( 54.4 ),
-    M_gNa		( 23.0 ),
-    M_gsi		( 0.09 ),
-    M_K0		(  5.4 ),
-    M_EK		(  -77 ),
-    M_EK1		( -87.26),
-    M_EKp		( M_EK1 ),
-    M_gKp		( 0.0183),
-    M_gb		( 0.03921)
+    M_ENa       ( 54.4 ),
+    M_gNa       ( 23.0 ),
+    M_gsi       ( 0.09 ),
+    M_K0        (  5.4 ),
+    M_EK        (  -77 ),
+    M_EK1       ( -87.26),
+    M_EKp       ( M_EK1 ),
+    M_gKp       ( 0.0183),
+    M_gb        ( 0.03921)
 {
-    M_gK = computeGK(M_K0);
-    M_gK1= computeGK1(M_K0);
+    M_gK = computeGK (M_K0);
+    M_gK1 = computeGK1 (M_K0);
 
     //V
-	M_restingConditions.at(0) = -84.0;
-	//m
-	M_restingConditions.at(1) = minf( M_restingConditions.at(0) );
-	//h
-	M_restingConditions.at(2) = hinf( M_restingConditions.at(0) );
-	//j
-	M_restingConditions.at(3) = jinf( M_restingConditions.at(0) );
-	//d
-	M_restingConditions.at(4) = dinf( M_restingConditions.at(0) );
-	//f
-	M_restingConditions.at(5) = finf( M_restingConditions.at(0) );
-	//X
-	M_restingConditions.at(6) = Xinf( M_restingConditions.at(0) );
-	//Ca
-	M_restingConditions.at(7) = 2e-4;
+    M_restingConditions.at (0) = -84.0;
+    //m
+    M_restingConditions.at (1) = minf ( M_restingConditions.at (0) );
+    //h
+    M_restingConditions.at (2) = hinf ( M_restingConditions.at (0) );
+    //j
+    M_restingConditions.at (3) = jinf ( M_restingConditions.at (0) );
+    //d
+    M_restingConditions.at (4) = dinf ( M_restingConditions.at (0) );
+    //f
+    M_restingConditions.at (5) = finf ( M_restingConditions.at (0) );
+    //X
+    M_restingConditions.at (6) = Xinf ( M_restingConditions.at (0) );
+    //Ca
+    M_restingConditions.at (7) = 2e-4;
 }
 
 IonicLuoRudyI::IonicLuoRudyI ( Teuchos::ParameterList& parameterList     )   :
@@ -91,25 +91,25 @@ IonicLuoRudyI::IonicLuoRudyI ( Teuchos::ParameterList& parameterList     )   :
     M_gKp        =  parameterList.get ("gKp", 0.0183  );
     M_gb        =  parameterList.get ("gb", 0.03921  );
 
-    M_gK = computeGK(M_K0);
-    M_gK1= computeGK1(M_K0);
+    M_gK = computeGK (M_K0);
+    M_gK1 = computeGK1 (M_K0);
 
     //V
-	M_restingConditions.at(0) = parameterList.get ("V0", -84.0  );
-	//m
-	M_restingConditions.at(1) = minf( M_restingConditions.at(0) );
-	//h
-	M_restingConditions.at(2) = hinf( M_restingConditions.at(0) );
-	//j
-	M_restingConditions.at(3) = jinf( M_restingConditions.at(0) );
-	//d
-	M_restingConditions.at(4) = dinf( M_restingConditions.at(0) );
-	//f
-	M_restingConditions.at(5) = finf( M_restingConditions.at(0) );
-	//X
-	M_restingConditions.at(6) = Xinf( M_restingConditions.at(0) );
-	//Ca
-	M_restingConditions.at(7) = parameterList.get ("Ca0", 2e-4  );
+    M_restingConditions.at (0) = parameterList.get ("V0", -84.0  );
+    //m
+    M_restingConditions.at (1) = minf ( M_restingConditions.at (0) );
+    //h
+    M_restingConditions.at (2) = hinf ( M_restingConditions.at (0) );
+    //j
+    M_restingConditions.at (3) = jinf ( M_restingConditions.at (0) );
+    //d
+    M_restingConditions.at (4) = dinf ( M_restingConditions.at (0) );
+    //f
+    M_restingConditions.at (5) = finf ( M_restingConditions.at (0) );
+    //X
+    M_restingConditions.at (6) = Xinf ( M_restingConditions.at (0) );
+    //Ca
+    M_restingConditions.at (7) = parameterList.get ("Ca0", 2e-4  );
 }
 
 IonicLuoRudyI::IonicLuoRudyI ( const IonicLuoRudyI& model )
@@ -124,8 +124,8 @@ IonicLuoRudyI::IonicLuoRudyI ( const IonicLuoRudyI& model )
     M_gKp        =  model.M_gKp;
     M_gb        =  model.M_gb;
 
-    M_gK = computeGK(M_K0);
-    M_gK1= computeGK1(M_K0);
+    M_gK = computeGK (M_K0);
+    M_gK1 = computeGK1 (M_K0);
     M_numberOfEquations = model.M_numberOfEquations;
     M_numberOfGatingVariables = model.M_numberOfGatingVariables;
     M_restingConditions = model.M_restingConditions;
@@ -147,8 +147,8 @@ IonicLuoRudyI& IonicLuoRudyI::operator= ( const IonicLuoRudyI& model )
     M_gKp        =  model.M_gKp;
     M_gb        =  model.M_gb;
 
-    M_gK = computeGK(M_K0);
-    M_gK1= computeGK1(M_K0);
+    M_gK = computeGK (M_K0);
+    M_gK1 = computeGK1 (M_K0);
     M_numberOfEquations = model.M_numberOfEquations;
     M_numberOfGatingVariables = model.M_numberOfGatingVariables;
     M_restingConditions = model.M_restingConditions;
@@ -161,7 +161,7 @@ IonicLuoRudyI& IonicLuoRudyI::operator= ( const IonicLuoRudyI& model )
 //! Methods
 // ===================================================
 void IonicLuoRudyI::computeGatingRhs ( const   std::vector<Real>&  v,
-                                     std::vector<Real>& rhs )
+                                       std::vector<Real>& rhs )
 {
     Real V = v[0];
     Real m = v[1];
@@ -173,23 +173,23 @@ void IonicLuoRudyI::computeGatingRhs ( const   std::vector<Real>&  v,
     Real Ca = v[7];
 
     //m
-    rhs[0] = dm(V, m);
+    rhs[0] = dm (V, m);
     //h
-    rhs[1] = dh(V, h);
+    rhs[1] = dh (V, h);
     //j
-    rhs[2] = dj(V, j);
+    rhs[2] = dj (V, j);
     //d
-    rhs[3] = dd(V, d);
+    rhs[3] = dd (V, d);
     //f
-    rhs[4] = df(V, f);
+    rhs[4] = df (V, f);
     //X
-    rhs[5] = dX(V, X);
+    rhs[5] = dX (V, X);
     //Ca
-    rhs[6] = dCa(V, d, f, Ca);
+    rhs[6] = dCa (V, d, f, Ca);
 }
 
 void IonicLuoRudyI::computeNonGatingRhs ( const   std::vector<Real>&  v,
-                                     std::vector<Real>& rhs )
+                                          std::vector<Real>& rhs )
 {
     Real V = v[0];
     Real d = v[4];
@@ -197,11 +197,11 @@ void IonicLuoRudyI::computeNonGatingRhs ( const   std::vector<Real>&  v,
     Real Ca = v[7];
 
     //Ca
-    rhs[0] = dCa(V, d, f, Ca);
+    rhs[0] = dCa (V, d, f, Ca);
 }
 
 void IonicLuoRudyI::computeRhs ( const   std::vector<Real>&  v,
-                                     std::vector<Real>& rhs )
+                                 std::vector<Real>& rhs )
 {
     Real V = v[0];
     Real m = v[1];
@@ -213,21 +213,21 @@ void IonicLuoRudyI::computeRhs ( const   std::vector<Real>&  v,
     Real Ca = v[7];
 
     //V
-    rhs[0] = - Itot(V, m ,h ,j , d, f, X, Ca);
+    rhs[0] = - Itot (V, m , h , j , d, f, X, Ca);
     //m
-    rhs[1] = dm(V, m);
+    rhs[1] = dm (V, m);
     //h
-    rhs[2] = dh(V, h);
+    rhs[2] = dh (V, h);
     //j
-    rhs[3] = dj(V, j);
+    rhs[3] = dj (V, j);
     //d
-    rhs[4] = dd(V, d);
+    rhs[4] = dd (V, d);
     //f
-    rhs[5] = df(V, f);
+    rhs[5] = df (V, f);
     //X
-    rhs[6] = dX(V, X);
+    rhs[6] = dX (V, X);
     //Ca
-    rhs[7] = dCa(V, d, f, Ca);
+    rhs[7] = dCa (V, d, f, Ca);
 }
 
 void IonicLuoRudyI::computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt )
@@ -240,12 +240,12 @@ void IonicLuoRudyI::computeGatingVariablesWithRushLarsen ( std::vector<Real>& v,
     Real f = v[5];
     Real X = v[6];
 
-    v[1] = minf(V) - ( minf(V) - m ) * std::exp(- dt / tm(V) );
-    v[2] = hinf(V) - ( hinf(V) - h ) * std::exp(- dt / th(V) );
-    v[3] = jinf(V) - ( jinf(V) - j ) * std::exp(- dt / tj(V) );
-    v[4] = dinf(V) - ( dinf(V) - d ) * std::exp(- dt / td(V) );
-    v[5] = finf(V) - ( finf(V) - f ) * std::exp(- dt / tf(V) );
-    v[6] = Xinf(V) - ( Xinf(V) - X ) * std::exp(- dt / tX(V) );
+    v[1] = minf (V) - ( minf (V) - m ) * std::exp (- dt / tm (V) );
+    v[2] = hinf (V) - ( hinf (V) - h ) * std::exp (- dt / th (V) );
+    v[3] = jinf (V) - ( jinf (V) - j ) * std::exp (- dt / tj (V) );
+    v[4] = dinf (V) - ( dinf (V) - d ) * std::exp (- dt / td (V) );
+    v[5] = finf (V) - ( finf (V) - f ) * std::exp (- dt / tf (V) );
+    v[6] = Xinf (V) - ( Xinf (V) - X ) * std::exp (- dt / tX (V) );
 
 }
 
@@ -262,7 +262,7 @@ Real IonicLuoRudyI::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real X = v[6];
     Real Ca = v[7];
 
-    dPotential = - Itot(V, m ,h ,j , d, f, X, Ca);
+    dPotential = - Itot (V, m , h , j , d, f, X, Ca);
 
     return dPotential;
 }
@@ -270,19 +270,19 @@ Real IonicLuoRudyI::computeLocalPotentialRhs ( const std::vector<Real>& v )
 
 void IonicLuoRudyI::showMe()
 {
-	std::cout << "\n\n************************************";
+    std::cout << "\n\n************************************";
     std::cout << "\n\tHi, I'm the Luo Rudy Phase I model";
 
-	std::cout << "\nENa: " << M_ENa;
-	std::cout << "\ngNa: " << M_gNa;
-	std::cout << "\ngsi: " << M_gsi;
-	std::cout << "\nK0: " << M_K0;
-	std::cout << "\nEK: " << M_EK;
-	std::cout << "\nEK1: " << M_EK1;
-	std::cout << "\nEKp: " << M_EKp;
-	std::cout << "\ngKp: " << M_gKp;
-	std::cout << "\ngb: " << M_gb;
-	std::cout << "\n************************************\n\n";
+    std::cout << "\nENa: " << M_ENa;
+    std::cout << "\ngNa: " << M_gNa;
+    std::cout << "\ngsi: " << M_gsi;
+    std::cout << "\nK0: " << M_K0;
+    std::cout << "\nEK: " << M_EK;
+    std::cout << "\nEK1: " << M_EK1;
+    std::cout << "\nEKp: " << M_EKp;
+    std::cout << "\ngKp: " << M_gKp;
+    std::cout << "\ngb: " << M_gb;
+    std::cout << "\n************************************\n\n";
 }
 
 

@@ -25,16 +25,16 @@
 //@HEADER
 
 /*!
-	  @file
-	  @brief Ionic model based on Jafri, Rice And Winslow model coupled with
-	  @ Negroni Lascano crossbridge model
-	  @date 04-2013
-	  @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
+      @file
+      @brief Ionic model based on Jafri, Rice And Winslow model coupled with
+      @ Negroni Lascano crossbridge model
+      @date 04-2013
+      @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
-	  @contributors
-	  @mantainer Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
-	  @last update 03-2013
-	 */
+      @contributors
+      @mantainer Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
+      @last update 03-2013
+     */
 
 // Tell the compiler to ignore specific kind of warnings:
 #pragma GCC diagnostic ignored "-Wunused-variable"
@@ -103,7 +103,7 @@ Int main ( Int argc, char** argv )
     // parameter list in the constructor          //
     //********************************************//
 
-	std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
+    std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
     XbNegroniLascano96TTJRW  xb ( nlParameterList );
     IonicJafriRiceWinslow ionicModel ( ionicParameterList );
     StimulationProtocol   stimulation ( pacingPParameterList );
@@ -116,34 +116,34 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     stimulation.showMe();
-	xb.showMe();
+    xb.showMe();
 
-	//********************************************//
-	// Initialize the solution to 0. The model    //
-	// consist of 31 state variables.             //
-	// model.Size() returns the number of state   //
-	// variables of the model.                    //
-	//********************************************//
+    //********************************************//
+    // Initialize the solution to 0. The model    //
+    // consist of 31 state variables.             //
+    // model.Size() returns the number of state   //
+    // variables of the model.                    //
+    //********************************************//
 
-	std::cout << "Initializing solution vector...";
-	std::vector<Real> XbStates (xb.Size(), 0);
-	std::vector<Real> XbStatesTemp (xb.Size(), 0);
+    std::cout << "Initializing solution vector...";
+    std::vector<Real> XbStates (xb.Size(), 0);
+    std::vector<Real> XbStatesTemp (xb.Size(), 0);
 
     std::vector<Real> states (ionicModel.Size(), 0);
-	states.at (0)  = -86.1638;
+    states.at (0)  = -86.1638;
     states.at (1)  = 3.28302e-2;
     states.at (2)  = 0.988354;
     states.at (3)  = 0.99254;
-	states.at (4)  = 9.28836e-4;
+    states.at (4)  = 9.28836e-4;
     states.at (5)  = 10.2042;
     states.at (6)  = 143.727;
-	states.at (7)  = 5.4;
-	states.at (8)  = 9.94893e-5;
+    states.at (7)  = 5.4;
+    states.at (8)  = 9.94893e-5;
     states.at (9)  = 1.24891;
     states.at (10) = 1.36058e-4;
     states.at (11) = 1.17504;
     states.at (12) = 0.762527;
-	states.at (13) = 1.19168e-3;
+    states.at (13) = 1.19168e-3;
     states.at (14) = 6.30613e-9;
     states.at (15) = 0.236283;
     states.at (16) = 0.997208;
@@ -153,14 +153,14 @@ Int main ( Int argc, char** argv )
     states.at (20) = 6.56337e-20;
     states.at (21) = 9.084546e-21;
     states.at (22) = 2.72826e-3;
-	states.at (23) = 6.99215e-7;
+    states.at (23) = 6.99215e-7;
     states.at (24) = 6.71989e-11;
     states.at (25) = 2.87031e-15;
     states.at (26) = 4.59752e-20;
-	states.at (27) = 0.0;
+    states.at (27) = 0.0;
     states.at (28) = 0.998983;
     states.at (29) = 0.0; // Computation of this value is done with XbStates.
-	states.at (30) = 135.9813e-3;
+    states.at (30) = 135.9813e-3;
 
 
     //********************************************//
@@ -171,9 +171,9 @@ Int main ( Int argc, char** argv )
     // the differential equation.                 //
     //********************************************//
 
-	std::cout << "Initializing rhs..." ;
-	std::vector<Real> XbRhs (xb.Size(), 0);
-	std::vector<Real> XbRhsTemp (xb.Size(), 0);
+    std::cout << "Initializing rhs..." ;
+    std::vector<Real> XbRhs (xb.Size(), 0);
+    std::vector<Real> XbRhsTemp (xb.Size(), 0);
     std::vector<Real> rhs (ionicModel.Size(), 0);
     Real              rhsCoupling;
     std::cout << " Done! "  << endl;
@@ -188,11 +188,11 @@ Int main ( Int argc, char** argv )
     Real vel     ( 0.0 );
     Real Ca      ( 0.0 );
     Real Bi      ( 0.0 );
-    Real CmdnTot = ionicModel.cmdnTot()*1e-3;   // Term 1e-3 is to adjust in order to have consistent units
-    Real KmCmdn  = ionicModel.constmCmdn()*1e-3;
+    Real CmdnTot = ionicModel.cmdnTot() * 1e-3; // Term 1e-3 is to adjust in order to have consistent units
+    Real KmCmdn  = ionicModel.constmCmdn() * 1e-3;
     Real Iapp    ( 0.0 );
-    Real Lm      = nlParameterList.get("inLength", 1.05);
-    Real L       = nlParameterList.get("inLength", 1.05);
+    Real Lm      = nlParameterList.get ("inLength", 1.05);
+    Real L       = nlParameterList.get ("inLength", 1.05);
     Real X       = L - xb.Hc();
     Real F       ( 0.0 );
 
@@ -201,8 +201,8 @@ Int main ( Int argc, char** argv )
     // The timestep is given by dt                //
     //********************************************//
 
-    Real TF     = nlParameterList.get( "endTime", 5.0 );
-    Real dt     = nlParameterList.get( "timeStep", 5.77e-5 );
+    Real TF     = nlParameterList.get ( "endTime", 5.0 );
+    Real dt     = nlParameterList.get ( "timeStep", 5.77e-5 );
 
     Real tStim  ( 0 );
 
@@ -224,28 +224,28 @@ Int main ( Int argc, char** argv )
     // Time loop starts.                          //
     //********************************************//
 
-    int iter(0);
-    int savedt( ionicParameterList.get( "savedt", 1.0) / dt );
+    int iter (0);
+    int savedt ( ionicParameterList.get ( "savedt", 1.0) / dt );
     int NbStimulus ( 0 );
 
-	std::cout << "Time loop starts...\n";
+    std::cout << "Time loop starts...\n";
     for ( Real t = 0; t < TF; )
     {
-		// Stimuli for ionic model
+        // Stimuli for ionic model
 
-    	stimulation.pacingProtocolChoice( t, dt, NbStimulus, Iapp ); // Protocol stimulation
-    	// The list of protocols are described in the StimulationProtocol.hpp
+        stimulation.pacingProtocolChoice ( t, dt, NbStimulus, Iapp ); // Protocol stimulation
+        // The list of protocols are described in the StimulationProtocol.hpp
 
-    	//********************************************//
-    	// Compute Calcium concentration. Here it is  //
-    	// given as a function of time.               //
-    	//********************************************//
+        //********************************************//
+        // Compute Calcium concentration. Here it is  //
+        // given as a function of time.               //
+        //********************************************//
 
-    	Ca = states.at(8)*1000;
-    	Bi = 1 / ( 1 + CmdnTot * KmCmdn / ( ( KmCmdn + Ca ) * ( KmCmdn + Ca ) ) );
+        Ca = states.at (8) * 1000;
+        Bi = 1 / ( 1 + CmdnTot * KmCmdn / ( ( KmCmdn + Ca ) * ( KmCmdn + Ca ) ) );
 
-    	// Because the concentration is in mM in the ionic model
-    	// and in the Xb model it should be in uM.
+        // Because the concentration is in mM in the ionic model
+        // and in the Xb model it should be in uM.
 
         std::cout << "\r " << t << " ms.       " << std::flush;
 
@@ -254,16 +254,16 @@ Int main ( Int argc, char** argv )
         //********************************************//
 
         xb.computeRhs             ( XbStates, Ca, L, vel, XbRhs );
-        ionicModel.setAppliedCurrent(Iapp);
+        ionicModel.setAppliedCurrent (Iapp);
         ionicModel.computeRhs     ( states, rhs );
         xb.computeCoupling        ( XbStates, Ca, Bi, vel, rhsCoupling );
 
-/*
-        xb.computeRhs             ( XbStates, Ca, L, vel, XbRhs );
-        ionicModel.computeRhs     ( states, Iapp, rhs );
-        xb.computeCoupling        ( XbStates, Ca, Bi, vel, rhsCoupling );
-        std::vector<Real> gateInf ( ionicModel.gateInf( states ) );
-*/
+        /*
+                xb.computeRhs             ( XbStates, Ca, L, vel, XbRhs );
+                ionicModel.computeRhs     ( states, Iapp, rhs );
+                xb.computeCoupling        ( XbStates, Ca, Bi, vel, rhsCoupling );
+                std::vector<Real> gateInf ( ionicModel.gateInf( states ) );
+        */
         //********************************************//
         // Use forward Euler method to advance the    //
         // solution in time for all the variables     //
@@ -271,13 +271,17 @@ Int main ( Int argc, char** argv )
         // This ones are treated with Euler implicit  //
         // method and Newton algorithm.               //
         //********************************************//
-        
-        for(int j(0); j <= 30; ++j)
+
+        for (int j (0); j <= 30; ++j)
         {
-        	if ( j != 8 && j != 29)
-        		states.at (j) = states.at (j) + dt * rhs.at (j);
-        	else if ( j == 8 )
-        		states.at (j) = states.at (j) + dt * ( rhs.at (j) + rhsCoupling );
+            if ( j != 8 && j != 29)
+            {
+                states.at (j) = states.at (j) + dt * rhs.at (j);
+            }
+            else if ( j == 8 )
+            {
+                states.at (j) = states.at (j) + dt * ( rhs.at (j) + rhsCoupling );
+            }
         }
 
 
@@ -288,9 +292,9 @@ Int main ( Int argc, char** argv )
         XbStates.at (1) = XbStates.at (1)  + dt * XbRhs.at (1);
         XbStates.at (2) = XbStates.at (2)  + dt * XbRhs.at (2);
 
-        Ca = states.at(8)*1000;
+        Ca = states.at (8) * 1000;
 
-        xb.computeTotalMuscleLength( XbStates, t, dt, X, Lm, L, vel, F );
+        xb.computeTotalMuscleLength ( XbStates, t, dt, X, Lm, L, vel, F );
 
         xb.computeRhs      ( XbStates, Ca, L, vel, XbRhs );
 
@@ -299,33 +303,35 @@ Int main ( Int argc, char** argv )
         XbStates.at (2) = XbStatesTemp.at (2) + 0.5 * dt * ( XbRhs.at (2) + XbRhsTemp.at (2) );
 
 
-		// Implicit method
-//        xb.computeBackwardEuler( XbStates, Ca, vel, dt );
+        // Implicit method
+        //        xb.computeBackwardEuler( XbStates, Ca, vel, dt );
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
 
         iter++;
-        if( iter % savedt == 0 )
+        if ( iter % savedt == 0 )
         {
-        	output << t << ", ";
+            output << t << ", ";
 
-        	for ( int j (0); j < ionicModel.Size() - 1; j++)
-        	{
-        		output << states.at (j) << ", ";
-        	}
+            for ( int j (0); j < ionicModel.Size() - 1; j++)
+            {
+                output << states.at (j) << ", ";
+            }
 
-        	output << states.at ( ionicModel.Size() - 1 ) << "\n";
+            output << states.at ( ionicModel.Size() - 1 ) << "\n";
 
-        	XbOutput << t << ", " << rhsCoupling << ", " << Lm << ", " << L << ", " << X << ", "<< F << ", "
-        			 << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
+            XbOutput << t << ", " << rhsCoupling << ", " << Lm << ", " << L << ", " << X << ", " << F << ", "
+                     << XbStates.at (0) << ", " << XbStates.at (1) << ", " << XbStates.at (2) << "\n";
         }
 
         tStim = stimulation.timeSt();
 
         if ( t >= tStim && t <= tStim + dt )
-        	outputStimPro << t << "," << states.at(0) << "," << NbStimulus << "\n";
+        {
+            outputStimPro << t << "," << states.at (0) << "," << NbStimulus << "\n";
+        }
 
         //********************************************//
         // Update the time.                           //

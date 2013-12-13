@@ -68,15 +68,15 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData() :
     M_fileSheetDirections              ( ),
     M_verbose                          ( ),
     M_vectorMaterialFlags              ( ),
-    M_a								   ( ),
-    M_af							   ( ),
-    M_as							   ( ),
-    M_afs							   ( ),
-    M_b								   ( ),
-    M_bf							   ( ),
-    M_bs							   ( ),
-    M_bfs							   ( ),
-    M_contractileFraction			   ( )
+    M_a                                ( ),
+    M_af                               ( ),
+    M_as                               ( ),
+    M_afs                              ( ),
+    M_b                                ( ),
+    M_bf                               ( ),
+    M_bs                               ( ),
+    M_bfs                              ( ),
+    M_contractileFraction              ( )
 {
 }
 
@@ -97,15 +97,15 @@ StructuralConstitutiveLawData::StructuralConstitutiveLawData ( const StructuralC
     M_fileSheetDirections              ( structuralConstitutiveLawData.M_fileSheetDirections ),
     M_verbose                          ( structuralConstitutiveLawData.M_verbose ),
     M_vectorMaterialFlags              ( structuralConstitutiveLawData.M_vectorMaterialFlags ),
-    M_a								   ( structuralConstitutiveLawData.M_a ),
-    M_af							   ( structuralConstitutiveLawData.M_af ),
-    M_as							   ( structuralConstitutiveLawData.M_as ),
-    M_afs							   ( structuralConstitutiveLawData.M_afs ),
-    M_b								   ( structuralConstitutiveLawData.M_b ),
-    M_bf							   ( structuralConstitutiveLawData.M_bf ),
-    M_bs							   ( structuralConstitutiveLawData.M_bs ),
-    M_bfs							   ( structuralConstitutiveLawData.M_bfs ),
-    M_contractileFraction			   ( structuralConstitutiveLawData.M_contractileFraction )
+    M_a                                ( structuralConstitutiveLawData.M_a ),
+    M_af                               ( structuralConstitutiveLawData.M_af ),
+    M_as                               ( structuralConstitutiveLawData.M_as ),
+    M_afs                              ( structuralConstitutiveLawData.M_afs ),
+    M_b                                ( structuralConstitutiveLawData.M_b ),
+    M_bf                               ( structuralConstitutiveLawData.M_bf ),
+    M_bs                               ( structuralConstitutiveLawData.M_bs ),
+    M_bfs                              ( structuralConstitutiveLawData.M_bfs ),
+    M_contractileFraction              ( structuralConstitutiveLawData.M_contractileFraction )
 {
 }
 
@@ -133,15 +133,15 @@ StructuralConstitutiveLawData::operator= ( const StructuralConstitutiveLawData& 
         M_fileSheetDirections              = structuralConstitutiveLawData.M_fileSheetDirections;
         M_verbose                          = structuralConstitutiveLawData.M_verbose;
         M_vectorMaterialFlags              = structuralConstitutiveLawData.M_vectorMaterialFlags;
-        M_a								   = structuralConstitutiveLawData.M_a ;
-        M_af							   = structuralConstitutiveLawData.M_af ;
-        M_as							   = structuralConstitutiveLawData.M_as ;
-        M_afs							   = structuralConstitutiveLawData.M_afs ;
-        M_b								   = structuralConstitutiveLawData.M_b ;
-        M_bf							   = structuralConstitutiveLawData.M_bf ;
-        M_bs							   = structuralConstitutiveLawData.M_bs ;
-        M_bfs							   = structuralConstitutiveLawData.M_bfs ;
-        M_contractileFraction			   = structuralConstitutiveLawData.M_contractileFraction ;
+        M_a                                = structuralConstitutiveLawData.M_a ;
+        M_af                               = structuralConstitutiveLawData.M_af ;
+        M_as                               = structuralConstitutiveLawData.M_as ;
+        M_afs                              = structuralConstitutiveLawData.M_afs ;
+        M_b                                = structuralConstitutiveLawData.M_b ;
+        M_bf                               = structuralConstitutiveLawData.M_bf ;
+        M_bs                               = structuralConstitutiveLawData.M_bs ;
+        M_bfs                              = structuralConstitutiveLawData.M_bfs ;
+        M_contractileFraction              = structuralConstitutiveLawData.M_contractileFraction ;
     }
 
     return *this;
@@ -197,12 +197,12 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
         M_a[1]  = dataFile ( ( section + "/physics/a"    ).data(), 49600 );
         M_af[1] = dataFile ( ( section + "/physics/af"   ).data(), 0. );
         M_as[1] = dataFile ( ( section + "/physics/as"   ).data(), 0. );
-        M_afs[1]= dataFile ( ( section + "/physics/afs"  ).data(), 0. );
+        M_afs[1] = dataFile ( ( section + "/physics/afs"  ).data(), 0. );
         M_b[1]  = dataFile ( ( section + "/physics/b"    ).data(), 0. );
         M_bf[1] = dataFile ( ( section + "/physics/bf"   ).data(), 0. );
         M_bs[1] = dataFile ( ( section + "/physics/bs"   ).data(), 0. );
-        M_bfs[1]= dataFile ( ( section + "/physics/bfs"  ).data(), 0. );
-        M_contractileFraction[1]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 1. );
+        M_bfs[1] = dataFile ( ( section + "/physics/bfs"  ).data(), 0. );
+        M_contractileFraction[1] = dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 1. );
     }
     else
     {
@@ -230,12 +230,12 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
             M_a[material]  = dataFile ( ( section + "/physics/a"    ).data(), 4960, i );
             M_af[material] = dataFile ( ( section + "/physics/af"   ).data(), 0.   , i );
             M_as[material] = dataFile ( ( section + "/physics/as"   ).data(), 0.   , i );
-            M_afs[material]= dataFile ( ( section + "/physics/afs"  ).data(), 0.   , i );
+            M_afs[material] = dataFile ( ( section + "/physics/afs"  ).data(), 0.   , i );
             M_b[material]  = dataFile ( ( section + "/physics/b"    ).data(), 0.   , i );
             M_bf[material] = dataFile ( ( section + "/physics/bf"   ).data(), 0.   , i );
             M_bs[material] = dataFile ( ( section + "/physics/bs"   ).data(), 0.   , i );
-            M_bfs[material]= dataFile ( ( section + "/physics/bfs"  ).data(), 0.   , i );
-            M_contractileFraction[material]=dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 1. , i);
+            M_bfs[material] = dataFile ( ( section + "/physics/bfs"  ).data(), 0.   , i );
+            M_contractileFraction[material] = dataFile ( ( section + "/physics/contractile_fraction"  ).data(), 1. , i);
 
         }
     }
@@ -394,7 +394,7 @@ StructuralConstitutiveLawData::A ( const UInt& material ) const
     }
     else
     {
-//        std::cout << " !!! Warning: the modulus has not been set !!!" << std::endl;
+        //        std::cout << " !!! Warning: the modulus has not been set !!!" << std::endl;
         return 0;
     }
 }
@@ -419,7 +419,7 @@ StructuralConstitutiveLawData::Af ( const UInt& material ) const
     }
     else
     {
-//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        //        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
         return 0;
     }
 }
@@ -444,7 +444,7 @@ StructuralConstitutiveLawData::As ( const UInt& material ) const
     }
     else
     {
-//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        //        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
         return 0;
     }
 }
@@ -469,7 +469,7 @@ StructuralConstitutiveLawData::Afs ( const UInt& material ) const
     }
     else
     {
-//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        //        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
         return 0;
     }
 }
@@ -494,7 +494,7 @@ StructuralConstitutiveLawData::B ( const UInt& material ) const
     }
     else
     {
-//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        //        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
         return 0;
     }
 }
@@ -519,7 +519,7 @@ StructuralConstitutiveLawData::Bf ( const UInt& material ) const
     }
     else
     {
-//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        //        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
         return 0;
     }
 }
@@ -544,7 +544,7 @@ StructuralConstitutiveLawData::Bs ( const UInt& material ) const
     }
     else
     {
-//        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        //        std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
         return 0;
     }
 }
@@ -569,7 +569,7 @@ StructuralConstitutiveLawData::Bfs ( const UInt& material ) const
     }
     else
     {
- //       std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
+        //       std::cout << " !!! Warning: the Poisson modulus has not been set !!!" << std::endl;
         return 0;
     }
 }

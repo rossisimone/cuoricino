@@ -155,8 +155,8 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF =NLParameterList.get("endTime", 100.0);
-    Real dt =NLParameterList.get("timeStep", 0.001);
+    Real TF = NLParameterList.get ("endTime", 100.0);
+    Real dt = NLParameterList.get ("timeStep", 0.001);
 
 
     //********************************************//
@@ -176,13 +176,19 @@ Int main ( Int argc, char** argv )
     for ( Real t = 0; t < TF; )
     {
 
-    	if( t > 10 && t < 11 ) Iapp = 4.0;
-        else Iapp = 0;
+        if ( t > 10 && t < 11 )
+        {
+            Iapp = 4.0;
+        }
+        else
+        {
+            Iapp = 0;
+        }
         //********************************************//
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-//        Ca =1.875 * states.at(3);
+        //        Ca =1.875 * states.at(3);
         Ca = 1.5 * std::exp (- 0.01 * ( t - 30.0 ) * ( t - 30.0 ) );
 
         std::cout << "\r " << t << " ms.       " << std::flush;
@@ -191,7 +197,7 @@ Int main ( Int argc, char** argv )
         // Compute the rhs using the model equations  //
         //********************************************//
         xb.computeRhs ( XbStates, Ca, vel, XbRhs);
-        ionicModel.setAppliedCurrent(Iapp);
+        ionicModel.setAppliedCurrent (Iapp);
         ionicModel.computeRhs ( states, rhs);
 
         //********************************************//

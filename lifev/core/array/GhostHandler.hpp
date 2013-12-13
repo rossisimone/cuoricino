@@ -333,8 +333,8 @@ template <typename Mesh>
 void GhostHandler<Mesh>::setUp()
 {
     this->createNodeNodeNeighborsMap();
-   // this->createNodeEdgeNeighborsMap();    //togli
-   // this->createNodeElementNeighborsMap(); //togli
+    // this->createNodeEdgeNeighborsMap();    //togli
+    // this->createNodeElementNeighborsMap(); //togli
 }
 
 template <typename Mesh>

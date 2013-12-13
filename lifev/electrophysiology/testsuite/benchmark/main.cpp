@@ -103,17 +103,18 @@ Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real&
 
     Real returnValue;
 
-    if ( std::abs( x - pacingSite_X ) <= stimulusRadius
-    		 &&
-    	 std::abs( z - pacingSite_Z ) <= stimulusRadius
-    	 	 &&
-    	 std::abs( y - pacingSite_Y ) <= stimulusRadius
-    	 	 &&
-    	 t <= 2)
+    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius
+            &&
+            std::abs ( z - pacingSite_Z ) <= stimulusRadius
+            &&
+            std::abs ( y - pacingSite_Y ) <= stimulusRadius
+            &&
+            t <= 2)
     {
-    	returnValue = stimulusValue;
+        returnValue = stimulusValue;
     }
-    else{
+    else
+    {
         returnValue = 0.;
     }
 
@@ -131,17 +132,18 @@ Real PacingProtocolHH ( const Real& t, const Real& x, const Real& y, const Real&
 
     Real returnValue;
 
-    if ( std::abs( x - pacingSite_X ) <= stimulusRadius
-    		 &&
-    	 std::abs( z - pacingSite_Z ) <= stimulusRadius
-    	 	 &&
-    	 std::abs( y - pacingSite_Y ) <= stimulusRadius
-    	 	 &&
-    	 t <= 2)
+    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius
+            &&
+            std::abs ( z - pacingSite_Z ) <= stimulusRadius
+            &&
+            std::abs ( y - pacingSite_Y ) <= stimulusRadius
+            &&
+            t <= 2)
     {
-    	returnValue = stimulusValue;
+        returnValue = stimulusValue;
     }
-    else{
+    else
+    {
         returnValue = 0.;
     }
 
@@ -159,17 +161,18 @@ Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z
 
     Real returnValue;
 
-    if ( std::abs( x - pacingSite_X ) <= stimulusRadius
-    		 &&
-    	 std::abs( z - pacingSite_Z ) <= stimulusRadius
-    	 	 &&
-    	 std::abs( y - pacingSite_Y ) <= stimulusRadius
-    	 	 &&
-    	 t <= 2)
+    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius
+            &&
+            std::abs ( z - pacingSite_Z ) <= stimulusRadius
+            &&
+            std::abs ( y - pacingSite_Y ) <= stimulusRadius
+            &&
+            t <= 2)
     {
-    	returnValue = stimulusValue;
+        returnValue = stimulusValue;
     }
-    else{
+    else
+    {
         returnValue = 0.;
     }
 
@@ -215,19 +218,21 @@ Int main ( Int argc, char** argv )
                                     const Real& /*z*/,
                                     const ID&   /*i*/ ) >   function_Type;
 
-   	typedef ElectroIonicModel	                                     ionicModel_Type;
+    typedef ElectroIonicModel                                        ionicModel_Type;
     typedef boost::shared_ptr<ionicModel_Type>                       ionicModelPtr_Type;
     typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type > monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >               monodomainSolverPtr_Type;
 
-    typedef VectorEpetra				                             vector_Type;
+    typedef VectorEpetra                                             vector_Type;
     typedef boost::shared_ptr<vector_Type>                           vectorPtr_Type;
 
 
     LifeChrono chronoinitialsettings;
 
     if ( Comm->MyPID() == 0 )
-      	chronoinitialsettings.start();
+    {
+        chronoinitialsettings.start();
+    }
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -245,7 +250,7 @@ Int main ( Int argc, char** argv )
         std::cout << " Done!" << endl;
     }
 
-    std::string ionic_model( monodomainList.get ("ionic_model", "minimalModel") );
+    std::string ionic_model ( monodomainList.get ("ionic_model", "minimalModel") );
     if ( Comm->MyPID() == 0 )
     {
         std::cout << "\nIonic_Model:" << ionic_model;
@@ -264,16 +269,26 @@ Int main ( Int argc, char** argv )
         std::cout << "\nBuilding Constructor for " << ionic_model << " Model with parameters ... ";
     }
     ionicModelPtr_Type  model;
-    if( ionic_model == "LuoRudyI" )
-    	model.reset( new IonicLuoRudyI() );
+    if ( ionic_model == "LuoRudyI" )
+    {
+        model.reset ( new IonicLuoRudyI() );
+    }
     if ( ionic_model == "TenTusscher06")
-    	model.reset(new IonicTenTusscher06() );
+    {
+        model.reset (new IonicTenTusscher06() );
+    }
     if ( ionic_model == "HodgkinHuxley")
-    	model.reset(new IonicHodgkinHuxley() );
+    {
+        model.reset (new IonicHodgkinHuxley() );
+    }
     if ( ionic_model == "NoblePurkinje")
-    	model.reset(new IonicNoblePurkinje() );
+    {
+        model.reset (new IonicNoblePurkinje() );
+    }
     if ( ionic_model == "MinimalModel")
-        	model.reset( new IonicMinimalModel() );
+    {
+        model.reset ( new IonicMinimalModel() );
+    }
 
     if ( Comm->MyPID() == 0 )
     {
@@ -331,16 +346,23 @@ Int main ( Int argc, char** argv )
     solver -> setInitialConditions();
 
     function_Type stimulus;
-    if(ionic_model == "MinimalModel" )
-    	stimulus = &PacingProtocolMM;
-    else if(ionic_model == "HodgkinHuxley" )
+    if (ionic_model == "MinimalModel" )
     {
-    	if(Comm -> MyPID() == 0) std::cout << "\nUsing Hodgkin Huxley pacing protocol";
-    	stimulus = &PacingProtocolHH;
+        stimulus = &PacingProtocolMM;
+    }
+    else if (ionic_model == "HodgkinHuxley" )
+    {
+        if (Comm -> MyPID() == 0)
+        {
+            std::cout << "\nUsing Hodgkin Huxley pacing protocol";
+        }
+        stimulus = &PacingProtocolHH;
     }
     else
-    	stimulus = &PacingProtocol;
-    solver -> setAppliedCurrentFromFunction(stimulus, 0.0);
+    {
+        stimulus = &PacingProtocol;
+    }
+    solver -> setAppliedCurrentFromFunction (stimulus, 0.0);
 
     if ( Comm->MyPID() == 0 )
     {
@@ -361,10 +383,10 @@ Int main ( Int argc, char** argv )
     }
 
     VectorSmall<3> fibers;
-    fibers[0]=0.0;
-    fibers[1]=0.0;
-    fibers[2]=1.0;
-    solver -> setupFibers( fibers );
+    fibers[0] = 0.0;
+    fibers[1] = 0.0;
+    fibers[2] = 1.0;
+    solver -> setupFibers ( fibers );
 
     if ( Comm->MyPID() == 0 )
     {
@@ -380,13 +402,17 @@ Int main ( Int argc, char** argv )
     }
 
     bool lumpedMass = monodomainList.get ("LumpedMass", true);
-    if( lumpedMass)
-    	solver -> setupLumpedMassMatrix();
+    if ( lumpedMass)
+    {
+        solver -> setupLumpedMassMatrix();
+    }
     else
-    	solver -> setupMassMatrix();
+    {
+        solver -> setupMassMatrix();
+    }
 
 
-    solver -> setupStiffnessMatrix( solver -> diffusionTensor() );
+    solver -> setupStiffnessMatrix ( solver -> diffusionTensor() );
     solver -> setupGlobalMatrix();
     if ( Comm->MyPID() == 0 )
     {
@@ -399,21 +425,21 @@ Int main ( Int argc, char** argv )
     ExporterHDF5< RegionMesh <LinearTetra> > exporter;
 
     solver -> setupExporter ( exporter, monodomainList.get ("OutputFile", "Solution") );
-    exporter.setPostDir(problemFolder);
+    exporter.setPostDir (problemFolder);
     solver -> exportSolution ( exporter, 0);
 
     //********************************************//
-    // Activation time						      //
+    // Activation time                            //
     //********************************************//
-    vectorPtr_Type activationTimeVector( new vector_Type( solver -> potentialPtr() -> map() ) );
+    vectorPtr_Type activationTimeVector ( new vector_Type ( solver -> potentialPtr() -> map() ) );
     *activationTimeVector = -1.0;
 
     ExporterHDF5< RegionMesh <LinearTetra> > activationTimeExporter;
-    activationTimeExporter.setMeshProcId(solver -> localMeshPtr(), solver -> commPtr() ->MyPID());
-    activationTimeExporter.addVariable(ExporterData<mesh_Type>::ScalarField, "Activation Time",
-    				solver -> feSpacePtr(), activationTimeVector, UInt(0));
-    activationTimeExporter.setPrefix("ActivationTime");
-    activationTimeExporter.setPostDir(problemFolder);
+    activationTimeExporter.setMeshProcId (solver -> localMeshPtr(), solver -> commPtr() ->MyPID() );
+    activationTimeExporter.addVariable (ExporterData<mesh_Type>::ScalarField, "Activation Time",
+                                        solver -> feSpacePtr(), activationTimeVector, UInt (0) );
+    activationTimeExporter.setPrefix ("ActivationTime");
+    activationTimeExporter.setPostDir (problemFolder);
 
     //********************************************//
     // Solving the system                         //
@@ -426,7 +452,7 @@ Int main ( Int argc, char** argv )
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
-    Int k(0);
+    Int k (0);
 
     Real timeReac = 0.0;
     Real timeDiff = 0.0;
@@ -440,86 +466,109 @@ Int main ( Int argc, char** argv )
     {
         solver -> setAppliedCurrentFromFunction ( stimulus, t );
 
-        if( solutionMethod == "splitting" )
-        {
-			chrono.reset();
-			chrono.start();
-			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
-				solver->solveOneReactionStepRL();
-			else solver->solveOneReactionStepFE();
-			chrono.stop();
-
-			timeReac += chrono.globalDiff( *Comm );
-
-			(*solver->rhsPtrUnique()) *= 0.0;
-			solver->updateRhs();
-
-			chrono.reset();
-			chrono.start();
-			solver->solveOneDiffusionStepBE();
-			chrono.stop();
-			timeDiff += chrono.globalDiff( *Comm );
-		}
-        else if( solutionMethod == "ICI" )
-        {
-			chrono.reset();
-			chrono.start();
-			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
-				solver -> solveOneStepGatingVariablesRL();
-			else
-				solver -> solveOneStepGatingVariablesFE();
-			solver -> solveOneICIStep();
-			chrono.stop();
-			timeReacDiff += chrono.globalDiff( *Comm );
-        }
-        else if( solutionMethod == "SVI" )
-        {
-			chrono.reset();
-			chrono.start();
-			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
-				solver -> solveOneStepGatingVariablesRL();
-			else
-				solver -> solveOneStepGatingVariablesFE();
-        	solver -> solveOneSVIStep();
-        	chrono.stop();
-        	timeReacDiff += chrono.globalDiff( *Comm );
-        }
-        else if( solutionMethod == "Mixed" )
+        if ( solutionMethod == "splitting" )
         {
             chrono.reset();
             chrono.start();
-            if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
-                solver -> solveOneStepGatingVariablesRL();
+            if (ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
+            {
+                solver->solveOneReactionStepRL();
+            }
             else
+            {
+                solver->solveOneReactionStepFE();
+            }
+            chrono.stop();
+
+            timeReac += chrono.globalDiff ( *Comm );
+
+            (*solver->rhsPtrUnique() ) *= 0.0;
+            solver->updateRhs();
+
+            chrono.reset();
+            chrono.start();
+            solver->solveOneDiffusionStepBE();
+            chrono.stop();
+            timeDiff += chrono.globalDiff ( *Comm );
+        }
+        else if ( solutionMethod == "ICI" )
+        {
+            chrono.reset();
+            chrono.start();
+            if (ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
+            {
+                solver -> solveOneStepGatingVariablesRL();
+            }
+            else
+            {
                 solver -> solveOneStepGatingVariablesFE();
+            }
+            solver -> solveOneICIStep();
+            chrono.stop();
+            timeReacDiff += chrono.globalDiff ( *Comm );
+        }
+        else if ( solutionMethod == "SVI" )
+        {
+            chrono.reset();
+            chrono.start();
+            if (ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
+            {
+                solver -> solveOneStepGatingVariablesRL();
+            }
+            else
+            {
+                solver -> solveOneStepGatingVariablesFE();
+            }
+            solver -> solveOneSVIStep();
+            chrono.stop();
+            timeReacDiff += chrono.globalDiff ( *Comm );
+        }
+        else if ( solutionMethod == "Mixed" )
+        {
+            chrono.reset();
+            chrono.start();
+            if (ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
+            {
+                solver -> solveOneStepGatingVariablesRL();
+            }
+            else
+            {
+                solver -> solveOneStepGatingVariablesFE();
+            }
             solver -> solveOneMixedStep();
             chrono.stop();
-            timeReacDiff += chrono.globalDiff( *Comm );
+            timeReacDiff += chrono.globalDiff ( *Comm );
         }
 
         //register activation time
         k++;
         t = t + dt;
-        solver -> registerActivationTime(*activationTimeVector, t, 0.95);
+        solver -> registerActivationTime (*activationTimeVector, t, 0.95);
 
-        if( k % iter == 0 )
+        if ( k % iter == 0 )
         {
-           	solver -> exportSolution (exporter, t);
+            solver -> exportSolution (exporter, t);
         }
         if ( Comm->MyPID() == 0 )
-        	std::cout<<"\n\n\nActual time : "<<t<<std::endl<<std::endl<<std::endl;
+        {
+            std::cout << "\n\n\nActual time : " << t << std::endl << std::endl << std::endl;
+        }
     }
 
-    Real normSolution = ( ( solver -> globalSolution().at (0) )->norm2());
+    Real normSolution = ( ( solver -> globalSolution().at (0) )->norm2() );
     if ( Comm->MyPID() == 0 )
+    {
         std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+    }
 
     exporter.closeFile();
-    activationTimeExporter.postProcess(0);
+    activationTimeExporter.postProcess (0);
     activationTimeExporter.closeFile();
 
     if ( Comm->MyPID() == 0 )
-          std::cout << "Exporting fibers: " << std::endl;
+    {
+        std::cout << "Exporting fibers: " << std::endl;
+    }
 
     //********************************************//
     // Saving Fiber direction to file             //
@@ -529,20 +578,20 @@ Int main ( Int argc, char** argv )
 
     if ( Comm->MyPID() == 0 )
     {
-    	chronoinitialsettings.stop();
-    	std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
-        if( solutionMethod == "splitting" )
+        chronoinitialsettings.stop();
+        std::cout << "\n\n\nTotal lapsed time : " << chronoinitialsettings.diff() << std::endl;
+        if ( solutionMethod == "splitting" )
         {
-			std::cout<<"Diffusion time : "<<timeDiff<<std::endl;
-			std::cout<<"Reaction time : "<<timeReac<<std::endl;
+            std::cout << "Diffusion time : " << timeDiff << std::endl;
+            std::cout << "Reaction time : " << timeReac << std::endl;
         }
-        else if( solutionMethod == "ICI" )
+        else if ( solutionMethod == "ICI" )
         {
-        	std::cout<<"Solution time : "<<timeReacDiff<<std::endl;
+            std::cout << "Solution time : " << timeReacDiff << std::endl;
         }
-        else if( solutionMethod == "SVI" )
+        else if ( solutionMethod == "SVI" )
         {
-        	std::cout<<"Solution time : "<<timeReacDiff<<std::endl;
+            std::cout << "Solution time : " << timeReacDiff << std::endl;
         }
 
         std::cout << "\n\nThank you for using ETA_MonodomainSolver.\nI hope to meet you again soon!\n All the best for your simulation :P\n  " ;

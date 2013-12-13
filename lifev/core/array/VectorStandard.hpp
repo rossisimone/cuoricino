@@ -37,10 +37,6 @@
 #ifndef VectorStandard_HPP_
 #define VectorStandard_HPP_
 
-// Tell the compiler to ignore specific kind of warnings:
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 #include <Epetra_ConfigDefs.h>
 #ifdef EPETRA_MPI
 #include <Epetra_MpiComm.h>
@@ -63,21 +59,21 @@ class VectorStandard : public std::vector<Real>
 {
 
 public:
-	VectorStandard(){};
-	VectorStandard(UInt size, Real r);
-	virtual ~VectorStandard(){};
+    VectorStandard() {};
+    VectorStandard (UInt size, Real r);
+    virtual ~VectorStandard() {};
 
-	Real norm2() const;
-	void disp() const;
+    Real norm2() const;
+    void disp() const;
 
-	VectorStandard operator+ (const VectorStandard& w) const;
-	VectorStandard& operator+=(const VectorStandard& w);
-	VectorStandard operator- (const VectorStandard& w) const;
-	VectorStandard& operator-=(const VectorStandard& w);
-	VectorStandard operator* (const Real r) const;
-	VectorStandard& operator*=(const Real r);
-	VectorStandard operator/ (const Real r) const;
-	VectorStandard& operator/=(const Real r);
+    VectorStandard operator+ (const VectorStandard& w) const;
+    VectorStandard& operator+= (const VectorStandard& w);
+    VectorStandard operator- (const VectorStandard& w) const;
+    VectorStandard& operator-= (const VectorStandard& w);
+    VectorStandard operator* (const Real r) const;
+    VectorStandard& operator*= (const Real r);
+    VectorStandard operator/ (const Real r) const;
+    VectorStandard& operator/= (const Real r);
 
 };
 

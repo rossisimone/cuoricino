@@ -109,9 +109,9 @@ public:
      */
 
     ElectroMonodomainSolver ( const data_type& dataType,
-                            FESpace<Mesh, MapEpetra>& uFESpace,
-                            BCHandler& bcHandler,
-                            boost::shared_ptr<Epetra_Comm>& comm);
+                              FESpace<Mesh, MapEpetra>& uFESpace,
+                              BCHandler& bcHandler,
+                              boost::shared_ptr<Epetra_Comm>& comm);
 
     //! Destructor
     virtual ~ElectroMonodomainSolver() {}
@@ -299,9 +299,9 @@ private:
 template<typename Mesh, typename SolverType>
 ElectroMonodomainSolver<Mesh, SolverType>::
 ElectroMonodomainSolver ( const data_type&          dataType,
-                        FESpace<Mesh, MapEpetra>& uFESpace,
-                        BCHandler&                BCh_u,
-                        boost::shared_ptr<Epetra_Comm>&              comm ) :
+                          FESpace<Mesh, MapEpetra>& uFESpace,
+                          BCHandler&                BCh_u,
+                          boost::shared_ptr<Epetra_Comm>&              comm ) :
     M_data                   ( dataType ),
     M_uFESpace               ( uFESpace ),
     M_comm                   ( comm ),
@@ -755,7 +755,7 @@ void ElectroMonodomainSolver<Mesh, SolverType>::PDEiterate ( bcHandlerRaw_Type& 
 
 template<typename Mesh, typename SolverType>
 void ElectroMonodomainSolver<Mesh, SolverType>::solveSystem ( matrixPtr_Type  matrFull,
-                                                            vector_Type&    rhsFull )
+                                                              vector_Type&    rhsFull )
 {
     LifeChrono chrono;
 
@@ -837,8 +837,8 @@ void ElectroMonodomainSolver<Mesh, SolverType>::solveSystem ( matrixPtr_Type  ma
 
 template<typename Mesh, typename SolverType>
 void ElectroMonodomainSolver<Mesh, SolverType>::applyBoundaryConditions ( matrix_Type&        matrix,
-                                                                        vector_Type&        rhs,
-                                                                        bcHandlerRaw_Type&  BCh )
+                                                                          vector_Type&        rhs,
+                                                                          bcHandlerRaw_Type&  BCh )
 {
 
     // BC manage for the PDE

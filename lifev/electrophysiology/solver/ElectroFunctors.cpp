@@ -311,11 +311,11 @@ ElectroFunctors::setAppliedCurrent ( const Real& x, const Real& y, const Real& z
 
 Real
 ElectroFunctors::setAppliedCurrentZygote (const double& t,
-                                        const double& x,
-                                        const double& y,
-                                        const double& z,
-                                        const ID& /*i*/,
-                                        const markerID_Type& ref)
+                                          const double& x,
+                                          const double& y,
+                                          const double& z,
+                                          const ID& /*i*/,
+                                          const markerID_Type& ref)
 {
     // double pi = acos(-1.0);
     Real appliedCurrent = 0.0;
@@ -487,11 +487,11 @@ ElectroFunctors::setStimulus ( const Real& t, const Real& x, const Real& y, cons
 
 Real
 ElectroFunctors::setReducedConductivitySphere ( const Real& x,
-                                              const Real& y,
-                                              const Real& z,
-                                              const Real& /*t*/,
-                                              const ID&   id,
-                                              const Real& sigma) const
+                                                const Real& y,
+                                                const Real& z,
+                                                const Real& /*t*/,
+                                                const ID&   id,
+                                                const Real& sigma) const
 {
     if ( ( ( x - M_sphereX ) * ( x - M_sphereX ) +
             ( y - M_sphereY ) * ( y - M_sphereY ) +
@@ -509,11 +509,11 @@ ElectroFunctors::setReducedConductivitySphere ( const Real& x,
 
 Real
 ElectroFunctors::setReducedConductivityCylinder ( const Real& x,
-                                                const Real& y,
-                                                const Real& z,
-                                                const Real& /*t*/,
-                                                const ID&   id,
-                                                const Real& sigma ) const
+                                                  const Real& y,
+                                                  const Real& z,
+                                                  const Real& /*t*/,
+                                                  const ID&   id,
+                                                  const Real& sigma ) const
 {
     Real distance2, distanceX, distanceY, distanceZ;
     distanceX = ( ( M_cylinderB * M_cylinderB + M_cylinderC * M_cylinderC ) * ( M_cylinderX - x ) -
@@ -548,11 +548,11 @@ ElectroFunctors::setReducedConductivityCylinder ( const Real& x,
 
 Real
 ElectroFunctors::setReducedConductivityBox ( const Real& x,
-                                           const Real& y,
-                                           const Real& z,
-                                           const Real& /*t*/,
-                                           const ID&   id,
-                                           const Real& sigma ) const
+                                             const Real& y,
+                                             const Real& z,
+                                             const Real& /*t*/,
+                                             const ID&   id,
+                                             const Real& sigma ) const
 {
     if  ( ( x > M_minimumBoxX ) && ( x < M_maximumBoxX ) &&
             ( y > M_minimumBoxY ) && ( y < M_maximumBoxY ) &&
@@ -568,10 +568,10 @@ ElectroFunctors::setReducedConductivityBox ( const Real& x,
 
 Real
 ElectroFunctors::setInitialScalar ( const Real& /*t*/ ,
-                                  const Real& /*x*/,
-                                  const Real& /*y*/,
-                                  const Real& /*z*/,
-                                  const ID&   /*id*/ )
+                                    const Real& /*x*/,
+                                    const Real& /*y*/,
+                                    const Real& /*z*/,
+                                    const ID&   /*id*/ )
 {
     return M_restPotential;
 }
@@ -580,10 +580,10 @@ ElectroFunctors::setInitialScalar ( const Real& /*t*/ ,
 
 Real
 ElectroFunctors::setZeroScalar ( const Real& /*t*/,
-                               const Real& /*x*/,
-                               const Real& /*y*/,
-                               const Real& /*z*/,
-                               const ID&   /*id*/ )
+                                 const Real& /*x*/,
+                                 const Real& /*y*/,
+                                 const Real& /*z*/,
+                                 const ID&   /*id*/ )
 {
     return 0.;
 }

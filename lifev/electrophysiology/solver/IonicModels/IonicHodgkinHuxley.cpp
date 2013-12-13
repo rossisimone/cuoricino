@@ -80,23 +80,23 @@ namespace LifeV
 
 
 IonicHodgkinHuxley::IonicHodgkinHuxley()  :
-super       ( 4,3 ),
-M_gNa(120.0),
-M_gK(36.0),
-M_gL(0.3),
-M_vNa(115.0),
-M_vK(-12.0),
-M_vL(10.6)
+    super       ( 4, 3 ),
+    M_gNa (120.0),
+    M_gK (36.0),
+    M_gL (0.3),
+    M_vNa (115.0),
+    M_vK (-12.0),
+    M_vL (10.6)
 {
-	M_restingConditions.at(0) = 0.0;
-	M_restingConditions.at(1) = 0.052932485257250;
-	M_restingConditions.at(2) = 0.317676914060697;
-	M_restingConditions.at(3) = 0.596120753508460;
+    M_restingConditions.at (0) = 0.0;
+    M_restingConditions.at (1) = 0.052932485257250;
+    M_restingConditions.at (2) = 0.317676914060697;
+    M_restingConditions.at (3) = 0.596120753508460;
 
 }
 
 IonicHodgkinHuxley::IonicHodgkinHuxley ( Teuchos::ParameterList& parameterList     )   :
-    super       ( 4,3 )
+    super       ( 4, 3 )
 {
     M_gNa        =  parameterList.get ("gNa",      120.0     );
     M_gK        =  parameterList.get ("gK",     36.0     );
@@ -147,7 +147,7 @@ IonicHodgkinHuxley& IonicHodgkinHuxley::operator= ( const IonicHodgkinHuxley& mo
 //! Methods
 // ===================================================
 void IonicHodgkinHuxley::computeGatingRhs ( const   std::vector<Real>&  v,
-                                     std::vector<Real>& rhs )
+                                            std::vector<Real>& rhs )
 {
 
     Real V = v[0];
@@ -155,20 +155,20 @@ void IonicHodgkinHuxley::computeGatingRhs ( const   std::vector<Real>&  v,
     Real N = v[2];
     Real H = v[3];
 
-    Real alpham=0.1*(25.-V)/(std::exp((25.-V)/10.)-1.);
-    Real betam=4.*std::exp(-V/18.0);
-    Real alphah=0.07*std::exp(-V/20.);
-    Real betah=1.0/(std::exp((30.-V)/10.)+1.);
-    Real alphan=0.01*(10.-V)/(std::exp((10.-V)/10.)-1.);
-    Real betan=0.125*std::exp(-V/80.0);
+    Real alpham = 0.1 * (25. - V) / (std::exp ( (25. - V) / 10.) - 1.);
+    Real betam = 4.*std::exp (-V / 18.0);
+    Real alphah = 0.07 * std::exp (-V / 20.);
+    Real betah = 1.0 / (std::exp ( (30. - V) / 10.) + 1.);
+    Real alphan = 0.01 * (10. - V) / (std::exp ( (10. - V) / 10.) - 1.);
+    Real betan = 0.125 * std::exp (-V / 80.0);
 
-    rhs[0] = alpham*(1-M)-betam*M;
-    rhs[1] = alphan*(1-N)-betan*N;
-    rhs[2] = alphah*(1-H)-betah*H;
+    rhs[0] = alpham * (1 - M) - betam * M;
+    rhs[1] = alphan * (1 - N) - betan * N;
+    rhs[2] = alphah * (1 - H) - betah * H;
 }
 
 void IonicHodgkinHuxley::computeRhs ( const   std::vector<Real>&  v,
-                                     std::vector<Real>& rhs )
+                                      std::vector<Real>& rhs )
 {
 
     Real V = v[0];
@@ -176,17 +176,17 @@ void IonicHodgkinHuxley::computeRhs ( const   std::vector<Real>&  v,
     Real N = v[2];
     Real H = v[3];
 
-    Real alpham=0.1*(25.-V)/(std::exp((25.-V)/10.)-1.);
-    Real betam=4.*std::exp(-V/18.0);
-    Real alphah=0.07*std::exp(-V/20.);
-    Real betah=1.0/(std::exp((30.-V)/10.)+1.);
-    Real alphan=0.01*(10.-V)/(std::exp((10.-V)/10.)-1.);
-    Real betan=0.125*std::exp(-V/80.0);
+    Real alpham = 0.1 * (25. - V) / (std::exp ( (25. - V) / 10.) - 1.);
+    Real betam = 4.*std::exp (-V / 18.0);
+    Real alphah = 0.07 * std::exp (-V / 20.);
+    Real betah = 1.0 / (std::exp ( (30. - V) / 10.) + 1.);
+    Real alphan = 0.01 * (10. - V) / (std::exp ( (10. - V) / 10.) - 1.);
+    Real betan = 0.125 * std::exp (-V / 80.0);
 
-    rhs[0] = -M_gK*N*N*N*N*(V-M_vK)-M_gNa*M*M*M*H*(V-M_vNa)-M_gL*(V-M_vL);//+M_appliedCurrent;
-    rhs[1] = alpham*(1-M)-betam*M;
-    rhs[2] = alphan*(1-N)-betan*N;
-    rhs[3] = alphah*(1-H)-betah*H;
+    rhs[0] = -M_gK * N * N * N * N * (V - M_vK) - M_gNa * M * M * M * H * (V - M_vNa) - M_gL * (V - M_vL); //+M_appliedCurrent;
+    rhs[1] = alpham * (1 - M) - betam * M;
+    rhs[2] = alphan * (1 - N) - betan * N;
+    rhs[3] = alphah * (1 - H) - betah * H;
 }
 
 
@@ -200,7 +200,7 @@ Real IonicHodgkinHuxley::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real H = v[3];
 
 
-    dPotential = -M_gK*N*N*N*N*(V-M_vK)-M_gNa*M*M*M*H*(V-M_vNa)-M_gL*(V-M_vL);//+M_appliedCurrent;
+    dPotential = -M_gK * N * N * N * N * (V - M_vK) - M_gNa * M * M * M * H * (V - M_vNa) - M_gL * (V - M_vL); //+M_appliedCurrent;
 
     return dPotential;
 }
@@ -212,24 +212,24 @@ void IonicHodgkinHuxley::computeGatingVariablesWithRushLarsen ( std::vector<Real
     Real N = v[2];
     Real H = v[3];
 
-    Real alpham=0.1*(25.-V)/(std::exp((25.-V)/10.)-1.);
-    Real betam=4.*std::exp(-V/18.0);
-    Real alphah=0.07*std::exp(-V/20.);
-    Real betah=1.0/(std::exp((30.-V)/10.)+1.);
-    Real alphan=0.01*(10.-V)/(std::exp((10.-V)/10.)-1.);
-    Real betan=0.125*std::exp(-V/80.0);
+    Real alpham = 0.1 * (25. - V) / (std::exp ( (25. - V) / 10.) - 1.);
+    Real betam = 4.*std::exp (-V / 18.0);
+    Real alphah = 0.07 * std::exp (-V / 20.);
+    Real betah = 1.0 / (std::exp ( (30. - V) / 10.) + 1.);
+    Real alphan = 0.01 * (10. - V) / (std::exp ( (10. - V) / 10.) - 1.);
+    Real betan = 0.125 * std::exp (-V / 80.0);
 
-    Real taum=alpham + betam;
-    Real taun=alphan + betan;
-    Real tauh=alphah + betah;
+    Real taum = alpham + betam;
+    Real taun = alphan + betan;
+    Real tauh = alphah + betah;
 
-    Real mInf=alpham /(taum);
-    Real nInf=alphan /(taun);
-    Real hInf=alphah /(tauh);
+    Real mInf = alpham / (taum);
+    Real nInf = alphan / (taun);
+    Real hInf = alphah / (tauh);
 
-    v[1]=mInf+(M-mInf)*std::exp(-dt*taum);
-    v[2]=nInf+(N-nInf)*std::exp(-dt*taun);
-    v[3]=hInf+(H-hInf)*std::exp(-dt*tauh);
+    v[1] = mInf + (M - mInf) * std::exp (-dt * taum);
+    v[2] = nInf + (N - nInf) * std::exp (-dt * taun);
+    v[3] = hInf + (H - hInf) * std::exp (-dt * tauh);
 
 }
 

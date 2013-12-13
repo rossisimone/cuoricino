@@ -45,15 +45,11 @@
 #include <stdexcept>
 #include <boost/scoped_ptr.hpp>
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #include <Epetra_Vector.h>
 #include <EpetraExt_MatrixMatrix.h>
 #include <Epetra_SerialDenseMatrix.h>
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #include <lifev/core/array/MatrixElemental.hpp>
 #include <lifev/core/array/VectorElemental.hpp>
@@ -122,7 +118,7 @@ public:
     typedef FESpace< MeshType, MapEpetra >                FESpace_Type;
     typedef boost::shared_ptr<FESpace_Type>               FESpacePtr_Type;
 
-    typedef MeshType										mesh_Type;
+    typedef MeshType                                        mesh_Type;
     typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 >                        scalarETFESpace_Type;
     typedef boost::shared_ptr<ETFESpace< mesh_Type, MapEpetra, 3, 1 > >    scalarETFESpacePtr_Type;
 
@@ -214,7 +210,7 @@ public:
        \param fileNameStiff the filename where to apply the spy method for the Stiffness matrix
     */
     virtual void showMe ( std::string const& fileNameStiff, std::string const& fileNameJacobian ) = 0;
-   // virtual void showMyParameters ();
+    // virtual void showMyParameters ();
 
     //! Compute the First Piola Kirchhoff Tensor
     /*!
@@ -245,7 +241,7 @@ public:
     //! Getters
     inline const dataPtr_Type materialData() const
     {
-    	return M_dataMaterial;
+        return M_dataMaterial;
     }
 
     //! Get the Epetramap
@@ -279,68 +275,69 @@ public:
 
     ///EMPTY METHODS FOR ACTIVATED MATERIALS
     inline virtual  vectorPtr_Type const fiberVector() const
-    { /*return (new vector_Type( M_dispFESpace -> map() ) ); */
-    	vectorPtr_Type k;
-    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
-    	return k;
+    {
+        /*return (new vector_Type( M_dispFESpace -> map() ) ); */
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
     }
 
-    inline virtual void setFiberVector( const vector_Type& /*fiberVector*/) {  }
+    inline virtual void setFiberVector ( const vector_Type& /*fiberVector*/) {  }
 
-    inline virtual void setSheetVector( const vector_Type& /*sheetVector*/) {  }
+    inline virtual void setSheetVector ( const vector_Type& /*sheetVector*/) {  }
 
-    inline virtual void setGammaf(const vector_Type& /*gammaf*/){}
-    inline virtual void setGammas(const vector_Type& /*gammas*/){}
-    inline virtual void setGamman(const vector_Type& /*gamman*/){}
+    inline virtual void setGammaf (const vector_Type& /*gammaf*/) {}
+    inline virtual void setGammas (const vector_Type& /*gammas*/) {}
+    inline virtual void setGamman (const vector_Type& /*gamman*/) {}
 
     inline virtual vectorPtr_Type gammaf()
     {
-    	vectorPtr_Type k;
-    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
-    	return k;
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
     }
     inline virtual vectorPtr_Type gammas()
     {
-    	vectorPtr_Type k;
-    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
-    	return k;
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
     }
     inline virtual vectorPtr_Type gamman()
     {
-    	vectorPtr_Type k;
-    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
-    	return k;
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
     }
 
     inline virtual vectorPtr_Type fiberVectorPtr()
     {
-    	vectorPtr_Type k;
-    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
-    	return k;
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
     }
     inline virtual vectorPtr_Type sheetVectorPtr()
     {
-    	vectorPtr_Type k;
-    	k.reset( new vector_Type( M_dispFESpace -> map() ) );
-    	return k;
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
     }
 
 
-    inline virtual void setupFiberVector( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
+    inline virtual void setupFiberVector ( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
 
-    inline virtual void setupSheetVector( Real& /*sx*/, Real& /*sy*/, Real& /*sz*/ ) {}
+    inline virtual void setupSheetVector ( Real& /*sx*/, Real& /*sy*/, Real& /*sz*/ ) {}
 
     inline  virtual scalarETFESpacePtr_Type activationSpace()
     {
-    	M_displayer->leaderPrint ("\nERROR: them chosen material law does not contain an activation space!!!! You fool!!!\n\n");
-    	scalarETFESpacePtr_Type k;
+        M_displayer->leaderPrint ("\nERROR: them chosen material law does not contain an activation space!!!! You fool!!!\n\n");
+        scalarETFESpacePtr_Type k;
         return k;
     }
 
 
     inline virtual MatrixSmall<3, 3>& identity()
     {
-    	MatrixSmall<3, 3> I;
+        MatrixSmall<3, 3> I;
         I (0, 0) = 1.0;
         I (0, 1) = 0.0;
         I (0, 2) = 0.0;

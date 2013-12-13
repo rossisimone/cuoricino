@@ -46,16 +46,12 @@
 #ifndef FSIOPERATOR_H
 #define FSIOPERATOR_H
 
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
 #include <Epetra_ConfigDefs.h>
 #ifdef EPETRA_MPI
 #include <Epetra_MpiComm.h>
 #else
 #include <Epetra_SerialComm.h>
 #endif
-#pragma GCC diagnostic warning "-Wunused-variable"
-#pragma GCC diagnostic warning "-Wunused-parameter"
 
 
 #include <lifev/core/util/Factory.hpp>
@@ -70,6 +66,7 @@
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinear.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinearPenalized.hpp>
+#include <lifev/structure/solver/SecondOrderExponentialMaterialNonLinear.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
 #include <lifev/structure/solver/ExponentialMaterialNonLinear.hpp>
 #include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
@@ -122,7 +119,7 @@ public:
 #ifdef HAVE_HDF5
     typedef ExporterHDF5Mesh3D<mesh_Type>                                           meshFilter_Type;
 #endif
-    typedef boost::shared_ptr<mesh_Type>											meshPtr_Type;
+    typedef boost::shared_ptr<mesh_Type>                                            meshPtr_Type;
     typedef OseenSolverShapeDerivative   <mesh_Type>                                fluid_Type;
     typedef StructuralOperator  <mesh_Type>                                           solid_Type;
     typedef HarmonicExtensionSolver<mesh_Type>                                      meshMotion_Type;
@@ -306,11 +303,11 @@ public:
      * \param d0: initial solid displacement
      * \param w0: initial mesh velocity
      */
-    virtual void initialize ( fluidPtr_Type::value_type::function_Type const& u0,
-                              fluidPtr_Type::value_type::function_Type const& p0,
-                              solidPtr_Type::value_type::function const& d0,
-                              solidPtr_Type::value_type::function const& /*w0*/,
-                              fluidPtr_Type::value_type::function_Type const& df0 );
+    virtual void initialize ( fluid_Type::function_Type const& u0,
+                              fluid_Type::function_Type const& p0,
+                              solid_Type::function const& d0,
+                              solid_Type::function const& w0,
+                              fluid_Type::function_Type const& df0 );
 
     //@}
 
@@ -361,6 +358,11 @@ public:
     static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createGeneralizedActiveHolzapfelOgdenMaterial()
     {
         return new GeneralizedActiveHolzapfelOgdenMaterial< FSIOperator::mesh_Type >();
+    }
+
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createSecondOrderExponentialMaterialNonLinear()
+    {
+        return new SecondOrderExponentialMaterialNonLinear< FSIOperator::mesh_Type >();
     }
 
     //@}
@@ -627,24 +629,24 @@ public:
 
     //! Getter-Setter for the fluid solver
     /** \todo{mark as deprecated}*/
-    fluidPtr_Type::value_type& fluid()
+    fluid_Type& fluid()
     {
         return *M_fluid;
     }
     //! Getter-Setter for the solid solver
     /** \todo{mark as deprecated}*/
-    solidPtr_Type::value_type& solid()
+    solid_Type& solid()
     {
         return *M_solid;
     }
     //! Getter-Setter for the mesh motion solver
     /** \todo{mark as deprecated}*/
-    meshMotionPtr_Type::value_type& meshMotion()
+    meshMotion_Type& meshMotion()
     {
         return *M_meshMotion;
     }
-    //     fluidLinPtr_Type::value_type& fluidLin()                               { return *M_fluidLin; }
-    //     solidLinPtr_Type::value_type& solidLin()                               { return *M_solidLin; }
+    //     fluidLin_Type & fluidLin()                               { return *M_fluidLin; }
+    //     solidLin_Type & solidLin()                               { return *M_solidLin; }
 
     //!getter for the FSI data container
     const data_Type& data()                                       const
