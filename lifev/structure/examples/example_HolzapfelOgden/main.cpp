@@ -32,9 +32,6 @@
 #include <Epetra_SerialComm.h>
 #endif
 
-#pragma GCC diagnostic ignored "-Wunused-local-typedefs"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_ParameterXMLFileReader.hpp>
 
@@ -58,9 +55,6 @@
 #include <lifev/core/algorithm/PreconditionerIfpack.hpp>
 #include <lifev/core/algorithm/PreconditionerML.hpp>
 
-#pragma GCC diagnostic warning "-Wunused-local-typedefs"
-#pragma GCC diagnostic warning "-Wunused-parameter"
-
 #include <lifev/core/LifeV.hpp>
 
 #include <boost/shared_ptr.hpp>
@@ -82,7 +76,7 @@ static real_t u0fun (const real_t&, const real_t&, const real_t&, const real_t&,
     return 0.;
 }
 
-static real_t f0fun (const real_t&, const real_t&, const real_t&, const real_t& z, const LifeV::ID& comp)
+static real_t f0fun (const real_t&, const real_t&, const real_t&, const real_t& /*z*/, const LifeV::ID& comp)
 {
     /*
     real_t alpha = - M_PI/3. * z + M_PI/3. * (1-z);

@@ -45,7 +45,7 @@ Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real&
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.0005;
     Real stimulusValue = 10.;
-    Real stimulusPeriod = 2.;
+    //Real stimulusPeriod = 2.;
 
     Real returnValue;
 

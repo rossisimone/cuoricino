@@ -3121,7 +3121,7 @@ Real w0 (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*
 
 
 
-Real linearPress2 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearPress2 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3134,7 +3134,7 @@ Real linearPress2 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /
 }
 
 
-Real linearFlux3 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFlux3 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3147,7 +3147,7 @@ Real linearFlux3 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*
 }
 
 
-Real linearFluxIn (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFluxIn (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3161,7 +3161,7 @@ Real linearFluxIn (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*
 }
 
 
-Real linearFlux4 (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFlux4 (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3175,7 +3175,7 @@ Real linearFlux4 (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z
 
 
 
-Real linearFlux5 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFlux5 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3189,7 +3189,7 @@ Real linearFlux5 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*
 
 
 
-Real linearFlux6 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFlux6 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3202,7 +3202,7 @@ Real linearFlux6 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*
 }
 
 
-Real linearFlux7 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFlux7 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3215,7 +3215,7 @@ Real linearFlux7 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*
 }
 
 
-Real linearFlux8 (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFlux8 (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3227,7 +3227,7 @@ Real linearFlux8 (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z
     return (aortaFlux8 (tii) - aortaFlux8 (ti) ) / (0.01) * (t - (ti) ) + aortaFlux8 (ti);
 }
 
-Real linearFlux9 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFlux9 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3240,7 +3240,7 @@ Real linearFlux9 ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*
 }
 
 
-Real linearFlux3_ (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFlux3_ (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3253,7 +3253,7 @@ Real linearFlux3_ (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*
 }
 
 
-Real linearFlux6_ ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real linearFlux6_ ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t > 0.8)
     {
@@ -3265,7 +3265,7 @@ Real linearFlux6_ ( Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /
     return (aortaFlux6_ (tii) - aortaFlux6_ (ti) ) / (0.01) * (t - (ti) ) + aortaFlux6_ (ti);
 }
 
-Real aortaFlux3_ (const Real&  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real aortaFlux3_ (const Real&  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t <= 0.00 + 0.01)
     {
@@ -3589,7 +3589,7 @@ Real aortaFlux3_ (const Real&  t, const Real& /*x*/, const Real& /*y*/, const Re
     }
 }
 
-Real aortaFlux6_ (const Real&  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real aortaFlux6_ (const Real&  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     if (t <= 0.00 + 0.01)
     {
@@ -3913,7 +3913,7 @@ Real aortaFlux6_ (const Real&  t, const Real& /*x*/, const Real& /*y*/, const Re
     }
 }
 
-Real u2 (Real  t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
+Real u2 (Real  /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
 {
     return -1e4;
 }
@@ -4831,7 +4831,7 @@ Real linearInletCylinder ( Real  t, const Real& /*x*/, const Real& /*y*/, const 
 }
 
 
-Real linearVelInletCylinder ( Real  t, const Real& x, const Real& y, const Real& z, const ID& i)
+Real linearVelInletCylinder ( Real /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& i)
 {
     //Components for Simone's mesh
 
@@ -4865,7 +4865,7 @@ Real linearVelInletCylinder ( Real  t, const Real& x, const Real& y, const Real&
 }
 
 
-Real oneVelInletCylinder ( Real  t, const Real& x, const Real& y, const Real& z, const ID& i)
+Real oneVelInletCylinder ( Real  /*t*/, const Real& x, const Real& y, const Real& /*z*/, const ID& i)
 {
     //Components for Simone's mesh
 
@@ -4921,7 +4921,7 @@ Real flatNormalVelInlet ( Real t, const Real& /*x*/, const Real& /*y*/, const Re
     }
 }
 
-Real popliteal (const Real t, const Real& , const Real& , const Real& , const ID& i) //outlet flux from the bifurcation
+Real popliteal (const Real t, const Real& , const Real& , const Real& , const ID& /*i*/) //outlet flux from the bifurcation
 {
     Real newt = ( (Real) ( ( (int) (t * 1000) ) % 792) ) / 1000;
     if ( newt <= 0.    + 0.004 )
@@ -5723,7 +5723,7 @@ Real popliteal (const Real t, const Real& , const Real& , const Real& , const ID
 }
 
 
-Real pont_dist (const Real t, const Real& , const Real& , const Real& , const ID& i) //inlet flux from the bypass
+Real pont_dist (const Real t, const Real& , const Real& , const Real& , const ID& /*i*/) //inlet flux from the bypass
 {
     Real newt = ( (Real) ( ( (int) (t * 1000) ) % 792) ) / 1000;
     if ( newt <= 0.    + 0.004 )

@@ -166,12 +166,14 @@ Real IonicNoblePurkinje::computeLocalPotentialRhs ( const std::vector<Real>& v )
     Real N = v[2];
     Real H = v[3];
 
+    /*
     Real alpham = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.1, -1, -15, -48);
     Real betam  = GeneralFunctionAlphaAndBeta (V, 0, 1, -0.12, -1, 5, -8);
     Real alphah = GeneralFunctionAlphaAndBeta (V, 0.17, -20, 0, 0, 1, -90);
     Real betah  = GeneralFunctionAlphaAndBeta (V, 1, 0, 0, 1, -10, -42);
     Real alphan = GeneralFunctionAlphaAndBeta (V, 0, 1, 0.0001, -1, -10, -50);
     Real betan  = GeneralFunctionAlphaAndBeta (V, 0.002, -80, 0, 0, 1, -90);
+     */
 
     Real gK1 = 1.2 * std::exp (- (V + 90.0) / 50.0) + 0.015 * std::exp ( (V + 90.0) / 60.0);
     Real gK2 = 1.2 * N * N * N * N;

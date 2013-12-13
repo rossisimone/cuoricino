@@ -67,7 +67,7 @@ Matrix inversePermeability::eval ( const UInt& iElem, const Vector3D& P, const R
 }
 
 // Reaction term
-Real reactionTerm::eval ( const UInt& /*iElem*/, const Vector3D& P, const Real& /*time*/ ) const
+Real reactionTerm::eval ( const UInt& /*iElem*/, const Vector3D& /*P*/, const Real& /*time*/ ) const
 {
     return 1;
 }
@@ -147,7 +147,7 @@ Real dirichlet ( const Real& t,
 Real analyticalSolution ( const Real& t,
                           const Real& x,
                           const Real& y,
-                          const Real& z,
+                          const Real& /*z*/,
                           const ID& /*ic*/ )
 {
     return  t * t * x * x + y * y * y;
@@ -157,7 +157,7 @@ Real analyticalSolution ( const Real& t,
 Real analyticalFlux ( const Real& t,
                       const Real& x,
                       const Real& y,
-                      const Real& z,
+                      const Real& /*z*/,
                       const ID& icomp )
 {
     switch ( icomp )

@@ -359,7 +359,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     std::vector<Real> junction (3, 0.0);
-    Real Radius = 0.1;
+    //Real Radius = 0.1;
     UInt numberOfSources (4);
     UInt numberLocalSources (numberOfSources / Comm->NumProc() );
     if ( Comm->MyPID() == 0 )

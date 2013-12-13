@@ -38,7 +38,7 @@
 namespace LifeV
 {
 
-CardiacStimulus::CardiacStimulus( ) { };
+CardiacStimulus::CardiacStimulus( ) { }
 
 
 }

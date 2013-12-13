@@ -103,16 +103,16 @@ void positionVector (const RegionMesh<LinearTetra>& mesh,  VectorEpetra& disp)
 
 }
 
-void changeMesh (const RegionMesh<LinearTetra>& mesh,  VectorEpetra& positionVector)
+void changeMesh (const RegionMesh<LinearTetra>& /*mesh*/,  VectorEpetra& positionVector)
 {
     Int nLocalDof = positionVector.epetraVector().MyLength();
     Int nComponentLocalDof = nLocalDof / 3;
 
     for (UInt k (0); k < nComponentLocalDof; k++)
     {
-        UInt iGID = positionVector.blockMap().GID (k);
-        UInt jGID = positionVector.blockMap().GID (k + nComponentLocalDof);
-        UInt kGID = positionVector.blockMap().GID (k + 2 * nComponentLocalDof);
+        //UInt iGID = positionVector.blockMap().GID (k);
+        //UInt jGID = positionVector.blockMap().GID (k + nComponentLocalDof);
+        //UInt kGID = positionVector.blockMap().GID (k + 2 * nComponentLocalDof);
 
         //      mesh.point(iGID).setX(positionVector[iGID]);
         //      mesh.point(iGID).setY(positionVector[jGID]);
@@ -320,7 +320,7 @@ int main (int argc, char** argv)
         std::cout << "\nsolid iterations: " << solidIter;
         std::cout << "\nSolving coupled problem: " << coupling;
     }
-    Int k (0);
+//    Int k (0);
 
     ////    Real timeReac = 0.0;
     ////    Real timeDiff = 0.0;
@@ -407,7 +407,7 @@ int main (int argc, char** argv)
     expc->addVariable ( ExporterData<RegionMesh<LinearTetra> >::VectorField, "disp", emSolverPtr -> activationPtr() -> FESpacePtrSolid(), emSolverPtr -> solidPtr() -> displacementPtr(), UInt (0) );
 
 
-    UInt ntotalDof = emSolverPtr -> solidPtr() -> dispFESpace().dof().numTotalDof();
+//    UInt ntotalDof = emSolverPtr -> solidPtr() -> dispFESpace().dof().numTotalDof();
     UInt nLocalDof = emSolverPtr -> solidPtr() -> displacement().epetraVector().MyLength();
     UInt dim = nLocalDof / 3;
 
@@ -438,8 +438,8 @@ int main (int argc, char** argv)
     //                *res -= *Xk;
     //
     ////                *res = emSolverPtr -> solidPtr() -> displacement();
-    Real normres = 2.0;
-    Real normdisp = 2.0;
+    //Real normres = 2.0;
+    //Real normdisp = 2.0;
     // res -> norm2();
 
     Real tol = 1e-6;
@@ -464,7 +464,7 @@ int main (int argc, char** argv)
         {
             std::cout << "\n/////////////////////////////////////////////////////";
             std::cout << "\n Time " << t;
-            std::cout << "\n\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\ ";
+            std::cout << "\n/////////////////////////////////////////////////////";
                   }
 
                       if ( comm->MyPID() == 0 )

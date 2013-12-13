@@ -779,27 +779,26 @@ int main (int argc, char** argv)
     boost::shared_ptr<FLRelationship> fl (new FLRelationship);
 
     boost::shared_ptr<HeavisideFct> H (new HeavisideFct);
-#define deformationGradientTensor ( grad( electrodETFESpace, *emDisp, 0) + value( solid.material()-> identity() ) )
-#define RIGHTCAUCHYGREEN transpose(deformationGradientTensor) * deformationGradientTensor
-#define firstInvariantC trace( RIGHTCAUCHYGREEN )
-#define fiber0       ( value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) )
-#define fiber        ( deformationGradientTensor * fiber0 )
-#define I4f             dot( fiber, fiber)
-#define Ca    ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) )
-#define Ca2         (  Ca * Ca )
-#define dCa         ( Ca + value(-0.02155) )
-#define Gammaf          ( value( aETFESpace, *gammaf ) )
-#define Pa         ( value(-2.5) * eval(H, dCa ) * eval(H, dCa )/*eval( fl,  I4f) */ * eval( flg,  Gammaf) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) )
-    //      #define Pa            beta * eval( fl,  I4f)
 
-#define GammaPlusOne ( Gammaf + value(1.0) )
+    BOOST_AUTO_TPL (deformationGradientTensor, ( grad( electrodETFESpace, *emDisp, 0) + value( solid.material()-> identity() ) ));
+    BOOST_AUTO_TPL (RIGHTCAUCHYGREEN, transpose(deformationGradientTensor) * deformationGradientTensor);
+    BOOST_AUTO_TPL (firstInvariantC, trace( RIGHTCAUCHYGREEN ));
+    BOOST_AUTO_TPL (fiber0, ( value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) ));
+    BOOST_AUTO_TPL (fiber, ( deformationGradientTensor * fiber0 ));
+    BOOST_AUTO_TPL (I4f, dot( fiber, fiber));
+    BOOST_AUTO_TPL (Ca, ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) ));
+    BOOST_AUTO_TPL (Ca2, (  Ca * Ca ));
+    BOOST_AUTO_TPL (dCa, ( Ca + value(-0.02155) ));
+    BOOST_AUTO_TPL (Gammaf, ( value( aETFESpace, *gammaf ) ));
+    BOOST_AUTO_TPL (Pa, ( value(-2.5) * eval(H, dCa ) * eval(H, dCa )/*eval( fl,  I4f) */ * eval( flg,  Gammaf) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) ));
+//      #define Pa            beta * eval( fl,  I4f)
+    BOOST_AUTO_TPL (GammaPlusOne, ( Gammaf + value(1.0) ));
     //#define dW1       ( ( I4f - value(1.0) ) )
-#define dW1     ( ( Gammaf * Gammaf + 2.0 * Gammaf ) )
-#define dW      ( ( ( dW1 ) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) ) )
-
+    BOOST_AUTO_TPL (dW1, ( ( Gammaf * Gammaf + 2.0 * Gammaf ) ));
+    BOOST_AUTO_TPL (dW, ( ( ( dW1 ) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) ) ));
     //   #define dgGammaf ( value(-1.0) + value(-2.0) / ( GammaPlusOne ) + value(2.0) * Gammaf * ( Gammaf + value(2.0)  )* pow( GammaPlusOne, -3 ) )
     //   #define activationEquation value(-1.0) * ( Pa  -  ( value(2.0) * GammaPlusOne * firstInvariantC + dgGammaf * I4f )  * value( mu / 2.0 ) ) / beta
-#define activationEquation value(0.0005) * (Pa - dW) / ( Ca2 )
+    BOOST_AUTO_TPL (activationEquation, value(0.0005) * (Pa - dW) / ( Ca2 ));
 
     vectorPtr_Type tmpRhsActivation ( new vector_Type ( rhsActivation -> map(), Repeated ) );
 
@@ -938,25 +937,6 @@ int main (int argc, char** argv)
     {
         std::cout << "Active strain example: Passed!" << std::endl;
     }
-
-#undef Gammaf
-#undef deformationGradientTensor
-#undef RIGHTCAUCHYGREEN
-#undef firstInvariantC
-#undef fiber0
-#undef fiber
-#undef Pa
-#undef I4f
-#undef beta
-#undef GammaPlusOne
-#undef dgGammaf
-#undef activationEquation
-#undef Ca
-#undef Ca2
-#undef dCa
-#undef dW1
-#undef dW
-
 
 
 #ifdef HAVE_MPI

@@ -104,7 +104,7 @@ Int main ( Int argc, char** argv )
     typedef VectorEpetra                                             vector_Type;
     typedef boost::shared_ptr<vector_Type>                           vectorPtr_Type;
 
-    bool verbose = false;
+//    bool verbose = false;
 
     //! Initializing Epetra communicator
     MPI_Init (&argc, &argv);

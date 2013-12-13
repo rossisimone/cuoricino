@@ -55,7 +55,6 @@ CardiacStimulusPMJ::CardiacStimulusPMJ() :
 void CardiacStimulusPMJ::setPMJFromFile ( std::string fileName )
 {
     std::ifstream fin;
-    Real x, y, z, time, duration;
 
     fin.open ( fileName.c_str() );
     while ( !fin.fail() )
@@ -85,7 +84,7 @@ void CardiacStimulusPMJ::setPMJAddJunction ( Real x, Real y, Real z, Real time, 
 // ===================================================
 //! Methods
 // ===================================================
-Real CardiacStimulusPMJ::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i )
+Real CardiacStimulusPMJ::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
 {
     Real current = 0;
     const Real volumeOfBall = (4. / 3.) * M_PI * M_radius * M_radius * M_radius;

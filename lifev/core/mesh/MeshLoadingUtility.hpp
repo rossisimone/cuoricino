@@ -238,9 +238,9 @@ void fillWithFullMesh (  boost::shared_ptr< RegionMeshType >& meshLocal,
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template< typename RegionMeshType>
-void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
-                               const std::string& meshName,
-                               const std::string& resourcesPath )
+void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& /*meshLocal*/,
+                               const std::string& /*meshName*/,
+                               const std::string& /*resourcesPath*/ )
 {
     //#ifdef HAVE_MPI
     //    boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );

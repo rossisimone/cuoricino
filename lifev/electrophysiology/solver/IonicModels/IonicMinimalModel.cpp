@@ -290,7 +290,7 @@ void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
 }
 
 
-void IonicMinimalModel::computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt )
+void IonicMinimalModel::computeGatingVariablesWithRushLarsen ( std::vector<Real>& /*v*/, const Real /*dt*/ )
 {
 
     std::cout << "\n\nRush Larsen method, for minimal model not implemented!!!\n";
@@ -391,7 +391,7 @@ void IonicMinimalModel::computePotentialRhsSVI ( const std::vector<vectorPtr_Typ
                                                  std::vector<vectorPtr_Type>&        rhs,
                                                  FESpace<mesh_Type, MapEpetra>&  uFESpace,
                                                  vector_Type& disp,
-                                                 boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace)
+                                                 boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > /*dispFESPace*/)
 {
     typedef ETFESpace<mesh_Type, MapEpetra, 3, 1> ETFESpace_Type;
     typedef boost::shared_ptr<ETFESpace_Type> ETFESpacePtr_Type;

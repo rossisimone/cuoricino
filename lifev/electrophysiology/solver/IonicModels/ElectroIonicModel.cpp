@@ -142,7 +142,7 @@ vector< vector<Real> > ElectroIonicModel::getJac (const vector<Real>& v, Real h)
     return J;
 }
 
-MatrixEpetra<Real> ElectroIonicModel::getJac (const vector_Type& v, Real h)
+MatrixEpetra<Real> ElectroIonicModel::getJac (const vector_Type& v, Real /*h*/)
 {
     matrix_Type J (v.map(), M_numberOfEquations, false);
     //  vector<Real> f1(M_numberOfEquations,0.0);

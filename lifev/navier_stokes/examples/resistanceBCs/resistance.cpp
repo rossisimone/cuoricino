@@ -139,12 +139,12 @@ struct Resistance::Private
 
     // Static boost functions to impose boundary conditions
     // Inlet BCs (for this test Poiseuille)
-    static Real fluxFunctionAneurysm (const Real& t, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
+    static Real fluxFunctionAneurysm (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
     {
 
         Real fluxFinal (0.17);
-        Real rampAmpl (0.4);
-        Real dt (0.001);
+        //Real rampAmpl (0.4);
+        //Real dt (0.001);
 
         // if ( t <= rampAmpl )
         // {
@@ -288,7 +288,7 @@ Resistance::Resistance ( int argc,
 
     //    MPI_Init(&argc,&argv);
 
-    int ntasks = 0;
+    //int ntasks = 0;
     parameters->comm.reset ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
 
 #else

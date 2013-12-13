@@ -139,7 +139,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing rhs..." ;
     std::vector<Real> rhs (ionicModel.Size(), 0);
-    std::vector<Real>& rRhs = rhs;
+    //std::vector<Real>& rRhs = rhs;
     std::cout << " Done! "  << endl;
 
 

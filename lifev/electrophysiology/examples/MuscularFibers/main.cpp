@@ -641,7 +641,7 @@ Int main ( Int argc, char** argv )
         Real R32 = s03 * s02 *  ( 1 - std::cos (teta) ) + s01 * std::sin (teta);
         Real R33 = std::cos (teta) + s03 * s03 * ( 1 - std::cos (teta) );
 
-        Real ca = std::cos (teta);
+//        Real ca = std::cos (teta);
         Real sa = std::sin (teta);
         //          (*rbFiber) [i] = R11 * (*rbFiber) [i] + R12 * (*rbFiber) [j] + R13 * (*rbFiber) [k];
         //          (*rbFiber) [j] = R21 * (*rbFiber) [i] + R22 * (*rbFiber) [j] + R23 * (*rbFiber) [k];

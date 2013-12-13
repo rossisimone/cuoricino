@@ -326,7 +326,7 @@ Int main ( Int argc, char** argv )
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
-    Int meth = monodomainList.get ("meth", 1 );
+    //Int meth = monodomainList.get ("meth", 1 );
     Real dt_min = dt / 50.0;
     Int k (0), j (0);
     Int nodes;
