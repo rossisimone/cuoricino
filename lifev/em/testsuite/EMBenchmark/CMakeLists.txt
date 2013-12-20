@@ -9,7 +9,7 @@ TRIBITS_ADD_EXECUTABLE(
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_EMbenchmark_data
   CREATE_SYMLINK
-  SOURCE_FILES data ParamList.xml data
+  SOURCE_FILES data ParamList.xml stimulus
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 

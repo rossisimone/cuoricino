@@ -27,6 +27,7 @@
 #include <lifev/core/interpolation/RBFrescaledScalar.hpp>
 //#include <lifev/core/interpolation/RBFscalar.hpp>
 #include <lifev/core/interpolation/RBFvectorial.hpp>
+#include <lifev/electrophysiology/util/CardiacStimulusPMJ.hpp>
 
 #include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 #include <sys/stat.h>
@@ -177,9 +178,18 @@ int main (int argc, char** argv)
     }
 
 
-    function_Type stimulus;
-    stimulus = &PacingProtocolMM;
-    emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction (stimulus, 0.0);
+    CardiacStimulusPMJ stimulus;
+    stimulus.setRadius       ( monodomainList.get ("stimulus_radius",        0.2) );
+    stimulus.setTotalCurrent ( monodomainList.get ("stimulus_total_current", 0.2) );
+    std::string stimulusFile ( monodomainList.get ("stimulus_file", "stimulus") );
+    std::string stimulusPath ( monodomainList.get ("stimulus_path", "stimulus") );
+    stimulus.setPMJFromFile ( stimulusPath + stimulusFile );
+
+    //function_Type stimulus;
+    //stimulus = &PacingProtocolMM;
+    //emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction (stimulus, 0.0);
+
+    emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromCardiacStimulus (stimulus, 0.0);
     if ( comm->MyPID() == 0 )
     {
         if (emSolverPtr -> monodomainPtr() -> displacementPtr() )
@@ -315,7 +325,8 @@ int main (int argc, char** argv)
             cout << "\nSet applied current";
         }
 
-        emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction ( stimulus, t );
+        //emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromFunction ( stimulus, t );
+        emSolverPtr -> monodomainPtr() -> setAppliedCurrentFromCardiacStimulus ( stimulus, t );
         emSolverPtr -> solveOneMonodomainStep();
 
         if (coupling == true)
