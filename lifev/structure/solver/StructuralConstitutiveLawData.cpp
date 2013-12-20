@@ -190,11 +190,11 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
         M_young[1]   = dataFile ( ( section + "/physics/young"   ).data(), 0. );
         M_poisson[1] = dataFile ( ( section + "/physics/poisson" ).data(), 0. );
 
-        M_bulk[1] = dataFile ( ( section + "/physics/bulk"   ).data(), 1e9 );
-        M_alpha[1] = dataFile ( ( section + "/physics/alpha" ).data(), 3e6 );
+        M_bulk[1] = dataFile ( ( section + "/physics/bulk"   ).data(), 1.0e9 );
+        M_alpha[1] = dataFile ( ( section + "/physics/alpha" ).data(), 3.0e6 );
         M_gamma[1] = dataFile ( ( section + "/physics/gamma" ).data(), 0.8 );
 
-        M_a[1]  = dataFile ( ( section + "/physics/a"    ).data(), 49600 );
+        M_a[1]  = dataFile ( ( section + "/physics/a"    ).data(), 4960. );
         M_af[1] = dataFile ( ( section + "/physics/af"   ).data(), 0. );
         M_as[1] = dataFile ( ( section + "/physics/as"   ).data(), 0. );
         M_afs[1] = dataFile ( ( section + "/physics/afs"  ).data(), 0. );
@@ -223,11 +223,11 @@ StructuralConstitutiveLawData::setup ( const GetPot& dataFile, const std::string
             M_young[material]   = dataFile ( ( section + "/physics/young"         ).data(), 0., i );
             M_poisson[material] = dataFile ( ( section + "/physics/poisson"       ).data(), 0., i );
 
-            M_bulk[material] = dataFile ( ( section + "/physics/bulk"         ).data(), 1e9, i );
-            M_alpha[material] = dataFile ( ( section + "/physics/alpha"       ).data(), 3e6, i );
+            M_bulk[material] = dataFile ( ( section + "/physics/bulk"         ).data(), 1.0e9, i );
+            M_alpha[material] = dataFile ( ( section + "/physics/alpha"       ).data(), 3.0e6, i );
             M_gamma[material] = dataFile ( ( section + "/physics/gamma"       ).data(), 0.8, i );
 
-            M_a[material]  = dataFile ( ( section + "/physics/a"    ).data(), 4960, i );
+            M_a[material]  = dataFile ( ( section + "/physics/a"    ).data(), 4960., i );
             M_af[material] = dataFile ( ( section + "/physics/af"   ).data(), 0.   , i );
             M_as[material] = dataFile ( ( section + "/physics/as"   ).data(), 0.   , i );
             M_afs[material] = dataFile ( ( section + "/physics/afs"  ).data(), 0.   , i );

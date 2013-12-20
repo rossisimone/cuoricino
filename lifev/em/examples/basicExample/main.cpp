@@ -783,16 +783,17 @@ int main (int argc, char** argv)
     BOOST_AUTO_TPL (deformationGradientTensor, ( grad( electrodETFESpace, *emDisp, 0) + value( solid.material()-> identity() ) ));
     BOOST_AUTO_TPL (RIGHTCAUCHYGREEN, transpose(deformationGradientTensor) * deformationGradientTensor);
     BOOST_AUTO_TPL (firstInvariantC, trace( RIGHTCAUCHYGREEN ));
-    BOOST_AUTO_TPL (fiber0, ( value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) ));
+    //BOOST_AUTO_TPL (fiber0, ( value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) ));
+#define fiber0 ( value( electrodETFESpace, *( monodomain -> fiberPtr() ) ) )
     BOOST_AUTO_TPL (fiber, ( deformationGradientTensor * fiber0 ));
     BOOST_AUTO_TPL (I4f, dot( fiber, fiber));
     BOOST_AUTO_TPL (Ca, ( value( aETFESpace, *( monodomain -> globalSolution().at(3)  ) ) ));
     BOOST_AUTO_TPL (Ca2, (  Ca * Ca ));
     BOOST_AUTO_TPL (dCa, ( Ca + value(-0.02155) ));
     BOOST_AUTO_TPL (Gammaf, ( value( aETFESpace, *gammaf ) ));
+    BOOST_AUTO_TPL (GammaPlusOne, ( Gammaf + value(1.0) ));
     BOOST_AUTO_TPL (Pa, ( value(-2.5) * eval(H, dCa ) * eval(H, dCa )/*eval( fl,  I4f) */ * eval( flg,  Gammaf) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) ));
 //      #define Pa            beta * eval( fl,  I4f)
-    BOOST_AUTO_TPL (GammaPlusOne, ( Gammaf + value(1.0) ));
     //#define dW1       ( ( I4f - value(1.0) ) )
     BOOST_AUTO_TPL (dW1, ( ( Gammaf * Gammaf + 2.0 * Gammaf ) ));
     BOOST_AUTO_TPL (dW, ( ( ( dW1 ) + value(1.0) / ( ( GammaPlusOne ) * ( GammaPlusOne ) * ( GammaPlusOne ) ) ) ));
