@@ -24,62 +24,64 @@
  
 
    [./boundary_conditions]
-#    list = 'le re apex lv rv rvs'
-#    list = 'Endo Epi'
-list = 'EndoFSI EndoTop Epi EpiApex EpiBase'
+    list = 'Endo Epi'
 
-
-        [./le]
-        type       = Essential
-        flag       = 99
-        mode       = Full
-        component  = 1
-		function  = '1.0'
-
-        [../EndoFSI]
-        type       = Essential
-        flag       = 21
-        mode       = Full
-        component  = 1
-		function  = '0.0'
-
-
-        [../EndoTop]
-        type       = Essential
-        flag       = 22
-        mode       = Full
-        component  = 1
-		function  = '0.0'
-        
-
-        [../Epi]
-        type       = Essential
-        flag       = 23
-        mode       = Full
-        component  = 1
-		function  = '1.0'
-
-        [../EpiApex]
-        type       = Essential
-        flag       = 24
-        mode       = Full
-        component  = 1
-		function  = '1.0'
-        
-	[../EpiBase]
+        [./Endo]
         type       = Essential
         flag       = 20
         mode       = Full
-        component  = 1
-		function  = '1.0'
+	function  = '0.0'
 
+        [../Epi]
+        type       = Essential
+        flag       = 10
+        mode       = Full
+	function  = '1.0'
     
         [../]
 [../]
 
 [exporter]
-type       = hdf5 #ensight 			# hdf5 (if library compiled with hdf5 support) or ensight
+type       = hdf5 
 multimesh  = false
 start      = 0
 save       = 1
- 
+
+
+[prec]
+    reuse           = true
+    prectype        = ML
+
+    [./ML] # preconditioner for the first factor in case our choice was ML
+    displayList = false
+    default_parameter_list = SA    # Domain-decomposition
+    prec_type =  MGV               # Multigrid, single V-cycle
+    max_levels = 5
+    inc_or_dec = increasing
+
+    [./energy_minimization]
+    enable = true
+    type   = 3
+
+    [../repartition]
+    enable              = 1
+    max_min_ratio       = 1.3
+    min_per_proc        = 500
+    partitioner         = ParMETIS #Zoltan: to be implemented
+
+    [../aggregation]
+    #type                = METIS
+    treshold            = 0.0
+    nodes_per_aggregate = 32
+
+    [../coarse]
+    max_size            = 500
+    type                = self
+
+    [../smoother]
+    type        = 'symmetric Gauss-Seidel'           # Gauss-Seidel smoother
+    sweeps      = 2
+    pre_or_post = both
+
+    [../] # end of ML
+[../] # prec 

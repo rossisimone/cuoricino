@@ -147,7 +147,7 @@ Int main ( Int argc, char** argv )
 
     GetPot command_line (argc, argv);
     const string monodomain_datafile_name = command_line.follow ("MonodomainSolverParamList.xml", 2, "-f", "--file");
-    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( "MonodomainSolverParamList.xml" ) );
+    Teuchos::ParameterList monodomainList = * ( Teuchos::getParametersFromXmlFile ( monodomain_datafile_name ) );
 
     std::string ionic_model ( monodomainList.get ("ionic_model", "minimalModel") );
 
@@ -265,11 +265,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Solving the system                         //
     //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        cout << "\nstart solving:  " ;
-    }
-
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;

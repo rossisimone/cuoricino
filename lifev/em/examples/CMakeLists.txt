@@ -13,7 +13,6 @@ ADD_SUBDIRECTORIES(
   example_ActiveStrain
   example_CalciumDependentActivation
   example_laplacian
-  example_sheet
   linearizedGHO
   linearizedGHObiventricle
   linearizedGHOrotation

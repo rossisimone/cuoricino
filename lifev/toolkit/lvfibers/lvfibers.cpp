@@ -1,6 +1,6 @@
 //@HEADER
 /*
-*******************************************************************************
+ *******************************************************************************
 
     Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
     Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
@@ -20,32 +20,19 @@
     You should have received a copy of the GNU Lesser General Public License
     along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 
-*******************************************************************************
-*/
+ *******************************************************************************
+ */
 //@HEADER
 
 /*!
     @file
-    @brief Tutorial introducing the expression assembly
+    @brief
 
-    @author Samuel Quinodoz <samuel.quinodoz@epfl.ch>
-    @date 28-06-2012
-
-    In this first tutorial, we assemble the matrix
-    associated to a scalar laplacian problem. The basics
-    of the ETA module are explained and are pushed further
-    in the next tutorials.
-
-    ETA stands Expression Template Assembly, in reference
-    to the metaprogramming technique used.
-
+    @date
+    @author
+    @contributor
+    @mantainer
  */
-
-// ---------------------------------------------------------------
-// We include here the MPI headers for the parallel computations.
-// The specific "pragma" instructions are used to avoid warning
-// coming from the MPI library, that are not useful to us.
-// ---------------------------------------------------------------
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
@@ -176,7 +163,8 @@ int main ( int argc, char** argv )
 
 
     GetPot commandLine ( argc, argv );
-    std::string problemFolder = commandLine.follow ( "Output", 2, "-o", "--output" );
+    std::string problemFolder = commandLine.follow ( "work", 2, "-w", "--work" );
+
     // Create the problem folder
     if ( problemFolder.compare ("./") )
     {
@@ -187,58 +175,24 @@ int main ( int argc, char** argv )
             mkdir ( problemFolder.c_str(), 0777 );
         }
     }
-    // ---------------------------------------------------------------
-    // The next step is to build the mesh. We use here a structured
-    // cartesian mesh over the square domain (-1,1)x(-1,1)x(-1,1).
-    // The mesh is the partitioned for the parallel computations and
-    // the original mesh is deleted.
-    // ---------------------------------------------------------------
 
-    if (verbose)
-    {
-        std::cout << " -- Building and partitioning the mesh ... " << std::flush;
-    }
     //********************************************//
     // Import parameters from an xml list. Use    //
     // Teuchos to create a list from a given file //
     // in the execution directory.                //
     //********************************************//
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Importing parameters list...";
-    }
-    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( "ParamList.xml" ) );
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << " Done!" << endl;
-    }
-
+    const string fibercreation_datafile_name = commandLine.follow ("FiberGenerationParamList.xml", 2, "-f", "--file");
+    Teuchos::ParameterList parameterList = * ( Teuchos::getParametersFromXmlFile ( fibercreation_datafile_name ) );
 
     //********************************************//
     // In the parameter list we need to specify   //
     // the mesh name and the mesh path.           //
     //********************************************//
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Reading Mesh Name and Path...\n";
-    }
-
-    std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
-    std::string meshPath = parameterList.get ("mesh_path", "./");
+    std::string meshName = commandLine.follow ("default", 2, "-m", "--model") + ".mesh";
 
     meshPtr_Type meshPart (new mesh_Type ( Comm ) );
-    MeshUtility::fillWithMesh (meshPart, meshName, meshPath);
-
-    if (verbose)
-    {
-        std::cout << " done ! " << std::endl;
-    }
-    //    meshTransformer_Type  transformer(*meshPart);
-    //    VectorSmall<3>  scale ( 0.22, 0.22, 0.57143 );
-    //    Vector3D rotate ( 0.0, 0.0, M_PI );
-    //    Vector3D translate ( 0.0, 0.0, 0.0 );
-    //    transformer.transformMesh ( scale, rotate, translate );
+    MeshUtility::fillWithMesh (meshPart, meshName, problemFolder);
 
     // ---------------------------------------------------------------
     // We define now the ETFESpace that we need for the assembly.
@@ -253,11 +207,6 @@ int main ( int argc, char** argv )
     // of degrees of freedom of the problem.
     // ---------------------------------------------------------------
 
-    if (verbose)
-    {
-        std::cout << " -- Building ETFESpaces ... " << std::flush;
-    }
-
     boost::shared_ptr<ETFESpace< mesh_Type, MapEpetra, 3, 1 > > uSpace
     ( new ETFESpace< mesh_Type, MapEpetra, 3, 1 > (meshPart, &feTetraP1, Comm) );
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > uFESpace
@@ -267,142 +216,33 @@ int main ( int argc, char** argv )
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > sFESpace
     ( new FESpace< mesh_Type, MapEpetra > (meshPart, "P1", 3, Comm) );
 
-    if (verbose)
-    {
-        std::cout << " done ! " << std::endl;
-    }
-    if (verbose)
-    {
-        std::cout << " ---> Dofs: " << uSpace->dof().numTotalDof() << std::endl;
-    }
-
-
-    // ---------------------------------------------------------------
-    // The matrix is then defined using the map of the FE space.
-    // ---------------------------------------------------------------
-
-    if (verbose)
-    {
-        std::cout << " -- Defining the matrix ... " << std::flush;
-    }
 
     boost::shared_ptr<matrix_Type> systemMatrix (new matrix_Type ( uSpace->map() ) );
 
     *systemMatrix *= 0.0;
-
-
-
-    if (verbose)
-    {
-        std::cout << " done! " << std::endl;
-    }
-
-
-    // ---------------------------------------------------------------
-    // We start now the assembly of the matrix.
-    // ---------------------------------------------------------------
-
-    if (verbose)
-    {
-        std::cout << " -- Assembling the Laplace matrix ... " << std::flush;
-    }
-
-
-    // ---------------------------------------------------------------
-    // To use the ETA framework, it is mandatory to use a special
-    // namespace, called ExpressionAssembly. This namespace is useful
-    // to avoid collisions with keywords used for the assembly. A
-    // special scope is opened to keep only that part of the code
-    // in the ExpressionAssembly namespace.
-    // ---------------------------------------------------------------
-
     {
         using namespace ExpressionAssembly;
 
-        // ---------------------------------------------------------------
-        // We can now proceed with assembly. The next instruction
-        // assembles the laplace operator.
-        //
-        // The first argument of the integrate function indicates that the
-        // integration is done on the elements of the mesh located in the
-        // ETFESpace defined earlier.
-        //
-        // The second argument is simply the quadrature rule to be used.
-        //
-        // The third argument is the finite element space of the test
-        // functions.
-        //
-        // The fourth argument is the finite element space of the trial
-        // functions (those used to represent the solution).
-        //
-        // The last argument is the expression to be integrated, i.e.
-        // that represents the weak formulation of the problem. The
-        // keyword phi_i stands for a generic test function and phi_j
-        // a generic trial function. The function grad applied to them
-        // indicates that the gradient is considered and the dot function
-        // indicates a dot product between the two gradients. The
-        // expression to be integrated is then the dot product between
-        // the gradient of the test function and the gradient of the trial
-        // function. This corresponds to the left hand side of the weak
-        // formulation of the Laplace problem.
-        //
-        // Finally, the operator >> indicates that the result of the
-        // integration must be added to the systemMatrix.
-        // ---------------------------------------------------------------
 
         integrate (  elements (uSpace->mesh() ),
                      quadRuleTetra4pt,
                      uSpace,
                      uSpace,
                      dot ( grad (phi_i) , grad (phi_j) )
-                  )
-                >> systemMatrix;
+        )
+        >> systemMatrix;
     }
 
-    if (verbose)
-    {
-        std::cout << " done! " << std::endl;
-    }
-
-
-
-
-    // ---------------------------------------------------------------
-    // As we are already done with the assembly of the matrix, we
-    // finalize it to be able to work on it, e.g. to solve a linear
-    // system.
-    // ---------------------------------------------------------------
-
-    if (verbose)
-    {
-        std::cout << " -- Closing the matrix ... " << std::flush;
-    }
-
-    systemMatrix->globalAssemble();
-
-    if (verbose)
-    {
-        std::cout << " done ! " << std::endl;
-    }
-
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Creating Boundary Conditions...\n";
-    }
     //-----------------------
-    //  BOundary Conditions
+    //  Boundary conditions
     GetPot command_line (argc, argv);
-    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+    const string data_file_name = command_line.follow ("FiberGenerationPreconditioner ", 2, "-p", "--prec");
+
     GetPot dataFile (data_file_name);
     bcInterfacePtr_Type                     BC ( new bcInterface_Type() );
     BC->createHandler();
     BC->fillHandler ( data_file_name, "problem" );
-    BC -> handler() -> bcUpdate ( *uFESpace->mesh(), uFESpace->feBd(), uFESpace->dof() );
-
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Creating Preconditioner...\n";
-    }
+    BC->handler()->bcUpdate( *uFESpace->mesh(), uFESpace->feBd(), uFESpace->dof() );
 
     //Preconditioner
     typedef LifeV::Preconditioner             basePrec_Type;
@@ -416,40 +256,22 @@ int main ( int argc, char** argv )
     precRawPtr->setDataFromGetPot ( dataFile, "prec" );
     precPtr.reset ( precRawPtr );
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Creating linear solver...\n";
-    }
-
     //linear solver
-    Teuchos::RCP< Teuchos::ParameterList > belosList3 = Teuchos::rcp ( new Teuchos::ParameterList );
-    belosList3 = Teuchos::getParametersFromXmlFile ( "ParamList.xml" );
-
     LinearSolver linearSolver;
     linearSolver.setCommunicator (Comm);
-    //    .setCommunicator ( Comm );
-    linearSolver.setParameters ( *belosList3 );
+    linearSolver.setParameters ( parameterList );
     linearSolver.setPreconditioner ( precPtr );
 
-
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Creating rhs...\n";
-    }
     //Create right hand side
     vectorPtr_Type rhs (new vector_Type ( uSpace -> map() ) );
     *rhs *= 0.0;
     rhs -> globalAssemble();
 
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Applying BC...\n";
-    }
     bcManage ( *systemMatrix, *rhs, *uSpace->mesh(), uSpace->dof(), *BC -> handler(), uFESpace->feBd(), 1.0, 0.0 );
+    systemMatrix->globalAssemble();
 
-
-
+    systemMatrix->spy("matrix");
 
     linearSolver.setOperator (systemMatrix);
     vectorPtr_Type solution ( new vector_Type ( uFESpace -> map() ) );
@@ -458,10 +280,6 @@ int main ( int argc, char** argv )
     vectorPtr_Type sy (new vector_Type ( uSpace -> map() ) );
     vectorPtr_Type sz (new vector_Type ( uSpace -> map() ) );
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Exporter...\n";
-    }
 
     ExporterHDF5< RegionMesh <LinearTetra> > exporter;
     exporter.setMeshProcId ( meshPart, Comm->MyPID() );
@@ -476,33 +294,16 @@ int main ( int argc, char** argv )
     exporter.addVariable ( ExporterData<mesh_Type>::ScalarField,  "sz", uFESpace,
                            sz, UInt (0) );
 
-
-
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Solve System...\n";
-    }
     linearSolver.setRightHandSide (rhs);
     linearSolver.solve (solution);
 
-
-
-    std::cout << "\nRecovering gradient ... ";
     *sx = GradientRecovery::ZZGradient (uSpace, *solution, 0);
     *sy = GradientRecovery::ZZGradient (uSpace, *solution, 1);
     *sz = GradientRecovery::ZZGradient (uSpace, *solution, 2);
-    std::cout << " Done! \n";
 
     exporter.postProcess ( 0 );
 
-
-
-
-
     vectorPtr_Type rbSheet ( new vector_Type ( sFESpace -> map() ) );
-    //      vectorPtr_Type fx(new vector_Type( uSpace -> map() ) );
-    //      vectorPtr_Type fy(new vector_Type( uSpace -> map() ) );
-    //      vectorPtr_Type fz(new vector_Type( uSpace -> map() ) );
     vectorPtr_Type rbFiber ( new vector_Type ( sFESpace -> map() ) );
     vectorPtr_Type cl ( new vector_Type ( sFESpace -> map() ) );
     vectorPtr_Type projection ( new vector_Type ( sFESpace -> map() ) );
@@ -510,10 +311,6 @@ int main ( int argc, char** argv )
     int n = (*rbSheet).epetraVector().MyLength();
     int d = n / 3;
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Assembling sheets...\n";
-    }
     for ( int l (0); l < d; l++)
     {
         int i = (*rbSheet).blockMap().GID (l);
@@ -525,52 +322,13 @@ int main ( int argc, char** argv )
         (*rbSheet) [k] = (*sz) [i];
     }
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Normalizing sheets...\n";
-    }
 
     HeartUtility::normalize (*rbSheet);
 
-    //human biventricular
-    //      Real cx = -0.655333989927163;
-    //      Real cy = 0.699986220544843;
-    //      Real cz = -0.283825038876930;
+    Real cx = parameterList.get ("centerline_x", 0.0);
+    Real cy = parameterList.get ("centerline_y", 0.0);
+    Real cz = parameterList.get ("centerline_z", 1.0);
 
-    //single myocyte
-    //      Real cx = 0.82965;
-    //      Real cy = 0.55828;
-    //      Real cz = 0.00000;
-    //      Real cx = 0.999356;
-    //      Real cy = 0.033312;
-    //      Real cz = 0.013325;
-
-
-    //EuroHeart
-    //      Real cx = 0.013355;
-    //      Real cy = 0.170887;
-    //      Real cz = 0.985200;
-    // euro heart 11   0.0066535  -0.0555680   0.9984327
-    Real cx = 0.0066535;
-    Real cy = -0.0555680;
-    Real cz = 0.9984327;
-
-
-    //idealized
-    //Real cx = 0.0;
-    //Real cy = 0.0;
-    //Real cz = 1.0;
-
-    //idealized biventricular
-    //Real cx = -0.585264869348945;
-    //Real cy = 0.724137970380166;
-    //Real cz = -0.364813969797835;
-
-
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Creating fibers and projection...\n";
-    }
     for ( int l (0); l < d; l++)
     {
         int i = (*rbSheet).blockMap().GID (l);
@@ -582,16 +340,6 @@ int main ( int argc, char** argv )
         (*rbFiber) [k] = 0.0;
 
         Real cdot = cx * (*rbSheet) [i] + cy * (*rbSheet) [j] + cz * (*rbSheet) [k];
-
-        //          if( cdot > 0 )
-        //          {
-        //              (*rbSheet) [i] = -(*rbSheet) [i];
-        //              (*rbSheet) [j] = -(*rbSheet) [j];
-        //              (*rbSheet) [k] = -(*rbSheet) [k];
-        //
-        //          }
-        //
-        //          cdot = cx * (*rbSheet) [i] + cy * (*rbSheet) [j] + cz * (*rbSheet) [k];
 
         (*projection) [i] = cx - cdot *  (*rbSheet) [i];
         (*projection) [j] = cy - cdot *  (*rbSheet) [j];
@@ -609,8 +357,8 @@ int main ( int argc, char** argv )
 
         Real scalarp;
         scalarp = (*projection) [i] * (*rbFiber) [i]
-                  + (*projection) [j] * (*rbFiber) [j]
-                  + (*projection) [k] * (*rbFiber) [k];
+                                                  + (*projection) [j] * (*rbFiber) [j]
+                                                                                    + (*projection) [k] * (*rbFiber) [k];
 
         if ( scalarp == 1.0 )
         {
@@ -621,26 +369,12 @@ int main ( int argc, char** argv )
 
     }
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Normalizing fibers and projection...\n";
-    }
-
-
-
-
 
     ExporterHDF5< mesh_Type > exporter2;
     exporter2.setMeshProcId ( meshPart, Comm -> MyPID() );
     exporter2.setPrefix ("sheets");
     exporter2.setPostDir (problemFolder);
     exporter2.addVariable ( ExporterData<mesh_Type>::VectorField,  "sheet", sFESpace, rbSheet, UInt (0) );
-    //        exporter2.addVariable ( ExporterData<mesh_Type>::ScalarField,  "fx", uFESpace,
-    //                               fx, UInt (0) );
-    //        exporter2.addVariable ( ExporterData<mesh_Type>::ScalarField,  "fy", uFESpace,
-    //                               fy, UInt (0) );
-    //        exporter2.addVariable ( ExporterData<mesh_Type>::ScalarField,  "fz", uFESpace,
-    //                               fz, UInt (0) );
     exporter2.addVariable ( ExporterData<mesh_Type>::VectorField,  "fiber", sFESpace, rbFiber, UInt (0) );
     exporter2.addVariable ( ExporterData<mesh_Type>::VectorField,  "centerline", sFESpace, cl, UInt (0) );
     exporter2.addVariable ( ExporterData<mesh_Type>::VectorField,  "projection", sFESpace, projection, UInt (0) );
@@ -653,36 +387,16 @@ int main ( int argc, char** argv )
 
 
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Find out angles...\n";
-    }
     for ( int l (0); l < d; l++)
     {
         int i = (*rbSheet).blockMap().GID (l);
         int j = (*rbSheet).blockMap().GID (l + d);
         int k = (*rbSheet).blockMap().GID (l + 2 * d);
 
-        //          Real scalarp;
-        //          scalarp = (*projection) [i] * (*rbFiber) [i]
-        //                      + (*projection) [j] * (*rbFiber) [j]
-        //                      + (*projection) [k] * (*rbFiber) [k];
-
-
         //fiber =  sheet x projection
         (*rbFiber) [i] = (*rbSheet) [j]  * (*projection) [k] - (*rbSheet) [k]  * (*projection) [j];
         (*rbFiber) [j] = (*rbSheet) [k]  * (*projection) [i] - (*rbSheet) [i]  * (*projection) [k];
         (*rbFiber) [k] = (*rbSheet) [i]  * (*projection) [j] - (*rbSheet) [j]  * (*projection) [i];
-
-
-        //          if(scalarp < 0)
-        //          {
-        //              (*rbFiber) [i] = -(*rbFiber) [i];
-        //              (*rbFiber) [j] = -(*rbFiber) [j];
-        //              (*rbFiber) [k] = -(*rbFiber) [k];
-        //
-        //          }
-
     }
 
     HeartUtility::normalize (*rbFiber);
@@ -691,10 +405,6 @@ int main ( int argc, char** argv )
     Real epi_angle = parameterList.get ("epi_angle", -60.0);
     Real endo_angle = parameterList.get ("endo_angle", 60.0);
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << "Find out angles...\n";
-    }
     for ( int l (0); l < d; l++)
     {
         int i = (*rbSheet).blockMap().GID (l);
@@ -703,14 +413,12 @@ int main ( int argc, char** argv )
 
         Real scalarp;
         scalarp = (*projection) [i] * (*rbFiber) [i]
-                  + (*projection) [j] * (*rbFiber) [j]
-                  + (*projection) [k] * (*rbFiber) [k];
+                                                  + (*projection) [j] * (*rbFiber) [j]
+                                                                                    + (*projection) [k] * (*rbFiber) [k];
 
 
-        //          Real epi_angle =  -50.0;
-        //          Real endo_angle =  50.0;
         Real p = 3.14159265358979;
-        Real teta1 = p * epi_angle / 180; //67.5 degrees
+        Real teta1 = p * epi_angle / 180;
         Real teta2 = p * endo_angle / 180;
         Real m = (teta1 - teta2 );
         Real q = teta2;// - m * (*solution)[i];
@@ -740,15 +448,6 @@ int main ( int argc, char** argv )
 
         Real ca = std::cos (teta);
         Real sa = std::sin (teta);
-        //          (*rbFiber) [i] = R11 * (*rbFiber) [i] + R12 * (*rbFiber) [j] + R13 * (*rbFiber) [k];
-        //          (*rbFiber) [j] = R21 * (*rbFiber) [i] + R22 * (*rbFiber) [j] + R23 * (*rbFiber) [k];
-        //          (*rbFiber) [k] = R31 * (*rbFiber) [i] + R32 * (*rbFiber) [j] + R33 * (*rbFiber) [k];
-        //
-        //
-        //          (*rbFiber) [i]=s01*scalarp+(f01*(s02*s02+s03*s03)-s01*(s02*f02+s03*f03))*ca+(-s03*f02+s02*f03)*sa;
-        //          (*rbFiber) [j]=s02*scalarp+(f02*(s01*s01+s03*s03)-s02*(s01*f01+s03*f03))*ca+(s03*f01-s01*f03)*sa;
-        //          (*rbFiber) [k]=s03*scalarp+(f03*(s01*s01+s02*s02)-s03*(s01*f01+s02*f02))*ca+(-s02*f01+s01*f02)*sa;
-
 
         Real W11 = 0.0;
         Real W12 = -s03;
@@ -774,12 +473,7 @@ int main ( int argc, char** argv )
         (*rbFiber) [i] = R11 * f01 + R12 * f02 + R13 * f03;
         (*rbFiber) [j] = R21 * f01 + R22 * f02 + R23 * f03;
         (*rbFiber) [k] = R31 * f01 + R32 * f02 + R33 * f03;
-
-
-
     }
-
-    //HeartUtility::normalize(*rbFiber);
 
     exporter2.postProcess (3);
     exporter2.closeFile();
