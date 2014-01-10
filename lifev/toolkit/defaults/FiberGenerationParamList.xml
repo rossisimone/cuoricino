@@ -3,11 +3,11 @@
     <!-- Fiber generation parameters -->
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="epi_angle" type="double" value="-60.0"/>	
-    <Parameter name="endo_angle" type="double" value="-60.0"/>	
-    <Parameter name="centerline_x" type="double" value="0.0"/>
-    <Parameter name="centerline_y" type="double" value="0.0"/>	
-    <Parameter name="centerline_z" type="double" value="1.0"/>	
-
+    <Parameter name="endo_angle" type="double" value="60.0"/>	
+    <Parameter name="centerline_x" type="double" value="-0.3984"/>
+    <Parameter name="centerline_y" type="double" value="0.7598"/>	
+    <Parameter name="centerline_z" type="double" value="0.5137"/>	
+         
     <!-- LinearSolver parameters -->
     <Parameter name="Reuse Preconditioner" type="bool" value="false"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
@@ -23,7 +23,7 @@
     		<Parameter name="solver" type="string" value="gmres"/>
 	    	<Parameter name="conv" type="string" value="rhs"/>
     		<Parameter name="scaling" type="string" value="none"/>
-	    	<Parameter name="output" type="string" value="all"/>
+	    	<Parameter name="output" type="string" value="none"/>
     		<Parameter name="tol" type="double" value="1.e-10"/>
 	    	<Parameter name="max_iter" type="int" value="200"/>
     		<Parameter name="kspace" type="int" value="100"/>

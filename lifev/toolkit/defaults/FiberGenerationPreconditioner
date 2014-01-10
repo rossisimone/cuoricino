@@ -4,24 +4,13 @@
 #                Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
 #                Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
 #
-#      Author(s): Umberto Villa <uvilla@emory.edu>
-#                 Tiziano Passerini <tiziano@mathcs.emory.edu>
-#           Date: 10-12-2010
+#      Author(s): Toni Lassila <toni.lassila@epfl.ch>
+#           Date: 10-01-2014
 #  License Terms: GNU LGPL
 #
 ###################################################################################################
-### TESTSUITE: STRUCTURE MECHANICS ################################################################
-###################################################################################################
-#-------------------------------------------------
-#      Data file for Structure Solver
-#-------------------------------------------------
-
-
-
 
 [problem]
-
- 
 
    [./boundary_conditions]
     list = 'Endo Epi'
@@ -30,12 +19,14 @@
         type       = Essential
         flag       = 20
         mode       = Full
+	component  = 1
 	function  = '0.0'
 
         [../Epi]
         type       = Essential
         flag       = 10
         mode       = Full
+	component  = 1
 	function  = '1.0'
     
         [../]
