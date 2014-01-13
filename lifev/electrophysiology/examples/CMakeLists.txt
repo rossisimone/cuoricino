@@ -15,6 +15,5 @@ ADD_SUBDIRECTORIES(
   IonicFox
   IonicFox_pacingECG
   Restart
-  MuscularFibers
   IonicHodgkinHuxley
 )
