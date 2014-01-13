@@ -44,7 +44,7 @@
 
 namespace LifeV
 {
-//! XbModel - This class implements a mean field model.
+//! IonicModel - This class implements an ionic model.
 // ===================================================
 //! Constructors
 // ===================================================

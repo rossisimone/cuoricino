@@ -48,7 +48,7 @@
 
 namespace LifeV
 {
-//! XbModel - This class implements a mean field model.
+//! IonicModel - This class implements an ionic model.
 
 
 class IonicMitchellSchaeffer : public virtual ElectroIonicModel
