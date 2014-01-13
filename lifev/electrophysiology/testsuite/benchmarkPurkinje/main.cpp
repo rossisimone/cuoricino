@@ -26,10 +26,11 @@
 
 /*!
     @file
-    @brief Electrophysiology benchmark of Niederer et al. 2011
+    @brief Electrophysiology benchmark with Noble-Purkinje excitation model
 
     @date 01−2013
     @author Simone Rossi <simone.rossi@epfl.ch>
+    @author Simone Palamara <palamara.simone@gmail.com>
 
     @contributor
     @mantainer Simone Rossi <simone.rossi@epfl.ch>

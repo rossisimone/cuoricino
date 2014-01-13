@@ -102,27 +102,33 @@ Real smoothing (const Real& /*t*/, const Real& x, const Real& y, const Real& z, 
     }
 }
 
-Real PacingProtocol ( const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
+Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
 {
 
     Real pacingSite_X = 0.0;
     Real pacingSite_Y = 0.0;
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
-    Real stimulusValue = 0;
+    Real stimulusValue = 10;
 
-    Real returnValue1;
+    Real returnValue;
 
-    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius && std::abs ( z - pacingSite_Z ) <= stimulusRadius && std::abs ( y - pacingSite_Y ) <= stimulusRadius)
+    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius
+            &&
+            std::abs ( z - pacingSite_Z ) <= stimulusRadius
+            &&
+            std::abs ( y - pacingSite_Y ) <= stimulusRadius
+            &&
+            t <= 2)
     {
-        returnValue1 = stimulusValue;
+        returnValue = stimulusValue;
     }
     else
     {
-        returnValue1 = 0.;
+        returnValue = 0.;
     }
 
-    return returnValue1;
+    return returnValue;
 }
 
 
@@ -140,8 +146,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Starts the chronometer.                    //
     //********************************************//
-    //  LifeChrono chronoinitialsettings;
-    //  chronoinitialsettings.start();
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
     typedef boost::function < Real (const Real& /*t*/,
@@ -238,22 +242,14 @@ Int main ( Int argc, char** argv )
     }
 
     // Initial pacing
-    function_Type pacing = &PacingProtocol;
     splitting -> initializePotential();
+    splitting -> initializeAppliedCurrent();
+    splitting -> setInitialConditions();
 
-    HeartUtility::setValueOnBoundary ( * (splitting -> potentialPtr() ), splitting -> fullMeshPtr(), 1.0, 6 );
-
-    function_Type f = &smoothing;
-    vectorPtr_Type smoother ( new vector_Type ( splitting -> potentialPtr() -> map() ) );
-    splitting -> feSpacePtr() -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( f ), *smoother , 0);
-    (*smoother) *= * (splitting -> potentialPtr() );
-    splitting -> setPotentialPtr (smoother);
-
-    //setting up initial conditions
-    * ( splitting -> globalSolution().at (1) ) = 1.0;
-    * ( splitting -> globalSolution().at (2) ) = 1.0;
-    * ( splitting -> globalSolution().at (3) ) = 0.021553043080281;
-
+	function_Type stimulus;
+    stimulus = &PacingProtocol;
+    splitting -> setAppliedCurrentFromFunction (stimulus, 0.0);
+    
     if ( Comm->MyPID() == 0 )
     {
         cout << "Done! \n" ;
@@ -326,7 +322,6 @@ Int main ( Int argc, char** argv )
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real TF = monodomainList.get ("endTime", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
-    //Int meth = monodomainList.get ("meth", 1 );
     Real dt_min = dt / 50.0;
     Int k (0), j (0);
     Int nodes;
@@ -343,7 +338,7 @@ Int main ( Int argc, char** argv )
 
         if (  t >= stimulusStart &&   t <=  stimulusStop + dt )
         {
-            splitting -> setAppliedCurrentFromFunction ( pacing );
+            splitting -> setAppliedCurrentFromFunction ( stimulus, t );
         }
         else
         {
@@ -421,7 +416,9 @@ Int main ( Int argc, char** argv )
 
     Real returnValue;
 
-    if (std::abs (normSolution - 3.37828) > 1e-4 )
+    std::cout << normSolution << std::endl;
+
+    if (std::abs (normSolution - 6.80868) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

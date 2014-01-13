@@ -7,7 +7,6 @@ ADD_SUBDIRECTORIES(
   0DNegroniLascanoModelJafriRiceWinslow
   ActivationWith0DTenTusscher06Model
   FiberInterpolation
-  ETA_MonodomainSolver
   XbNegroniLascano96
   IonicRogersMcCulloch_pacingECG
   IonicRogersMcCullochSpiral
@@ -15,7 +14,6 @@ ADD_SUBDIRECTORIES(
   IonicMinimalModel_pacingECG
   IonicFox
   IonicFox_pacingECG
-#  MonodomainBiventricle
   Restart
   MuscularFibers
   IonicHodgkinHuxley

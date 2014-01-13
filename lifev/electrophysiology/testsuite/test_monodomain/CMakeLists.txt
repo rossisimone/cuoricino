@@ -17,7 +17,7 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(data_heart_test_monodomain_data
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-TRIBITS_COPY_FILES_TO_BINARY_DIR(NiedererBM11.mesh_test_monodomain
-  SOURCE_FILES NiedererBM11.mesh
+TRIBITS_COPY_FILES_TO_BINARY_DIR(benchmark_05mm.mesh_test_monodomain
+  SOURCE_FILES benchmark_05mm.mesh
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/lifev/electrophysiology/data/mesh/inria/
 )
