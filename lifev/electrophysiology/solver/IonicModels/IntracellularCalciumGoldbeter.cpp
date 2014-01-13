@@ -29,7 +29,9 @@
   @brief Intracellular Calcium model from Goldbeter et al. (1990). By "potential" we
   @brief refer to the cytosolic calcium concentration, whereas the gating variable
   @brief represents the sarcoplasmic calcium concentration
+
   @date 09-2013
+
   @author Ricardo Ruiz <ricardo.ruizbaier@unil.ch>
 
   @contributors

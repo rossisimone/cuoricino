@@ -26,7 +26,7 @@
 
 /*!
   @file
-  @brief Mean-field cross-bridge model by Negroni and Lascano 1996.
+  @brief Ionic model of Bueno-Orovio et al.
   @date 01-2013
   @author Simone Rossi <simone.rossi@epfl.ch>
 

@@ -26,7 +26,7 @@
 
 /*!
   @file
-  @brief Mean-field cross-bridge model by Negroni and Lascano 1996.
+  @brief Ionic model of ten Tusscher-Panfilov 2006
   @date 01-2013
   @author Simone Rossi <simone.rossi@epfl.ch>
 

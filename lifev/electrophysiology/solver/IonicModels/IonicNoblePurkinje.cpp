@@ -26,7 +26,7 @@
 
 /*!
   @file
-  @brief Mean-field cross-bridge model by Negroni and Lascano 1996.
+  @brief Ionic model of Noble for Purkinje cells
   @date 01-2013
   @author Simone Rossi <simone.rossi@epfl.ch>
 

@@ -26,7 +26,7 @@
 
 /*!
   @file
-  @brief Mean-field cross-bridge model by FitzHugh-Nagumo.
+  @brief Ionic model of FitzHugh-Nagumo
   @date 01-2013
   @author Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
 
