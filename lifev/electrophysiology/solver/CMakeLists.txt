@@ -3,16 +3,12 @@ ADD_SUBDIRECTORIES(
 	IonicModels
 )
 SET(solver_HEADERS
-#  solver/ElectroAlievPanfilov.hpp
-  solver/ElectroStiffnessFibers.hpp
   solver/ElectroIonicData.hpp
   solver/ElectroIonicSolver.hpp
-  solver/ElectroLuoRudy.hpp
   solver/ElectroFunctors.hpp
   solver/ElectroETAMonodomainSolver.hpp
   solver/ElectroETABidomainSolver.hpp
   solver/StimulationProtocol.hpp
-#  solver/ElectroODEModel.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES
