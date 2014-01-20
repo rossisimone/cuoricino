@@ -90,6 +90,7 @@ enum models_Type
     FSI3D,                  /*!< FSI 3D model */
     FSI3DActivated,         /*!< FSI 3D Activated model */
     Multiscale,             /*!< Multiscale model */
+    Valve0D,                /*!< Valve0D model */
     Windkessel0D,           /*!< Windkessel0D model */
     ZeroDimensional         /*!< 0D model */
 };
