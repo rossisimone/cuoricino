@@ -89,7 +89,7 @@ namespace LifeV
 namespace Multiscale
 {
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
 // Forward declaration
 class FSI3DBoundaryStressFunction;
 #endif
@@ -149,7 +149,7 @@ public:
     typedef BCInterface3D< bc_Type, FSIOperator >              bcInterface_Type;
     typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     typedef FSI3DBoundaryStressFunction                        boundaryStressFunction_Type;
     typedef boost::shared_ptr< boundaryStressFunction_Type >   boundaryStressFunctionPtr_Type;
     typedef std::vector< boundaryStressFunctionPtr_Type >      boundaryStressFunctionContainer_Type;
@@ -529,7 +529,7 @@ private:
     IOFilePtr_Type                          M_importerFluid;
     IOFilePtr_Type                          M_importerSolid;
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     // Stress coupling function container
     boundaryStressFunctionContainer_Type    M_boundaryStressFunctions;
 
@@ -596,7 +596,7 @@ private:
 
 
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
 
 //! FSI3DBoundaryStressFunction - The FSI3D coupling function
 /*!

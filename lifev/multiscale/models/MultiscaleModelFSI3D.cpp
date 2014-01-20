@@ -54,7 +54,7 @@ MultiscaleModelFSI3D::MultiscaleModelFSI3D() :
     M_exporterSolid                (),
     M_importerFluid                (),
     M_importerSolid                (),
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     M_boundaryStressFunctions      (),
     M_externalPressureScalar       (),
 #endif
@@ -490,7 +490,7 @@ void
 MultiscaleModelFSI3D::imposeBoundaryMeanNormalStress ( const multiscaleID_Type& boundaryID, const function_Type& function )
 {
     BCFunctionBase base;
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     base.setFunction ( function );
 #else
     boundaryStressFunctionPtr_Type boundaryStressFunction ( new boundaryStressFunction_Type() );
@@ -524,7 +524,7 @@ MultiscaleModelFSI3D::imposeBoundaryArea ( const multiscaleID_Type& boundaryID, 
 Real
 MultiscaleModelFSI3D::boundaryMeanNormalStress ( const multiscaleID_Type& boundaryID ) const
 {
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     return M_FSIoperator->fluid().meanNormalStress ( boundaryFlag ( boundaryID ), *M_fluidBC->handler(), *M_stateVariable );
 #else
     return M_FSIoperator->fluid().meanNormalStress ( boundaryFlag ( boundaryID ), *M_fluidBC->handler(), *M_stateVariable ) - M_externalPressureScalar;
@@ -534,7 +534,7 @@ MultiscaleModelFSI3D::boundaryMeanNormalStress ( const multiscaleID_Type& bounda
 Real
 MultiscaleModelFSI3D::boundaryMeanTotalNormalStress ( const multiscaleID_Type& boundaryID ) const
 {
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     return M_FSIoperator->fluid().meanTotalNormalStress ( boundaryFlag ( boundaryID ), *M_fluidBC->handler(), *M_stateVariable );
 #else
     return M_FSIoperator->fluid().meanTotalNormalStress ( boundaryFlag ( boundaryID ), *M_fluidBC->handler(), *M_stateVariable ) - M_externalPressureScalar;
@@ -571,7 +571,7 @@ MultiscaleModelFSI3D::boundaryDeltaMeanTotalNormalStress ( const multiscaleID_Ty
 Real
 MultiscaleModelFSI3D::boundaryPressure ( const multiscaleID_Type& boundaryID ) const
 {
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     return M_FSIoperator->fluid().pressure ( boundaryFlag ( boundaryID ), *M_stateVariable );
 #else
     return M_FSIoperator->fluid().pressure ( boundaryFlag ( boundaryID ), *M_stateVariable ) + M_externalPressureScalar;
@@ -581,7 +581,7 @@ MultiscaleModelFSI3D::boundaryPressure ( const multiscaleID_Type& boundaryID ) c
 Real
 MultiscaleModelFSI3D::boundaryTotalPressure ( const multiscaleID_Type& boundaryID ) const
 {
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     return M_FSIoperator->fluid().pressure ( boundaryFlag ( boundaryID ), *M_stateVariable )
            + M_FSIoperator->fluid().kineticNormalStress ( boundaryFlag ( boundaryID ), *M_stateVariable );
 #else
@@ -593,7 +593,7 @@ MultiscaleModelFSI3D::boundaryTotalPressure ( const multiscaleID_Type& boundaryI
 Real
 MultiscaleModelFSI3D::externalPressure() const
 {
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     return M_externalPressureScalar;
 #else
     return M_data->dataSolid()->externalPressure();
@@ -665,7 +665,7 @@ MultiscaleModelFSI3D::initializeSolution()
     debugStream ( 8140 ) << "MultiscaleModelFSI3D::initializeSolution() \n";
 #endif
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     // Initialize the external pressure scalar
     M_externalPressureScalar = M_data->dataSolid()->externalPressure();
     M_data->dataSolid()->setExternalPressure ( 0.0 );
@@ -693,7 +693,7 @@ MultiscaleModelFSI3D::initializeSolution()
                 M_exporterSolid->setTimeIndex ( iterationImported + 1 );
             }
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
             // Remove external pressure
             *M_fluidPressure -= M_externalPressureScalar;
 #endif
@@ -934,7 +934,7 @@ MultiscaleModelFSI3D::exportFluidSolution()
         M_FSIoperator->exportFluidPressure ( *M_fluidPressure );
         M_FSIoperator->exportFluidDisplacement ( *M_fluidDisplacement );
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
         // Add the external pressure
         *M_fluidPressure += M_externalPressureScalar;
 #endif
