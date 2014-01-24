@@ -17,11 +17,13 @@ IF (LifeV_ENABLE_ZeroDimensional)
 SET(models0D_HEADERS
   models/MultiscaleModel0D.hpp
   models/MultiscaleModelWindkessel0D.hpp
+  models/MultiscaleModelValve0D.hpp
 CACHE INTERNAL "")
   
 SET(models0D_SOURCES
   models/MultiscaleModel0D.cpp
   models/MultiscaleModelWindkessel0D.cpp
+  models/MultiscaleModelValve0D.cpp
 CACHE INTERNAL "")
 
 ELSE()
