@@ -208,6 +208,7 @@ multiscaleMapsDefinition()
     multiscaleModelsMap["Multiscale"]      = Multiscale;
 #if defined(LIFEV_HAS_ZERODIMENSIONAL)
     multiscaleModelsMap["Windkessel0D"]    = Windkessel0D;
+    multiscaleModelsMap["Valve0D"]         = Valve0D;
     multiscaleModelsMap["ZeroDimensional"] = ZeroDimensional;
 #endif
 

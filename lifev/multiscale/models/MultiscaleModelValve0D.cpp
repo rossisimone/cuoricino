@@ -59,6 +59,8 @@ MultiscaleModelValve0D::MultiscaleModelValve0D() :
                     M_tangentFlowRateLeft          (),
                     M_openingAngle                 (),
                     M_openingAngle_tn              (),
+                    M_thetaVel                     (),
+                    M_thetaVel_tn                  (),
                     M_minimumOpeningAngle          (),
                     M_maximumOpeningAngle          (),
                     M_flowDischargeCoefficient     (),
@@ -150,6 +152,7 @@ MultiscaleModelValve0D::updateModel()
     M_pressureLeft_tn = M_pressureLeft;
     M_flowRateLeft_tn = M_flowRateLeft;
     M_openingAngle_tn = M_openingAngle;
+    M_thetaVel_tn     = M_thetaVel;
 
     // Update BCInterface solver variables
     M_bc->updatePhysicalSolverVariables();
@@ -302,11 +305,11 @@ MultiscaleModelValve0D::setupGlobalData ( const std::string& fileName )
     //Global data time
     M_data->setTimeData ( M_globalData->dataTime() );
 
-    if ( !dataFile.checkVariable ( "Coefficients/VenousPressure" ) )
-    {
-        M_pressureRight = M_globalData->fluidVenousPressure();
-    }
-    M_data->setVenousPressure ( M_pressureRight );
+    //if ( !dataFile.checkVariable ( "Coefficients/VenousPressure" ) )
+    //{
+    //    M_pressureRight = M_globalData->fluidVenousPressure();
+    //}
+    //M_data->setVenousPressure ( M_pressureRight );
 }
 
 void

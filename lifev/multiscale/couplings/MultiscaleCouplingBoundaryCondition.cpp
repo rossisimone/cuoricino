@@ -120,6 +120,12 @@ MultiscaleCouplingBoundaryCondition::setupCoupling()
 
                         break;
 
+                    case Valve0D:
+
+                        applyBoundaryConditions0D< MultiscaleModelValve0D > ( i );
+
+                        break;
+
                     case ZeroDimensional:
 
                         applyBoundaryConditions0D< MultiscaleModel0D > ( i );

@@ -54,6 +54,7 @@
 #if defined(LIFEV_HAS_ZERODIMENSIONAL)
 #include <lifev/multiscale/models/MultiscaleModelWindkessel0D.hpp>
 #include <lifev/multiscale/models/MultiscaleModel0D.hpp>
+#include <lifev/multiscale/models/MultiscaleModelValve0D.hpp>
 #endif
 
 #if defined(LIFEV_HAS_ONEDFSI)

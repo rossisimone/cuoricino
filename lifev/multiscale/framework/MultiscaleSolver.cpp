@@ -80,6 +80,7 @@ MultiscaleSolver::MultiscaleSolver() :
 #endif
 #if defined(LIFEV_HAS_ZERODIMENSIONAL)
     multiscaleModelFactory_Type::instance().registerProduct ( Windkessel0D,    &createMultiscaleModelWindkessel0D );
+    multiscaleModelFactory_Type::instance().registerProduct ( Valve0D,         &createMultiscaleModelValve0D );
     multiscaleModelFactory_Type::instance().registerProduct ( ZeroDimensional, &createMultiscaleModelZeroDimensional );
 #endif
 }
