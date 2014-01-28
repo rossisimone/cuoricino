@@ -45,8 +45,8 @@ bfs			= 11.602
 bulk		= 3500000
 solidType 	= GAHO #neoHookeanActivated		# linearVenantKirchhoff / nonLinearVenantKirchhoff / neoHookean / exponential / HolzapfelOgden
 lawType     = nonlinear
-viscosity = 0.00025;
-active_coefficient = -3.0;
+viscosity = 0.0003;
+active_coefficient = -4.0;
 Ca_diastolic = 0.02156;
 
 

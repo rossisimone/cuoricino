@@ -157,7 +157,7 @@ Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z
     Real pacingSite_Y = 0.0;
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
-    Real stimulusValue = 50;
+    Real stimulusValue = 5;
 
     Real returnValue;
 
@@ -225,6 +225,8 @@ Int main ( Int argc, char** argv )
 
     typedef VectorEpetra                                             vector_Type;
     typedef boost::shared_ptr<vector_Type>                           vectorPtr_Type;
+    typedef MatrixEpetra<Real> matrix_Type;
+    typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
 
 
     LifeChrono chronoinitialsettings;
@@ -402,16 +404,14 @@ Int main ( Int argc, char** argv )
     }
 
     bool lumpedMass = monodomainList.get ("LumpedMass", true);
-    if ( lumpedMass)
-    {
-        solver -> setupLumpedMassMatrix();
+    if( lumpedMass)
+    { 
+        solver -> setLumpedMassMatrix(false);   
+	solver -> setupMassMatrix();
+	solver -> setLumpedMassMatrix(lumpedMass); 
     }
-    else
-    {
-        solver -> setupMassMatrix();
-    }
-
-
+    matrixPtr_Type hlmass(new matrix_Type( *(solver -> massMatrixPtr() ) ) );
+    solver -> setupMassMatrix();
     solver -> setupStiffnessMatrix ( solver -> diffusionTensor() );
     solver -> setupGlobalMatrix();
     if ( Comm->MyPID() == 0 )
@@ -468,76 +468,59 @@ Int main ( Int argc, char** argv )
 
         if ( solutionMethod == "splitting" )
         {
-            chrono.reset();
-            chrono.start();
-            if (ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
-            {
-                solver->solveOneReactionStepRL();
-            }
-            else
-            {
-                solver->solveOneReactionStepFE();
-            }
-            chrono.stop();
+			chrono.reset();
+			chrono.start();
+			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
+				solver->solveOneReactionStepRL();
+			else solver->solveOneReactionStepFE();
+			chrono.stop();
 
-            timeReac += chrono.globalDiff ( *Comm );
+			timeReac += chrono.globalDiff( *Comm );
 
-            (*solver->rhsPtrUnique() ) *= 0.0;
-            solver->updateRhs();
+			(*solver->rhsPtrUnique()) *= 0.0;
+			solver->updateRhs();
 
-            chrono.reset();
-            chrono.start();
-            solver->solveOneDiffusionStepBE();
-            chrono.stop();
-            timeDiff += chrono.globalDiff ( *Comm );
-        }
-        else if ( solutionMethod == "ICI" )
+			chrono.reset();
+			chrono.start();
+			solver->solveOneDiffusionStepBE();
+			chrono.stop();
+			timeDiff += chrono.globalDiff( *Comm );
+		}
+        else if( solutionMethod == "L-ICI" )
         {
-            chrono.reset();
-            chrono.start();
-            if (ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
-            {
-                solver -> solveOneStepGatingVariablesRL();
-            }
-            else
-            {
-                solver -> solveOneStepGatingVariablesFE();
-            }
-            solver -> solveOneICIStep();
-            chrono.stop();
-            timeReacDiff += chrono.globalDiff ( *Comm );
+			chrono.reset();
+			chrono.start();
+			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley" && "TenTusscher06")
+				solver -> solveOneStepGatingVariablesRL();
+			else
+				solver -> solveOneStepGatingVariablesFE();
+			solver -> solveOneICIStep();
+			chrono.stop();
+			timeReacDiff += chrono.globalDiff( *Comm );
         }
-        else if ( solutionMethod == "SVI" )
+        else if( solutionMethod == "ICI" )
         {
-            chrono.reset();
-            chrono.start();
-            if (ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
-            {
-                solver -> solveOneStepGatingVariablesRL();
-            }
-            else
-            {
-                solver -> solveOneStepGatingVariablesFE();
-            }
-            solver -> solveOneSVIStep();
-            chrono.stop();
-            timeReacDiff += chrono.globalDiff ( *Comm );
+			chrono.reset();
+			chrono.start();
+			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley" && "TenTusscher06")
+				solver -> solveOneStepGatingVariablesRL();
+			else
+				solver -> solveOneStepGatingVariablesFE();
+			solver -> solveOneICIStep(*hlmass);
+			chrono.stop();
+			timeReacDiff += chrono.globalDiff( *Comm );
         }
-        else if ( solutionMethod == "Mixed" )
+        else if( solutionMethod == "SVI" )
         {
-            chrono.reset();
-            chrono.start();
-            if (ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
-            {
-                solver -> solveOneStepGatingVariablesRL();
-            }
-            else
-            {
-                solver -> solveOneStepGatingVariablesFE();
-            }
-            solver -> solveOneMixedStep();
-            chrono.stop();
-            timeReacDiff += chrono.globalDiff ( *Comm );
+			chrono.reset();
+			chrono.start();
+			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley" && "TenTusscher06")
+				solver -> solveOneStepGatingVariablesRL();
+			else
+				solver -> solveOneStepGatingVariablesFE();
+        	solver -> solveOneSVIStep();
+			chrono.stop();
+			timeReacDiff += chrono.globalDiff( *Comm );
         }
 
         //register activation time

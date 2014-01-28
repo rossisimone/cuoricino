@@ -700,7 +700,7 @@ public:
         }
     }
 
-    inline void setLumpedMassMatrix (bool p) const
+    inline void setLumpedMassMatrix (bool p)
     {
         M_lumpedMassMatrix = p;
     }

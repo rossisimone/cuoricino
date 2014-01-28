@@ -77,7 +77,17 @@ namespace LifeV
     taken as constant relaxation parameter
 
  */
+/*template < class Fct >
+Int NonLinearRichardson ( VectorEpetra& sol,
+			  Fct&        functional,
+			 Real abstol,
+			 Real reltol,
+			 UInt& maxit,
+			Real eta_max,
+			Int NonLinearLineSearch,
+			UInt iter = U*/
 
+static Real  default_res1 = 1000.0;
 template < class Fct >
 Int NonLinearRichardson ( VectorEpetra& sol,
                           Fct&        functional,
@@ -89,9 +99,9 @@ Int NonLinearRichardson ( VectorEpetra& sol,
                           UInt iter = UInt (0),
                           UInt        verboseLevel = 0,
                           std::ostream& output = std::cout,
-                          const Real& time = 0
-                        )
-{
+                          const Real& time = 0,
+                          Real& res1 = default_res1 )
+ {
     /*
         */
 
@@ -145,6 +155,7 @@ Int NonLinearRichardson ( VectorEpetra& sol,
 
     //
 
+    res1 = normRes;
     Real solNormInf (sol.normInf() );
     Real stepNormInf;
     if ( verboseLevel > 1 )

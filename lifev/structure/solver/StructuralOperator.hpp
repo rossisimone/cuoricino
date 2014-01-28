@@ -677,6 +677,10 @@ public:
         return M_dispFESpace -> mesh();
     }
 
+    inline Real res1() 
+    {
+        return M_res1;
+    }
     //@}
 
 protected:
@@ -787,6 +791,7 @@ protected:
 
     UInt                                 M_offset;
     Real                                 M_rescaleFactor;
+    Real M_res1;
     //  Real                                 M_zeta;
     //  Real                                 M_theta;
 
@@ -829,6 +834,7 @@ StructuralOperator<Mesh>::StructuralOperator( ) :
     M_residual_d                 ( ),
     M_out_iter                   ( ),
     M_out_res                    ( ),
+    M_res1 (0.0),
     M_BCh                        ( ),
     M_localMap                   ( ),
     M_massMatrix                 ( ),
@@ -1079,14 +1085,14 @@ StructuralOperator<Mesh>::iterate ( const bcHandler_Type& bch )
 
     M_BCh = bch;
 
-    //    Int argc; char** argv;
-    //    GetPot command_line (argc, argv);
-    //    string data_file_name = command_line.follow ("data", 2, "-f", "--file");
-    //    GetPot dataFile ( data_file_name );
-    //
-    //    Real abstol  = dataFile ( "solid/Newton/abstol", 1.e-7 );
-    //    Real reltol  = dataFile ( "solid/Newton/reltol", 1.e-7 );
-    Real abstol = 1e-6;
+//    Int argc; char** argv;
+//    GetPot command_line (argc, argv);
+//    string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+//    GetPot dataFile ( data_file_name );
+//
+//    Real abstol  = dataFile ( "solid/Newton/abstol", 1.e-7 );
+//    Real reltol  = dataFile ( "solid/Newton/reltol", 1.e-7 );
+    Real abstol = 5e-6;
     Real reltol = 1e-6;
     UInt maxiter = 200;
     Real etamax  = 1e-1;
@@ -1098,7 +1104,7 @@ StructuralOperator<Mesh>::iterate ( const bcHandler_Type& bch )
 
     if ( M_data->verbose() )
     {
-        status = NonLinearRichardson ( *M_disp, *this, abstol, reltol, maxiter, etamax, NonLinearLineSearch, 0, 2, M_out_res, M_data->dataTime()->time() );
+        status = NonLinearRichardson ( *M_disp, *this, abstol, reltol, maxiter, etamax, NonLinearLineSearch, 0, 2, M_out_res, M_data->dataTime()->time(), M_res1 );
     }
     else
     {
