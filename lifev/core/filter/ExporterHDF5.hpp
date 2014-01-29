@@ -952,7 +952,7 @@ void ExporterHDF5<MeshType>::writeVector (const exporterData_Type& dvar)
     // solution array has to be reordered and stored in a Multivector.
     // Using auxiliary arrays:
     Real**                                  ArrayOfPointers (new Real*[nDimensions]);
-    shared_array< shared_ptr<vector_Type> > ArrayOfVectors (new shared_ptr<vector_Type>[nDimensions]);
+    boost::shared_array< boost::shared_ptr<vector_Type> > ArrayOfVectors (new boost::shared_ptr<vector_Type>[nDimensions]);
 
     Int MyLDA;
 
