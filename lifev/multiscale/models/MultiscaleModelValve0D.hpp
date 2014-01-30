@@ -174,7 +174,7 @@ public:
      */
     Real boundaryFlowRate ( const multiscaleID_Type& boundaryID ) const
     {
-        return ( boundaryFlag ( boundaryID ) == 0 ) ? M_flowRateLeft : 0;
+        return ( boundaryFlag ( boundaryID ) == 0 ) ? M_flowRateLeft : -M_flowRateLeft;
     }
 
     //! Get the integral of the mean normal stress on a specific boundary interface of the model
@@ -375,6 +375,7 @@ private:
     Real                   M_flowDischargeCoefficient;
     Real                   M_frictionalMomentCoefficient;
     Real                   M_resistiveMomentCoefficient;
+    Real                   M_convectiveMomentCoefficient;
 };
 
 //! Factory create function
