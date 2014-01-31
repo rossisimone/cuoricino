@@ -26,12 +26,19 @@
 
 /*!
     @file
-    @brief
+    @brief Generation muscular fibers and sheets
 
-    @date
-    @author
-    @contributor
-    @mantainer
+    @author Simone Rossi <simone.rossi@epfl.ch>
+    @maintainer Simone Palamara <palamara.simone@gmail.com>
+    @date 31-01-2014
+
+
+    Generation of the muscular fibers and sheets on a generic
+    geometry representing the left or right ventricle, generated
+    according to geometrical rules based on anatomical knowledge.
+    For more details about the method see [S.Rossi et al,European Journal of
+    Mechanics A/Solids (2013), http://dx.doi.org/10.1016/j.euromechsol.2013.10.009]
+
  */
 
 //#include <Epetra_ConfigDefs.h>
@@ -57,6 +64,14 @@
 
 #include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 
+
+
+// ---------------------------------------------------------------
+// As usual, we work in the LifeV namespace. Moreover,
+// to make the code more readable, we also make typedefs for the mesh type,
+// matrix type, vector type, boundary condition
+// ---------------------------------------------------------------
+
 using namespace LifeV;
 
 typedef RegionMesh<LinearTetra>                        mesh_Type;
@@ -67,9 +82,9 @@ typedef VectorEpetra                                   vector_Type;
 typedef boost::shared_ptr< vector_Type >               vectorPtr_Type;
 typedef BCHandler                                      bc_Type;
 typedef boost::shared_ptr< bc_Type >                   bcPtr_Type;
-typedef  StructuralOperator< RegionMesh<LinearTetra> > physicalSolver_Type;
-typedef BCInterface3D< bc_Type, physicalSolver_Type >  bcInterface_Type;
-typedef boost::shared_ptr< bcInterface_Type >          bcInterfacePtr_Type;
+//typedef StructuralOperator< RegionMesh<LinearTetra> >  physicalSolver_Type;
+//typedef BCInterface3D< bc_Type, physicalSolver_Type >  bcInterface_Type;
+//typedef boost::shared_ptr< bcInterface_Type >          bcInterfacePtr_Type;
 typedef MeshUtility::MeshTransformer<mesh_Type>        meshTransformer_Type;
 
 
@@ -128,6 +143,11 @@ int main ( int argc, char** argv )
     boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > sFESpace
     ( new FESpace< mesh_Type, MapEpetra > (meshPart, "P1", 3, Comm) );
 
+    //***************************************************//
+    // Assembly of the stiffness matrix related to the   //
+    // laplacian problem used for the computation of the //
+    // sheetlet direction by using the ETA.              //
+    //***************************************************//
 
     boost::shared_ptr<matrix_Type> systemMatrix (new matrix_Type ( uSpace->map() ) );
 
@@ -147,8 +167,11 @@ int main ( int argc, char** argv )
 
     systemMatrix->globalAssemble();
 
-    //-----------------------
-    //  Boundary conditions
+    //****************************************************//
+    //  Boundary conditions read from the getPot object   //
+    //  related to the file FiberGenerationPreconditioner //
+    //****************************************************//
+
     GetPot command_line (argc, argv);
     const string data_file_name = command_line.follow ("FiberGenerationPreconditioner", 2, "-p", "--prec");
 
@@ -158,7 +181,11 @@ int main ( int argc, char** argv )
     BC->fillHandler ( data_file_name, "problem" );
     BC->handler()->bcUpdate( *uFESpace->mesh(), uFESpace->feBd(), uFESpace->dof() );
 
-    //Preconditioner
+    //**********************************************************//
+    //  Preconditioner information read from the getPot object  //
+    //  related to the file FiberGenerationPreconditioner       //
+    //**********************************************************//
+
     typedef LifeV::Preconditioner             basePrec_Type;
     typedef boost::shared_ptr<basePrec_Type>  basePrecPtr_Type;
     typedef LifeV::PreconditionerIfpack       prec_Type;
@@ -170,13 +197,21 @@ int main ( int argc, char** argv )
     precRawPtr->setDataFromGetPot ( dataFile, "prec" );
     precPtr.reset ( precRawPtr );
 
-    //linear solver
+    //*********************************************************//
+    //  Linear solver information read from the parameterList  //
+    //  related to the xml file FiberGenerationParamList.xml   //
+    //*********************************************************//
+
     LinearSolver linearSolver;
     linearSolver.setCommunicator (Comm);
     linearSolver.setParameters ( parameterList );
     linearSolver.setPreconditioner ( precPtr );
 
-    //Create right hand side
+    //*************************************************************//
+    //  Create right hand side and correction taking into account  //
+    //  the boundary condition by using the bcManage method        //
+    //*************************************************************//
+
     vectorPtr_Type rhs (new vector_Type ( uSpace -> map() ) );
     *rhs *= 0.0;
     rhs -> globalAssemble();
@@ -184,6 +219,12 @@ int main ( int argc, char** argv )
     bcManage ( *systemMatrix, *rhs, *uSpace->mesh(), uSpace->dof(), *BC -> handler(), uFESpace->feBd(), 1.0, 0.0 );
 
     linearSolver.setOperator (systemMatrix);
+
+    //******************************************//
+    //  Computing solution of the linear system //
+    //  related to the laplacian operator  	//
+    //******************************************//
+
     vectorPtr_Type solution ( new vector_Type ( uFESpace -> map() ) );
 
     vectorPtr_Type sx (new vector_Type ( uSpace -> map() ) );
@@ -192,6 +233,12 @@ int main ( int argc, char** argv )
 
     linearSolver.setRightHandSide (rhs);
     linearSolver.solve (solution);
+
+    //******************************************//
+    //  Computing the sheetlet direction as     //
+    //  the gradient of the laplacian solution, //
+    //  by using the method GradientRecovery    //
+    //******************************************//
 
     *sx = GradientRecovery::ZZGradient (uSpace, *solution, 0);
     *sy = GradientRecovery::ZZGradient (uSpace, *solution, 1);
@@ -218,6 +265,11 @@ int main ( int argc, char** argv )
 
 
     HeartUtility::normalize (*rbSheet);
+
+    //**************************************************//
+    //  Computing the centerline projection     	//
+    //  on the plane orthogonal to the sheet direction  //
+    //**************************************************//
 
     Real cx = parameterList.get ("centerline_x", 0.0);
     Real cy = parameterList.get ("centerline_y", 0.0);
@@ -272,13 +324,25 @@ int main ( int argc, char** argv )
         int j = (*rbSheet).blockMap().GID (l + d);
         int k = (*rbSheet).blockMap().GID (l + 2 * d);
 
-        // fiber =  sheet x projection
+	    //******************************************//
+	    //  Definition of the fiber field as the    //
+	    //	cross product between the sheet and the //
+	    //	projection field.                       //
+	    //******************************************//
+
         (*rbFiber) [i] = (*rbSheet) [j]  * (*projection) [k] - (*rbSheet) [k]  * (*projection) [j];
         (*rbFiber) [j] = (*rbSheet) [k]  * (*projection) [i] - (*rbSheet) [i]  * (*projection) [k];
         (*rbFiber) [k] = (*rbSheet) [i]  * (*projection) [j] - (*rbSheet) [j]  * (*projection) [i];
     }
 
     HeartUtility::normalize (*rbFiber);
+
+
+    //**************************************************//
+    //  Fixed angle on the endocardium and epicardium. 	//
+    //  Angle varies uniformly from the endocardium to  //
+    //  the epicardium					//
+    //**************************************************//
 
     Real epi_angle = parameterList.get ("epi_angle", -60.0);
     Real endo_angle = parameterList.get ("endo_angle", 60.0);
@@ -293,6 +357,12 @@ int main ( int argc, char** argv )
         scalarp = (*projection) [i] * (*rbFiber) [i]
                    + (*projection) [j] * (*rbFiber) [j]
                    + (*projection) [k] * (*rbFiber) [k];
+
+	    //*************************************************//
+	    //  Creation of the rotation matrix applied to the //
+	    //  fiber field defined as the cross product       //
+	    //  between the sheet and projection field         //
+	    //*************************************************//
 
 
         Real p = 3.14159265358979;
@@ -352,6 +422,9 @@ int main ( int argc, char** argv )
         (*rbFiber) [j] = R21 * f01 + R22 * f02 + R23 * f03;
         (*rbFiber) [k] = R31 * f01 + R32 * f02 + R33 * f03;
     }
+    //**************************************//
+    //  Export the fibers and sheets field  //
+    //**************************************//
 
     ExporterHDF5< mesh_Type > exporterFibers;
     exporterFibers.setMeshProcId ( meshPart, Comm -> MyPID() );
