@@ -87,12 +87,6 @@ public:
         M_stimulusValue = stimulusValue;
     }
 
-    inline void setDuration ( Real startingActivationTime , Real endingActivationTime )
-    {
-        ASSERT (endingActivationTime < startingActivationTime, "Invalid starting activation time.");
-        M_startingActivationTime = startingActivationTime;
-        M_endingActivationTime = endingActivationTime;
-    }
 
     inline void setPacingProtocol ( std::string PacingProtocol )
     {
@@ -190,24 +184,6 @@ public:
         this->M_repeatSt = repeatSt;
     }
 
-    inline const std::string& pacPro() const
-    {
-        return M_pacingProtocol;
-    }
-    inline void setPacingProtocol (const std::string& pacPro)
-    {
-        this->M_pacingProtocol = pacPro;
-    }
-
-    inline const std::string& pacProTyp() const
-    {
-        return M_pacingProtocolType;
-    }
-    inline void setPacingProtocolType (const std::string& pacProTyp)
-    {
-        this->M_pacingProtocolType = pacProTyp;
-    }
-
     inline const Real& currStim() const
     {
         return M_Istim;
@@ -224,6 +200,11 @@ public:
     inline void setStimDuration (const Real& stimDur)
     {
         this->M_StimDuration = stimDur;
+    }
+
+    inline void setPacingProtocolType (const std::string& pacProTyp)
+    {
+        this->M_pacingProtocolType = pacProTyp;
     }
 
     //@}
@@ -248,7 +229,6 @@ private:
     Real 		 M_pacingSite_Y;
     Real  		 M_pacingSite_Z;
     Real 		 M_stimulusValue;
-    std::string		 M_pacingProtocol;
 
     // Values of the stimulation interval used in the protocols.
     Real M_timeSt;

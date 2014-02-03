@@ -2,11 +2,15 @@ SET(util_HEADERS
   util/ElectrophysiologyUtility.hpp
   util/CardiacStimulus.hpp  
   util/CardiacStimulusPMJ.hpp
+  util/CardiacStimulusSingleSource.hpp
+  util/CardiacStimulusPacingProtocol.hpp
 CACHE INTERNAL "")
 
 SET(util_SOURCES
   util/CardiacStimulus.cpp  
   util/CardiacStimulusPMJ.cpp
+  util/CardiacStimulusSingleSource.cpp
+  util/CardiacStimulusPacingProtocol.cpp
 CACHE INTERNAL "")
 
 

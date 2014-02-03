@@ -33,7 +33,7 @@
  @last update 02-2014
  */
 
-#include <lifev/electrophysiology/util/CardiacStimulusSingleSource.hpp>
+#include <lifev/electrophysiology/util/CardiacStimulusPacingProtocol.hpp>
 
 namespace LifeV
 {
@@ -47,9 +47,7 @@ CardiacStimulusPacingProtocol::CardiacStimulusPacingProtocol() :
     M_pacingSite_X ( 0 ),
     M_pacingSite_Y ( 0 ),
     M_pacingSite_Z ( 0 ),
-    M_stimulusValue ( 0 ),
-    M_startingActivationTime ( 0 ),
-    M_endingActivationTime ( 0 ),
+    M_stimulusValue ( 0 )
 {
 
 }
@@ -116,13 +114,13 @@ void CardiacStimulusPacingProtocol::fixedCycleLength ( const Real& t )
     }
 }
 
-void CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t, Real& Iapp )
+void CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
 {
     if ( M_numberStimulus < M_nbStimMax )
     {
         if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
         {
-            Iapp = M_Istim;
+            M_totalCurrent = M_Istim;
 
             if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
             {
@@ -178,41 +176,41 @@ void CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t, 
         }
         else
         {
-            Iapp = 0;
+            M_totalCurrent = 0;
         }
     }
     else
     {
-        Iapp = 0;
+        M_totalCurrent = 0;
     }
 }
 
-void CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t, const Real& dt, int& NbStimulus, Real& Iapp )
+void CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
 {
     if ( t < M_nbStimMax * M_stInt )
     {
         if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
         {
-            Iapp = M_Istim;
+            M_totalCurrent = M_Istim;
 
-            if ( t >= M_timeSt + M_StimDuration - dt && t <= M_timeSt + M_StimDuration )
+            if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
             {
                 M_timeSt = M_timeSt + M_stInt;
 
                 if ( t > ( M_nbStimMax - 1 ) * M_stInt && t < M_nbStimMax * M_stInt )
                 {
-                    NbStimulus = 0;
+                    M_numberStimulus = 0;
                 }
 
                 else
                 {
-                    NbStimulus++;
+                    M_numberStimulus++;
                 }
             }
         }
         else
         {
-            Iapp = 0;
+            M_totalCurrent = 0;
         }
     }
     else
@@ -221,26 +219,26 @@ void CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t, const 
         {
             if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration)
             {
-                Iapp = M_Istim;
+                M_totalCurrent = M_Istim;
 
-                if ( t >= M_timeSt + M_StimDuration - dt && t <= M_timeSt + M_StimDuration )
+                if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
                 {
-                    NbStimulus++;
+                    M_numberStimulus++;
 
-                    if ( NbStimulus < M_repeatSt )
+                    if ( M_numberStimulus < M_repeatSt )
                     {
                         M_timeSt = M_timeSt + M_stInt;
                     }
 
-                    else if ( NbStimulus == M_repeatSt )
+                    else if ( M_numberStimulus == M_repeatSt )
                     {
                         M_timeSt = M_timeSt + M_stIntS1S2;
                     }
 
-                    else if ( NbStimulus == M_repeatSt + 1 )
+                    else if ( M_numberStimulus == M_repeatSt + 1 )
                     {
                         M_timeSt = M_timeSt + M_stInt;
-                        NbStimulus = 0;
+                        M_numberStimulus = 0;
 
                         if ( M_stIntS1S2 > 1000 )
                         {
@@ -266,33 +264,33 @@ void CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t, const 
             }
             else
             {
-                Iapp = 0;
+                M_totalCurrent = 0;
             }
         }
         else
         {
-            Iapp = 0;
+            M_totalCurrent = 0;
         }
     }
 }
 
-void CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t, const Real& dt, int& NbStimulus, Real& Iapp )
+void CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t )
 {
     if ( M_stInt >= M_stIntMin )
     {
         if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
         {
-            Iapp = M_Istim;
+            M_totalCurrent = M_Istim;
 
-            if ( t >= M_timeSt + M_StimDuration - dt && t <= M_timeSt + M_StimDuration )
+            if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
             {
-                NbStimulus++;
+                M_numberStimulus++;
                 M_timeSt = M_timeSt + M_stInt;
             }
         }
         else
         {
-            Iapp = 0;
+            M_totalCurrent = 0;
         }
 
         if ( t > M_tShortS1S1 )
@@ -321,7 +319,7 @@ void CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t, const Real&
     }
     else
     {
-        Iapp = 0;
+        M_totalCurrent = 0;
     }
 }
 
@@ -331,12 +329,14 @@ Real CardiacStimulusPacingProtocol::appliedCurrent ( const Real& t, const Real& 
     Real current = 0.0;
     const Real volumeOfBall = (4. / 3.) * M_PI * M_radius * M_radius * M_radius;
     Real distance = std::sqrt ( (x - M_pacingSite_X) * (x - M_pacingSite_X) + (y - M_pacingSite_Y) * (y - M_pacingSite_Y) + (z - M_pacingSite_Z) * (z - M_pacingSite_Z) );
-    if (distance <= M_radius && t >= (M_startingActivationTime) && t <= (M_endingActivationTime) )
+    if (distance <= M_radius )
     {
        pacingProtocolChoice( t );
        current += M_totalCurrent / volumeOfBall;
     }
     return current;
+
+}
 
 }
 

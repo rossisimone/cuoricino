@@ -50,7 +50,7 @@ CardiacStimulusSingleSource::CardiacStimulusSingleSource() :
     M_pacingSite_Z ( 0 ),
     M_stimulusValue ( 0 ),
     M_startingActivationTime ( 0 ),
-    M_endingActivationTime ( 0 ),
+    M_endingActivationTime ( 0 )
 {
 
 }
@@ -59,7 +59,7 @@ CardiacStimulusSingleSource::CardiacStimulusSingleSource() :
 // ===================================================
 //! Methods
 // ===================================================
-Real CardiacStimulusPMJ::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
+Real CardiacStimulusSingleSource::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
 {
 
     Real current = 0.0;
@@ -73,3 +73,4 @@ Real CardiacStimulusPMJ::appliedCurrent ( const Real& t, const Real& x, const Re
 
 }
 
+}
