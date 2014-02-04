@@ -359,7 +359,8 @@ private:
     Real                   M_pressureLeft;     // pressure left (P2) @ t=t(n+1)
     Real                   M_flowRateLeft;     // flowRate left (Q2) @ t=t(n+1)
 
-    Real                   M_pressureRight;    // pressure right (usually venous pressure)
+    Real                   M_pressureRight;    // pressure right
+    Real                   M_pressureRight_tn; // pressure right
 
     Real                   M_tangentPressureLeft;  // Tangent pressure left
     Real                   M_tangentFlowRateLeft;  // Tangent flowRate left
