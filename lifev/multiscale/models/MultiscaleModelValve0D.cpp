@@ -106,6 +106,17 @@ MultiscaleModelValve0D::setupData ( const std::string& fileName )
     M_minimumOpeningAngle = M_minimumOpeningAngle * 2. * M_PI / 360.;
     M_maximumOpeningAngle = M_maximumOpeningAngle * 2. * M_PI / 360.;
 
+    // Alternatively user can specify the regurgitant area fraction instead of minimum opening angle
+    Real regurgitantAreaFraction( dataFile ( "Coefficients/RegurgitantAreaFraction",  -1.0 ) );
+
+    if (regurgitantAreaFraction != -1.0)
+    {
+        M_minimumOpeningAngle = std::acos( 1.0 - std::sqrt(regurgitantAreaFraction) * ( 1.0 - std::cos(M_maximumOpeningAngle) ) );
+        if ( M_comm->MyPID() == 0 )
+                std::cout << " 0D-" << "  Minimum opening angle set to             " << std::floor( 360. * M_minimumOpeningAngle / (2. * M_PI) ) << " deg" << std::endl;
+
+    }
+
     if ( M_globalData.get() )
     {
         setupGlobalData ( fileName );
@@ -370,7 +381,7 @@ MultiscaleModelValve0D::initializeSolution()
     {
         M_flowRateLeft = 0;
         M_pressureLeft = 0;
-        M_openingAngle = 0; // Valve assumed to be closed in the start
+        M_openingAngle = M_minimumOpeningAngle; // Valve assumed to be closed in the start
 
         switch ( M_bc->handler()->bc ( 0 ).bcType() )
         {
