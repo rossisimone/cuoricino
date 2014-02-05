@@ -189,6 +189,20 @@ MultiscaleModelValve0D::solveModel()
 
     displayModelStatus ( "Solve" );
 
+    switch ( M_bc->handler()->bc ( 1 ).bcType() )
+    {
+        case Current:
+            std::cout << "Warning: flow rate condition cannot be imposed at valves!" << std::endl;
+            break;
+
+        case Voltage:
+            M_pressureRight = -M_bc->handler()->bc ( 1 ).evaluate ( M_globalData->dataTime()->time() );
+            break;
+
+        default:
+            break;
+    }
+
     solveForOpeningAngle();
 
     switch ( M_bc->handler()->bc ( 0 ).bcType() )
@@ -277,6 +291,8 @@ MultiscaleModelValve0D::imposeBoundaryFlowRate ( const multiscaleID_Type& bounda
     base.setFunction ( boost::bind ( function, _1, _1, _1, _1, _1 ) );
 
     M_bc->handler()->setBC ( boundaryFlag ( boundaryID ), Current, base );
+
+    std::cout << std::endl << "CALL TO MultiscaleModelValve0D::imposeBoundaryFlowRate" << std::endl;
 }
 
 void
@@ -286,6 +302,8 @@ MultiscaleModelValve0D::imposeBoundaryMeanNormalStress ( const multiscaleID_Type
     base.setFunction ( boost::bind ( function, _1, _1, _1, _1, _1 ) );
 
     M_bc->handler()->setBC ( boundaryFlag ( boundaryID ), Voltage, base );
+
+    std::cout << std::endl << "CALL TO MultiscaleModelValve0D::imposeBoundaryMeanNormalStress" << std::endl;
 }
 
 Real
@@ -494,6 +512,20 @@ MultiscaleModelValve0D::solveLinearModel ( bool& solveLinearSystem )
     //Solve the linear problem
     displayModelStatus ( "Solve linear" );
 
+    switch ( M_bc->handler()->bc ( 1 ).bcType() )
+    {
+        case Current:
+            std::cout << "Warning: flow rate condition cannot be imposed at valves!" << std::endl;
+            break;
+
+        case Voltage:
+            M_pressureRight = -M_bc->handler()->bc ( 1 ).evaluate ( M_globalData->dataTime()->time() );
+            break;
+
+        default:
+            break;
+    }
+
     //Solve the opening angle first
     solveForOpeningAngle();
 
@@ -589,28 +621,32 @@ MultiscaleModelValve0D::solveForOpeningAngle()
 
     Real dt = M_globalData->dataTime()->timeStep();
 
+    std::cout << std::endl << "M_pressureLeft  = " << M_pressureLeft << std::endl;
+    std::cout << "M_pressureRight = " << M_pressureRight << std::endl;
+    std::cout << "M_flowRateLeft  = " << M_flowRateLeft << std::endl;
+
     // Leaflet moment model of Korakianitis-Shi '06 solved with RK4 method
 
-    Real k1_F ( M_frictionalMomentCoefficient * (M_pressureLeft_tn - M_pressureRight_tn) * std::cos(M_openingAngle_tn)
+    Real k1_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn)
                 - M_resistiveMomentCoefficient * M_thetaVel_tn
-                - M_convectiveMomentCoefficient * M_flowRateLeft_tn * std::cos(M_openingAngle_tn) );
+                - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn) );
     Real k1_v ( M_thetaVel_tn );
 
-    Real k2_F ( M_frictionalMomentCoefficient * (M_pressureLeft_tn - M_pressureRight_tn) * std::cos(M_openingAngle_tn + dt/2. * k1_v)
+    Real k2_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt/2. * k1_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt/2. * k1_F)
-    - M_convectiveMomentCoefficient * M_flowRateLeft_tn * std::cos(M_openingAngle_tn + dt/2. * k1_v) );
+    - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn + dt/2. * k1_v) );
 
     Real k2_v ( M_openingAngle_tn + dt/2. * k1_v );
 
-    Real k3_F ( M_frictionalMomentCoefficient * (M_pressureLeft_tn - M_pressureRight_tn) * std::cos(M_openingAngle_tn + dt/2. * k2_v)
+    Real k3_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt/2. * k2_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt/2. * k2_F)
-    - M_convectiveMomentCoefficient * M_flowRateLeft_tn * std::cos(M_openingAngle_tn + dt/2. * k2_v) );
+    - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn + dt/2. * k2_v) );
 
     Real k3_v ( M_openingAngle_tn + dt/2. * k2_v );
 
-    Real k4_F ( M_frictionalMomentCoefficient * (M_pressureLeft_tn - M_pressureRight_tn) * std::cos(M_openingAngle_tn + dt * k3_v)
+    Real k4_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt * k3_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt * k3_F)
-    - M_convectiveMomentCoefficient * M_flowRateLeft_tn * std::cos(M_openingAngle_tn + dt * k3_v) );
+    - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn + dt * k3_v) );
 
     Real k4_v ( M_openingAngle_tn + dt * k3_v );
 
