@@ -58,45 +58,46 @@ CardiacStimulusPacingProtocol::CardiacStimulusPacingProtocol() :
 // ===================================================
 
 
-void CardiacStimulusPacingProtocol::pacingProtocolChoice ( const Real& t)
+Real CardiacStimulusPacingProtocol::pacingProtocolChoice ( const Real& t)
 {
 
     if ( M_pacingProtocol == "FCL" )
     {
-        fixedCycleLength ( t );
+        return fixedCycleLength ( t );
     }
 
     else if ( M_pacingProtocol == "FCL-ExtraSt" )
     {
-        fixedCycleLengthwExtraStim ( t );
+        return fixedCycleLengthwExtraStim ( t );
     }
 
     else if ( M_pacingProtocol == "S1S2Pro" )
     {
-        standardS1S2Protocol ( t );
+        return standardS1S2Protocol ( t );
     }
 
     else if ( M_pacingProtocol == "DynPro" )
     {
-        dynamicProtocol ( t );
+        return dynamicProtocol ( t );
     }
 
     else
     {
-        fixedCycleLength ( t );
+        return fixedCycleLength ( t );
     }
 
 
 }
 
 
-void CardiacStimulusPacingProtocol::fixedCycleLength ( const Real& t )
+Real CardiacStimulusPacingProtocol::fixedCycleLength ( const Real& t )
 {
+    Real current = 0;
     if ( M_numberStimulus < M_nbStimMax )
     {
         if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
         {
-            M_totalCurrent = M_Istim;
+            current = M_totalCurrent;
             if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
             {
                 M_numberStimulus++;
@@ -105,22 +106,24 @@ void CardiacStimulusPacingProtocol::fixedCycleLength ( const Real& t )
         }
         else
         {
-            M_totalCurrent = 0;
+            current = 0;
         }
     }
     else
     {
-        M_totalCurrent = 0;
+        current = 0;
     }
+    return current;
 }
 
-void CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
+Real CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
 {
+    Real current = 0;
     if ( M_numberStimulus < M_nbStimMax )
     {
         if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
         {
-            M_totalCurrent = M_Istim;
+            current = M_totalCurrent;
 
             if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
             {
@@ -176,22 +179,24 @@ void CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
         }
         else
         {
-            M_totalCurrent = 0;
+            current = 0;
         }
     }
     else
     {
-        M_totalCurrent = 0;
+        current = 0;
     }
+    return current;
 }
 
-void CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
+Real CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
 {
+    Real current = 0;
     if ( t < M_nbStimMax * M_stInt )
     {
         if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
         {
-            M_totalCurrent = M_Istim;
+            current = M_totalCurrent;
 
             if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
             {
@@ -210,7 +215,7 @@ void CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
         }
         else
         {
-            M_totalCurrent = 0;
+            current = 0;
         }
     }
     else
@@ -219,7 +224,7 @@ void CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
         {
             if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration)
             {
-                M_totalCurrent = M_Istim;
+                current = M_totalCurrent;
 
                 if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
                 {
@@ -264,23 +269,25 @@ void CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
             }
             else
             {
-                M_totalCurrent = 0;
+                current = 0;
             }
         }
         else
         {
-            M_totalCurrent = 0;
+            current = 0;
         }
     }
+    return current;
 }
 
-void CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t )
+Real CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t )
 {
+    Real current = 0;
     if ( M_stInt >= M_stIntMin )
     {
         if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
         {
-            M_totalCurrent = M_Istim;
+            current = M_totalCurrent;
 
             if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
             {
@@ -290,7 +297,7 @@ void CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t )
         }
         else
         {
-            M_totalCurrent = 0;
+            current = 0;
         }
 
         if ( t > M_tShortS1S1 )
@@ -319,8 +326,9 @@ void CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t )
     }
     else
     {
-        M_totalCurrent = 0;
+        current = 0;
     }
+    return current;
 }
 
 Real CardiacStimulusPacingProtocol::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
@@ -331,12 +339,76 @@ Real CardiacStimulusPacingProtocol::appliedCurrent ( const Real& t, const Real& 
     Real distance = std::sqrt ( (x - M_pacingSite_X) * (x - M_pacingSite_X) + (y - M_pacingSite_Y) * (y - M_pacingSite_Y) + (z - M_pacingSite_Z) * (z - M_pacingSite_Z) );
     if (distance <= M_radius )
     {
-       pacingProtocolChoice( t );
-       current += M_totalCurrent / volumeOfBall;
+       current += pacingProtocolChoice( t ) / volumeOfBall;
     }
     return current;
 
 }
 
+void CardiacStimulusPacingProtocol::showMe()
+{
+    std::cout << "\n\n\t\tStimulation protocol Informations\n\n";
+
+    std::cout << "\n\t\tList of parameters:\n\n";
+
+    std::cout << "Istim: " << M_totalCurrent << std::endl;
+    std::cout << "StimDuration: " << M_StimDuration << std::endl;
+    std::cout << "1st stimuli time: " << M_timeSt << std::endl;
+    std::cout << "Pacing protocol: " << M_pacingProtocol << std::endl;
+    std::cout << "NumberStimMax: " << M_nbStimMax << std::endl;
+
+    if ( M_pacingProtocol == "FCL" )
+    {
+        std::cout << "S1-S1 interval: " << M_tShortS1S1 << std::endl;
+        std::cout << "NbStimuliMax: " << M_numberStimulus << std::endl;
+    }
+//    else if ( M_pacingProtocol == "FCL-ExtraSt" )
+//    {
+//        std::cout << "Pacing protocol type: " << this->pacProTyp() << std::endl;
+//        std::cout << "S1-S1 interval: " << this->stInt() << std::endl;
+//        std::cout << "NbStimuliMax: " << this ->nbStimMax() << std::endl;
+//        std::cout << "Repeat S1 stimuli: " << this->repeatSt() << std::endl;
+//
+//        if ( M_pacingProtocolType == "S1-S2" )
+//        {
+//            std::cout << "S1-S2 interval: " << this->stIntS1S2() << std::endl;
+//        }
+//        else if ( M_pacingProtocolType == "S1-S2-S3" )
+//        {
+//            std::cout << "S1-S2 interval: " << this->stIntS1S2() << std::endl;
+//            std::cout << "S2-S3 interval: " << this->stIntS2S3() << std::endl;
+//        }
+//        else if ( M_pacingProtocolType == "S1-S2-S3-S4" )
+//        {
+//            std::cout << "S1-S2 interval: " << this->stIntS1S2() << std::endl;
+//            std::cout << "S2-S3 interval: " << this->stIntS2S3() << std::endl;
+//            std::cout << "S3-S4 interval: " << this->stIntS3S4() << std::endl;
+//        }
+//
+//    }
+//    else if ( M_pacingProtocol == "S1S2Pro" )
+//    {
+//        std::cout << "S1-S1 interval: " << this->stInt() << std::endl;
+//        std::cout << "NbStimuliMax for stabilisation: " << this ->nbStimMax() << std::endl;
+//        std::cout << "First S1-S2 interval: " << this->stIntS1S2() << std::endl;
+//        std::cout << "Minimum S1-S2 interval: " << this->stIntS1S2Min() << std::endl;
+//        std::cout << "Repeat S1 stimuli: " << this->repeatSt() << std::endl;
+//    }
+//    else if ( M_pacingProtocol == "DynPro" )
+//    {
+//        std::cout << "First S1-S1 interval: " << this->stInt() << std::endl;
+//        std::cout << "Minimum S1-S1 interval: " << this->stIntMin() << std::endl;
+//        std::cout << "First time S1-S1 interval decrease: " << this->timeShortS1S1() << std::endl;
+//    }
+//    else
+//    {
+//        std::cout << "S1-S1 interval: " << this->stInt() << std::endl;
+//        std::cout << "NbStimuliMax: " << this ->nbStimMax() << std::endl;
+//    }
+
+
+
+    std::cout << "\n\t\t End of Stimulation protocol Informations\n\n\n";
 }
 
+}

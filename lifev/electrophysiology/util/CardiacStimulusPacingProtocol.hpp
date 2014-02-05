@@ -37,7 +37,9 @@
 #define CARDIACSTIMULUSPACINGPROTOCOL_HPP_
 
 #include <lifev/electrophysiology/util/CardiacStimulus.hpp>
-
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include "Teuchos_XMLParameterListHelpers.hpp"
 namespace LifeV
 {
 
@@ -46,6 +48,14 @@ class CardiacStimulusPacingProtocol : public CardiacStimulus
 
 public:
 
+    //! @name Type definitions
+    //    //@{
+    //
+    //
+    typedef Teuchos::ParameterList list_Type;
+
+    //@}
+    //
 
     //! @name Constructors & Destructor
     //@{
@@ -184,15 +194,6 @@ public:
         this->M_repeatSt = repeatSt;
     }
 
-    inline const Real& currStim() const
-    {
-        return M_Istim;
-    }
-    inline void setIstim (const Real& currStim)
-    {
-        this->M_Istim = currStim;
-    }
-
     inline const Real& stimDuration() const
     {
         return M_StimDuration;
@@ -207,6 +208,27 @@ public:
         this->M_pacingProtocolType = pacProTyp;
     }
 
+
+	void setParameters (list_Type&  list)
+	{
+		M_timeSt = list.get ("stimuliTime", 0.0);
+		M_tShortS1S1 = list.get ("tShortS1S1", 0.001);
+		M_stInt = list.get ("stInt", 0.001);
+		M_stIntMin = list.get ("stIntMin", 0.001);
+		M_stIntS1S2 = list.get ("stIntS1S2", 0.0);
+		M_stIntS1S2Min = list.get ("stIntS1S2Min", 100.0);
+		M_stIntS2S3 = list.get ("stIntS2S3", 0.01);
+		M_stIntS3S4 = list.get ("stIntS3S4", 0.01);
+		M_nbStimMax = list.get ("nbStimMax", 1);
+		M_repeatSt = list.get ("repeatSt", 1);
+		M_dt = list.get ("dt", 0.01);
+		M_numberStimulus = list.get ("numberStimulus", 0);
+		M_pacingProtocol = list.get ("pacPro", "FCL-ExtraSt");
+		M_pacingProtocolType = list.get ("pacProType", "S1-S2");
+
+	}
+
+
     //@}
 
     //! @name Copy Methods
@@ -217,14 +239,14 @@ public:
     //! @name Methods
     //@{
     Real appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i );
-
+    void showMe();
 
     //@}
 
 private:
 
-    Real                 M_radius;
-    Real                 M_totalCurrent;
+    Real         M_radius;
+    Real         M_totalCurrent;
     Real 		 M_pacingSite_X;
     Real 		 M_pacingSite_Y;
     Real  		 M_pacingSite_Z;
@@ -250,7 +272,6 @@ private:
     std::string M_pacingProtocolType;
 
     // Value of the current stimulation
-    Real M_Istim;
     Real M_StimDuration;
 
     //Discretization time step used to understand when a stimulus in
@@ -258,18 +279,18 @@ private:
     Real M_dt;
 
     // Stimulation at constant frequency
-    void fixedCycleLength ( const Real& t );
+    Real fixedCycleLength ( const Real& t );
 
     // Stimulation at constant frequency with extra stimulation ( respective Si-Sj interval = constant )
-    void fixedCycleLengthwExtraStim ( const Real& t );
+    Real fixedCycleLengthwExtraStim ( const Real& t );
 
     // Standard stimulation protocol
-    void standardS1S2Protocol ( const Real& t );
+    Real standardS1S2Protocol ( const Real& t );
 
     // Dynamic stimulation protocol
-    void dynamicProtocol ( const Real& t );
+    Real dynamicProtocol ( const Real& t );
 
-    void pacingProtocolChoice ( const Real& t );
+    Real pacingProtocolChoice ( const Real& t );
 
 };
 
