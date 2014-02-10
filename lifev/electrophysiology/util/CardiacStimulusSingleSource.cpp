@@ -43,14 +43,13 @@ namespace LifeV
 //! Constructors
 // ===================================================
 CardiacStimulusSingleSource::CardiacStimulusSingleSource() :
-    M_radius ( 0 ),
-    M_totalCurrent ( 0 ),
+    M_radius ( 0.1 ),
+    M_totalCurrent ( 0.5 ),
     M_pacingSite_X ( 0 ),
     M_pacingSite_Y ( 0 ),
     M_pacingSite_Z ( 0 ),
-    M_stimulusValue ( 0 ),
-    M_startingActivationTime ( 0 ),
-    M_endingActivationTime ( 0 )
+    M_startingTimeStimulus ( 0.0 ),
+    M_StimDuration ( 1.0 )
 {
 
 }
@@ -65,7 +64,7 @@ Real CardiacStimulusSingleSource::appliedCurrent ( const Real& t, const Real& x,
     Real current = 0.0;
     const Real volumeOfBall = (4. / 3.) * M_PI * M_radius * M_radius * M_radius;
     Real distance = std::sqrt ( (x - M_pacingSite_X) * (x - M_pacingSite_X) + (y - M_pacingSite_Y) * (y - M_pacingSite_Y) + (z - M_pacingSite_Z) * (z - M_pacingSite_Z) );
-    if (distance <= M_radius && t >= (M_startingActivationTime) && t <= (M_endingActivationTime) )
+    if (distance <= M_radius && t >= ( M_startingTimeStimulus ) && t <= ( M_startingTimeStimulus + M_StimDuration ) )
     {
        current += M_totalCurrent / volumeOfBall;
     }

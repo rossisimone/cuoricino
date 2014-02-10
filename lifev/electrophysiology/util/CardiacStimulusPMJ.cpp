@@ -44,7 +44,8 @@ namespace LifeV
 // ===================================================
 CardiacStimulusPMJ::CardiacStimulusPMJ() :
     M_radius ( 0 ),
-    M_activationData ( * (new activationData_type() ) )
+    M_activationData ( * (new activationData_type() ) ),
+    M_problemFolder ( "./" )
 {
 
 }

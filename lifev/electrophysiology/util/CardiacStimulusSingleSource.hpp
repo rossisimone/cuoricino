@@ -83,17 +83,28 @@ public:
         M_pacingSite_Z = z;
     }
 
-    inline void setStimulusValue ( Real stimulusValue )
+    inline void setStimDuration ( Real duration )
     {
-        M_stimulusValue = stimulusValue;
+        ASSERT (duration>0, "Invalid stimulus duration value.");
+        M_StimDuration=duration;
     }
 
-    inline void setDuration ( Real startingActivationTime , Real endingActivationTime )
+    inline void setStartingTimeStimulus ( Real startingTimeStimulus )
     {
-        ASSERT (endingActivationTime < startingActivationTime, "Invalid starting activation time.");
-        M_startingActivationTime = startingActivationTime;
-        M_endingActivationTime = endingActivationTime;
+        ASSERT (startingTimeStimulus>=0, "Invalid starting time stimulus.");
+        M_startingTimeStimulus=startingTimeStimulus;
     }
+
+
+	void setParameters (list_Type&  list)
+	{
+		this->setRadius ( list.get ( "applied_current_radius", 0.2 ) );
+		this->setTotalCurrent ( list.get ( "applied_total_current", 1.0 ) );
+        this->setPacingSite (list.get ( "pacing_site_X", 1.0 ),list.get ( "pacing_site_Y", 1.0 ),list.get ( "pacing_site_Z", 1.0 ) );
+        this->setStimDuration( list.get ( "duration_stimulus", 1.0 ) );
+        this->setStartingTimeStimulus( list.get ("starting_time_stimulus", 0.0 ) );
+    }
+
 
     //@}
 
@@ -110,14 +121,13 @@ public:
 
 private:
 
-    Real                 M_radius;
-    Real                 M_totalCurrent;
+    Real         M_radius;
+    Real         M_totalCurrent;
     Real 		 M_pacingSite_X;
     Real 		 M_pacingSite_Y;
     Real  		 M_pacingSite_Z;
-    Real 		 M_stimulusValue;
-    Real 		 M_startingActivationTime;
-    Real   		 M_endingActivationTime;
+    Real 		 M_startingTimeStimulus;
+    Real   		 M_StimDuration;
 };
 
 } // namespace LifeV

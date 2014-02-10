@@ -37,9 +37,7 @@
 #define CARDIACSTIMULUSPACINGPROTOCOL_HPP_
 
 #include <lifev/electrophysiology/util/CardiacStimulus.hpp>
-#include <Teuchos_RCP.hpp>
-#include <Teuchos_ParameterList.hpp>
-#include "Teuchos_XMLParameterListHelpers.hpp"
+
 namespace LifeV
 {
 
@@ -47,15 +45,6 @@ class CardiacStimulusPacingProtocol : public CardiacStimulus
 {
 
 public:
-
-    //! @name Type definitions
-    //    //@{
-    //
-    //
-    typedef Teuchos::ParameterList list_Type;
-
-    //@}
-    //
 
     //! @name Constructors & Destructor
     //@{
@@ -104,13 +93,13 @@ public:
     }
 
 
-    inline const Real& timeSt() const
+    inline const Real& StInt() const
     {
-        return M_timeSt;
+        return M_stInt;
     }
-    inline void setTimeSt (const Real& timeSt)
+    inline void setStInt (const Real& StInt)
     {
-        this->M_timeSt = timeSt;
+        this->M_stInt = StInt;
     }
 
     inline const Real& timeShortS1S1() const
@@ -122,13 +111,13 @@ public:
         this->M_tShortS1S1 = tShortS1S1;
     }
 
-    inline const Real& stInt() const
+    inline const Real& startingTimeStimulus() const
     {
-        return M_stInt;
+        return M_startingTimeStimulus;
     }
-    inline void setStInt (const Real& stInt)
+    inline void setStartingTimeStimulus (const Real& startingTimeStimulus)
     {
-        this->M_stInt = stInt;
+        this->M_startingTimeStimulus = startingTimeStimulus;
     }
 
     inline const Real& stIntMin() const
@@ -137,8 +126,18 @@ public:
     }
     inline void setStIntMin (const Real& stIntMin)
     {
-        this->M_stInt = stIntMin;
+        this->M_stIntMin = stIntMin;
     }
+
+    inline const Real& timeStep() const
+    {
+        return M_dt;
+    }
+    inline void setTimeStep (const Real& dt)
+    {
+        this->M_dt = dt;
+    }
+
 
     inline const Real& stIntS1S2() const
     {
@@ -211,21 +210,20 @@ public:
 
 	void setParameters (list_Type&  list)
 	{
-		M_timeSt = list.get ("stimuliTime", 0.0);
-		M_tShortS1S1 = list.get ("tShortS1S1", 0.001);
-		M_stInt = list.get ("stInt", 0.001);
-		M_stIntMin = list.get ("stIntMin", 0.001);
-		M_stIntS1S2 = list.get ("stIntS1S2", 0.0);
-		M_stIntS1S2Min = list.get ("stIntS1S2Min", 100.0);
-		M_stIntS2S3 = list.get ("stIntS2S3", 0.01);
-		M_stIntS3S4 = list.get ("stIntS3S4", 0.01);
-		M_nbStimMax = list.get ("nbStimMax", 1);
-		M_repeatSt = list.get ("repeatSt", 1);
-		M_dt = list.get ("dt", 0.01);
-		M_numberStimulus = list.get ("numberStimulus", 0);
-		M_pacingProtocol = list.get ("pacPro", "FCL-ExtraSt");
-		M_pacingProtocolType = list.get ("pacProType", "S1-S2");
-
+		this->setStartingTimeStimulus( list.get ("starting_time_stimulus", 0.0) );
+		this->setTimeShortS1S1( list.get ("tShortS1S1", 0.001) );
+		this->setStInt( list.get ("stInt", 0.0 ) );
+        this->setStIntMin( list.get ("stIntMin", 0.001) );
+        this->setStIntS1S2( list.get ("stIntS1S2", 0.0) );
+        this->setStIntS1S2Min( list.get ("stIntS1S2Min", 100.0) );
+        this->setStIntS2S3( list.get ("stIntS2S3", 0.01) );
+        this->setStIntS3S4( list.get ("stIntS3S4", 0.01) );
+        this->setNbStimMax( list.get ("nbStimMax", 1) );
+        this->setRepeatSt( list.get ("repeatSt", 1) );
+        this->setTimeStep( list.get ("dt", 0.01) );
+        this->setPacingProtocol( list.get ("pacPro", "FCL-ExtraSt") );
+        this->setPacingProtocolType( list.get ("pacProType", "S1-S2") );
+        this->setStimDuration( list.get ("duration_stimulus", 1.0 ) );
 	}
 
 
@@ -253,17 +251,17 @@ private:
     Real 		 M_stimulusValue;
 
     // Values of the stimulation interval used in the protocols.
-    Real M_timeSt;
+    Real M_startingTimeStimulus;
     Real M_tShortS1S1;
-    Real M_stInt;
-    Real M_stIntMin;
+    Real M_stInt;                   //Duration of the time interval between two stimuli
+    Real M_stIntMin;                //Minimum duration of the time interval between two stimuli in a dynamic pacing protocol
     Real M_stIntS1S2;
     Real M_stIntS1S2Min;
     Real M_stIntS2S3;
     Real M_stIntS3S4;
 
     // Number of stimulation information
-    int M_nbStimMax;
+    int M_nbStimMax;                //Number of stimuli that we want to apply
     int M_repeatSt;
     int M_numberStimulus;
 

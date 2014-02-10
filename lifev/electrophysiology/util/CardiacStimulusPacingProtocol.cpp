@@ -95,13 +95,13 @@ Real CardiacStimulusPacingProtocol::fixedCycleLength ( const Real& t )
     Real current = 0;
     if ( M_numberStimulus < M_nbStimMax )
     {
-        if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
+        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration )
         {
             current = M_totalCurrent;
-            if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
+            if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
             {
                 M_numberStimulus++;
-                M_timeSt = M_timeSt + M_stInt;
+                M_startingTimeStimulus = M_startingTimeStimulus + M_stInt;
             }
         }
         else
@@ -121,34 +121,34 @@ Real CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
     Real current = 0;
     if ( M_numberStimulus < M_nbStimMax )
     {
-        if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
+        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration )
         {
             current = M_totalCurrent;
 
-            if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
+            if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
             {
                 if ( M_numberStimulus < M_repeatSt )
                 {
-                    M_timeSt = M_timeSt + M_stInt;
+                    M_startingTimeStimulus = M_startingTimeStimulus + M_stInt;
                     M_numberStimulus++;
                 }
                 else
                 {
                     if ( M_pacingProtocolType == "S1-S2" )
                     {
-                        M_timeSt = M_timeSt + M_stIntS1S2;
+                        M_startingTimeStimulus = M_startingTimeStimulus + M_stIntS1S2;
                         M_numberStimulus = 0;
                     }
                     else if ( M_pacingProtocolType == "S1-S2-S3" )
                     {
                         if ( M_numberStimulus == M_repeatSt )
                         {
-                            M_timeSt = M_timeSt + M_stIntS1S2;
+                            M_startingTimeStimulus = M_startingTimeStimulus + M_stIntS1S2;
                             M_numberStimulus++;
                         }
                         else
                         {
-                            M_timeSt = M_timeSt + M_stIntS2S3;
+                            M_startingTimeStimulus = M_startingTimeStimulus + M_stIntS2S3;
                             M_numberStimulus = 0;
                         }
                     }
@@ -156,23 +156,23 @@ Real CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
                     {
                         if ( M_numberStimulus == M_repeatSt )
                         {
-                            M_timeSt = M_timeSt + M_stIntS1S2;
+                            M_startingTimeStimulus = M_startingTimeStimulus + M_stIntS1S2;
                             M_numberStimulus++;
                         }
                         else if ( M_numberStimulus == M_repeatSt + 1 )
                         {
-                            M_timeSt = M_timeSt + M_stIntS2S3;
+                            M_startingTimeStimulus = M_startingTimeStimulus + M_stIntS2S3;
                             M_numberStimulus++;
                         }
                         else
                         {
-                            M_timeSt = M_timeSt + M_stIntS3S4;
+                            M_startingTimeStimulus = M_startingTimeStimulus + M_stIntS3S4;
                             M_numberStimulus = 0;
                         }
                     }
                     else
                     {
-                        M_timeSt = M_timeSt + M_stInt;
+                        M_startingTimeStimulus = M_startingTimeStimulus + M_stInt;
                     }
                 }
             }
@@ -194,19 +194,18 @@ Real CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
     Real current = 0;
     if ( t < M_nbStimMax * M_stInt )
     {
-        if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
+        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration )
         {
             current = M_totalCurrent;
 
-            if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
+            if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
             {
-                M_timeSt = M_timeSt + M_stInt;
+                M_startingTimeStimulus = M_startingTimeStimulus + M_stInt;
 
                 if ( t > ( M_nbStimMax - 1 ) * M_stInt && t < M_nbStimMax * M_stInt )
                 {
                     M_numberStimulus = 0;
                 }
-
                 else
                 {
                     M_numberStimulus++;
@@ -222,27 +221,27 @@ Real CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
     {
         if ( M_stIntS1S2 >= M_stIntS1S2Min )
         {
-            if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration)
+            if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration)
             {
                 current = M_totalCurrent;
 
-                if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
+                if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
                 {
                     M_numberStimulus++;
 
                     if ( M_numberStimulus < M_repeatSt )
                     {
-                        M_timeSt = M_timeSt + M_stInt;
+                        M_startingTimeStimulus = M_startingTimeStimulus + M_stInt;
                     }
 
                     else if ( M_numberStimulus == M_repeatSt )
                     {
-                        M_timeSt = M_timeSt + M_stIntS1S2;
+                        M_startingTimeStimulus = M_startingTimeStimulus + M_stIntS1S2;
                     }
 
                     else if ( M_numberStimulus == M_repeatSt + 1 )
                     {
-                        M_timeSt = M_timeSt + M_stInt;
+                        M_startingTimeStimulus = M_startingTimeStimulus + M_stInt;
                         M_numberStimulus = 0;
 
                         if ( M_stIntS1S2 > 1000 )
@@ -285,14 +284,14 @@ Real CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t )
     Real current = 0;
     if ( M_stInt >= M_stIntMin )
     {
-        if ( t >= M_timeSt && t <= M_timeSt + M_StimDuration )
+        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration )
         {
             current = M_totalCurrent;
 
-            if ( t >= M_timeSt + M_StimDuration - M_dt && t <= M_timeSt + M_StimDuration )
+            if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
             {
                 M_numberStimulus++;
-                M_timeSt = M_timeSt + M_stInt;
+                M_startingTimeStimulus = M_startingTimeStimulus + M_stInt;
             }
         }
         else
@@ -353,7 +352,7 @@ void CardiacStimulusPacingProtocol::showMe()
 
     std::cout << "Istim: " << M_totalCurrent << std::endl;
     std::cout << "StimDuration: " << M_StimDuration << std::endl;
-    std::cout << "1st stimuli time: " << M_timeSt << std::endl;
+    std::cout << "1st stimuli time: " << M_startingTimeStimulus << std::endl;
     std::cout << "Pacing protocol: " << M_pacingProtocol << std::endl;
     std::cout << "NumberStimMax: " << M_nbStimMax << std::endl;
 

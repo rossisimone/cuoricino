@@ -38,7 +38,9 @@
 #define CARDIACSTIMULUS_HPP_
 
 #include <lifev/core/array/VectorEpetra.hpp>
-
+#include <Teuchos_RCP.hpp>
+#include <Teuchos_ParameterList.hpp>
+#include "Teuchos_XMLParameterListHelpers.hpp"
 namespace LifeV
 {
 
@@ -51,6 +53,7 @@ public:
     //@{
     typedef VectorEpetra                    vector_Type;
     typedef boost::shared_ptr<VectorEpetra> vectorPtr_Type;
+    typedef Teuchos::ParameterList          list_Type;
 
     //@}
 
@@ -88,6 +91,11 @@ public:
     inline virtual Real appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i )
     {
         return 0.0;
+    }
+
+    virtual void setParameters (list_Type&  list)
+    {
+
     }
 
     //@}
