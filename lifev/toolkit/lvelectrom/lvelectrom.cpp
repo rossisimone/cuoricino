@@ -76,6 +76,8 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicLuoRudyI.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher06.hpp>
 #include <lifev/electrophysiology/util/CardiacStimulusPMJ.hpp>
+#include <lifev/electrophysiology/util/CardiacStimulusSingleSource.hpp>
+#include <lifev/electrophysiology/util/CardiacStimulusPacingProtocol.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -103,6 +105,7 @@ Int main ( Int argc, char** argv )
 
     typedef VectorEpetra                                             vector_Type;
     typedef boost::shared_ptr<vector_Type>                           vectorPtr_Type;
+    typedef boost::shared_ptr<CardiacStimulus>                       CardiacStimulusPtr_Type;
 
 //    bool verbose = false;
 
@@ -197,14 +200,35 @@ Int main ( Int argc, char** argv )
     solver -> initializeAppliedCurrent();
     solver -> setInitialConditions();
 
-    CardiacStimulusPMJ stimulus;
-    stimulus.setRadius ( monodomainList.get ("applied_current_radius", 0.2) );
-    stimulus.setTotalCurrent ( monodomainList.get ("applied_total_current", 0.2) );
+    //********************************************//
+    // Setting up the cardiac stimulus            //
+    //********************************************//
 
-    std::string purkinjeFile = problemFolder + command_line.follow ("default", 2, "-m", "--model") + "_activation.txt";
-    stimulus.setPMJFromFile (purkinjeFile);
+    const string stimulus_datafile_name = command_line.follow ("StimulationParameters.xml", 2, "-s", "--stimulus");
+    Teuchos::ParameterList stimulusList = * ( Teuchos::getParametersFromXmlFile ( stimulus_datafile_name ) );
 
-    solver -> setAppliedCurrentFromCardiacStimulus (stimulus, 0.0);
+    CardiacStimulusPtr_Type stimulus;
+    std::string stimulus_protocol ( monodomainList.get ("StimulusProtocol", "PMJ") );
+
+    if ( stimulus_protocol == "PMJ" )
+    {
+        stimulus.reset ( new CardiacStimulusPMJ() );
+    }
+    else if ( ionic_model == "SingleSource" )
+    {
+        stimulus.reset (new CardiacStimulusSingleSource() );
+    }
+    else if ( ionic_model == "PacingProtocol" )
+    {
+        stimulus.reset (new CardiacStimulusPacingProtocol() );
+    }
+    else
+    {
+        stimulus.reset ( new CardiacStimulusSingleSource() );
+    }
+
+    stimulus->setParameters ( stimulusList );
+    solver -> setAppliedCurrentFromCardiacStimulus ( *stimulus, 0.0);
 
     //********************************************//
     // Setting up the time data                   //
@@ -280,7 +304,7 @@ Int main ( Int argc, char** argv )
 
     for ( Real t = 0.0; t < TF; )
     {
-        solver -> setAppliedCurrentFromCardiacStimulus ( stimulus, t );
+        solver -> setAppliedCurrentFromCardiacStimulus ( *stimulus, t );
 
         if ( solutionMethod == "splitting" )
         {
