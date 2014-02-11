@@ -621,30 +621,30 @@ MultiscaleModelValve0D::solveForOpeningAngle()
 
     Real dt = M_globalData->dataTime()->timeStep();
 
-    std::cout << std::endl << "M_pressureLeft  = " << M_pressureLeft << std::endl;
-    std::cout << "M_pressureRight = " << M_pressureRight << std::endl;
-    std::cout << "M_flowRateLeft  = " << M_flowRateLeft << std::endl;
+    std::cout << std::endl << "M_pressureLeft_tn  = " << M_pressureLeft << std::endl;
+    std::cout << "M_pressureRight_tn = " << M_pressureRight_tn << std::endl;
+    std::cout << "M_flowRateLeft_tn  = " << M_flowRateLeft << std::endl;
 
     // Leaflet moment model of Korakianitis-Shi '06 solved with RK4 method
 
-    Real k1_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn)
+    Real k1_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight_tn) * std::cos(M_openingAngle_tn)
                 - M_resistiveMomentCoefficient * M_thetaVel_tn
                 - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn) );
     Real k1_v ( M_thetaVel_tn );
 
-    Real k2_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt/2. * k1_v)
+    Real k2_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight_tn) * std::cos(M_openingAngle_tn + dt/2. * k1_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt/2. * k1_F)
     - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn + dt/2. * k1_v) );
 
     Real k2_v ( M_openingAngle_tn + dt/2. * k1_v );
 
-    Real k3_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt/2. * k2_v)
+    Real k3_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight_tn) * std::cos(M_openingAngle_tn + dt/2. * k2_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt/2. * k2_F)
     - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn + dt/2. * k2_v) );
 
     Real k3_v ( M_openingAngle_tn + dt/2. * k2_v );
 
-    Real k4_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt * k3_v)
+    Real k4_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight_tn) * std::cos(M_openingAngle_tn + dt * k3_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt * k3_F)
     - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn + dt * k3_v) );
 
