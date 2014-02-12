@@ -10,7 +10,7 @@ TRIBITS_ADD_EXECUTABLE(
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_defaults_lvelectrom
   CREATE_SYMLINK
-  SOURCE_FILES MonodomainSolverParamList.xml MonodomainSolverPreconditioner
+  SOURCE_FILES MonodomainSolverParamList.xml MonodomainSolverPreconditioner StimulationParameters.xml
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../defaults/
 )
 
