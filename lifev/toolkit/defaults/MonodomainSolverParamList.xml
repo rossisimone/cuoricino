@@ -1,9 +1,8 @@
 <ParameterList>	<!-- LinearSolver parameters -->
     <Parameter name="surfaceVolumeRatio" type="double" value="1400.0"/><!-- cm ^ -1-->
-    <Parameter name="timeStep" type="double" value="0.02"  /><!-- ms ^ -1-->
-    <Parameter name="endTime" type="double" value="1.0"  />
-    <Parameter name="saveStep" type="double" value="1.0"  />
-    <Parameter name="stimulus_value" type="double" value="80.0"  />
+    <Parameter name="timeStep" type="double" value="0.05"  /><!-- ms ^ -1-->
+    <Parameter name="endTime" type="double" value="1700.0"  />
+    <Parameter name="saveStep" type="double" value="10.0"  />
     <Parameter name="longitudinalDiffusion" type="double" value="8"  /><!-- k Ohm ^-1 cm ^ -1-->
     <Parameter name="transversalDiffusion" type="double" value ="1"  /><!--k Ohm ^-1 cm ^ -1-->
     <Parameter name="elementsOrder" type="string" value="P1"  />
@@ -12,13 +11,14 @@
     <Parameter name="lumped_mass" type="bool" value="false"/>
     <Parameter name="mesh_path" type="string" value="./work/"  />
     <Parameter name="fiber_file" type="string" value="FiberDirection"  />
-    <Parameter name="fiber_path" type="string" value="./work/"  />
+    <Parameter name="fiber_path" type="string" value="./"  />
     <Parameter name="Reuse Preconditioner" type="bool" value="true"/>
     <Parameter name="Max Iterations For Reuse" type="int" value="80"/>
     <Parameter name="Quit On Failure" type="bool" value="false"/>
     <Parameter name="Silent" type="bool" value="true"/>
     <Parameter name="Solver Type" type="string" value="AztecOO"/>
     <Parameter name="OutputFile" type="string" value="Solution"/>
+    <Parameter name="StimulusProtocol" type="string" value="PacingProtocol"/>
 	
 	<!-- Operator specific parameters (AztecOO) -->
 	<ParameterList name="Solver: Operator List">
