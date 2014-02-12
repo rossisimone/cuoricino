@@ -74,7 +74,7 @@ namespace HeartUtility
  * @param fileName    Name of the HDF5 file to read from
  * @param localMesh   Pointer to the mesh
  */
-template<typename Mesh> inline void importFibers (  boost::shared_ptr<VectorEpetra> fiberVector, const std::string& fileName, boost::shared_ptr< Mesh > localMesh, const std::string& filePath )
+template<typename Mesh> inline void importFibers (  boost::shared_ptr<VectorEpetra> fiberVector, const std::string& fileName, boost::shared_ptr< Mesh > localMesh, const std::string& filePath="./" )
 {
     typedef Mesh                                                                          mesh_Type;
     typedef ExporterData<mesh_Type>                                                       exporterData_Type;
