@@ -212,22 +212,35 @@ Int main ( Int argc, char** argv )
 
     if ( stimulus_protocol == "PMJ" )
     {
+        if ( Comm->MyPID() == 0 )
+        {
+            cout << "Stimulus protocol PMJ \n" ;
+        }
         stimulus.reset ( new CardiacStimulusPMJ() );
     }
-    else if ( ionic_model == "SingleSource" )
+    else if ( stimulus_protocol == "SingleSource" )
     {
+        if ( Comm->MyPID() == 0 )
+        {
+            cout << "Stimulus protocol single source \n" ;
+        }
         stimulus.reset (new CardiacStimulusSingleSource() );
     }
-    else if ( ionic_model == "PacingProtocol" )
+    else if ( stimulus_protocol == "PacingProtocol" )
     {
+        if ( Comm->MyPID() == 0 )
+        {
+            cout << "Stimulus protocol Pacing protocol \n" ;
+        }
         stimulus.reset (new CardiacStimulusPacingProtocol() );
     }
     else
     {
         stimulus.reset ( new CardiacStimulusSingleSource() );
     }
-
     stimulus->setParameters ( stimulusList );
+
+    stimulus->showMe();
     solver -> setAppliedCurrentFromCardiacStimulus ( *stimulus, 0.0);
 
     //********************************************//
@@ -242,8 +255,10 @@ Int main ( Int argc, char** argv )
     ( new FESpace< mesh_Type, MapEpetra > ( solver -> localMeshPtr(), "P1", 3, solver -> commPtr() ) );
 
     boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
-    std::string nm = problemFolder + monodomainList.get ("fiber_file", "FiberDirection") ;
-    HeartUtility::importFibers ( fiber, nm, solver -> localMeshPtr() );
+    std::string fiberName = monodomainList.get ("fiber_file", "FiberDirection") ;
+    std::string fiberPath = monodomainList.get ("fiber_path", "./") ;
+
+    HeartUtility::importFibers ( fiber, fiberName, solver -> localMeshPtr(), fiberPath );
 
     solver -> setFiberPtr (fiber);
 
