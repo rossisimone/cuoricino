@@ -74,7 +74,7 @@ namespace HeartUtility
  * @param fileName    Name of the HDF5 file to read from
  * @param localMesh   Pointer to the mesh
  */
-template<typename Mesh> inline void importFibers (  boost::shared_ptr<VectorEpetra> fiberVector, const std::string& fileName, boost::shared_ptr< Mesh > localMesh  )
+template<typename Mesh> inline void importFibers (  boost::shared_ptr<VectorEpetra> fiberVector, const std::string& fileName, boost::shared_ptr< Mesh > localMesh, const std::string& filePath )
 {
     typedef Mesh                                                                          mesh_Type;
     typedef ExporterData<mesh_Type>                                                       exporterData_Type;
@@ -92,6 +92,7 @@ template<typename Mesh> inline void importFibers (  boost::shared_ptr<VectorEpet
     filterPtr_Type importer ( new hdf5Filter_Type() );
     importer -> setMeshProcId ( localMesh, comm -> MyPID() );
     importer -> setPrefix (fileName);
+    importer -> setPostDir (filePath);
     importer -> readVariable (impData);
     importer -> closeFile();
 
@@ -134,7 +135,7 @@ template<typename Mesh> inline void importScalarField (  boost::shared_ptr<Vecto
  * @param fieldName   Name of the vector field in the HDF5 file
  * @param localMesh   Pointer to the mesh
  */
-template<typename Mesh> inline void importVectorField (  boost::shared_ptr<VectorEpetra> vector, const std::string& fileName, const std::string& fieldName, boost::shared_ptr< Mesh > localMesh  )
+template<typename Mesh> inline void importVectorField (  boost::shared_ptr<VectorEpetra> vector, const std::string& fileName, const std::string& fieldName, boost::shared_ptr< Mesh > localMesh  ,const std::string & postDir="./")
 {
     typedef Mesh                                                                         mesh_Type;
     typedef ExporterData<mesh_Type>                                                      exporterData_Type;
@@ -152,6 +153,7 @@ template<typename Mesh> inline void importVectorField (  boost::shared_ptr<Vecto
     filterPtr_Type importer ( new hdf5Filter_Type() );
     importer -> setMeshProcId ( localMesh, comm -> MyPID() );
     importer -> setPrefix (fileName);
+    importer -> setPostDir (postDir);
     importer -> readVariable (impData);
     importer -> closeFile();
 
