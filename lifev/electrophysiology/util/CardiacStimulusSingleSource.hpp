@@ -117,6 +117,7 @@ public:
     //@{
     Real appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i );
 
+    void showMe ();
     //@}
 
 private:

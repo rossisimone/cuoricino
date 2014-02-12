@@ -210,7 +210,7 @@ public:
 
 	void setParameters (list_Type&  list)
 	{
-		this->setStartingTimeStimulus( list.get ("starting_time_stimulus", 0.0) );
+	    this->setStartingTimeStimulus( list.get ("starting_time_stimulus", 0.0) );
 		this->setTimeShortS1S1( list.get ("tShortS1S1", 0.001) );
 		this->setStInt( list.get ("stInt", 0.0 ) );
         this->setStIntMin( list.get ("stIntMin", 0.001) );
@@ -224,6 +224,9 @@ public:
         this->setPacingProtocol( list.get ("pacPro", "FCL-ExtraSt") );
         this->setPacingProtocolType( list.get ("pacProType", "S1-S2") );
         this->setStimDuration( list.get ("duration_stimulus", 1.0 ) );
+        this->setPacingSite (list.get ( "pacing_site_X", 1.0 ),list.get ( "pacing_site_Y", 1.0 ),list.get ( "pacing_site_Z", 1.0 ) );
+		this->setRadius ( list.get ( "applied_current_radius", 0.2 ) );
+		this->setTotalCurrent ( list.get ( "applied_total_current", 1.0 ) );
 	}
 
 

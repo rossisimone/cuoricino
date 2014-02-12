@@ -104,4 +104,16 @@ Real CardiacStimulusPMJ::appliedCurrent ( const Real& t, const Real& x, const Re
     return current;
 }
 
+void CardiacStimulusPMJ::showMe()
+{
+    std::cout << "\n\n\t\tPMJ activation Informations\n\n";
+
+    std::cout << "\n\t\tList of parameters:\n\n";
+
+    std::cout << "Radius current application: " << M_radius << std::endl;
+    std::cout << "Total current: " << M_totalCurrent << std::endl;
+    std::cout << "Problem folder: " << M_problemFolder << std::endl;
+    std::cout << "\n\t\t End of PMJ activation Informations\n\n\n";
+}
+
 }

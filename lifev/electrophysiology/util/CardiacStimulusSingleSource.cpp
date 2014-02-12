@@ -72,4 +72,17 @@ Real CardiacStimulusSingleSource::appliedCurrent ( const Real& t, const Real& x,
 
 }
 
+void CardiacStimulusSingleSource::showMe()
+{
+    std::cout << "\n\n\t\t Single source activation Informations\n\n";
+
+    std::cout << "\n\t\tList of parameters:\n\n";
+
+    std::cout << "Radius current application: " << M_radius << std::endl;
+    std::cout << "Total current: " << M_totalCurrent << std::endl;
+    std::cout << "Pacing site: " << M_pacingSite_X << " " << M_pacingSite_Y << " " << M_pacingSite_Z << std::endl;
+    std::cout << "StimDuration: " << M_StimDuration << std::endl;
+    std::cout << "\n\t\t End of Single source activation Informations\n\n\n";
+}
+
 }

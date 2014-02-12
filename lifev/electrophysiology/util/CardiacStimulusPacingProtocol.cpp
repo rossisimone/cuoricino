@@ -346,7 +346,7 @@ Real CardiacStimulusPacingProtocol::appliedCurrent ( const Real& t, const Real& 
 
 void CardiacStimulusPacingProtocol::showMe()
 {
-    std::cout << "\n\n\t\tStimulation protocol Informations\n\n";
+    std::cout << "\n\n\t\tPacing protocol Informations\n\n";
 
     std::cout << "\n\t\tList of parameters:\n\n";
 
@@ -354,60 +354,56 @@ void CardiacStimulusPacingProtocol::showMe()
     std::cout << "StimDuration: " << M_StimDuration << std::endl;
     std::cout << "1st stimuli time: " << M_startingTimeStimulus << std::endl;
     std::cout << "Pacing protocol: " << M_pacingProtocol << std::endl;
-    std::cout << "NumberStimMax: " << M_nbStimMax << std::endl;
-
+    std::cout << "Pacing site: " << M_pacingSite_X << " " << M_pacingSite_Y << " " << M_pacingSite_Z << std::endl;
     if ( M_pacingProtocol == "FCL" )
     {
         std::cout << "S1-S1 interval: " << M_tShortS1S1 << std::endl;
-        std::cout << "NbStimuliMax: " << M_numberStimulus << std::endl;
+        std::cout << "NbStimuliMax: " << M_nbStimMax << std::endl;
     }
-//    else if ( M_pacingProtocol == "FCL-ExtraSt" )
-//    {
-//        std::cout << "Pacing protocol type: " << this->pacProTyp() << std::endl;
-//        std::cout << "S1-S1 interval: " << this->stInt() << std::endl;
-//        std::cout << "NbStimuliMax: " << this ->nbStimMax() << std::endl;
-//        std::cout << "Repeat S1 stimuli: " << this->repeatSt() << std::endl;
-//
-//        if ( M_pacingProtocolType == "S1-S2" )
-//        {
-//            std::cout << "S1-S2 interval: " << this->stIntS1S2() << std::endl;
-//        }
-//        else if ( M_pacingProtocolType == "S1-S2-S3" )
-//        {
-//            std::cout << "S1-S2 interval: " << this->stIntS1S2() << std::endl;
-//            std::cout << "S2-S3 interval: " << this->stIntS2S3() << std::endl;
-//        }
-//        else if ( M_pacingProtocolType == "S1-S2-S3-S4" )
-//        {
-//            std::cout << "S1-S2 interval: " << this->stIntS1S2() << std::endl;
-//            std::cout << "S2-S3 interval: " << this->stIntS2S3() << std::endl;
-//            std::cout << "S3-S4 interval: " << this->stIntS3S4() << std::endl;
-//        }
-//
-//    }
-//    else if ( M_pacingProtocol == "S1S2Pro" )
-//    {
-//        std::cout << "S1-S1 interval: " << this->stInt() << std::endl;
-//        std::cout << "NbStimuliMax for stabilisation: " << this ->nbStimMax() << std::endl;
-//        std::cout << "First S1-S2 interval: " << this->stIntS1S2() << std::endl;
-//        std::cout << "Minimum S1-S2 interval: " << this->stIntS1S2Min() << std::endl;
-//        std::cout << "Repeat S1 stimuli: " << this->repeatSt() << std::endl;
-//    }
-//    else if ( M_pacingProtocol == "DynPro" )
-//    {
-//        std::cout << "First S1-S1 interval: " << this->stInt() << std::endl;
-//        std::cout << "Minimum S1-S1 interval: " << this->stIntMin() << std::endl;
-//        std::cout << "First time S1-S1 interval decrease: " << this->timeShortS1S1() << std::endl;
-//    }
-//    else
-//    {
-//        std::cout << "S1-S1 interval: " << this->stInt() << std::endl;
-//        std::cout << "NbStimuliMax: " << this ->nbStimMax() << std::endl;
-//    }
+    else if ( M_pacingProtocol == "FCL-ExtraSt" )
+    {
+        std::cout << "Pacing protocol type: " << M_pacingProtocolType << std::endl;
+        std::cout << "S1-S1 interval: " << M_stInt << std::endl;
+        std::cout << "NbStimuliMax: " << M_nbStimMax << std::endl;
+        std::cout << "Repeat S1 stimuli: " << M_repeatSt << std::endl;
 
+        if ( M_pacingProtocolType == "S1-S2" )
+        {
+            std::cout << "S1-S2 interval: " << M_stIntS1S2 << std::endl;
+        }
+        else if ( M_pacingProtocolType == "S1-S2-S3" )
+        {
+            std::cout << "S1-S2 interval: " << M_stIntS1S2 << std::endl;
+            std::cout << "S2-S3 interval: " << M_stIntS2S3 << std::endl;
+        }
+        else if ( M_pacingProtocolType == "S1-S2-S3-S4" )
+        {
+            std::cout << "S1-S2 interval: " << M_stIntS1S2 << std::endl;
+            std::cout << "S2-S3 interval: " << M_stIntS2S3 << std::endl;
+            std::cout << "S3-S4 interval: " << M_stIntS3S4 << std::endl;
+        }
 
-
-    std::cout << "\n\t\t End of Stimulation protocol Informations\n\n\n";
+    }
+    else if ( M_pacingProtocol == "S1S2Pro" )
+    {
+        std::cout << "S1-S1 interval: " << M_stInt << std::endl;
+        std::cout << "NbStimuliMax for stabilisation: " << M_nbStimMax << std::endl;
+        std::cout << "First S1-S2 interval: " << M_stIntS1S2 << std::endl;
+        std::cout << "Minimum S1-S2 interval: " << M_stIntS1S2Min << std::endl;
+        std::cout << "Repeat S1 stimuli: " << M_repeatSt << std::endl;
+    }
+    else if ( M_pacingProtocol == "DynPro" )
+    {
+        std::cout << "First S1-S1 interval: " << M_stInt << std::endl;
+        std::cout << "Minimum S1-S1 interval: " << M_stIntMin << std::endl;
+        std::cout << "First time S1-S1 interval decrease: " << M_tShortS1S1 << std::endl;
+    }
+    else
+    {
+        std::cout << "S1-S1 interval: " << M_stInt << std::endl;
+        std::cout << "NbStimuliMax: " << M_nbStimMax << std::endl;
+    }
+    std::cout << "\n\t\t End of Pacing protocol Informations\n\n\n";
 }
 
 }
