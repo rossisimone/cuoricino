@@ -47,7 +47,8 @@ CardiacStimulusPacingProtocol::CardiacStimulusPacingProtocol() :
     M_pacingSite_X ( 0 ),
     M_pacingSite_Y ( 0 ),
     M_pacingSite_Z ( 0 ),
-    M_stimulusValue ( 0 )
+    M_stimulusValue ( 0 ),
+    M_numberStimulus ( 0 )
 {
 
 }
@@ -355,9 +356,10 @@ void CardiacStimulusPacingProtocol::showMe()
     std::cout << "1st stimuli time: " << M_startingTimeStimulus << std::endl;
     std::cout << "Pacing protocol: " << M_pacingProtocol << std::endl;
     std::cout << "Pacing site: " << M_pacingSite_X << " " << M_pacingSite_Y << " " << M_pacingSite_Z << std::endl;
+    std::cout << "Radius stimulus: " << M_radius << std::endl;
     if ( M_pacingProtocol == "FCL" )
     {
-        std::cout << "S1-S1 interval: " << M_tShortS1S1 << std::endl;
+        std::cout << "S1-S1 interval: " << M_stInt << std::endl;
         std::cout << "NbStimuliMax: " << M_nbStimMax << std::endl;
     }
     else if ( M_pacingProtocol == "FCL-ExtraSt" )
