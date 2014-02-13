@@ -57,7 +57,7 @@
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
 
 
-#include <lifev/electrophysiology/util/CardiacStimulusPMJ.hpp>
+#include <lifev/electrophysiology/stimulus/StimulusPMJ.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -88,7 +88,7 @@ Int main ( Int argc, char** argv )
     const string stimulus_datafile_name = command_line.follow ("StimulationParameters.xml", 2, "-s", "--stimulus");
     Teuchos::ParameterList stimulusList = * ( Teuchos::getParametersFromXmlFile ( stimulus_datafile_name ) );
 
-    CardiacStimulusPMJ stimulus;
+    StimulusPMJ stimulus;
      stimulus.setParameters ( stimulusList );
     if ( Comm->MyPID() == 0 )
     {

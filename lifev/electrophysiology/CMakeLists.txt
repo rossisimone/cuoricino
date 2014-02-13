@@ -26,6 +26,11 @@ ADD_SUBDIRECTORY(util)
 SET(HEADERS ${HEADERS} ${util_HEADERS})
 SET(SOURCES ${SOURCES} ${util_SOURCES})
 
+ADD_SUBDIRECTORY(stimulus)
+SET(HEADERS ${HEADERS} ${stimulus_HEADERS})
+SET(SOURCES ${SOURCES} ${stimulus_SOURCES})
+
+
 ADD_SUBDIRECTORY(solver)
 SET(HEADERS ${HEADERS} ${solver_HEADERS} ${solver_IonicModels_HEADERS} ${solver_XbModels_HEADERS})
 SET(SOURCES ${SOURCES} ${solver_SOURCES} ${solver_IonicModels_SOURCES} ${solver_XbModels_SOURCES})
@@ -47,5 +52,4 @@ TRIBITS_ADD_TEST_DIRECTORIES(unit)
 #
 # Do standard postprocessing
 #
-
 TRIBITS_PACKAGE_POSTPROCESS()

@@ -34,8 +34,8 @@
  */
 
 
-#ifndef CARDIACSTIMULUS_HPP_
-#define CARDIACSTIMULUS_HPP_
+#ifndef ELECTROSTIMULUS_HPP_
+#define ELECTROSTIMULUS_HPP_
 
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <Teuchos_RCP.hpp>
@@ -44,7 +44,7 @@
 namespace LifeV
 {
 
-class CardiacStimulus
+class ElectroStimulus
 {
 
 public:
@@ -63,10 +63,10 @@ public:
     //!Empty Constructor
     /*!
      */
-    CardiacStimulus();
+    ElectroStimulus();
 
     //! Destructor
-    virtual ~CardiacStimulus() {};
+    virtual ~ElectroStimulus() {};
 
     //@}
 
@@ -112,4 +112,4 @@ private:
 
 } // namespace LifeV
 
-#endif /* CARDIACSTIMULUS_HPP_ */
+#endif /* ELECTROSTIMULUS_HPP_ */

@@ -72,7 +72,7 @@
 #include <lifev/core/fem/SobolevNorms.hpp>
 #include <lifev/core/fem/GeometricMap.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/ElectroIonicModel.hpp>
-#include <lifev/electrophysiology/util/CardiacStimulus.hpp>
+#include <lifev/electrophysiology/stimulus/ElectroStimulus.hpp>
 #include <lifev/core/fem/RosenbrockTransformed.hpp>
 #include <lifev/core/fem/ROS3P.hpp>
 
@@ -798,11 +798,11 @@ public:
     {
         M_ionicModelPtr->setAppliedCurrentFromFunction (f, M_feSpacePtr, time);
     }
-    void inline setAppliedCurrentFromCardiacStimulus (CardiacStimulus& stimulus,
+    void inline setAppliedCurrentFromElectroStimulus (ElectroStimulus& stimulus,
                                                       Real time = 0.0)
     {
 
-        M_ionicModelPtr->setAppliedCurrentFromCardiacStimulus (stimulus, M_feSpacePtr, time);
+        M_ionicModelPtr->setAppliedCurrentFromElectroStimulus (stimulus, M_feSpacePtr, time);
     }
 
     //! Solves one reaction step using the forward Euler scheme

@@ -34,15 +34,15 @@
  @last update 02-2014
  */
 
-#ifndef CARDIACSTIMULUSSINGLESOURCE_HPP_
+#ifndef STIMULUSSINGLESOURCE_HPP_
 #define CARDIACSTIMULUSSINGLESOURCE_HPP_
 
-#include <lifev/electrophysiology/util/CardiacStimulus.hpp>
+#include <lifev/electrophysiology/stimulus/ElectroStimulus.hpp>
 
 namespace LifeV
 {
 
-class CardiacStimulusSingleSource : public CardiacStimulus
+class StimulusSingleSource : public ElectroStimulus
 {
 
 public:
@@ -54,10 +54,10 @@ public:
     //!Empty Constructor
     /*!
      */
-    CardiacStimulusSingleSource();
+    StimulusSingleSource();
 
     //! Destructor
-    virtual ~CardiacStimulusSingleSource() {}
+    virtual ~StimulusSingleSource() {}
 
     //@}
 
@@ -133,4 +133,4 @@ private:
 
 } // namespace LifeV
 
-#endif /* CARDIACSTIMULUSSINGLESOURCE_HPP_ */
+#endif /* STIMULUSSINGLESOURCE_HPP_ */

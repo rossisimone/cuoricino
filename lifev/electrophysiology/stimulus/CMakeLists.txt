@@ -1,27 +1,27 @@
-SET(util_HEADERS
-  util/ElectrophysiologyUtility.hpp
-  util/CardiacStimulus.hpp  
-  util/CardiacStimulusPMJ.hpp
-  util/CardiacStimulusSingleSource.hpp
-  util/CardiacStimulusPacingProtocol.hpp
+SET(stimulus_HEADERS
+  stimulus/ElectroStimulus.hpp  
+  stimulus/StimulusPMJ.hpp
+  stimulus/StimulusSingleSource.hpp
+  stimulus/StimulusPacingProtocol.hpp
 CACHE INTERNAL "")
 
-SET(util_SOURCES
-  util/CardiacStimulus.cpp  
-  util/CardiacStimulusPMJ.cpp
-  util/CardiacStimulusSingleSource.cpp
-  util/CardiacStimulusPacingProtocol.cpp
+SET(stimulus_SOURCES
+  stimulus/ElectroStimulus.cpp  
+  stimulus/StimulusPMJ.cpp
+  stimulus/StimulusSingleSource.cpp
+  stimulus/StimulusPacingProtocol.cpp
 CACHE INTERNAL "")
 
 
 SET(LOCAL_HEADERS)
-FOREACH(INC ${util_HEADERS})
-  STRING(REPLACE "util/" "" LOCAL_INC ${INC})
+FOREACH(INC ${stimulus_HEADERS})
+  STRING(REPLACE "stimulus/" "" LOCAL_INC ${INC})
   SET(LOCAL_HEADERS ${LOCAL_HEADERS} ${LOCAL_INC})
 ENDFOREACH()
 
 INSTALL(
   FILES ${LOCAL_HEADERS}
-  DESTINATION "${${PROJECT_NAME}_INSTALL_INCLUDE_DIR}/lifev/electrophysiology/util"
+  DESTINATION
+"${${PROJECT_NAME}_INSTALL_INCLUDE_DIR}/lifev/electrophysiology/stimulus"
   COMPONENT ${PACKAGE_NAME}
 )

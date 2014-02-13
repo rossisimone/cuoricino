@@ -47,7 +47,7 @@
 #include <lifev/core/array/VectorElemental.hpp>
 #include <lifev/core/fem/FESpace.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
-#include <lifev/electrophysiology/util/CardiacStimulus.hpp>
+#include <lifev/electrophysiology/stimulus/ElectroStimulus.hpp>
 
 #include <boost/bind.hpp>
 #include <boost/ref.hpp>
@@ -151,11 +151,11 @@ public:
             static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type> (f),
             *M_appliedCurrentPtr, time);
     }
-    inline void setAppliedCurrentFromCardiacStimulus ( CardiacStimulus& stimulus, feSpacePtr_Type feSpacePtr, Real time = 0.0)
+    inline void setAppliedCurrentFromElectroStimulus ( ElectroStimulus& stimulus, feSpacePtr_Type feSpacePtr, Real time = 0.0)
     {
 
         // boost::ref() is needed here because otherwise a copy of the base object is reinstantiated
-        function_Type f = boost::bind (&CardiacStimulus::appliedCurrent, boost::ref (stimulus), _1, _2, _3, _4, _5 );
+        function_Type f = boost::bind (&ElectroStimulus::appliedCurrent, boost::ref (stimulus), _1, _2, _3, _4, _5 );
 
         feSpacePtr -> interpolate (
             static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type> (f),

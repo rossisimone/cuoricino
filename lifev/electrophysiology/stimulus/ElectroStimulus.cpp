@@ -33,12 +33,12 @@
  @last update 11-2013
  */
 
-#include <lifev/electrophysiology/util/CardiacStimulus.hpp>
+#include <lifev/electrophysiology/stimulus/ElectroStimulus.hpp>
 
 namespace LifeV
 {
 
-CardiacStimulus::CardiacStimulus( ) { }
+ElectroStimulus::ElectroStimulus( ) { }
 
 
 }

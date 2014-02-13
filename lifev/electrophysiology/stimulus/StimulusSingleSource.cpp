@@ -34,7 +34,7 @@
  @last update 02-2014
  */
 
-#include <lifev/electrophysiology/util/CardiacStimulusSingleSource.hpp>
+#include <lifev/electrophysiology/stimulus/StimulusSingleSource.hpp>
 
 namespace LifeV
 {
@@ -42,7 +42,7 @@ namespace LifeV
 // ===================================================
 //! Constructors
 // ===================================================
-CardiacStimulusSingleSource::CardiacStimulusSingleSource() :
+StimulusSingleSource::StimulusSingleSource() :
     M_radius ( 0.1 ),
     M_totalCurrent ( 0.5 ),
     M_pacingSite_X ( 0 ),
@@ -58,7 +58,7 @@ CardiacStimulusSingleSource::CardiacStimulusSingleSource() :
 // ===================================================
 //! Methods
 // ===================================================
-Real CardiacStimulusSingleSource::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
+Real StimulusSingleSource::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
 {
 
     Real current = 0.0;
@@ -72,7 +72,7 @@ Real CardiacStimulusSingleSource::appliedCurrent ( const Real& t, const Real& x,
 
 }
 
-void CardiacStimulusSingleSource::showMe()
+void StimulusSingleSource::showMe()
 {
     std::cout << "\n\n\t\t Single source activation Informations\n\n";
 

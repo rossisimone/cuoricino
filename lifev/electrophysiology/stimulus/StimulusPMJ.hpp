@@ -33,15 +33,15 @@
  @last update 11-2013
  */
 
-#ifndef CARDIACSTIMULUSPMJ_HPP_
-#define CARDIACSTIMULUSPMJ_HPP_
+#ifndef STIMULUSPMJ_HPP_
+#define STIMULUSPMJ_HPP_
 
-#include <lifev/electrophysiology/util/CardiacStimulus.hpp>
+#include <lifev/electrophysiology/stimulus/ElectroStimulus.hpp>
 
 namespace LifeV
 {
 
-class CardiacStimulusPMJ : public CardiacStimulus
+class StimulusPMJ : public ElectroStimulus
 {
 
 public:
@@ -49,9 +49,9 @@ public:
     //! @name Type definitions
     //@{
 
-    /*! @struct CardiacStimulusPMJ_Activation
+    /*! @struct StimulusPMJ_Activation
      */
-    struct CardiacStimulusPMJ_Activation
+    struct StimulusPMJ_Activation
     {
         Real x;
         Real y;
@@ -60,9 +60,7 @@ public:
         Real duration;
     };
 
-    typedef CardiacStimulus::vector_Type                 vector_Type;
-    typedef CardiacStimulus::vectorPtr_Type              vectorPtr_Type;
-    typedef std::vector<CardiacStimulusPMJ_Activation >  activationData_type;
+    typedef std::vector<StimulusPMJ_Activation >  activationData_type;
 
     //@}
 
@@ -72,10 +70,10 @@ public:
     //!Empty Constructor
     /*!
      */
-    CardiacStimulusPMJ();
+    StimulusPMJ();
 
     //! Destructor
-    virtual ~CardiacStimulusPMJ() {}
+    virtual ~StimulusPMJ() {}
 
     //@}
 
@@ -141,4 +139,4 @@ private:
 
 } // namespace LifeV
 
-#endif /* CARDIACSTIMULUSPMJ_HPP_ */
+#endif /* STIMULUSPMJ_HPP_ */

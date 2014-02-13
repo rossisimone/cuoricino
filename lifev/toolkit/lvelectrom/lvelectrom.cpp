@@ -75,9 +75,9 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicLuoRudyI.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher06.hpp>
-#include <lifev/electrophysiology/util/CardiacStimulusPMJ.hpp>
-#include <lifev/electrophysiology/util/CardiacStimulusSingleSource.hpp>
-#include <lifev/electrophysiology/util/CardiacStimulusPacingProtocol.hpp>
+#include <lifev/electrophysiology/stimulus/StimulusPMJ.hpp>
+#include <lifev/electrophysiology/stimulus/StimulusSingleSource.hpp>
+#include <lifev/electrophysiology/stimulus/StimulusPacingProtocol.hpp>
 #include <lifev/core/LifeV.hpp>
 
 #include <Teuchos_RCP.hpp>
@@ -105,7 +105,7 @@ Int main ( Int argc, char** argv )
 
     typedef VectorEpetra                                             vector_Type;
     typedef boost::shared_ptr<vector_Type>                           vectorPtr_Type;
-    typedef boost::shared_ptr<CardiacStimulus>                       CardiacStimulusPtr_Type;
+    typedef boost::shared_ptr<ElectroStimulus>                       ElectroStimulusPtr_Type;
 
 //    bool verbose = false;
 
@@ -207,7 +207,7 @@ Int main ( Int argc, char** argv )
     const string stimulus_datafile_name = command_line.follow ("StimulationParameters.xml", 2, "-s", "--stimulus");
     Teuchos::ParameterList stimulusList = * ( Teuchos::getParametersFromXmlFile ( stimulus_datafile_name ) );
 
-    CardiacStimulusPtr_Type stimulus;
+    ElectroStimulusPtr_Type stimulus;
     std::string stimulus_protocol ( monodomainList.get ("StimulusProtocol", "PMJ") );
 
     if ( stimulus_protocol == "PMJ" )
@@ -216,7 +216,7 @@ Int main ( Int argc, char** argv )
         {
             cout << "Stimulus protocol PMJ \n" ;
         }
-        stimulus.reset ( new CardiacStimulusPMJ() );
+        stimulus.reset ( new StimulusPMJ() );
     }
     else if ( stimulus_protocol == "SingleSource" )
     {
@@ -224,7 +224,7 @@ Int main ( Int argc, char** argv )
         {
             cout << "Stimulus protocol single source \n" ;
         }
-        stimulus.reset (new CardiacStimulusSingleSource() );
+        stimulus.reset (new StimulusSingleSource() );
     }
     else if ( stimulus_protocol == "PacingProtocol" )
     {
@@ -232,11 +232,11 @@ Int main ( Int argc, char** argv )
         {
             cout << "Stimulus protocol Pacing protocol \n" ;
         }
-        stimulus.reset (new CardiacStimulusPacingProtocol() );
+        stimulus.reset (new StimulusPacingProtocol() );
     }
     else
     {
-        stimulus.reset ( new CardiacStimulusSingleSource() );
+        stimulus.reset ( new StimulusSingleSource() );
     }
     stimulus->setParameters ( stimulusList );
 

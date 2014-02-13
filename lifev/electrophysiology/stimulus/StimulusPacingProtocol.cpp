@@ -33,7 +33,7 @@
  @last update 02-2014
  */
 
-#include <lifev/electrophysiology/util/CardiacStimulusPacingProtocol.hpp>
+#include <lifev/electrophysiology/stimulus/StimulusPacingProtocol.hpp>
 
 namespace LifeV
 {
@@ -41,7 +41,7 @@ namespace LifeV
 // ===================================================
 //! Constructors
 // ===================================================
-CardiacStimulusPacingProtocol::CardiacStimulusPacingProtocol() :
+StimulusPacingProtocol::StimulusPacingProtocol() :
     M_radius ( 0 ),
     M_totalCurrent ( 0 ),
     M_pacingSite_X ( 0 ),
@@ -59,7 +59,7 @@ CardiacStimulusPacingProtocol::CardiacStimulusPacingProtocol() :
 // ===================================================
 
 
-Real CardiacStimulusPacingProtocol::pacingProtocolChoice ( const Real& t)
+Real StimulusPacingProtocol::pacingProtocolChoice ( const Real& t)
 {
 
     if ( M_pacingProtocol == "FCL" )
@@ -91,7 +91,7 @@ Real CardiacStimulusPacingProtocol::pacingProtocolChoice ( const Real& t)
 }
 
 
-Real CardiacStimulusPacingProtocol::fixedCycleLength ( const Real& t )
+Real StimulusPacingProtocol::fixedCycleLength ( const Real& t )
 {
     Real current = 0;
     if ( M_numberStimulus < M_nbStimMax )
@@ -117,7 +117,7 @@ Real CardiacStimulusPacingProtocol::fixedCycleLength ( const Real& t )
     return current;
 }
 
-Real CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
+Real StimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
 {
     Real current = 0;
     if ( M_numberStimulus < M_nbStimMax )
@@ -190,7 +190,7 @@ Real CardiacStimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
     return current;
 }
 
-Real CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
+Real StimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
 {
     Real current = 0;
     if ( t < M_nbStimMax * M_stInt )
@@ -280,7 +280,7 @@ Real CardiacStimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
     return current;
 }
 
-Real CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t )
+Real StimulusPacingProtocol::dynamicProtocol ( const Real& t )
 {
     Real current = 0;
     if ( M_stInt >= M_stIntMin )
@@ -331,7 +331,7 @@ Real CardiacStimulusPacingProtocol::dynamicProtocol ( const Real& t )
     return current;
 }
 
-Real CardiacStimulusPacingProtocol::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
+Real StimulusPacingProtocol::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
 {
 
     Real current = 0.0;
@@ -345,7 +345,7 @@ Real CardiacStimulusPacingProtocol::appliedCurrent ( const Real& t, const Real& 
 
 }
 
-void CardiacStimulusPacingProtocol::showMe()
+void StimulusPacingProtocol::showMe()
 {
     std::cout << "\n\n\t\tPacing protocol Informations\n\n";
 

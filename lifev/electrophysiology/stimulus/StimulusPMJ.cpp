@@ -34,7 +34,7 @@
 
  */
 
-#include <lifev/electrophysiology/util/CardiacStimulusPMJ.hpp>
+#include <lifev/electrophysiology/stimulus/StimulusPMJ.hpp>
 
 namespace LifeV
 {
@@ -42,7 +42,7 @@ namespace LifeV
 // ===================================================
 //! Constructors
 // ===================================================
-CardiacStimulusPMJ::CardiacStimulusPMJ() :
+StimulusPMJ::StimulusPMJ() :
     M_radius ( 0 ),
     M_activationData ( * (new activationData_type() ) ),
     M_problemFolder ( "./" )
@@ -53,14 +53,14 @@ CardiacStimulusPMJ::CardiacStimulusPMJ() :
 // ===================================================
 //! Setters
 // ===================================================
-void CardiacStimulusPMJ::setPMJFromFile ( std::string fileName )
+void StimulusPMJ::setPMJFromFile ( std::string fileName )
 {
     std::ifstream fin;
 
     fin.open ( fileName.c_str() );
     while ( !fin.fail() )
     {
-        CardiacStimulusPMJ_Activation junction;
+        StimulusPMJ_Activation junction;
         fin >> junction.x;
         fin >> junction.y;
         fin >> junction.z;
@@ -71,9 +71,9 @@ void CardiacStimulusPMJ::setPMJFromFile ( std::string fileName )
     fin.close();
 }
 
-void CardiacStimulusPMJ::setPMJAddJunction ( Real x, Real y, Real z, Real time, Real duration )
+void StimulusPMJ::setPMJAddJunction ( Real x, Real y, Real z, Real time, Real duration )
 {
-    CardiacStimulusPMJ_Activation junction;
+    StimulusPMJ_Activation junction;
     junction.x = x;
     junction.y = y;
     junction.z = z;
@@ -85,7 +85,7 @@ void CardiacStimulusPMJ::setPMJAddJunction ( Real x, Real y, Real z, Real time, 
 // ===================================================
 //! Methods
 // ===================================================
-Real CardiacStimulusPMJ::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
+Real StimulusPMJ::appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& /*i*/ )
 {
     Real current = 0;
     const Real volumeOfBall = (4. / 3.) * M_PI * M_radius * M_radius * M_radius;
@@ -104,7 +104,7 @@ Real CardiacStimulusPMJ::appliedCurrent ( const Real& t, const Real& x, const Re
     return current;
 }
 
-void CardiacStimulusPMJ::showMe()
+void StimulusPMJ::showMe()
 {
     std::cout << "\n\n\t\tPMJ activation Informations\n\n";
 

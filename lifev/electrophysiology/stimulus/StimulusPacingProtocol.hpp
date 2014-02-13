@@ -33,15 +33,15 @@
  @last update 02-2014
  */
 
-#ifndef CARDIACSTIMULUSPACINGPROTOCOL_HPP_
-#define CARDIACSTIMULUSPACINGPROTOCOL_HPP_
+#ifndef STIMULUSPACINGPROTOCOL_HPP_
+#define STIMULUSPACINGPROTOCOL_HPP_
 
-#include <lifev/electrophysiology/util/CardiacStimulus.hpp>
+#include <lifev/electrophysiology/stimulus/ElectroStimulus.hpp>
 
 namespace LifeV
 {
 
-class CardiacStimulusPacingProtocol : public CardiacStimulus
+class StimulusPacingProtocol : public ElectroStimulus
 {
 
 public:
@@ -52,10 +52,10 @@ public:
     //!Empty Constructor
     /*!
      */
-    CardiacStimulusPacingProtocol();
+    StimulusPacingProtocol();
 
     //! Destructor
-    virtual ~CardiacStimulusPacingProtocol() {}
+    virtual ~StimulusPacingProtocol() {}
 
     //@}
 
@@ -297,4 +297,4 @@ private:
 
 } // namespace LifeV
 
-#endif /* CARDIACSTIMULUSPACINGPROTOCOL_HPP_ */
+#endif /* STIMULUSPACINGPROTOCOL_HPP_ */
