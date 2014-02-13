@@ -241,7 +241,7 @@ Int main ( Int argc, char** argv )
     stimulus->setParameters ( stimulusList );
 
     stimulus->showMe();
-    solver -> setAppliedCurrentFromCardiacStimulus ( *stimulus, 0.0);
+    solver -> setAppliedCurrentFromElectroStimulus ( *stimulus, 0.0);
 
     //********************************************//
     // Setting up the time data                   //
@@ -319,7 +319,7 @@ Int main ( Int argc, char** argv )
 
     for ( Real t = 0.0; t < TF; )
     {
-        solver -> setAppliedCurrentFromCardiacStimulus ( *stimulus, t );
+        solver -> setAppliedCurrentFromElectroStimulus ( *stimulus, t );
 
         if ( solutionMethod == "splitting" )
         {
