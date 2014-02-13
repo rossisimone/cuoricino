@@ -42,7 +42,7 @@
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
-#include <lifev/core/util/HeartUtility.hpp>
+#include <lifev/electrophysiology/util/HeartUtility.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
 
 

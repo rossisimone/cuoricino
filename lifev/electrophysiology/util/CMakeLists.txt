@@ -1,5 +1,6 @@
 SET(util_HEADERS
   util/ElectrophysiologyUtility.hpp
+  util/HeartUtility.hpp
 CACHE INTERNAL "")
 
 SET(util_SOURCES

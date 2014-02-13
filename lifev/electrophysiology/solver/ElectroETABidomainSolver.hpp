@@ -83,7 +83,7 @@
 #include <lifev/core/util/LifeChrono.hpp>
 #include <boost/shared_ptr.hpp>
 #include <lifev/core/fem/FESpace.hpp>
-#include <lifev/core/util/HeartUtility.hpp>
+#include <lifev/electrophysiology/util/HeartUtility.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>

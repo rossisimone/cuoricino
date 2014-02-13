@@ -16,7 +16,6 @@ SET(util_HEADERS
   util/Displayer.hpp
   util/ParserDefinitions.hpp
   util/FactoryPolicy.hpp
-  util/HeartUtility.hpp
 CACHE INTERNAL "")
 
 SET(util_SOURCES
