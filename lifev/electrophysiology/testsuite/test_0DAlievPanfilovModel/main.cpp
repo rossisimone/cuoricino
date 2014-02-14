@@ -68,6 +68,10 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
+//This is the norm of the precomputed solution
+//we check the test against this value
+#define SolutionTestNorm 3.157163923647911e+03
+
 Int main ( Int argc, char** argv )
 {
     //! Initializing Epetra communicator
@@ -93,7 +97,7 @@ Int main ( Int argc, char** argv )
 
     //********************************************//
     // Creates a new model object representing the//
-    // model from Negroni and Lascano 1996. The   //
+    // model from  Aliev and Panfilov 1996. The   //
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
@@ -158,6 +162,11 @@ Int main ( Int argc, char** argv )
     string filename = "output.txt";
     std::ofstream output ("output.txt");
 
+    //********************************************//
+    // We record the norm of the solution to      //
+    // check the failure of the test              //
+    //********************************************//
+    Real SolutionNorm = unknowns[0];
 
     //********************************************//
     // Time loop starts.                          //
@@ -178,15 +187,14 @@ Int main ( Int argc, char** argv )
         {
             Iapp = 0;
         }
-
+        model.setAppliedCurrent (Iapp);
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.setAppliedCurrent (Iapp);
         model.computeRhs ( unknowns, rhs);
-        rhs[0] += Iapp;
+        model.addAppliedCurrent(rhs);
 
         //********************************************//
         // Use forward Euler method to advance the    //
@@ -204,6 +212,12 @@ Int main ( Int argc, char** argv )
         // Update the time.                           //
         //********************************************//
         t = t + dt;
+
+        //********************************************//
+        // Update the norm of the solution to check   //
+        // test failure                               //
+        //********************************************//
+        SolutionNorm += unknowns[0];
     }
     std::cout << "\n...Time loop ends.\n";
     std::cout << "Solution written on file: " << filename << "\n";
@@ -216,7 +230,7 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
 
     Real returnValue;
-    if (std::abs (unknowns.at (1) - 0.0932961) > 1e-4 )
+    if (std::abs (SolutionTestNorm - SolutionNorm) > 1e-4 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
@@ -226,3 +240,5 @@ Int main ( Int argc, char** argv )
     }
     return ( returnValue );
 }
+
+#undef SolutionTestNorm
