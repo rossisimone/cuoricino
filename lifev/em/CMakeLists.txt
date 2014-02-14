@@ -7,7 +7,7 @@ INCLUDE(TribitsLibraryMacros)
 #
 
 TRIBITS_PACKAGE(EM)
-SET(${PACKAGE_NAME}_VERSION "3.1")
+SET(${PACKAGE_NAME}_VERSION "1.0")
 
 #
 # B) Set up package-specific options
