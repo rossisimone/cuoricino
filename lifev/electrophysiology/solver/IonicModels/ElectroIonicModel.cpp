@@ -306,7 +306,7 @@ void ElectroIonicModel::computeRhs (   const std::vector<vectorPtr_Type>& v,
             M_appliedCurrent = 0.0;
         }
         computeRhs ( localVec, localRhs );
-        localRhs[0] += M_appliedCurrent;
+        addAppliedCurrent(localRhs);
 
         for ( int i = 0; i < M_numberOfEquations; i++ )
         {
