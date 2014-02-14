@@ -785,7 +785,8 @@ interpolate ( const FEFunctionType* fEFunction, vector_Type& vector, const Real 
     const UInt numberLocalDof ( M_dof->numLocalDof() );
 
     // Storage for the values
-    typename FEFunctionType::point_Type point;
+    Vector3D point;
+    //typename FEFunctionType::point_Type point;
     std::vector<Real> nodalValues (numberLocalDof, 0);
     std::vector<Real> FEValues (numberLocalDof, 0);
 

@@ -61,6 +61,7 @@ class VectorStandard : public std::vector<Real>
 public:
     VectorStandard() {};
     VectorStandard (UInt size, Real r);
+    VectorStandard (std::vector<Real> vector);
     virtual ~VectorStandard() {};
 
     Real norm2() const;

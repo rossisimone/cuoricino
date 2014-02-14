@@ -44,6 +44,12 @@ VectorStandard::VectorStandard (UInt size, Real r)
 {
 }
 
+VectorStandard::VectorStandard (std::vector<Real> vector)
+    : std::vector<Real> (vector)
+{
+}
+
+
 Real VectorStandard::norm2() const
 {
     Real norm (0.0);
