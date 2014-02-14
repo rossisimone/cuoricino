@@ -79,7 +79,7 @@ using namespace std;
 using namespace LifeV;
 
 
-void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output, Real& valueToTest);
+Real EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output);
 
 void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
                     const Real& I, std::ofstream& output, UInt meth);
@@ -92,6 +92,11 @@ void RosenbrockTransformedFunction ( IonicFitzHughNagumo model, const VectorSmal
 
 MatrixSmall<2, 2> Invert (const MatrixSmall<2, 2>& A);
 template<UInt Dim1, UInt Dim2> void setCol (MatrixSmall<Dim1, Dim2>& A, const VectorSmall<Dim1>& b, const Int& j);
+
+
+//This is the norm of the precomputed solution
+//we check the test against this value
+#define SolutionTestNorm 4.569135990554040e+05
 
 
 Int main ( Int argc, char** argv )
@@ -170,7 +175,7 @@ Int main ( Int argc, char** argv )
 
     if ( FHNParameterList.get ("meth", 1.0) == 0.0 )
     {
-        EulerExplicit (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output, valueToTest);
+        valueToTest = EulerExplicit (dt, TF, model, FHNParameterList.get ("Iapp", 2000.0), output);
     }
     else
     {
@@ -191,8 +196,9 @@ Int main ( Int argc, char** argv )
 
     Real returnValue;
 
-    if (std::abs (valueToTest - 0.0431251) > 1e-4 )
+    if (std::abs (valueToTest - SolutionTestNorm) > 1e-1 )
     {
+        std::cout << "\nTest Failed:  "<<  std::abs (valueToTest - SolutionTestNorm) <<"\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
@@ -202,16 +208,22 @@ Int main ( Int argc, char** argv )
     return ( returnValue );
 }
 
-void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output, Real& valueToTest)
+Real EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& I, std::ofstream& output)
 {
     std::vector<Real> unknowns ( model.Size(), 0.0);
-    unknowns.at (0) = 98.999200000000002;
-    unknowns.at (1) = 0.023763800000000;
+    unknowns.at (0) = 1e-8;
+    unknowns.at (1) = 0.3;
 
     std::vector<Real> rhs ( model.Size(), 0.0);
     Real Iapp;
 
     cout << "Computing using Explicit Euler" << endl;
+
+    //********************************************//
+    // We record the norm of the solution to      //
+    // check the failure of the test              //
+    //********************************************//
+    Real SolutionNorm = unknowns[0];
 
     for ( Real t = 0; t < TF; )
     {
@@ -220,22 +232,22 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if ( t > 10.0 && t < 10.1 )
+        if ( t > 2.0 && t < 2.1 )
         {
-            Iapp = 0.0;
+            Iapp = I;
         }
         else
         {
-            Iapp = 0.0;
+            Iapp = 0;
         }
-
+        model.setAppliedCurrent (Iapp);
         std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        model.setAppliedCurrent (Iapp);
         model.computeRhs ( unknowns, rhs);
+        model.addAppliedCurrent(rhs);
 
         //********************************************//
         // Use forward Euler method to advance the    //
@@ -254,9 +266,15 @@ void EulerExplicit (Real& dt, const Real& TF, IonicFitzHughNagumo model, const R
         // Update the time.                           //
         //********************************************//
         t = t + dt;
+
+        //********************************************//
+        // Update the norm of the solution to check   //
+        // test failure                               //
+        //********************************************//
+        SolutionNorm += unknowns[0];
     }
 
-    valueToTest = unknowns.at (1);
+    return SolutionNorm;
 }
 
 void ROS3PFunction (Real& dt, const Real& TF, IonicFitzHughNagumo model, const Real& S, const Real& D,
@@ -384,6 +402,7 @@ void RosenbrockTransformedFunction ( IonicFitzHughNagumo model, const VectorSmal
 
         model.setAppliedCurrent (It);
         model.computeRhs ( ytmp, rhs);
+
         Utmp = B * ( rhs + Utmp );
         setCol<n, s> (U, Utmp, i);
     }
@@ -510,7 +529,7 @@ void setCol (MatrixSmall<Dim1, Dim2>& A, const VectorSmall<Dim1>& b, const Int& 
 
 
 
-
+#undef SolutionTestNorm
 
 
 
