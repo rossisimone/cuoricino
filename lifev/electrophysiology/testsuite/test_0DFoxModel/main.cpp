@@ -68,6 +68,10 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
+//This is the norm of the precomputed solution
+//we check the test against this value
+#define SolutionTestNorm -5.938122480535535e+05
+
 Int main ( Int argc, char** argv )
 {
     //! Initializing Epetra communicator
@@ -172,6 +176,11 @@ Int main ( Int argc, char** argv )
     int iter (0);
     int savedt ( parameterList.get ( "savedt", 1.0) / dt );
 
+    //********************************************//
+    // We record the norm of the solution to      //
+    // check the failure of the test              //
+    //********************************************//
+    Real SolutionNorm = unknowns[0];
 
     for ( Real t = 0; t < TF; )
     {
@@ -200,17 +209,23 @@ Int main ( Int argc, char** argv )
         //********************************************//
         model.setAppliedCurrent (Iapp);
         model.computeRhs ( unknowns, rhs );
+        model.addAppliedCurrent(rhs);
 
 
         //********************************************//
         // Writes solution on file.                   //
         //********************************************//
 
-        iter++;
+
         if ( iter % savedt == 0)
         {
-            output << t << ", " << unknowns.at (0) << " " << unknowns.at (10) << " " << unknowns.at (11)
-                   << " " << rhs.at (13) << "\n"; //
+            //********************************************//
+            // Update the norm of the solution to check   //
+            // test failure                               //
+            //********************************************//
+            SolutionNorm += unknowns[0];
+            output << t << ", " << unknowns.at (0) << ", " << unknowns.at (10) << ", " << unknowns.at (11)
+                   << ", " << rhs.at (13) << "\n"; //
             //            for ( int j (0); j <= 2; j++)
             //            {
             //                output << unknowns.at (j) << ", ";
@@ -246,8 +261,10 @@ Int main ( Int argc, char** argv )
     //! Finalizing Epetra communicator
     MPI_Finalize();
     Real returnValue;
-    if (std::abs (unknowns.at (10) - 0.990976) > 1e-4 )
+    Real err = std::abs (SolutionNorm - SolutionTestNorm) / std::abs(SolutionTestNorm);
+    if ( err > 1e-3 )
     {
+    	std::cout << "\nTest Failed: " <<  err <<"\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
@@ -256,3 +273,6 @@ Int main ( Int argc, char** argv )
     }
     return ( returnValue );
 }
+
+
+#undef SolutionTestNorm
