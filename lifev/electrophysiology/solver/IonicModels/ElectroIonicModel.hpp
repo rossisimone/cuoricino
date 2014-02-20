@@ -236,7 +236,7 @@ public:
     /*!
      *  This method is experimental. It need further checks. I do not know what is a CardiacStimulus object and how it is used
      */
-    inline void setAppliedCurrentFromCardiacStimulus ( CardiacStimulus& stimulus, feSpacePtr_Type feSpacePtr, Real time = 0.0)
+    inline void setAppliedCurrentFromCardiacStimulus ( ElectroStimulus& stimulus, feSpacePtr_Type feSpacePtr, Real time = 0.0)
     {
 
         // boost::ref() is needed here because otherwise a copy of the base object is reinstantiated
