@@ -1,0 +1,24 @@
+
+INCLUDE(TribitsAddExecutable)
+
+TRIBITS_ADD_EXECUTABLE(
+  SteklovPoincare
+  SOURCES main.cpp
+  COMM serial mpi
+  )
+
+TRIBITS_COPY_FILES_TO_BINARY_DIR(data_exampleSteklovPoincare
+  SOURCE_FILES data
+  SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
+  CREATE_SYMLINK
+)
+
+TRIBITS_COPY_FILES_TO_BINARY_DIR(vessel20.mesh_exampleSteklovPoincare
+  SOURCE_FILES vessel20.mesh
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/lifev/fsi/data/mesh/inria/
+)
+
+TRIBITS_COPY_FILES_TO_BINARY_DIR(tube20.mesh_exampleSteklovPoincare
+  SOURCE_FILES tube20.mesh
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/lifev/fsi/data/mesh/inria/
+)
