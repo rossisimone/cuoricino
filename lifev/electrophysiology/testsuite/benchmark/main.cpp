@@ -404,14 +404,26 @@ Int main ( Int argc, char** argv )
     }
 
     bool lumpedMass = monodomainList.get ("LumpedMass", true);
+    LifeChrono timer;
     if( lumpedMass)
     { 
-        solver -> setLumpedMassMatrix(false);   
+        solver -> setLumpedMassMatrix(false);
+    MPI_Barrier (MPI_COMM_WORLD);
+    timer.start();
 	solver -> setupMassMatrix();
+	timer.stop();
 	solver -> setLumpedMassMatrix(lumpedMass); 
+	std::cout << "\n Assembling mass matrix done in: " << timer.diff() << " s\n";
     }
+    timer.reset();
+
     matrixPtr_Type hlmass(new matrix_Type( *(solver -> massMatrixPtr() ) ) );
+
+    timer.start();
+    MPI_Barrier (MPI_COMM_WORLD);
     solver -> setupMassMatrix();
+    timer.stop();
+	std::cout << "\n Assembling mass matrix done in: " << timer.diff() << " s\n";
     solver -> setupStiffnessMatrix ( solver -> diffusionTensor() );
     solver -> setupGlobalMatrix();
     if ( Comm->MyPID() == 0 )
