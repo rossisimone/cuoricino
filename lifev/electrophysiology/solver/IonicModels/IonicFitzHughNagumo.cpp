@@ -49,10 +49,13 @@ IonicFitzHughNagumo::IonicFitzHughNagumo()    :
     M_Vp    ( 100. ),
     M_Eta1  ( 4.4 ),
     M_Eta2  ( 0.012 ),
-    M_Eta3  ( 1.)
+    M_Eta3  ( 1.),
+	M_Eta   (M_Eta2 / M_Vp),
+	M_Gamma (M_Eta2 * M_Eta3)
+
 {
-    M_Eta = M_Eta2 / M_Vp;
-    M_Gamma = M_Eta2 * M_Eta3;
+    M_restingConditions.at (0) = 1e-8;
+    M_restingConditions.at (1) = 0.3;
 }
 
 IonicFitzHughNagumo::IonicFitzHughNagumo ( Teuchos::ParameterList& parameterList   )   :
@@ -66,6 +69,9 @@ IonicFitzHughNagumo::IonicFitzHughNagumo ( Teuchos::ParameterList& parameterList
     M_Eta3  =   parameterList.get ("Eta3", 1.);
     M_Eta   =   M_Eta2 / M_Vp;
     M_Gamma =   M_Eta2 * M_Eta3;
+
+    M_restingConditions.at (0) = 1e-8;
+    M_restingConditions.at (1) = 0.3;
 }
 
 IonicFitzHughNagumo::IonicFitzHughNagumo ( const IonicFitzHughNagumo& model )
@@ -80,6 +86,7 @@ IonicFitzHughNagumo::IonicFitzHughNagumo ( const IonicFitzHughNagumo& model )
     M_Gamma =   model.M_Gamma;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
 }
 
 // ===================================================
@@ -97,6 +104,7 @@ IonicFitzHughNagumo& IonicFitzHughNagumo::operator= ( const IonicFitzHughNagumo&
     M_Gamma =   model.M_Gamma;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
 
     return      *this;
 }

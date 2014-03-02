@@ -117,19 +117,7 @@ Int main ( Int argc, char** argv )
     //    //********************************************//
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
-    unknowns[0] = - 94.7;
-    unknowns[1] = 2.4676e-4;
-    unknowns[2] = 0.99869;
-    unknowns[3] = 0.99887;
-    unknowns[4] = 0.229;
-    unknowns[5] = 0.0001;
-    unknowns[6] = 3.742e-5;
-    unknowns[7] = 1.0;
-    unknowns[8] = 0.983;
-    unknowns[9] = 0.0001;
-    unknowns[10] = 0.942;
-    unknowns[11] = 0.0472;
-    unknowns[12] = 320.0;
+    model.initialize(unknowns);
     cout << " Done!" << endl;
 
     //********************************************//
@@ -226,11 +214,7 @@ Int main ( Int argc, char** argv )
             SolutionNorm += unknowns[0];
             output << t << ", " << unknowns.at (0) << ", " << unknowns.at (10) << ", " << unknowns.at (11)
                    << ", " << rhs.at (13) << "\n"; //
-            //            for ( int j (0); j <= 2; j++)
-            //            {
-            //                output << unknowns.at (j) << ", ";
-            //            }
-            ////            output << unknowns.at ( model.Size() - 1 ) << "\n";
+
         }
 
         //********************************************//

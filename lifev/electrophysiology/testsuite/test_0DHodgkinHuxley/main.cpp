@@ -120,10 +120,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.Size(), 0);
-    states.at (0) = 0;
-    states.at (1) = 0.052932485257250;
-    states.at (2) = 0.317676914060697;
-    states.at (3) = 0.596120753508460;
+    ionicModel.initialize(states);
     std::vector<Real>& rStates = states;
     std::cout << " Done!" << endl;
 

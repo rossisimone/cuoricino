@@ -68,6 +68,9 @@ IonicAlievPanfilov::IonicAlievPanfilov ( Teuchos::ParameterList& parameterList  
     M_k         =  parameterList.get ("k", 8.0);
     M_a         =  parameterList.get ("a", 0.1);
     M_epsilon   =  parameterList.get ("epsilon", 0.01);
+
+    M_restingConditions.at (0) = 0.0;
+    M_restingConditions.at (1) = 0.0;
 }
 
 IonicAlievPanfilov::IonicAlievPanfilov ( const IonicAlievPanfilov& model )
