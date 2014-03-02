@@ -68,6 +68,9 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
+#define SolutionTestNorm  1.820865339768372e+04
+
+
 Int main ( Int argc, char** argv )
 {
     //! Initializing Epetra communicator
@@ -164,6 +167,14 @@ Int main ( Int argc, char** argv )
     std::ofstream output ("output.txt");
 
     cout << "Potential: " << rStates.at (0) << endl;
+
+
+    //********************************************//
+    // We record the norm of the solution to      //
+    // check the failure of the test              //
+    //********************************************//
+    Real SolutionNorm = states[0];
+
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
@@ -235,6 +246,12 @@ Int main ( Int argc, char** argv )
         // Update the time.                           //
         //********************************************//
         t = t + dt;
+
+        //********************************************//
+        // Update the norm of the solution to check   //
+        // test failure                               //
+        //********************************************//
+        SolutionNorm += states[0];
     }
     std::cout << "\n...Time loop ends.\n";
     std::cout << "Solution written on file: " << filename << "\n";
@@ -247,8 +264,10 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    if (std::abs (rStates.at ( ionicModel.Size() - 2 ) - 0.315185) > 1e-4 )
+    Real err = std::abs (SolutionNorm - SolutionTestNorm) / std::abs(SolutionTestNorm);
+    if ( err > 1e-3 )
     {
+    	std::cout << "\nTest Failed: " <<  err <<"\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
@@ -257,3 +276,6 @@ Int main ( Int argc, char** argv )
     }
     return ( returnValue );
 }
+
+
+#undef SolutionTestNorm
