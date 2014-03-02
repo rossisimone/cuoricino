@@ -13,7 +13,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_electrophysiology_0DFitzHughNagumoModel_data
   CREATE_SYMLINK
-  SOURCE_FILES FitzHughNagumoParameters.xml data
+  SOURCE_FILES FitzHughNagumoParameters.xml
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
