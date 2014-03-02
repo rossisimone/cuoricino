@@ -110,7 +110,39 @@ IonicJafriRiceWinslow::IonicJafriRiceWinslow()    :
     M_PCa       ( 33.75e-6 ),
     M_PK        ( 1.0e-9 ),
     M_ICaHalf   ( -4.58e-3 )
-{}
+{
+    M_restingConditions[0]  = -86.1638;
+    M_restingConditions[1]  = 3.28302e-2;
+    M_restingConditions[2]  = 0.988354;
+    M_restingConditions[3]  = 0.99254;
+    M_restingConditions[4]  = 9.28836e-4;
+    M_restingConditions[5]  = 10.2042;
+    M_restingConditions[6]  = 143.727;
+    M_restingConditions[7]  = 5.4;
+    M_restingConditions[8]  = 9.94893e-5;
+    M_restingConditions[9]  = 1.24891;
+    M_restingConditions[10] = 1.36058e-4;
+    M_restingConditions[11] = 1.17504;
+    M_restingConditions[12] = 0.762527;
+    M_restingConditions[13] = 1.19168e-3;
+    M_restingConditions[14] = 6.30613e-9;
+    M_restingConditions[15] = 0.236283;
+    M_restingConditions[16] = 0.997208;
+    M_restingConditions[17] = 6.38897e-5;
+    M_restingConditions[18] = 1.535e-9;
+    M_restingConditions[19] = 1.63909e-14;
+    M_restingConditions[20] = 6.56337e-20;
+    M_restingConditions[21] = 9084546e-21;
+    M_restingConditions[22] = 2.72826e-3;
+    M_restingConditions[23] = 6.99215e-7;
+    M_restingConditions[24] = 6.71989e-11;
+    M_restingConditions[25] = 2.87031e-15;
+    M_restingConditions[26] = 4.59752e-20;
+    M_restingConditions[27] = 0.0;
+    M_restingConditions[28] = 0.998983;
+    M_restingConditions[29] = 6.349973e-3;
+    M_restingConditions[30] = 135.9813e-3;
+}
 
 IonicJafriRiceWinslow::IonicJafriRiceWinslow ( Teuchos::ParameterList& parameterList ) :
     super       ( 31 )
@@ -178,6 +210,38 @@ IonicJafriRiceWinslow::IonicJafriRiceWinslow ( Teuchos::ParameterList& parameter
     M_PCa       = parameterList.get ( "permCa", 33.75e-6 );
     M_PK        = parameterList.get ( "permK", 1.0e-9 );
     M_ICaHalf   = parameterList.get ( "courCaHalf", -4.58e-3 );
+
+    M_restingConditions[0]  = -86.1638;
+    M_restingConditions[1]  = 3.28302e-2;
+    M_restingConditions[2]  = 0.988354;
+    M_restingConditions[3]  = 0.99254;
+    M_restingConditions[4]  = 9.28836e-4;
+    M_restingConditions[5]  = 10.2042;
+    M_restingConditions[6]  = 143.727;
+    M_restingConditions[7]  = 5.4;
+    M_restingConditions[8]  = 9.94893e-5;
+    M_restingConditions[9]  = 1.24891;
+    M_restingConditions[10] = 1.36058e-4;
+    M_restingConditions[11] = 1.17504;
+    M_restingConditions[12] = 0.762527;
+    M_restingConditions[13] = 1.19168e-3;
+    M_restingConditions[14] = 6.30613e-9;
+    M_restingConditions[15] = 0.236283;
+    M_restingConditions[16] = 0.997208;
+    M_restingConditions[17] = 6.38897e-5;
+    M_restingConditions[18] = 1.535e-9;
+    M_restingConditions[19] = 1.63909e-14;
+    M_restingConditions[20] = 6.56337e-20;
+    M_restingConditions[21] = 9084546e-21;
+    M_restingConditions[22] = 2.72826e-3;
+    M_restingConditions[23] = 6.99215e-7;
+    M_restingConditions[24] = 6.71989e-11;
+    M_restingConditions[25] = 2.87031e-15;
+    M_restingConditions[26] = 4.59752e-20;
+    M_restingConditions[27] = 0.0;
+    M_restingConditions[28] = 0.998983;
+    M_restingConditions[29] = 6.349973e-3;
+    M_restingConditions[30] = 135.9813e-3;
 }
 
 IonicJafriRiceWinslow::IonicJafriRiceWinslow ( const IonicJafriRiceWinslow& model )
@@ -247,6 +311,7 @@ IonicJafriRiceWinslow::IonicJafriRiceWinslow ( const IonicJafriRiceWinslow& mode
     M_ICaHalf   = model.M_ICaHalf;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
 }
 
 // ===================================================
@@ -318,6 +383,7 @@ IonicJafriRiceWinslow& IonicJafriRiceWinslow::operator= ( const IonicJafriRiceWi
     M_ICaHalf   = model.M_ICaHalf;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
 
     return *this;
 }

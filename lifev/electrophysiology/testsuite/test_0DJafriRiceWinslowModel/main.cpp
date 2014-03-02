@@ -68,6 +68,9 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
+#define SolutionTestNorm  7.431415376000004e+03
+
+
 Int main ( Int argc, char** argv )
 {
     //! Initializing Epetra communicator
@@ -119,37 +122,7 @@ Int main ( Int argc, char** argv )
 
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
-    unknowns[0]  = -86.1638;
-    unknowns[1]  = 3.28302e-2;
-    unknowns[2]  = 0.988354;
-    unknowns[3]  = 0.99254;
-    unknowns[4]  = 9.28836e-4;
-    unknowns[5]  = 10.2042;
-    unknowns[6]  = 143.727;
-    unknowns[7]  = 5.4;
-    unknowns[8]  = 9.94893e-5;
-    unknowns[9]  = 1.24891;
-    unknowns[10] = 1.36058e-4;
-    unknowns[11] = 1.17504;
-    unknowns[12] = 0.762527;
-    unknowns[13] = 1.19168e-3;
-    unknowns[14] = 6.30613e-9;
-    unknowns[15] = 0.236283;
-    unknowns[16] = 0.997208;
-    unknowns[17] = 6.38897e-5;
-    unknowns[18] = 1.535e-9;
-    unknowns[19] = 1.63909e-14;
-    unknowns[20] = 6.56337e-20;
-    unknowns[21] = 9084546e-21;
-    unknowns[22] = 2.72826e-3;
-    unknowns[23] = 6.99215e-7;
-    unknowns[24] = 6.71989e-11;
-    unknowns[25] = 2.87031e-15;
-    unknowns[26] = 4.59752e-20;
-    unknowns[27] = 0.0;
-    unknowns[28] = 0.998983;
-    unknowns[29] = 6.349973e-3;
-    unknowns[30] = 135.9813e-3;
+    model.initialize(unknowns);
     cout << " Done!" << endl;
 
 
@@ -202,6 +175,12 @@ Int main ( Int argc, char** argv )
     int iter       ( 0 );
     int savedt     ( parameterList.get ( "savedt", 1.0) / dt );
 
+    //********************************************//
+    // We record the norm of the solution to      //
+    // check the failure of the test              //
+    //********************************************//
+    Real SolutionNorm = unknowns[0];
+
     for ( Real t = 0; t < TF; )
     {
 
@@ -213,7 +192,7 @@ Int main ( Int argc, char** argv )
 
         if ( t >= timeSt && t <= timeSt + 0.5 )
         {
-            Iapp = - 0.516289;
+            Iapp = 80.516289;
             if ( t >= timeSt + 0.5 - dt && t <= timeSt + 0.5 )
 
             {
@@ -232,8 +211,7 @@ Int main ( Int argc, char** argv )
         //********************************************//
         model.setAppliedCurrent (Iapp);
         model.computeRhs ( unknowns, rhs );
-        //        std::vector<Real> gateInf     ( model.gateInf( unknowns ) );
-        //        std::vector<Real> otherVarInf ( model.otherVarInf( unknowns ) );
+        model.addAppliedCurrent(rhs);
 
         //********************************************//
         // Writes solution on file.                   //
@@ -242,6 +220,12 @@ Int main ( Int argc, char** argv )
         iter++;
         if ( iter % savedt == 0)
         {
+        	//********************************************//
+			// Update the norm of the solution to check   //
+			// test failure                               //
+			//********************************************//
+			SolutionNorm += unknowns[0];
+
             output << t << ", " << unknowns.at (0) << ", " << unknowns.at (1) << ", "
                    << unknowns.at (2) << ", " << unknowns.at (3) << ", "
                    << unknowns.at (4) << ", " << unknowns.at (5) << ", "
@@ -271,15 +255,7 @@ Int main ( Int argc, char** argv )
 
         for (int j (0); j <= 30; ++j)
         {
-            //          if ( ( j <= 4 ) || ( j >= 12 ) )
             unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-
-            //          if( j == 0 || j >= 12 )
-            //              unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-            //          else if ( ( j <= 4 ) && ( j != 0 ) )
-            //              unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
-            //          else if ( j >= 12 )
-            //              unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
         }
 
         unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
@@ -311,8 +287,10 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    if (std::abs (unknowns.at (5) - 10.2063) > 1e-4 )
+    Real err = std::abs (SolutionNorm - SolutionTestNorm) / std::abs(SolutionTestNorm);
+    if ( err > 5e-2 )
     {
+    	std::cout << "\nTest Failed: " <<  err <<"\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
@@ -321,3 +299,6 @@ Int main ( Int argc, char** argv )
     }
     return ( returnValue );
 }
+
+
+#undef SolutionTestNorm
