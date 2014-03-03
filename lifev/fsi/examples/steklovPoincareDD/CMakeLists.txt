@@ -3,7 +3,7 @@ INCLUDE(TribitsAddExecutable)
 
 TRIBITS_ADD_EXECUTABLE(
   SteklovPoincare
-  SOURCES main.cpp
+  SOURCES main.cpp ud_functions.cpp
   COMM serial mpi
   )
 

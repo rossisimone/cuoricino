@@ -48,6 +48,11 @@ public:
     
     void buildSystem(const GetPot& dataFile);
     
+    FESpacePtr_Type feDisplacementSerial()
+    {
+    	return M_dFESpaceSerial;
+    }
+
     FESpacePtr_Type feDisplacement()
     {
     	return M_dFESpace;
@@ -78,6 +83,7 @@ private:
     boost::shared_ptr<meshPartitioner_Type> M_meshPartStructure;
     boost::shared_ptr<MeshData> M_meshDataStructure;
     FESpacePtr_Type M_dFESpace;
+    FESpacePtr_Type M_dFESpaceSerial;
     std::string M_dOrder;
     solidETFESpacePtr_Type M_dETFESpace;
     boost::shared_ptr<BCHandler> M_BCh;
@@ -147,6 +153,8 @@ void StructureOperator::createFESpaces()
             
     M_dFESpace.reset (new FESpace_Type (M_localMeshPtrStructure, M_dOrder, 3, M_comm) );
     
+    M_dFESpaceSerial.reset (new FESpace_Type (M_fullMeshPtrStructure, M_dOrder, 3, M_comm) );
+
     if (M_verbose)
         std::cout << "ok.\n";
     

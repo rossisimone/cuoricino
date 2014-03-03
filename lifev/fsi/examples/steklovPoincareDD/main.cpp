@@ -1,4 +1,5 @@
-// DAVIDE FORTI - TO DO DOCUMENTATION
+// DAVIDE FORTI
+// TO DO: - DOCUMENTATION
 
 #undef HAVE_HDF5
 
@@ -38,8 +39,32 @@
 // Includes for the interface
 #include <lifev/core/fem/DOFInterface3Dto3D.hpp>
 
+// Includes
+#include "SteklovPoincareOperator.hpp"
+#include <lifev/fsi/solver/HarmonicExtensionSolver.hpp>
+
+// Boundary conditions
+#include "boundaryConditions.hpp"
+
 using namespace LifeV;
 
+// Shortcuts
+typedef VectorEpetra 							vector_Type;
+typedef boost::shared_ptr<vector_Type> 			vectorPtr_Type;
+
+typedef MapEpetra 					    		map_Type;
+typedef boost::shared_ptr<map_Type> 			mapPtr_Type;
+
+typedef boundaryConditions				     	bcFSIProblem_Type;
+typedef boost::shared_ptr<bcFSIProblem_Type> 	bcFSIProblemPtr_Type;
+
+typedef HarmonicExtensionSolver<mesh_Type>      meshMotion_Type;
+typedef boost::shared_ptr<meshMotion_Type>      meshMotionPtr_Type;
+
+typedef ExporterHDF5<mesh_Type>                 exporter_Type;
+typedef boost::shared_ptr<exporter_Type>        exporterPtr_Type;
+
+// Begin of the program
 int main (int argc, char** argv)
 {
 
@@ -66,22 +91,132 @@ int main (int argc, char** argv)
     data->setup(data_file);
 
     // Instantiate the fluid and structure operators
-    FluidOperator     fluid(Comm);
-    StructureOperator structure(Comm);
+    FluidOperator      fluid(Comm);
+    StructureOperator  structure(Comm);
 
     // Call the setup of the operators
     fluid.setup(data_file);
     structure.setup(data_file);
 
-    // Build interface map
-    boost::shared_ptr<DOFInterface3Dto3D> DOFfluidToSolid;
-    DOFfluidToSolid.reset(new DOFInterface3Dto3D());
+    // ALE object (harmonic extension)
+    meshMotionPtr_Type ale( new meshMotion_Type( *fluid.feVelocity(), Comm ) );
+    ale->setUp(data_file);
 
-    DOFfluidToSolid->setup(	structure.feDisplacement()->refFE(), structure.feDisplacement()->dof(),
-    						fluid.feVelocity()->refFE(), fluid.feVelocity()->dof());
+    //////////////////////////
+    // Build interface maps //
+    //////////////////////////
 
-    DOFfluidToSolid->update( *structure.mesh(), data->structureInterfaceFlag(), *fluid.mesh(), data->fluidInterfaceFlag(),
-        					 data->interfaceTolerance(), data->fluidInterfaceVertexFlag() );
+    // Interface map of the fluid
+    boost::shared_ptr<DOFInterface3Dto3D> DOFfluid;
+    DOFfluid.reset(new DOFInterface3Dto3D(fluid.feVelocity()->refFE(), fluid.feVelocity()->dof()));
+
+    DOFfluid->update( *fluid.feVelocity()->mesh(), data->fluidInterfaceFlag(),
+    		          *fluid.feVelocity()->mesh(), data->fluidInterfaceFlag(),
+        			   data->interfaceTolerance(), data->fluidInterfaceVertexFlag() );
+
+    // Interface map of the structure
+    boost::shared_ptr<DOFInterface3Dto3D> DOFstructure;
+    DOFstructure.reset(new DOFInterface3Dto3D(structure.feDisplacement()->refFE(), structure.feDisplacement()->dof()));
+
+    DOFstructure->update( *structure.feDisplacement()->mesh(), data->structureInterfaceFlag(),
+    		              *structure.feDisplacement()->mesh(), data->structureInterfaceFlag(),
+    					   data->interfaceTolerance() );
+
+    // Important object that stores the dofwise connection at the interface
+    boost::shared_ptr<DOFInterface3Dto3D> DOFstructureToFluid;
+    DOFstructureToFluid.reset( new DOFInterface3Dto3D);
+
+    DOFstructureToFluid->setup( fluid.feVelocitySerial()->refFE(), fluid.feVelocitySerial()->dof(),
+    							structure.feDisplacementSerial()->refFE(), structure.feDisplacementSerial()->dof() );
+
+    DOFstructureToFluid->update( *fluid.feVelocitySerial()->mesh(), data->fluidInterfaceFlag(),
+    							 *structure.feDisplacementSerial()->mesh(), data->structureInterfaceFlag(),
+    							 data->interfaceTolerance() );
+
+    // Create Steklov Poincare operator
+    SteklovPoincareOperator SPoperator(fluid.feVelocity(), structure.feDisplacement(),
+    							       DOFstructureToFluid,	DOFstructure);
+
+    // Interface map of the fluid
+    mapPtr_Type fluidInterfaceMap;
+    fluidInterfaceMap.reset ( new MapEpetra ( *SPoperator.createInterfaceMaps(DOFfluid->localDofMap(), fluid.feVelocity()->dof(), Comm, 0 ) ) );
+
+    // Interface map of the structure
+    mapPtr_Type structureInterfaceMap;
+    structureInterfaceMap.reset ( new MapEpetra ( *SPoperator.createInterfaceMaps(DOFstructure->localDofMap(), structure.feDisplacement()->dof(), Comm, 1 ) ) );
+
+    // Initialize the tranfer operator across the interface
+    SPoperator.buildTranferOperators( fluidInterfaceMap, structureInterfaceMap,
+    								  DOFstructureToFluid->localDofMap());
+
+    ///////////////////////////
+    //  Boundary Conditions  //
+    ///////////////////////////
+
+    bcFSIProblemPtr_Type bcFSI (new bcFSIProblem_Type);
+    bcFSI->setup();
+    fluid.setBC(bcFSI->fluidBC());
+    structure.setBC(bcFSI->structureBC());
+
+    /////////////////////////////
+    //  Initialize exporters   //
+    /////////////////////////////
+
+    exporterPtr_Type exporterFluid ( new  exporter_Type ( data_file, "Fluid") );
+    exporterPtr_Type exporterStructure ( new  exporter_Type ( data_file, "Structure") );
+
+    UInt totalVelocityDofs (3*fluid.feVelocity()->dof().numTotalDof() );
+
+    exporterFluid->setMeshProcId (fluid.feVelocity()->mesh(), Comm->MyPID() );
+    exporterStructure->setMeshProcId (structure.feDisplacement()->mesh(), Comm->MyPID() );
+
+    //////////////////////////
+    //  Initialize systems  //
+    //////////////////////////
+
+    fluid.buildSystem(data_file);
+    structure.buildSystem(data_file);
+    ale->computeMatrix();
+
+    //////////////////////////
+    //  Initialize systems  //
+    //////////////////////////
+
+    vectorPtr_Type velAndPressure( new vector_Type( fluid.solver()->getMap(), exporterFluid->mapType() ) );
+    vectorPtr_Type fluidDisp( new vector_Type( fluid.feVelocity()->map(), exporterFluid->mapType() ) );
+    vectorPtr_Type structureDisp( new vector_Type( structure.feDisplacement()->map(), exporterFluid->mapType() ) );
+
+    *velAndPressure *= 0;
+    *fluidDisp      *= 0;
+    *structureDisp  *= 0;
+
+    exporterFluid->addVariable ( ExporterData<mesh_Type>::VectorField, "f-velocity",fluid.feVelocity(), velAndPressure, UInt ( 0 ) );
+    exporterFluid->addVariable ( ExporterData<mesh_Type>::ScalarField, "f-pressure",fluid.fePressure(), velAndPressure, UInt ( totalVelocityDofs ) );
+    exporterFluid->addVariable ( ExporterData<mesh_Type>::VectorField, "f-displacement", fluid.feVelocity(), fluidDisp, UInt (0) );
+
+    exporterStructure->addVariable ( ExporterData<mesh_Type>::VectorField, "s-displacement", structure.feDisplacement(), structureDisp, UInt (0) );
+
+    ///////////////////////////
+    // Core of the algorithm //
+    ///////////////////////////
+
+    *structureDisp  += 100;
+    //vectorPtr_Type structureDispGamma( new vector_Type( *structureInterfaceMap, exporterStructure->mapType() ) );
+    //structureDispGamma->subset(*structureDisp, *structureInterfaceMap, 0, 0);
+
+    //vectorPtr_Type fluidDispGamma( new vector_Type( *fluidInterfaceMap, exporterFluid->mapType() ) );
+    SPoperator.transferStructureOnFluid(structureDisp, fluidDisp);
+
+    exporterFluid->postProcess(0.0);
+    exporterStructure->postProcess(0.0);
+
+    //////////////////////////
+    //  Closing simulation  //
+    //////////////////////////
+
+
+    exporterFluid->closeFile();
+    exporterStructure->closeFile();
 
 #ifdef HAVE_MPI
     MPI_Finalize();

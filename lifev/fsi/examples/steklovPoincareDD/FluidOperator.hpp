@@ -11,7 +11,7 @@
 #include <lifev/core/mesh/MeshData.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
 
-#include <lifev/navier_stokes/solver/OseenSolver.hpp>
+#include <lifev/navier_stokes/solver/OseenSolverShapeDerivative.hpp>
 
 namespace LifeV
 {
@@ -39,14 +39,27 @@ public:
     void setBC(const boost::shared_ptr<BCHandler> bc);
     
     void buildSystem(const GetPot& dataFile);
-    
-    void buildInterfaceMap();
 
     // getters
+
+    boost::shared_ptr<OseenSolverShapeDerivative<mesh_Type> > solver()
+    {
+    	return M_fluid;
+    }
+
+    FESpacePtr_Type feVelocitySerial()
+    {
+    	return M_uFESpaceSerial;
+    }
 
     FESpacePtr_Type feVelocity()
     {
     	return M_uFESpace;
+    }
+
+    FESpacePtr_Type fePressure()
+    {
+    	return M_pFESpace;
     }
 
     meshPtr_Type mesh()
@@ -74,11 +87,12 @@ private:
     boost::shared_ptr<meshPartitioner_Type> M_meshPartFluid;
     boost::shared_ptr<MeshData> M_meshDataFluid;
     FESpacePtr_Type M_uFESpace;
+    FESpacePtr_Type M_uFESpaceSerial;
     FESpacePtr_Type M_pFESpace;
     std::string M_uOrder;
     std::string M_pOrder;
     boost::shared_ptr<BCHandler> M_BCh;
-    boost::shared_ptr<OseenSolver<mesh_Type> > M_fluid;
+    boost::shared_ptr<OseenSolverShapeDerivative<mesh_Type> > M_fluid;
 };
 
 FluidOperator::FluidOperator(boost::shared_ptr<Epetra_Comm>& comm):
@@ -95,7 +109,6 @@ void FluidOperator::setup(const GetPot& dataFile)
     loadData(dataFile);
     loadMesh();
     partitionMesh();
-    // buildInterfaceMap();
     createFESpaces();
 }
     
@@ -133,36 +146,6 @@ void FluidOperator::partitionMesh()
     M_localMeshPtrFluid.reset(new mesh_Type(*M_meshPartFluid->meshPartition() ) );
 }
     
-void FluidOperator::buildInterfaceMap()
-{
-  /*
-    for ( UInt i = 0; i < M_localMeshPtrFluid->numVertices(); ++i )
-        if ( isInside (M_localMeshPtrFluid->point (i).markerID(), M_flags) )
-            if (CheckVector->blockMap().LID (M_localMeshPtrFluid->point (i).id() ) != -1)
-            {
-                GID_nodes.insert (M_localMeshPtrFluid->point(i).id() );
-            }
-  */
-}
-
-/*    
-bool FluidOperator::isInside (ID pointMarker, flagContainer_Type flags)
-{
-    int check = 0;
-    if(flags[0]==-1)
-        return true;
-    else
-    {
-        for (UInt i = 0; i < flags.size(); ++i)
-            if (pointMarker == flags[i])
-            {
-                ++check;
-            }
-        return (check > 0) ? true : false;
-    }
-}
-*/
-
 void FluidOperator::createFESpaces()
 {
     if (M_verbose)
@@ -176,6 +159,7 @@ void FluidOperator::createFESpaces()
         std::cout << "Building the velocity FE space ... " << std::flush;
     
     M_uFESpace.reset (new FESpace_Type (M_localMeshPtrFluid, M_uOrder, 3, M_comm) );
+    M_uFESpaceSerial.reset (new FESpace_Type (M_fullMeshPtrFluid, M_uOrder, 3, M_comm) );
     
     if (M_verbose)
         std::cout << "ok.\n" << "Building the pressure FE space ... " << std::flush;
@@ -194,7 +178,7 @@ void FluidOperator::setBC(const boost::shared_ptr<BCHandler> bc)
     
 void FluidOperator::buildSystem( const GetPot& dataFile )
 {
-    M_fluid.reset( new OseenSolver<mesh_Type>(M_oseenData, *M_uFESpace, *M_pFESpace, M_comm) );
+    M_fluid.reset( new OseenSolverShapeDerivative<mesh_Type>(M_oseenData, *M_uFESpace, *M_pFESpace, M_comm) );
     M_fluid->setUp (dataFile);
     M_fluid->buildSystem();
 }
