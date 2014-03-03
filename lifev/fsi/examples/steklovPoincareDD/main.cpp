@@ -37,10 +37,11 @@
 #include "StructureOperator.hpp"
 
 // Includes for the interface
-#include <lifev/core/fem/DOFInterface3Dto3D.hpp>
+#include <lifev/core/interpolation/RBFInterpolation.hpp>
+#include <lifev/core/interpolation/RBFhtpVectorial.hpp>
 
 // Includes
-#include "SteklovPoincareOperator.hpp"
+// #include "SteklovPoincareOperator.hpp"
 #include <lifev/fsi/solver/HarmonicExtensionSolver.hpp>
 
 // Boundary conditions
@@ -64,6 +65,9 @@ typedef boost::shared_ptr<meshMotion_Type>      meshMotionPtr_Type;
 typedef ExporterHDF5<mesh_Type>                 exporter_Type;
 typedef boost::shared_ptr<exporter_Type>        exporterPtr_Type;
 
+typedef RBFInterpolation<mesh_Type>             interpolation_Type;
+typedef boost::shared_ptr<interpolation_Type>   interpolationPtr_Type;
+
 // Begin of the program
 int main (int argc, char** argv)
 {
@@ -86,6 +90,9 @@ int main (int argc, char** argv)
     const std::string data_file_name = command_line.follow ("data", 2, "-f", "--file");
     GetPot data_file (data_file_name);
 
+    Teuchos::RCP< Teuchos::ParameterList > belosList = Teuchos::rcp ( new Teuchos::ParameterList );
+    belosList = Teuchos::getParametersFromXmlFile ( "SolverParamList.xml" );
+
     // Data of the simulation
     boost::shared_ptr<FSIData> data( new FSIData);
     data->setup(data_file);
@@ -106,48 +113,16 @@ int main (int argc, char** argv)
     // Build interface maps //
     //////////////////////////
 
-    // Interface map of the fluid
-    boost::shared_ptr<DOFInterface3Dto3D> DOFfluid;
-    DOFfluid.reset(new DOFInterface3Dto3D(fluid.feVelocity()->refFE(), fluid.feVelocity()->dof()));
+    int nFlags = 2;
+    std::vector<int> flags (nFlags);
+    flags[0] = 1;
+    flags[1] = 20;
 
-    DOFfluid->update( *fluid.feVelocity()->mesh(), data->fluidInterfaceFlag(),
-    		          *fluid.feVelocity()->mesh(), data->fluidInterfaceFlag(),
-        			   data->interfaceTolerance(), data->fluidInterfaceVertexFlag() );
-
-    // Interface map of the structure
-    boost::shared_ptr<DOFInterface3Dto3D> DOFstructure;
-    DOFstructure.reset(new DOFInterface3Dto3D(structure.feDisplacement()->refFE(), structure.feDisplacement()->dof()));
-
-    DOFstructure->update( *structure.feDisplacement()->mesh(), data->structureInterfaceFlag(),
-    		              *structure.feDisplacement()->mesh(), data->structureInterfaceFlag(),
-    					   data->interfaceTolerance() );
-
-    // Important object that stores the dofwise connection at the interface
-    boost::shared_ptr<DOFInterface3Dto3D> DOFstructureToFluid;
-    DOFstructureToFluid.reset( new DOFInterface3Dto3D);
-
-    DOFstructureToFluid->setup( fluid.feVelocitySerial()->refFE(), fluid.feVelocitySerial()->dof(),
-    							structure.feDisplacementSerial()->refFE(), structure.feDisplacementSerial()->dof() );
-
-    DOFstructureToFluid->update( *fluid.feVelocitySerial()->mesh(), data->fluidInterfaceFlag(),
-    							 *structure.feDisplacementSerial()->mesh(), data->structureInterfaceFlag(),
-    							 data->interfaceTolerance() );
-
-    // Create Steklov Poincare operator
-    SteklovPoincareOperator SPoperator(fluid.feVelocity(), structure.feDisplacement(),
-    							       DOFstructureToFluid,	DOFstructure);
-
-    // Interface map of the fluid
-    mapPtr_Type fluidInterfaceMap;
-    fluidInterfaceMap.reset ( new MapEpetra ( *SPoperator.createInterfaceMaps(DOFfluid->localDofMap(), fluid.feVelocity()->dof(), Comm, 0 ) ) );
-
-    // Interface map of the structure
-    mapPtr_Type structureInterfaceMap;
-    structureInterfaceMap.reset ( new MapEpetra ( *SPoperator.createInterfaceMaps(DOFstructure->localDofMap(), structure.feDisplacement()->dof(), Comm, 1 ) ) );
-
-    // Initialize the tranfer operator across the interface
-    SPoperator.buildTranferOperators( fluidInterfaceMap, structureInterfaceMap,
-    								  DOFstructureToFluid->localDofMap());
+    interpolationPtr_Type RBFinterpolant;
+    RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject (data_file("interpolation/interpolation_Type","none")));
+    RBFinterpolant->setup(structure.mesh(), structure.feDisplacement()->mesh(),
+    					  fluid.mesh(), fluid.feVelocity()->mesh(),
+    					  flags);
 
     ///////////////////////////
     //  Boundary Conditions  //
@@ -197,15 +172,25 @@ int main (int argc, char** argv)
     exporterStructure->addVariable ( ExporterData<mesh_Type>::VectorField, "s-displacement", structure.feDisplacement(), structureDisp, UInt (0) );
 
     ///////////////////////////
+    // InterMesh operators   //
+    ///////////////////////////
+
+    RBFinterpolant->setupRBFData (structureDisp, fluidDisp, data_file, belosList);
+    RBFinterpolant->buildOperators ();
+
+    // Interface map of the fluid
+
+    // Interface map of the structure
+
+    ///////////////////////////
     // Core of the algorithm //
     ///////////////////////////
 
-    *structureDisp  += 100;
-    //vectorPtr_Type structureDispGamma( new vector_Type( *structureInterfaceMap, exporterStructure->mapType() ) );
-    //structureDispGamma->subset(*structureDisp, *structureInterfaceMap, 0, 0);
+    *structureDisp += 10;
 
-    //vectorPtr_Type fluidDispGamma( new vector_Type( *fluidInterfaceMap, exporterFluid->mapType() ) );
-    SPoperator.transferStructureOnFluid(structureDisp, fluidDisp);
+    RBFinterpolant->updateRhs (structureDisp);
+    RBFinterpolant->interpolate ();
+    RBFinterpolant->solution (fluidDisp);
 
     exporterFluid->postProcess(0.0);
     exporterStructure->postProcess(0.0);
@@ -213,7 +198,6 @@ int main (int argc, char** argv)
     //////////////////////////
     //  Closing simulation  //
     //////////////////////////
-
 
     exporterFluid->closeFile();
     exporterStructure->closeFile();

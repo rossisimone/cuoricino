@@ -10,6 +10,9 @@
 # non linear model is implemented, when nonlinear models are used, the class FSIMonolithicGI
 # should be employed.
 
+[interpolation]
+	interpolation_Type = RBFhtpVectorial
+
 * #problem datas
 [problem]
 
