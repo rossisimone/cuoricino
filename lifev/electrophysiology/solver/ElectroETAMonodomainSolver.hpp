@@ -802,7 +802,7 @@ public:
                                                       Real time = 0.0)
     {
 
-        M_ionicModelPtr->setAppliedCurrentFromElectroStimulus (stimulus, M_feSpacePtr, time);
+        M_ionicModelPtr->setAppliedCurrentFromCardiacStimulus (stimulus, M_feSpacePtr, time);
     }
 
     //! Solves one reaction step using the forward Euler scheme
