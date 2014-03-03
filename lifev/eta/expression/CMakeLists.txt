@@ -1,4 +1,5 @@
 SET(expression_HEADERS
+    expression/BuildGraph.hpp
 	expression/EvaluationAddition.hpp
 	expression/EvaluationDivI.hpp
 	expression/EvaluationDivision.hpp
@@ -67,6 +68,7 @@ SET(expression_HEADERS
 	expression/ExpressionTrace.hpp
 	expression/ExpressionToEvaluation.hpp
 	expression/ExpressionVector.hpp
+	expression/GraphElement.hpp
 	expression/Integrate.hpp
 	expression/IntegrateMatrixElement.hpp
 	expression/IntegrateMatrixVolumeID.hpp
