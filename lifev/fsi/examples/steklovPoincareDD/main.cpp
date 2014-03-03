@@ -175,7 +175,7 @@ int main (int argc, char** argv)
     // InterMesh operators   //
     ///////////////////////////
 
-    RBFinterpolant->setupRBFData (structureDisp, fluidDisp, data_file, belosList);
+    RBFinterpolant->setupRBFData (structureDisp, fluidDisp);
     RBFinterpolant->buildOperators ();
 
     // Interface map of the fluid
@@ -194,6 +194,16 @@ int main (int argc, char** argv)
 
     exporterFluid->postProcess(0.0);
     exporterStructure->postProcess(0.0);
+
+
+    *structureDisp = -1500;
+
+    RBFinterpolant->updateRhs (structureDisp);
+    RBFinterpolant->interpolate ();
+    RBFinterpolant->solution (fluidDisp);
+
+    exporterFluid->postProcess(1.0);
+    exporterStructure->postProcess(1.0);
 
     //////////////////////////
     //  Closing simulation  //
