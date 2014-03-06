@@ -102,13 +102,27 @@ int main (int argc, char** argv)
     MPI_Init (&argc, &argv);
     boost::shared_ptr<Epetra_Comm> Comm (new Epetra_MpiComm ( MPI_COMM_WORLD ) );
     bool verbose = Comm->MyPID() == 0;
-
-    if(verbose)
-        cout << "[Using parallel version ]" << endl;
 #else
     boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_SerialComm() );
-    std::cout << "[Using serial version ]" << std::endl;
+    bool verbose = true;
 #endif
+
+    if (verbose)
+    {
+    	try
+    	{
+    		if(argc!=9)
+    			throw "Wrong code execution";
+    	}
+    	catch ( const char* Message )
+    	{
+    		std::cout   << "caught exception :  " << Message << "\n";
+    		std::cout 	<< 	"Please use the code as it follows: " << std::endl;
+    		std::cout	<< 	"mpirun -np X ./FSI_SteklovPoincare.exe  -df dataFluid -ds dataStructure -da dataAle -o Output" <<  std::endl;
+    		std::cout	<< 	"./FSI_SteklovPoincare.exe  -df dataFluid -ds dataStructure -da dataAle -o Output" 				<<  std::endl;
+    		return 0;
+    	}
+    }
 
     GetPot command_line (argc, argv);
     const bool check = command_line.search (2, "-c", "--check");
@@ -143,22 +157,22 @@ int main (int argc, char** argv)
     meshMotionPtr_Type ale( new meshMotion_Type( *fluid.feVelocity(), Comm ) );
     ale->setUp(data_file_ale);
 
-//    //////////////////////////
-//    // Build interface maps //
-//    //////////////////////////
-//
-//    int nFlags = 1;
-//    std::vector<int> flags (nFlags);
-//    flags[0] = 1;
-//
-//    SteklovPoincareOperator FSI;
-//    FSI.buildTranferOperators ( fluid.mesh(), fluid.feVelocity()->mesh(),
-//    							structure.mesh(), structure.feDisplacement()->mesh(),
-//    							flags, data_file);
-//
-//    ///////////////////////////
-//    //  Boundary Conditions  //
-//    ///////////////////////////
+    //////////////////////////
+    // Build interface maps //
+    //////////////////////////
+
+    int nFlags = 1;
+    std::vector<int> flags (nFlags);
+    flags[0] = 1;
+
+    SteklovPoincareOperator FSI;
+    FSI.buildTranferOperators ( fluid.mesh(), fluid.feVelocity()->mesh(),
+    							structure.mesh(), structure.feDisplacement()->mesh(),
+    							flags, data_file_fluid );
+
+    ///////////////////////////
+    //  Boundary Conditions  //
+    ///////////////////////////
 //
 //    bcFSIProblemPtr_Type bcFSI (new bcFSIProblem_Type);
 //    bcFSI->setup();
