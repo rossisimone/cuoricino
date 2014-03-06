@@ -614,36 +614,33 @@ MultiscaleModelValve0D::solveForOpeningAngle()
     Real dt = M_globalData->dataTime()->timeStep();
 
     std::cout << std::endl << "M_pressureLeft  = " << M_pressureLeft << std::endl;
-    std::cout << "M_pressureRight = " << M_pressureRight << std::endl;
-    std::cout << "M_flowRate  = " << M_flowRate << std::endl;
+    std::cout              << "M_pressureRight = " << M_pressureRight << std::endl;
+    std::cout              << "M_flowRate  = " << M_flowRate << std::endl;
 
     // Leaflet moment model of Korakianitis-Shi '06 solved with RK4 method
 
+    Real k1_v ( M_thetaVel_tn );
     Real k1_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn)
                 - M_resistiveMomentCoefficient * M_thetaVel_tn
                 - M_convectiveMomentCoefficient * M_flowRate * std::cos(M_openingAngle_tn) );
-    Real k1_v ( M_thetaVel_tn );
 
+    Real k2_v ( M_thetaVel_tn + dt/2. * k1_F );
     Real k2_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt/2. * k1_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt/2. * k1_F)
     - M_convectiveMomentCoefficient * M_flowRate * std::cos(M_openingAngle_tn + dt/2. * k1_v) );
 
-    Real k2_v ( M_openingAngle_tn + dt/2. * k1_v );
-
+    Real k3_v ( M_thetaVel_tn + dt/2. * k2_F );
     Real k3_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt/2. * k2_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt/2. * k2_F)
     - M_convectiveMomentCoefficient * M_flowRate * std::cos(M_openingAngle_tn + dt/2. * k2_v) );
 
-    Real k3_v ( M_openingAngle_tn + dt/2. * k2_v );
-
+    Real k4_v ( M_thetaVel_tn + dt * k3_F );
     Real k4_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt * k3_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt * k3_F)
     - M_convectiveMomentCoefficient * M_flowRate * std::cos(M_openingAngle_tn + dt * k3_v) );
 
-    Real k4_v ( M_openingAngle_tn + dt * k3_v );
-
-    M_thetaVel     = M_thetaVel_tn     + 1./6. * dt * (k1_F + k2_F + k3_F + k4_F);
     M_openingAngle = M_openingAngle_tn + 1./6. * dt * (k1_v + k2_v + k3_v + k4_v);
+    M_thetaVel     = M_thetaVel_tn     + 1./6. * dt * (k1_F + k2_F + k3_F + k4_F);
 
     if (M_openingAngle > M_maximumOpeningAngle)
     {
