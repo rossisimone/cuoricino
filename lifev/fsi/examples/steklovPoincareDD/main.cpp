@@ -19,6 +19,8 @@
 
 // LifeV includes
 #include <lifev/core/LifeV.hpp>
+#include <sys/stat.h>
+
 
 // Include for the data
 #include <lifev/fsi/solver/FSIData.hpp>
@@ -117,7 +119,10 @@ int main (int argc, char** argv)
     const std::string data_file_name_structure = command_line.follow ("dataStructure", 2, "-ds", "--fileStructure");
     GetPot data_file_structure (data_file_name_structure);
 
-    const std::string problem_folder = command_line.follow ("output", 2, "-o", "--output");
+    const std::string data_file_name_ale = command_line.follow ("dataAle", 2, "-da", "--fileAle");
+    GetPot data_file_ale (data_file_name_structure);
+
+    std::string problem_folder = command_line.follow ("output", 2, "-o", "--output");
 
     // set the folder for the output
     if ( problem_folder.compare("./") )
@@ -127,24 +132,17 @@ int main (int argc, char** argv)
     		mkdir ( problem_folder.c_str(), 0777 );
     }
 
-//
-//    // Data of the simulation
-//    boost::shared_ptr<FSIData> dataFSI( new FSIData);
-//    dataFSI->setup(data_file);
-
     // Instantiate the fluid and structure operators
 
-//    FluidOperator      fluid(Comm);
+    FluidOperator      fluid(Comm);
     StructureOperator  structure(Comm);
-//
-//    // Call the setup of the operators
-//    fluid.setup(data_file);
-    structure.setup(data_file);
-//
-//    // ALE object (harmonic extension)
-//    meshMotionPtr_Type ale( new meshMotion_Type( *fluid.feVelocity(), Comm ) );
-//    ale->setUp(data_file);
-//
+
+    // Call the setup of the operators
+    fluid.setup(data_file_fluid);
+    structure.setup(data_file_structure);
+    meshMotionPtr_Type ale( new meshMotion_Type( *fluid.feVelocity(), Comm ) );
+    ale->setUp(data_file_ale);
+
 //    //////////////////////////
 //    // Build interface maps //
 //    //////////////////////////
@@ -179,27 +177,27 @@ int main (int argc, char** argv)
 //    /////////////////////////////
 //
 //    exporterPtr_Type exporterFluid ( new  exporter_Type ( data_file, "Fluid") );
-    exporterPtr_Type exporterStructure ( new  exporter_Type ( data_file, "Structure") );
+//    exporterPtr_Type exporterStructure ( new  exporter_Type ( data_file, "Structure") );
 //    UInt totalVelocityDofs (3*fluid.feVelocity()->dof().numTotalDof() );
 //
 //    exporterFluid->setMeshProcId (fluid.feVelocity()->mesh(), Comm->MyPID() );
-    exporterStructure->setMeshProcId (structure.feDisplacement()->mesh(), Comm->MyPID() );
+//    exporterStructure->setMeshProcId (structure.feDisplacement()->mesh(), Comm->MyPID() );
 //
 //    vectorPtr_Type velAndPressure( new vector_Type( fluid.solver()->getMap(), exporterFluid->mapType() ) );
 //    vectorPtr_Type fluidDisp( new vector_Type( fluid.feVelocity()->map(), exporterFluid->mapType() ) );
 //    vectorPtr_Type weakStressFluid( new vector_Type( fluid.feVelocity()->map(), exporterFluid->mapType() ) );
-    vectorPtr_Type structureDisp( new vector_Type( structure.feDisplacement()->map(), exporterStructure->mapType() ) );
+//    vectorPtr_Type structureDisp( new vector_Type( structure.feDisplacement()->map(), exporterStructure->mapType() ) );
 //
 //    *velAndPressure  *= 0;
 //    *fluidDisp       *= 0;
 //    *weakStressFluid *= 0;
-    *structureDisp   *= 0;
+//    *structureDisp   *= 0;
 //
 //    exporterFluid->addVariable ( ExporterData<mesh_Type>::VectorField, "f-velocity",fluid.feVelocity(), velAndPressure, UInt ( 0 ) );
 //    exporterFluid->addVariable ( ExporterData<mesh_Type>::ScalarField, "f-pressure",fluid.fePressure(), velAndPressure, UInt ( totalVelocityDofs ) );
 //    exporterFluid->addVariable ( ExporterData<mesh_Type>::VectorField, "f-weakStress",fluid.feVelocity(), weakStressFluid, UInt ( 0 ) );
 //    exporterFluid->addVariable ( ExporterData<mesh_Type>::VectorField, "f-displacement", fluid.feVelocity(), fluidDisp, UInt (0) );
-    exporterStructure->addVariable ( ExporterData<mesh_Type>::VectorField, "s-displacement", structure.feDisplacement(), structureDisp, UInt (0) );
+//    exporterStructure->addVariable ( ExporterData<mesh_Type>::VectorField, "s-displacement", structure.feDisplacement(), structureDisp, UInt (0) );
 //
 //
 //    ///////////////////////////
@@ -208,24 +206,24 @@ int main (int argc, char** argv)
 //
 //    // Create the objects
 //    timeAdvancePtr_Type 	fluidTA;
-    timeAdvancePtr_Type 	structureTA;
+//    timeAdvancePtr_Type 	structureTA;
 //    timeAdvancePtr_Type 	aleTA;
 //
 //    fluidTA.reset( TimeAdvanceFactory::instance().createObject( data_file("fluid/time_discretization/method", "BDF") ) );
-    structureTA.reset(TimeAdvanceFactory::instance().createObject( data_file("solid/time_discretization/method", "BDF") ) );
+//    structureTA.reset(TimeAdvanceFactory::instance().createObject( data_file("solid/time_discretization/method", "BDF") ) );
 //    aleTA.reset(TimeAdvanceFactory::instance().createObject( data_file("mesh_motion/time_discretization/method", "BDF") ) );
 //
 //    fluidTA->setup ( dataFSI->dataFluid()->dataTimeAdvance()->orderBDF(), 1);
 //    fluidTA->setTimeStep ( dataFSI->dataFluid()->dataTime()->timeStep() );
 
-    std::vector<Real> parameters (2);
-    parameters[0]  = data_file ("solid/time_discretization/theta", 0.25);
-    parameters[1]  = data_file ("solid/time_discretization/zeta", 0.5);
-    UInt order = data_file ("solid/time_discretization/BDF_order", 1);
+//    std::vector<Real> parameters (2);
+//    parameters[0]  = data_file ("solid/time_discretization/theta", 0.25);
+//    parameters[1]  = data_file ("solid/time_discretization/zeta", 0.5);
+//    UInt order = data_file ("solid/time_discretization/BDF_order", 1);
 
-    structureTA->setup ( order , 2);
-    structureTA->setTimeStep ( 0.001 );
-    structure.buildSystem(data_file, structureTA);
+//    structureTA->setup ( order , 2);
+//    structureTA->setTimeStep ( 0.001 );
+//    structure.buildSystem(data_file, structureTA);
 //
 //    aleTA->setup ( dataFSI->timeAdvanceDataALE()->orderBDF(), 1 );
 //    aleTA->setTimeStep ( dataFSI->dataFluid()->dataTime()->timeStep() );
@@ -244,7 +242,7 @@ int main (int argc, char** argv)
 //
 //    std::vector<vectorPtr_Type> velInit;
 //    std::vector<vectorPtr_Type> dispFluidInit;
-    std::vector<vectorPtr_Type> dispStructureInit;
+//    std::vector<vectorPtr_Type> dispStructureInit;
 //
 //    for(UInt i = 0; i < fluidTA->size(); ++i)
 //    	velInit.push_back(fluid.solver()->solution());
@@ -256,23 +254,23 @@ int main (int argc, char** argv)
 //
 //    aleTA->setInitialCondition ( dispFluidInit ) ;
 
-    vectorPtr_Type initialDisplacement (new vector_Type (structure.solver()->displacement(), Unique) );
-    structure.feDisplacement()->interpolate ( static_cast<FESpace_type::function_Type> ( dd0 ), *initialDisplacement, 0.0 );
-
-    for(UInt i = 0; i < structureTA->size(); ++i)
-    	dispStructureInit.push_back ( initialDisplacement );
-
-    structureTA->setInitialCondition ( dispStructureInit ) ;
-
-    structureTA->updateRHSContribution ( 0.001 );
+//    vectorPtr_Type initialDisplacement (new vector_Type (structure.solver()->displacement(), Unique) );
+//    structure.feDisplacement()->interpolate ( static_cast<FESpace_type::function_Type> ( dd0 ), *initialDisplacement, 0.0 );
+//
+//    for(UInt i = 0; i < structureTA->size(); ++i)
+//    	dispStructureInit.push_back ( initialDisplacement );
+//
+//    structureTA->setInitialCondition ( dispStructureInit ) ;
+//
+//    structureTA->updateRHSContribution ( 0.001 );
 
     //////////////////////////
     //  Initialize systems  //
     //////////////////////////
 
-    vectorPtr_Type a;
-    a.reset( new vector_Type(structure.solver()->displacement(), Unique));
-    structure.solver()->initialize ( initialDisplacement );
+//    vectorPtr_Type a;
+//    a.reset( new vector_Type(structure.solver()->displacement(), Unique));
+//    structure.solver()->initialize ( initialDisplacement );
 //
 //    ///////////////////////////////////////////
 //    // Initialize the interface displacement //
@@ -394,30 +392,30 @@ int main (int argc, char** argv)
     //BCVectorStructureDisp.reset(new BCVector(*structureDisp, structure.feDisplacement()->dof().numTotalDof(),(UInt)0));
     //structure.bc()->addBC ("Interface", 1,  EssentialVertices, Full, *BCVectorStructureDisp, 3);
 
-    structure.iterate(structureTA);
-    *structureDisp = structure.solver()->displacement();
+//    structure.iterate(structureTA);
+//    *structureDisp = structure.solver()->displacement();
 
     ///////////////////////////////
     // PostProcessing the result //
     ///////////////////////////////
 
 //    exporterFluid->postProcess(dataFSI->dataFluid()->dataTime()->timeStep());
-    exporterStructure->postProcess(0.001);
+//    exporterStructure->postProcess(0.001);
 
     //////////////////////////
     //  Closing simulation  //
     //////////////////////////
 
 //    exporterFluid->closeFile();
-    exporterStructure->closeFile();
-
-    if(Comm->MyPID()==0)
-    {
-    	std::cout << "\n\n";
-    	std::cout << "[***************************************]" << std::endl;
-    	std::cout << "       [End of the simulation] " << std::endl;
-    	std::cout << "[***************************************]" << std::endl;
-    }
+//    exporterStructure->closeFile();
+//
+//    if(Comm->MyPID()==0)
+//    {
+//    	std::cout << "\n\n";
+//    	std::cout << "[***************************************]" << std::endl;
+//    	std::cout << "       [End of the simulation] " << std::endl;
+//    	std::cout << "[***************************************]" << std::endl;
+//    }
 
 #ifdef HAVE_MPI
     MPI_Finalize();
