@@ -183,7 +183,7 @@ struct Structure::Private
 
     static Real bcNonZero (const Real& /*t*/, const Real&  /*X*/, const Real& /*Y*/, const Real& /*Z*/, const ID& /*i*/)
     {
-        return  70000; //136400.0
+        return  0.01; //136400.0
     }
 
     static Real d0 (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
@@ -347,15 +347,17 @@ Structure::run3d()
     //! =================================================================================
     //! BC for StructuredCube4_test_structuralsolver.mesh
     //! =================================================================================
-    BCh->addBC ("EdgesIn",      20,  Natural,   Component, nonZero, compy);
-    BCh->addBC ("EdgesIn",      40,  Essential, Component, zero,    compy);
-
-    BCh->addBC ("SymmetryX",    5,  Essential, Component, zero,    compx);
-    BCh->addBC ("SymmetryY",    3,  Essential, Component, zero,    compz);
-    BCh->addBC ("edgeone",      100,  EssentialVertices, Full, zero, 3);
-    BCh->addBC ("edgetwo",      50,  EssentialVertices, Component, zero,    compxy);
-    BCh->addBC ("edgetwo",      30,  EssentialVertices, Component, zero,    compyz);
-    BCh->addBC ("edgetwo",      80,  EssentialVertices, Component, zero,    compxz);
+    BCh->addBC ("EdgesIn",      1,  Essential,   Component, nonZero, compy);
+    //BCh->addBC ("EdgesIn",      400,  Essential,   Component, nonZero, compz);
+    //BCh->addBC ("EdgesIn",      300,  Essential, Component, zero,    compy);
+    //BCh->addBC ("SymmetryX",    600,   Essential, Component, zero,    compx);
+    //BCh->addBC ("SymmetryY",    200,  Essential, Component, zero,    compz);
+    BCh->addBC ("blocco1",       2,  Essential, Full, zero,    3);
+    BCh->addBC ("blocco2",       3,  Essential, Full, zero,    3);
+//    BCh->addBC ("edgeone",      100,  EssentialVertices, Full, zero, 3);
+//    BCh->addBC ("edgetwo",      50,  EssentialVertices, Component, zero,    compxy);
+//    BCh->addBC ("edgetwo",      30,  EssentialVertices, Component, zero,    compyz);
+//    BCh->addBC ("edgetwo",      80,  EssentialVertices, Component, zero,    compxz);
 
 
     //! 1. Constructor of the structuralSolver
@@ -539,7 +541,9 @@ Structure::run3d()
 
         //In the case of non-zero displacement
         //solid.initialize( disp );
+
         solid.initialize ( initialDisplacement );
+
         //Let's verify that the set displacement is the one I expect
         //Creation of Exporter to check the loaded solution (working only for HDF5)
         std::string expVerFile = "verificationDisplExporter";
@@ -551,8 +555,8 @@ Structure::run3d()
         //Let's get the initial displacement and velocity
         exporter.postProcess (0.0);
 
-        *vectVer = *initialDisplacement; //*disp;
-        exporter.postProcess ( 1.0 );
+//        *vectVer = *initialDisplacement; //*disp;
+//        exporter.postProcess ( 1.0 );
 
     }
     MPI_Barrier (MPI_COMM_WORLD);
