@@ -88,9 +88,9 @@ public:
 
     virtual void setup( meshPtr_Type fullMeshKnown, meshPtr_Type localMeshKnown, meshPtr_Type fullMeshUnknown, meshPtr_Type localMeshUnknown, flagContainer_Type flags ) = 0;
 
-    virtual void setupRBFData (vectorPtr_Type , vectorPtr_Type , GetPot , parameterList_Type ){};
+    virtual void setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type UnknownField, GetPot datafile, parameterList_Type belosList) = 0;
 
-    virtual void setupRBFData (vectorPtr_Type , vectorPtr_Type ){};
+    virtual void setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type UnknownField) {};
 
     virtual void buildOperators() = 0;
 
@@ -130,64 +130,21 @@ public:
 
     virtual void getSolutionOnGamma(vectorPtr_Type& ) { };
 
+    virtual mapPtr_Type interpolationMap() {};
+
+    virtual mapPtr_Type projectionMap (){};
+
+    virtual void extractOnGamma(const vectorPtr_Type& fullVec, vectorPtr_Type gammaVec) {};
+
     virtual void buildUnknownVectorialInterfaceMap(){};
 
-    virtual matrixPtr_Type interpolationMatrix(){};
+    // getter
 
-    virtual void setupScalarMap(const mapPtr_Type &, const bool&, const bool& ){};
+    virtual mapPtr_Type unknownVectorialInterfaceMap(){};
 
-    virtual mapPtr_Type scalarMap(){};
+    virtual mapPtr_Type knownMap() {};
 
-    virtual void createIdentityBlockVelocityCoupling(const mapPtr_Type&) {};
-
-    virtual void createIdentityBlockStressCoupling(const mapPtr_Type&) {};
-
-    virtual matrixPtr_Type identityStressBlock() {};
-
-    virtual matrixPtr_Type identityVelocityBlock() {};
-
-    virtual mapPtr_Type ProjectionMap(){};
-
-    virtual mapPtr_Type InterpolationMap(){};
-
-    virtual mapPtr_Type rhsMap(){};
-
-    virtual mapPtr_Type solutionMap(){};
-
-    virtual void buildMap(const meshPtr_Type& , const meshPtr_Type& , const vectorPtr_Type& , flagContainer_Type ,
-                          mapPtr_Type &, mapPtr_Type &, std::map<ID,ID>&, vectorPtr_Type &){};
-
-    virtual void expandInterpolationMatrixByRows(const mapPtr_Type&){};
-
-    virtual void expandInterpolationMatrixByColumns(const mapPtr_Type&){};
-
-    virtual matrixPtr_Type rowsExpandedInterpolationMatrix(){};
-
-    virtual matrixPtr_Type columnsExpandedInterpolationMatrix(){};
-
-    virtual void createInterpolationSquareBlock(double){};
-
-    virtual matrixPtr_Type interpolationSquareBlock(){};
-
-    // aggiunte per i blocchi identita di coupling
-
-    virtual void fillIdentityCouplingBlock(matrixPtr_Type&, const mapPtr_Type , const Real&){};
-
-    virtual void interpolateVectors(const vectorPtr_Type&, vectorPtr_Type &){};
-
-    virtual void filterMatrix(double, const mapPtr_Type &){};
-
-    virtual matrixPtr_Type filteredMatrix(){};
-
-    vectorPtr_Type orderedSolution(){};
-
-    void restrictOnGammaOrdered(const vectorPtr_Type&, vectorPtr_Type){};
-
-    virtual VectorEpetra vectorOnGamma(const vectorPtr_Type&){};
-
-    virtual VectorEpetra globalToOrderedNumeration(const vectorPtr_Type&){};
-
-    virtual matrixPtr_Type computeRobinBlock(){};
+    virtual mapPtr_Type unknownMap() {};
 
 private:
 
