@@ -40,6 +40,8 @@ public:
     
     void buildSystem(const GetPot& dataFile);
 
+    void iterate();
+
     // getters
 
     boost::shared_ptr<OseenSolverShapeDerivative<mesh_Type> > solver()
@@ -183,6 +185,11 @@ void FluidOperator::buildSystem( const GetPot& dataFile )
     M_fluid->buildSystem();
 }
     
+void FluidOperator::iterate()
+{
+	M_BCh->bcUpdate( *M_localMeshPtrFluid, M_uFESpace->feBd(), M_uFESpace->dof() );
+	M_fluid->iterate(*M_BCh);
+}
     
 } // end namespace LifeV
 

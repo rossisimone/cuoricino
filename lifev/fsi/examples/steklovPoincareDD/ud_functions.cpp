@@ -541,16 +541,9 @@ Real u1 (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*
     return 0.0;
 }
 
-Real vinit (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& i)
+Real vinit (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
 {
-    if (i == 2)
-    {
-        return 10;
-    }
-    else
-    {
-        return 0.;
-    }
+	return 0.001;
 }
 
 
@@ -653,7 +646,7 @@ Real w0 (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*
             return 0.0;
             break;
         case 2:
-            return 10.0;
+            return 1.0;
             break;
         default:
             ERROR_MSG ("This entrie is not allowed: ud_functions.hpp");

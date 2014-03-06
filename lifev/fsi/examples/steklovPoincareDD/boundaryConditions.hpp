@@ -111,7 +111,11 @@ void boundaryConditions::setup()
 {
     BCFunctionBase bcf (fZero);
     BCFunctionBase vel (w0);
+    BCFunctionBase disp (vinit);
     
+    vector <ID> compy (1);
+    compy[0] = 1;
+
     // Fluid BC
     M_bcFluid.reset(new bc_Type());
     M_bcFluid->addBC ("InFlow" , INLET,   Essential, Full,   vel, 3);
@@ -121,12 +125,13 @@ void boundaryConditions::setup()
     M_bcStructure.reset(new bc_Type());
     M_bcStructure->addBC ("Top",   RING,  Essential, Full, bcf, 3);
     M_bcStructure->addBC ("Base",  RING2, Essential, Full, bcf, 3);
-    
+    M_bcStructure->addBC ("Interface",  SOLIDINTERFACE, Essential, Component, disp, compy);
+
     // ALE BC (displacement on gamma to be prescibed later)
     M_bcAle.reset(new bc_Type());
-    M_bcAle->addBC ("Edges", INOUTEDGE, Essential, Full, bcf, 3);
-    M_bcAle->addBC ("Edges", INEDGE,    Essential, Full, bcf, 3);
-    M_bcAle->addBC ("Base",  INLET,     Essential, Full, bcf, 3);
+    M_bcAle->addBC ("Edges", INOUTEDGE, EssentialVertices, Full, bcf, 3);
+    M_bcAle->addBC ("Edges", INEDGE,    EssentialVertices, Full, bcf, 3);
+    M_bcAle->addBC ("Base",  INLET,     EssentialVertices, Full, bcf, 3);
 }
 
 } // end Namespace LifeV

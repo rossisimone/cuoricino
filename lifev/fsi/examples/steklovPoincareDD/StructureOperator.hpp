@@ -12,12 +12,23 @@
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
-
+#include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
+#include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 #include <lifev/core/fem/TimeAdvanceBDF.hpp>
 
 namespace LifeV
 {
-    
+
+Real displ (const Real& /*t*/, const Real& x, const Real& y, const Real& z, const ID& i)
+{
+	return 0.001;
+}
+
+Real fZer (const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& /*z*/, const ID& /*i*/)
+{
+    return 0.0;
+}
+
 typedef RegionMesh<LinearTetra>      mesh_Type;
 typedef boost::shared_ptr<mesh_Type> meshPtr_Type;
 typedef MeshPartitioner<mesh_Type >  meshPartitioner_Type;
@@ -31,23 +42,45 @@ typedef boost::shared_ptr<solidETFESpace_Type>                solidETFESpacePtr_
 typedef VectorEpetra                    vector_Type;
 typedef boost::shared_ptr<VectorEpetra> vectorPtr_Type;
     
-typedef boost::shared_ptr< TimeAdvanceBDF< vector_Type > > timeAdvancePtr_type;    
-    
+typedef TimeAdvance<vector_Type> 			timeAdvance_Type;
+typedef boost::shared_ptr<timeAdvance_Type>	timeAdvancePtr_Type;
+
 typedef boost::shared_ptr<Epetra_Comm> communicatorPtr_Type;
+
+typedef BCHandler                                          bc_Type;
+typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
+typedef StructuralOperator< RegionMesh<LinearTetra> >      physicalSolver_Type;
+typedef BCInterface3D< bc_Type, physicalSolver_Type >      bcInterface_Type;
+typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
 
 class StructureOperator
 {
 public:
-    
+
     StructureOperator(boost::shared_ptr<Epetra_Comm>& comm);
+
     ~StructureOperator();
     
     void setup(const GetPot& dataFile);
     
-    void setBC(const boost::shared_ptr<BCHandler> bc);
+    void setBC();
     
-    void buildSystem(const GetPot& dataFile);
+    void buildSystem(const GetPot& dataFile, const timeAdvancePtr_Type& timeAdvance);
     
+    void iterate(const timeAdvancePtr_Type& timeAdvance);
+
+    // Getters
+
+    boost::shared_ptr<StructuralOperator<mesh_Type > > solver()
+	{
+    	return M_solid;
+	}
+
+    boost::shared_ptr<BCHandler> bc()
+	{
+    	return M_BCh;
+	}
+
     FESpacePtr_Type feDisplacementSerial()
     {
     	return M_dFESpaceSerial;
@@ -88,7 +121,7 @@ private:
     solidETFESpacePtr_Type M_dETFESpace;
     boost::shared_ptr<BCHandler> M_BCh;
     boost::shared_ptr<StructuralOperator<mesh_Type > > M_solid;
-    timeAdvancePtr_type M_timeAdvance;
+    bcInterfacePtr_Type M_solidBCPtr;
 };
 
 StructureOperator::StructureOperator(boost::shared_ptr<Epetra_Comm>& comm):
@@ -119,6 +152,10 @@ void StructureOperator::loadData(const GetPot& dataFile)
     
     // Initialize the boost pointer of the structural operator
     M_solid.reset(new StructuralOperator<mesh_Type>());
+
+    M_solidBCPtr.reset ( new bcInterface_Type() );
+    M_solidBCPtr->createHandler();
+    M_solidBCPtr->fillHandler ( "datanew", "solid" );
 }
 
 void StructureOperator::loadMesh()
@@ -161,21 +198,44 @@ void StructureOperator::createFESpaces()
     M_dETFESpace.reset( new solidETFESpace_Type (*M_meshPartStructure, & (M_dFESpace->refFE() ), & (M_dFESpace->fe().geoMap() ), M_comm) );
 }
     
-void StructureOperator::setBC(const boost::shared_ptr<BCHandler> bc)
+void StructureOperator::setBC()
 {
-    M_BCh.reset(new BCHandler(*bc));
+	vector <ID> compy (1);
+	compy[0] = 1;
+
+	BCFunctionBase bcf (fZer);
+	BCFunctionBase disp (displ);
+
+	M_BCh.reset(new BCHandler());
+	M_BCh->addBC ("Top",   2,  Essential, Full, bcf, 3);
+	M_BCh->addBC ("Base",  3, Essential, Full, bcf, 3);
+	M_BCh->addBC ("Interface",  1, Essential, Component, disp, compy);
 }
     
-void StructureOperator::buildSystem(const GetPot& dataFile)
+void StructureOperator::buildSystem(const GetPot& dataFile, const timeAdvancePtr_Type& timeAdvance)
 {
-    M_timeAdvance.reset(new TimeAdvanceBDF<vector_Type>() );
-    M_timeAdvance->setup (M_dataStructure->dataTimeAdvance()->orderBDF() , 2);
-    M_timeAdvance->setTimeStep (M_dataStructure->dataTime()->timeStep() );
-    
-    M_solid->setup (M_dataStructure, M_dFESpace, M_dETFESpace, M_BCh, M_comm);
+    //setBC();
+	BCFunctionBase disp (displ);
+	M_solidBCPtr -> handler() -> addBC ( "Interface",  1, Essential, Full, disp, 3 );
+	M_solid->setup (M_dataStructure, M_dFESpace, M_dETFESpace, M_solidBCPtr -> handler() /*M_BCh*/, M_comm);
     M_solid->setDataFromGetPot (dataFile);
-    M_solid->buildSystem(M_timeAdvance->coefficientSecondDerivative(0)/(M_dataStructure->dataTime()->timeStep()*M_dataStructure->dataTime()->timeStep()));
+    M_solid->buildSystem(timeAdvance->coefficientSecondDerivative(0)/(M_dataStructure->dataTime()->timeStep()*M_dataStructure->dataTime()->timeStep()));
+
+    vectorPtr_Type a;
+    a.reset( new vector_Type(M_solid->displacement(), Unique));
+    M_solid->initialize ( a );
 }    
+
+void StructureOperator::iterate( const timeAdvancePtr_Type& timeAdvance)
+{
+    vector_Type rhs( M_dFESpace->map() );
+    timeAdvance->updateRHSContribution ( 0.001 );
+    Real timeAdvanceCoefficient = timeAdvance->coefficientSecondDerivative(0)/(M_dataStructure->dataTime()->timeStep()*M_dataStructure->dataTime()->timeStep());
+    rhs += *M_solid->massMatrix() * timeAdvance->rhsContributionSecondDerivative() / timeAdvanceCoefficient;
+    M_solid->setRightHandSide ( rhs );
+
+	M_solid->iterate ( M_solidBCPtr -> handler() /*M_BCh*/ );
+}
     
 } // end namespace LifeV
 

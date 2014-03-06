@@ -184,8 +184,8 @@ rescaleFactor    = 1.    # this factor can be used to rescale the structure bloc
     lawType   = linear
     material_flag = 1                #the mesh flag of the structure volume
     density   = 1.2
-    young     = 4.0E6
-    poisson   = 0.45
+    young     = 4.0E3
+    poisson   = 0.3
     bulk      = 1e7
     alpha     = 2.5e6            # the parameter at the exponent for the exponential model
     gamma     = 1                # parameter for the exponential model
@@ -211,6 +211,40 @@ rescaleFactor    = 1.    # this factor can be used to rescale the structure bloc
     [../miscellaneous]
     verbose   = 1
     depname   = dep
+
+    [../solver]
+	solver          = gmres
+	scaling         = none
+	output          = all 			# none
+	conv            = rhs
+	max_iter        = 500
+	reuse           = true
+	max_iter_reuse  = 200
+	kspace          = 200
+	tol             = 1.e-10    		# AztecOO tolerance
+	
+	[../prec]
+	prectype        = Ifpack	 		# Ifpack or ML
+	displayList     = true
+	xmlName         = xmlParameters.xml
+
+	[../ifpack]
+	overlap  	= 10
+	
+	[../fact]
+	ilut_level-of-fill 	= 1
+	drop_tolerance          = 1.e-5
+	relax_value             = 0
+	
+	[../amesos]
+	solvertype 		=  Amesos_Umfpack 	# Amesos_KLU or Amesos_Umfpack
+	
+	[../partitioner]
+	overlap 		= 10
+	
+	[../schwarz]
+	reordering_type 	= none 			# metis, rcm, none
+	filter_singletons 	= true
 
 * #monolithic FSI linear system data
 [linear_system]
