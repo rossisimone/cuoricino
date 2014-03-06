@@ -1,0 +1,63 @@
+###################################################################################################
+#
+#                       This file is part of the LifeV Library
+#                Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
+#                Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
+#
+#      Author(s): Davide Forti <davide.forti@epfl.ch>
+#           Date: 06-03-2014
+#  License Terms: GNU LGPL
+#
+###################################################################################################
+### EXAMPLE STEKLOV POINCARE       ################################################################
+###################################################################################################
+#-------------------------------------------------
+#      Data file for ALE Solver
+#-------------------------------------------------
+
+[mesh_motion]
+
+   [./solver]
+   
+	   output          = all # none
+	   max_iter        = 200
+	   poly_ord        = 5
+	   kspace          = 40
+	   precond         = dom_decomp
+	   drop            = 1.00e-4
+	   ilut_fill       = 4
+	   tol             = 1.e-10
+	   keep_info       = 1
+
+    [../time_discretization]
+    
+	    method          = BDF
+	    initialtime        = 0.
+	    endtime            = 0.004
+	    timestep        = 0.001
+	    BDF_order        = 2
+
+   [../prec]
+   
+	   	prectype        = Ifpack
+	   	displayList     = false
+
+   [./ifpack]
+   
+	   	prectype        = Amesos
+	   	overlap         = 4
+
+     	[./fact]
+     
+     	level-of-fill                 = 10
+     	ilut_level-of-fill            = 4
+	    drop_tolerance                = 1.e-10
+		relax_value                   = 0
+
+    	[../amesos]
+     
+     		solvertype = Amesos_Umfpack
+
+     	[../] # fact
+     
+   [../] # ifpack
