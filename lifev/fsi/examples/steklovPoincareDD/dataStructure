@@ -65,15 +65,7 @@
 		        mode       = Full
 		        component  = 3
 		        function  = '[0, 0, 0]'
-		
-	        [../Interfaccia]
-	        
-		        type       = Essential
-		        flag       = 1
-		        mode       = Full
-		        component  = 3
-		        function  = '[0.001, 0.001, 0.001]'
-	
+		        
 	   		[../]
 	
 	[../space_discretization]

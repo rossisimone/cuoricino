@@ -10,7 +10,7 @@
 #include <lifev/navier_stokes/solver/OseenData.hpp>
 #include <lifev/core/mesh/MeshData.hpp>
 #include <lifev/core/mesh/MeshPartitioner.hpp>
-
+#include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
 #include <lifev/navier_stokes/solver/OseenSolverShapeDerivative.hpp>
 
 namespace LifeV
@@ -23,12 +23,18 @@ typedef MeshPartitioner<mesh_Type >  meshPartitioner_Type;
 
 typedef FESpace<mesh_Type, MapEpetra >  FESpace_Type;
 typedef boost::shared_ptr<FESpace_Type> FESpacePtr_Type;
-    
+
 typedef boost::shared_ptr<Epetra_Comm> communicatorPtr_Type;
 
 class FluidOperator
 {
 public:
+
+	typedef BCHandler                                          		bc_Type;
+	typedef boost::shared_ptr< bc_Type >                       		bcPtr_Type;
+	typedef OseenSolverShapeDerivative< RegionMesh<LinearTetra> >   physicalSolverFluid_Type;
+	typedef BCInterface3D< bc_Type, physicalSolverFluid_Type >		bcInterface_Type;
+	typedef boost::shared_ptr< bcInterface_Type >           		bcInterfacePtr_Type;
     
     FluidOperator(boost::shared_ptr<Epetra_Comm>& comm);
     
@@ -36,13 +42,16 @@ public:
     
     void setup(const GetPot& dataFile);
     
-    void setBC(const boost::shared_ptr<BCHandler> bc);
-    
     void buildSystem(const GetPot& dataFile);
 
     void iterate();
 
     // getters
+
+    boost::shared_ptr<OseenData> data()
+	{
+    	return M_oseenData;
+	}
 
     boost::shared_ptr<OseenSolverShapeDerivative<mesh_Type> > solver()
     {
@@ -95,6 +104,7 @@ private:
     std::string M_pOrder;
     boost::shared_ptr<BCHandler> M_BCh;
     boost::shared_ptr<OseenSolverShapeDerivative<mesh_Type> > M_fluid;
+    bcInterfacePtr_Type M_fluidBCPtr;
 };
 
 FluidOperator::FluidOperator(boost::shared_ptr<Epetra_Comm>& comm):
@@ -112,6 +122,9 @@ void FluidOperator::setup(const GetPot& dataFile)
     loadMesh();
     partitionMesh();
     createFESpaces();
+    M_fluidBCPtr.reset ( new bcInterface_Type() );
+    M_fluidBCPtr->createHandler();
+    M_fluidBCPtr->fillHandler ( "dataFluid", "fluid" );
 }
     
 void FluidOperator::loadData(const GetPot& dataFile)
@@ -172,12 +185,6 @@ void FluidOperator::createFESpaces()
         std::cout << "ok.\n";
 }
     
-    
-void FluidOperator::setBC(const boost::shared_ptr<BCHandler> bc)
-{
-    M_BCh.reset(new BCHandler(*bc));
-}
-    
 void FluidOperator::buildSystem( const GetPot& dataFile )
 {
     M_fluid.reset( new OseenSolverShapeDerivative<mesh_Type>(M_oseenData, *M_uFESpace, *M_pFESpace, M_comm) );
@@ -187,8 +194,7 @@ void FluidOperator::buildSystem( const GetPot& dataFile )
     
 void FluidOperator::iterate()
 {
-	M_BCh->bcUpdate( *M_localMeshPtrFluid, M_uFESpace->feBd(), M_uFESpace->dof() );
-	M_fluid->iterate(*M_BCh);
+	M_fluid->iterate(*M_fluidBCPtr->handler());
 }
     
 } // end namespace LifeV

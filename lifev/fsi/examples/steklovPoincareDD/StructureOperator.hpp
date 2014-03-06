@@ -47,15 +47,15 @@ typedef boost::shared_ptr<timeAdvance_Type>	timeAdvancePtr_Type;
 
 typedef boost::shared_ptr<Epetra_Comm> communicatorPtr_Type;
 
-typedef BCHandler                                          bc_Type;
-typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
-typedef StructuralOperator< RegionMesh<LinearTetra> >      physicalSolver_Type;
-typedef BCInterface3D< bc_Type, physicalSolver_Type >      bcInterface_Type;
-typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
-
 class StructureOperator
 {
 public:
+
+	typedef BCHandler                                          bc_Type;
+	typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
+	typedef StructuralOperator< RegionMesh<LinearTetra> >      physicalSolverSolid_Type;
+	typedef BCInterface3D< bc_Type, physicalSolverSolid_Type > bcInterface_Type;
+	typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
 
     StructureOperator(boost::shared_ptr<Epetra_Comm>& comm);
 
@@ -71,6 +71,11 @@ public:
 
     // Getters
 
+    boost::shared_ptr<StructuralConstitutiveLawData> data()
+	{
+    	return M_dataStructure;
+	}
+
     boost::shared_ptr<StructuralOperator<mesh_Type > > solver()
 	{
     	return M_solid;
@@ -78,7 +83,7 @@ public:
 
     boost::shared_ptr<BCHandler> bc()
 	{
-    	return M_BCh;
+    	return M_solidBCPtr->handler();
 	}
 
     FESpacePtr_Type feDisplacementSerial()
@@ -155,7 +160,7 @@ void StructureOperator::loadData(const GetPot& dataFile)
 
     M_solidBCPtr.reset ( new bcInterface_Type() );
     M_solidBCPtr->createHandler();
-    M_solidBCPtr->fillHandler ( "datanew", "solid" );
+    M_solidBCPtr->fillHandler ( "dataStructure", "solid" );
 }
 
 void StructureOperator::loadMesh()
@@ -215,8 +220,8 @@ void StructureOperator::setBC()
 void StructureOperator::buildSystem(const GetPot& dataFile, const timeAdvancePtr_Type& timeAdvance)
 {
     //setBC();
-	BCFunctionBase disp (displ);
-	M_solidBCPtr -> handler() -> addBC ( "Interface",  1, Essential, Full, disp, 3 );
+	//BCFunctionBase disp (displ);
+	//M_solidBCPtr -> handler() -> addBC ( "Interface",  1, Essential, Full, disp, 3 );
 	M_solid->setup (M_dataStructure, M_dFESpace, M_dETFESpace, M_solidBCPtr -> handler() /*M_BCh*/, M_comm);
     M_solid->setDataFromGetPot (dataFile);
     M_solid->buildSystem(timeAdvance->coefficientSecondDerivative(0)/(M_dataStructure->dataTime()->timeStep()*M_dataStructure->dataTime()->timeStep()));
