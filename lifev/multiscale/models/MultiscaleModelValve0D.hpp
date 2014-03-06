@@ -174,7 +174,7 @@ public:
      */
     Real boundaryFlowRate ( const multiscaleID_Type& boundaryID ) const
     {
-        return ( boundaryFlag ( boundaryID ) == 0 ) ? M_flowRateLeft : -M_flowRateLeft;
+        return ( boundaryFlag ( boundaryID ) == 0 ) ? M_flowRate : -M_flowRate;
     }
 
     //! Get the integral of the mean normal stress on a specific boundary interface of the model
@@ -354,16 +354,16 @@ private:
     dataPtr_Type           M_data;
 
     Real                   M_pressureLeft_tn;  // pressure left (P1) @ t=t(n)
-    Real                   M_flowRateLeft_tn;  // flowRate left (Q1) @ t=t(n)
+    Real                   M_flowRate_tn;  // flowRate left (Q1) @ t=t(n)
 
     Real                   M_pressureLeft;     // pressure left (P2) @ t=t(n+1)
-    Real                   M_flowRateLeft;     // flowRate left (Q2) @ t=t(n+1)
+    Real                   M_flowRate;         // flowRate left (Q2) @ t=t(n+1)
 
     Real                   M_pressureRight;    // pressure right
     Real                   M_pressureRight_tn; // pressure right
 
-    Real                   M_tangentPressureLeft;  // Tangent pressure left
-    Real                   M_tangentFlowRateLeft;  // Tangent flowRate left
+    Real                   M_tangentPressureRight;  // Tangent pressure right
+    Real                   M_tangentFlowRate;  // Tangent flowRate
 
     Real                   M_openingAngle;     // valve leaflet opening angle @ t=t(n+1)
     Real                   M_openingAngle_tn;  // valve leaflet opening angle @ t=t(n)

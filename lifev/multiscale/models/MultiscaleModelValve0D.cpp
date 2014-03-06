@@ -51,13 +51,13 @@ MultiscaleModelValve0D::MultiscaleModelValve0D() :
                     M_bc                           ( new bcInterface_Type() ),
                     M_data                         ( new data_Type() ),
                     M_pressureLeft_tn              (),
-                    M_flowRateLeft_tn              (),
+                    M_flowRate_tn                  (),
                     M_pressureLeft                 (),
-                    M_flowRateLeft                 (),
+                    M_flowRate                     (),
                     M_pressureRight                (),
                     M_pressureRight_tn             (),
-                    M_tangentPressureLeft          (),
-                    M_tangentFlowRateLeft          (),
+                    M_tangentPressureRight         (),
+                    M_tangentFlowRate              (),
                     M_openingAngle                 (),
                     M_openingAngle_tn              (),
                     M_thetaVel                     (),
@@ -169,7 +169,7 @@ MultiscaleModelValve0D::updateModel()
 
     M_pressureLeft_tn  = M_pressureLeft;
     M_pressureRight_tn = M_pressureRight;
-    M_flowRateLeft_tn  = M_flowRateLeft;
+    M_flowRate_tn      = M_flowRate;
     M_openingAngle_tn  = M_openingAngle;
     M_thetaVel_tn      = M_thetaVel;
 
@@ -193,9 +193,6 @@ MultiscaleModelValve0D::solveModel()
     switch ( M_bc->handler()->bc ( 0 ).bcType() )
     {
         case Current:
-            std::cout << "Warning: flow rate condition cannot be imposed upstream of valves!" << std::endl;
-            break;
-
         case Voltage:
             M_pressureLeft = -M_bc->handler()->bc ( 0 ).evaluate ( M_globalData->dataTime()->time() );
             break;
@@ -212,7 +209,7 @@ MultiscaleModelValve0D::solveModel()
     {
         case Current:
 
-            M_flowRateLeft = M_bc->handler()->bc ( 1 ).evaluate ( M_globalData->dataTime()->time() );
+            M_flowRate      = M_bc->handler()->bc ( 1 ).evaluate ( M_globalData->dataTime()->time() ); // Flow rate is negated at the outflow
             M_pressureRight = solveForPressure();
 
             break;
@@ -220,7 +217,7 @@ MultiscaleModelValve0D::solveModel()
         case Voltage:
 
             M_pressureRight = -M_bc->handler()->bc ( 1 ).evaluate ( M_globalData->dataTime()->time() );
-            M_flowRateLeft = solveForFlowRate();
+            M_flowRate      = solveForFlowRate();
 
             break;
 
@@ -251,8 +248,8 @@ MultiscaleModelValve0D::saveSolution()
 #endif
 
     M_outputFile << "    " << M_globalData->dataTime()->time()
-                 << "    " << M_flowRateLeft
-                 << "    " << M_pressureLeft
+                 << "    " << M_flowRate
+                 << "    " << M_pressureRight
                  << "    " << M_openingAngle << std::endl;
 
     if ( M_globalData->dataTime()->isLastTimeStep() )
@@ -281,7 +278,7 @@ MultiscaleModelValve0D::showMe()
 Real
 MultiscaleModelValve0D::checkSolution() const
 {
-    return M_pressureLeft + M_flowRateLeft;
+    return M_pressureRight + M_flowRate;
 }
 
 // ===================================================
@@ -314,23 +311,23 @@ MultiscaleModelValve0D::boundaryDeltaFlowRate ( const multiscaleID_Type& boundar
 
     if ( boundaryFlag ( boundaryID ) == 1 )
     {
-        return -M_tangentFlowRateLeft;
+        return M_tangentFlowRate;
     }
 
-    return M_tangentFlowRateLeft;
+    return M_tangentFlowRate;
 }
 
 Real
 MultiscaleModelValve0D::boundaryDeltaMeanNormalStress ( const multiscaleID_Type& boundaryID, bool& solveLinearSystem )
 {
-    if ( boundaryFlag ( boundaryID ) == 1 )
+    if ( boundaryFlag ( boundaryID ) == 0 )
     {
-        return 0;
+        return 0; // Imposed as a boundary condition, cannot change
     }
 
     solveLinearModel ( solveLinearSystem );
 
-    return -M_tangentPressureLeft;
+    return -M_tangentPressureRight;
 }
 
 // ===================================================
@@ -382,9 +379,9 @@ MultiscaleModelValve0D::initializeSolution()
                 {
                     deltaT = std::abs ( string2number ( stringsVector[1] ) - M_globalData->dataTime()->initialTime() );
 
-                    M_flowRateLeft = string2number ( stringsVector[2] );
-                    M_pressureLeft = string2number ( stringsVector[3] );
-                    M_openingAngle = string2number ( stringsVector[4] );
+                    M_flowRate      = string2number ( stringsVector[2] );
+                    M_pressureRight = string2number ( stringsVector[3] );
+                    M_openingAngle  = string2number ( stringsVector[4] );
                 }
             }
 
@@ -398,18 +395,14 @@ MultiscaleModelValve0D::initializeSolution()
     }
     else
     {
-        M_flowRateLeft = 0;
-        M_pressureLeft = 0;
-        M_openingAngle = M_minimumOpeningAngle; // Valve assumed to be closed in the start
+        M_flowRate      = 0;
+        M_pressureLeft  = 0;
+        M_pressureRight = 0;
+        M_openingAngle  = M_minimumOpeningAngle; // Valve assumed to be closed in the start
 
         switch ( M_bc->handler()->bc ( 0 ).bcType() )
         {
             case Current:
-
-                std::cout << "Warning: flow rate condition cannot be imposed upstream of valves!" << std::endl;
-
-                break;
-
             case Voltage:
 
                 M_pressureLeft = -M_bc->handler()->bc ( 0 ).evaluate ( M_globalData->dataTime()->time() );
@@ -473,15 +466,15 @@ MultiscaleModelValve0D::solveForPressure()
     // Orifice model of Korakianitis-Shi '06
     Real A ( (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) );
 
-    if ( M_flowRateLeft < 0.0 && A > 0.0 )
+    if ( M_flowRate < 0.0 && A > 0.0 )
     {
         // Forward flow
-        return M_pressureLeft - M_flowRateLeft * M_flowRateLeft / (M_flowDischargeCoefficient * A * M_flowDischargeCoefficient * A );
+        return M_pressureLeft - M_flowRate * M_flowRate / (M_flowDischargeCoefficient * A * M_flowDischargeCoefficient * A );
     }
-    else if (M_flowRateLeft > 0.0 && A > 0.0)
+    else if (M_flowRate > 0.0 && A > 0.0)
     {
         // Backward flow
-        return M_pressureLeft + M_flowRateLeft * M_flowRateLeft / (M_flowDischargeCoefficient * A * M_flowDischargeCoefficient * A );
+        return M_pressureLeft + M_flowRate * M_flowRate / (M_flowDischargeCoefficient * A * M_flowDischargeCoefficient * A );
     }
     else if (A == 0.0)
     {
@@ -512,14 +505,11 @@ MultiscaleModelValve0D::solveLinearModel ( bool& solveLinearSystem )
     //Solve the linear problem
     displayModelStatus ( "Solve linear" );
 
-    switch ( M_bc->handler()->bc ( 1 ).bcType() )
+    switch ( M_bc->handler()->bc ( 0 ).bcType() )
     {
         case Current:
-            std::cout << "Warning: flow rate condition cannot be imposed at valves!" << std::endl;
-            break;
-
         case Voltage:
-            M_pressureRight = -M_bc->handler()->bc ( 1 ).evaluate ( M_globalData->dataTime()->time() );
+            M_pressureLeft = -M_bc->handler()->bc ( 0 ).evaluate ( M_globalData->dataTime()->time() );
             break;
 
         default:
@@ -530,19 +520,19 @@ MultiscaleModelValve0D::solveLinearModel ( bool& solveLinearSystem )
     solveForOpeningAngle();
 
     //Solve the flow rate/pressure next
-    switch ( M_bc->handler()->bc ( 0 ).bcType() )
+    switch ( M_bc->handler()->bc ( 1 ).bcType() )
     {
-        case Current: // dP/dQ
+        case Current: // dP/dQ (setting b.c. as Q, solving for dP/dQ)
 
-            M_tangentFlowRateLeft = 1.;
-            M_tangentPressureLeft = tangentSolveForPressure();
+            M_tangentFlowRate = 1.;
+            M_tangentPressureRight = tangentSolveForPressure();
 
             break;
 
         case Voltage: // dQ/dS
 
-            M_tangentPressureLeft = 1.;
-            M_tangentFlowRateLeft = tangentSolveForFlowRate();
+            M_tangentPressureRight = 1.;
+            M_tangentFlowRate      = -tangentSolveForFlowRate(); // WHY?
 
             break;
 
@@ -564,29 +554,21 @@ MultiscaleModelValve0D::tangentSolveForFlowRate()
     debugStream ( 8150 ) << "MultiscaleModelValve0D::tangentSolveForFlowRate() \n";
 #endif
 
+
     // Orifice model of Korakianitis-Shi '06
     Real A ( (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) );
 
-    if ( M_flowRateLeft < 0.0 && A > 0.0 )
+    if (M_pressureLeft > M_pressureRight)
     {
         // Forward flow
-        return -2 * M_flowRateLeft / ( M_flowDischargeCoefficient * A * M_flowDischargeCoefficient * A ) ;
-    }
-    else if (M_flowRateLeft > 0.0 && A > 0.0)
-    {
-        // Backward flow
-        return 2 * M_flowRateLeft / ( M_flowDischargeCoefficient * A * M_flowDischargeCoefficient * A );
-    }
-    else if (A == 0.0)
-    {
-        std::cerr << " !!! Error: Cannot solve for pressure b.c. when valve is closed !!!" << std::endl;
-        return 0;
+        return M_flowDischargeCoefficient * A * 0.5 / ( 1.e-6 + std::sqrt(M_pressureLeft - M_pressureRight) );
     }
     else
     {
-        // No flow, pressures must be equal
-        return 0;
+        // Backward flow
+        return -M_flowDischargeCoefficient * A * 0.5 / ( 1.e-6 + std::sqrt(M_pressureRight - M_pressureLeft) );
     }
+
 }
 
 Real
@@ -599,15 +581,25 @@ MultiscaleModelValve0D::tangentSolveForPressure()
     // Orifice model of Korakianitis-Shi '06
     Real A ( (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) );
 
-    if (M_pressureLeft > M_pressureRight)
+    if ( M_flowRate < 0.0 && A > 0.0 )
     {
         // Forward flow
-        return - M_flowDischargeCoefficient * A * 0.5 / ( 1.e-2 + std::sqrt(M_pressureLeft - M_pressureRight) );
+        return -2 * M_flowRate / ( M_flowDischargeCoefficient * A * M_flowDischargeCoefficient * A ) ;
+    }
+    else if (M_flowRate > 0.0 && A > 0.0)
+    {
+        // Backward flow
+        return 2 * M_flowRate / ( M_flowDischargeCoefficient * A * M_flowDischargeCoefficient * A );
+    }
+    else if (A == 0.0)
+    {
+        std::cerr << " !!! Error: Cannot solve for pressure b.c. when valve is closed !!!" << std::endl;
+        return 0.;
     }
     else
     {
-        // Backward flow
-        return -M_flowDischargeCoefficient * A * 0.5 / ( 1.e-2 + std::sqrt(M_pressureRight - M_pressureLeft) );
+        // No flow, pressures must be equal
+        return 0;
     }
 
 }
@@ -623,30 +615,30 @@ MultiscaleModelValve0D::solveForOpeningAngle()
 
     std::cout << std::endl << "M_pressureLeft  = " << M_pressureLeft << std::endl;
     std::cout << "M_pressureRight = " << M_pressureRight << std::endl;
-    std::cout << "M_flowRateLeft  = " << M_flowRateLeft << std::endl;
+    std::cout << "M_flowRate  = " << M_flowRate << std::endl;
 
     // Leaflet moment model of Korakianitis-Shi '06 solved with RK4 method
 
     Real k1_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn)
                 - M_resistiveMomentCoefficient * M_thetaVel_tn
-                - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn) );
+                - M_convectiveMomentCoefficient * M_flowRate * std::cos(M_openingAngle_tn) );
     Real k1_v ( M_thetaVel_tn );
 
     Real k2_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt/2. * k1_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt/2. * k1_F)
-    - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn + dt/2. * k1_v) );
+    - M_convectiveMomentCoefficient * M_flowRate * std::cos(M_openingAngle_tn + dt/2. * k1_v) );
 
     Real k2_v ( M_openingAngle_tn + dt/2. * k1_v );
 
     Real k3_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt/2. * k2_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt/2. * k2_F)
-    - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn + dt/2. * k2_v) );
+    - M_convectiveMomentCoefficient * M_flowRate * std::cos(M_openingAngle_tn + dt/2. * k2_v) );
 
     Real k3_v ( M_openingAngle_tn + dt/2. * k2_v );
 
     Real k4_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn + dt * k3_v)
     - M_resistiveMomentCoefficient * (M_thetaVel_tn + dt * k3_F)
-    - M_convectiveMomentCoefficient * M_flowRateLeft * std::cos(M_openingAngle_tn + dt * k3_v) );
+    - M_convectiveMomentCoefficient * M_flowRate * std::cos(M_openingAngle_tn + dt * k3_v) );
 
     Real k4_v ( M_openingAngle_tn + dt * k3_v );
 
