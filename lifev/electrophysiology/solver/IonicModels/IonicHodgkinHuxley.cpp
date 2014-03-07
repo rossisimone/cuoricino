@@ -83,6 +83,7 @@ IonicHodgkinHuxley::IonicHodgkinHuxley ( const IonicHodgkinHuxley& model )
 
     M_numberOfEquations = model.M_numberOfEquations;
     M_restingConditions = model.M_restingConditions;
+    M_numberOfGatingVariables = model.M_numberOfGatingVariables;
 
 }
 
@@ -100,6 +101,7 @@ IonicHodgkinHuxley& IonicHodgkinHuxley::operator= ( const IonicHodgkinHuxley& mo
 
     M_numberOfEquations = model.M_numberOfEquations;
     M_restingConditions = model.M_restingConditions;
+    M_numberOfGatingVariables = model.M_numberOfGatingVariables;
 
 
     return      *this;

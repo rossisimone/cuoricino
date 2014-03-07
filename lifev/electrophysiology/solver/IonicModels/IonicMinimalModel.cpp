@@ -47,39 +47,6 @@ namespace LifeV
 // ===================================================
 //! Constructors
 // ===================================================
-//IonicMinimalModel::IonicMinimalModel()    :
-//      super       ( 4     ),
-//      M_uo        ( 0.    ),
-//      M_uu        ( 1.61  ),
-//      M_tetav     ( 0.3   ),
-//      M_tetaw     ( 0.13  ),
-//      M_tetavm    ( 0.1   ),
-//      M_tetao     ( 0.005 ),
-//      M_tauv1     ( 80.0  ),
-//      M_tauv2     ( 1.4506),
-//      M_tauvp     ( 1.4506),
-//      M_tauw1     ( 70.0  ),
-//      M_tauw2     ( 8.0   ),
-//      M_kw        ( 200.0 ),
-//      M_uw        ( 0.016 ),
-//      M_tauwp     ( 280.0 ),
-//      M_taufi     ( 0.078 ),
-//      M_tauo1     ( 410.0 ),
-//      M_tauo2     ( 7.0   ),
-//      M_tauso1    ( 91.0  ),
-//      M_tauso2    ( 0.8   ),
-//      M_kso       ( 2.1   ),
-//      M_uso       ( 0.6   ),
-//      M_taus1     ( 2.7342),
-//      M_taus2     ( 4.0   ),
-//      M_ks        ( 2.0994),
-//      M_us        ( 0.9087),
-//      M_tausi     ( 3.3849),
-//      M_tauwinf   ( 0.01  ),
-//      M_winfstar  ( 0.5   )
-//{
-//}
-
 IonicMinimalModel::IonicMinimalModel()  :
     super       ( 4, 2     ),
     M_uo        ( 0.    ),
@@ -290,40 +257,15 @@ void IonicMinimalModel::computeRhs ( const   std::vector<Real>&  v,
 }
 
 
-void IonicMinimalModel::computeGatingVariablesWithRushLarsen ( std::vector<Real>& /*v*/, const Real /*dt*/ )
+void IonicMinimalModel::computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt )
 {
-
     std::cout << "\n\nRush Larsen method, for minimal model not implemented!!!\n";
-    //    Real U = v[0];
-    //    Real V = v[1];
-    //    Real W = v[2];
-    //    Real S = v[3];
-    //
-    //    Real tauv;
-    //    Real tauw;
-    //
-    ////    if( Heaviside(U-M_tetav) < 0)
-    ////    {
-    ////     tauv = M_tauvp;
-    ////    }
-    ////    else
-    ////    {
-    //    tauv = ( 1.0 - Heaviside ( U - M_tetavm ) ) * M_tauv1 + Heaviside ( U - M_tetavm ) * M_tauv2;
-    ////    }
-    ////    if( Heaviside(U-M_tetaw) < 0)
-    ////    {
-    //     tauw = M_tauwp;
-    ////    }
-    ////    else
-    ////    {
-    ////    tauw = M_tauw1 + ( M_tauw2  - M_tauw1  ) * ( 1.0 + std::tanh ( M_kw  * ( U - M_uw  ) ) ) / 2.0;
-    ////    }
-    //    Real vinf  = Heaviside ( M_tetavm - U );
-    //    Real winf  = ( 1.0 - Heaviside ( U - M_tetao ) ) * ( 1.0 - U / M_tauwinf ) + Heaviside ( U - M_tetao ) * M_winfstar;
-    //
-    //
-    //    v[1] = vinf - ( vinf - V ) * std::exp(- dt / tauv );
-    //    v[2] = winf - ( winf - W ) * std::exp(- dt / tauw );
+    std::cout << "\n\nI will use Forward Euler!!!\n";
+    std::vector<Real> rhs(3,0.0);
+    computeGatingRhs ( v, rhs );
+    v[1] += dt * rhs[0];
+    v[2] += dt * rhs[1];
+    v[3] += dt * rhs[2];
 }
 
 

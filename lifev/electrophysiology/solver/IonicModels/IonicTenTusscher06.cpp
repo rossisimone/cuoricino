@@ -147,10 +147,6 @@ IonicTenTusscher06::IonicTenTusscher06()  :
     inverseVcF = 1. / (Vc * F);
     inversevssF2 = 1. / (2.*Vss * F);
 
-    //      computeRTONF();
-    //  computeInverseVcF();
-    //  computeInverseVcF2();
-    //  computeInversevssF2();
     //V
     M_restingConditions.at (0) = -86.2;
     //m
@@ -733,7 +729,7 @@ void IonicTenTusscher06::showMe()
 {
     std::cout << "\n\n************************************";
     std::cout << "\n\tHi, I'm the Ten Tusscher model";
-    std::cout << "\n\t I've so many parameters, that I don't think it's a good idea to display them all\n\n";
+    std::cout << "\n\t I've so many parameters that I don't think it's a good idea to display them all\n\n";
     std::cout << "\n\tPlease use a getter, or implement this method otherwise.";
     std::cout << "\n************************************\n\n";
 }

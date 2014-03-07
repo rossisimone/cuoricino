@@ -500,6 +500,10 @@ public:
 
     std::vector<Real> computeLocalGatingRhs ( const std::vector<Real>& v );
 
+    void computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt );
+
+    void computeNonGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs );
+
     std::vector<Real> computeLocalSubSysCaRhs ( const std::vector<Real>& v );
 
     //Compute the ionic currents (Luo and Rudy)

@@ -81,6 +81,7 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher06.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicHodgkinHuxley.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicNoblePurkinje.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicFox.hpp>
 
 #include <lifev/core/LifeV.hpp>
 
@@ -157,7 +158,7 @@ Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z
     Real pacingSite_Y = 0.0;
     Real pacingSite_Z = 0.0;
     Real stimulusRadius = 0.15;
-    Real stimulusValue = 5;
+    Real stimulusValue = 40.0;
 
     Real returnValue;
 
@@ -271,6 +272,7 @@ Int main ( Int argc, char** argv )
         std::cout << "\nBuilding Constructor for " << ionic_model << " Model with parameters ... ";
     }
     ionicModelPtr_Type  model;
+    Real activationThreshold = 0.95;
     if ( ionic_model == "LuoRudyI" )
     {
         model.reset ( new IonicLuoRudyI() );
@@ -282,6 +284,7 @@ Int main ( Int argc, char** argv )
     if ( ionic_model == "HodgkinHuxley")
     {
         model.reset (new IonicHodgkinHuxley() );
+        activationThreshold = 10.0;
     }
     if ( ionic_model == "NoblePurkinje")
     {
@@ -290,6 +293,10 @@ Int main ( Int argc, char** argv )
     if ( ionic_model == "MinimalModel")
     {
         model.reset ( new IonicMinimalModel() );
+    }
+    if ( ionic_model == "Fox")
+    {
+        model.reset ( new IonicFox() );
     }
 
     if ( Comm->MyPID() == 0 )
@@ -311,9 +318,7 @@ Int main ( Int argc, char** argv )
     // We need the GetPot datafile for to setup   //
     // the preconditioner.                        //
     //********************************************//
-    GetPot command_line (argc, argv);
-    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
-    GetPot dataFile (data_file_name);
+    GetPot dataFile  (argc, argv);
 
     //********************************************//
     // We create three solvers to solve with:     //
@@ -326,7 +331,7 @@ Int main ( Int argc, char** argv )
         std::cout << "Building Monodomain Solvers... ";
     }
 
-    monodomainSolverPtr_Type solver ( new monodomainSolver_Type ( meshName, meshPath, dataFile, model ) );
+    monodomainSolverPtr_Type solver ( new monodomainSolver_Type ( meshName, meshPath, dataFile , model ) );
     if ( Comm->MyPID() == 0 )
     {
         std::cout << " solver done... ";
@@ -405,25 +410,26 @@ Int main ( Int argc, char** argv )
 
     bool lumpedMass = monodomainList.get ("LumpedMass", true);
     LifeChrono timer;
+    matrixPtr_Type hlmass;
     if( lumpedMass)
     { 
         solver -> setLumpedMassMatrix(false);
-    MPI_Barrier (MPI_COMM_WORLD);
-    timer.start();
-	solver -> setupMassMatrix();
-	timer.stop();
-	solver -> setLumpedMassMatrix(lumpedMass); 
-	std::cout << "\n Assembling mass matrix done in: " << timer.diff() << " s\n";
+	    MPI_Barrier (MPI_COMM_WORLD);
+    	timer.start();
+		solver -> setupMassMatrix();
+		hlmass.reset(new matrix_Type( *(solver -> massMatrixPtr() ) ) );
+
+		timer.stop();
+		solver -> setLumpedMassMatrix(lumpedMass);
     }
+
     timer.reset();
 
-    matrixPtr_Type hlmass(new matrix_Type( *(solver -> massMatrixPtr() ) ) );
 
     timer.start();
     MPI_Barrier (MPI_COMM_WORLD);
     solver -> setupMassMatrix();
     timer.stop();
-	std::cout << "\n Assembling mass matrix done in: " << timer.diff() << " s\n";
     solver -> setupStiffnessMatrix ( solver -> diffusionTensor() );
     solver -> setupGlobalMatrix();
     if ( Comm->MyPID() == 0 )
@@ -473,6 +479,10 @@ Int main ( Int argc, char** argv )
 
     std::string solutionMethod = monodomainList.get ("solutionMethod", "splitting");
 
+    if ( Comm->MyPID() == 0 )
+    {
+    std::cout << "\nSolving the monodomain using " << solutionMethod;
+    }
 
     for ( Real t = 0.0; t < TF; )
     {
@@ -482,7 +492,7 @@ Int main ( Int argc, char** argv )
         {
 			chrono.reset();
 			chrono.start();
-			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley")
+			if(ionic_model != "MinimalModel")
 				solver->solveOneReactionStepRL();
 			else solver->solveOneReactionStepFE();
 			chrono.stop();
@@ -502,7 +512,7 @@ Int main ( Int argc, char** argv )
         {
 			chrono.reset();
 			chrono.start();
-			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley" && "TenTusscher06")
+			if(ionic_model != "MinimalModel")
 				solver -> solveOneStepGatingVariablesRL();
 			else
 				solver -> solveOneStepGatingVariablesFE();
@@ -514,7 +524,7 @@ Int main ( Int argc, char** argv )
         {
 			chrono.reset();
 			chrono.start();
-			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley" && "TenTusscher06")
+			if(ionic_model != "MinimalModel")
 				solver -> solveOneStepGatingVariablesRL();
 			else
 				solver -> solveOneStepGatingVariablesFE();
@@ -526,7 +536,7 @@ Int main ( Int argc, char** argv )
         {
 			chrono.reset();
 			chrono.start();
-			if(ionic_model != "MinimalModel" && ionic_model != "HodgkinHuxley" && "TenTusscher06")
+			if(ionic_model != "MinimalModel" && ionic_model != "Fox")
 				solver -> solveOneStepGatingVariablesRL();
 			else
 				solver -> solveOneStepGatingVariablesFE();
@@ -538,22 +548,23 @@ Int main ( Int argc, char** argv )
         //register activation time
         k++;
         t = t + dt;
-        solver -> registerActivationTime (*activationTimeVector, t, 0.95);
+        solver -> registerActivationTime (*activationTimeVector, t, activationThreshold);
 
         if ( k % iter == 0 )
         {
+	        if ( Comm->MyPID() == 0 )
+	        {
+	            std::cout << "\nTime : " << t;
+	        }
             solver -> exportSolution (exporter, t);
         }
-        if ( Comm->MyPID() == 0 )
-        {
-            std::cout << "\n\n\nActual time : " << t << std::endl << std::endl << std::endl;
-        }
+
     }
 
     Real normSolution = ( ( solver -> globalSolution().at (0) )->norm2() );
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << "2-norm of potential solution: " << normSolution << std::endl;
+        std::cout << "\n2-norm of potential solution: " << normSolution;
     }
 
     exporter.closeFile();
@@ -562,14 +573,14 @@ Int main ( Int argc, char** argv )
 
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << "Exporting fibers: " << std::endl;
+        std::cout << "\nExporting fibers ...  ";
     }
 
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
-    solver -> exportFiberDirection();
-
+    solver -> exportFiberDirection(problemFolder);
+    solver.reset();
 
     if ( Comm->MyPID() == 0 )
     {

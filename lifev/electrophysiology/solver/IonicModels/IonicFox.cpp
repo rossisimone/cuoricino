@@ -49,7 +49,7 @@ namespace LifeV
 //! Constructors
 // ===================================================
 IonicFox::IonicFox()    :
-    super       ( 13 ),
+    super       ( 13, 7 ),
     M_ACap      ( 1.534e-4 ),
     M_VMyo      ( 25.84e-6 ),
     M_Vup       ( 0.1 ),
@@ -110,7 +110,7 @@ IonicFox::IonicFox()    :
 }
 
 IonicFox::IonicFox ( Teuchos::ParameterList& parameterList ) :
-    super       ( 13 )
+    super       ( 13, 7 )
 {
     M_ACap       = parameterList.get ( "areaCap", 1.534e-4 );
     M_VMyo       = parameterList.get ( "volMyo", 25.84e-6 );
@@ -205,6 +205,7 @@ IonicFox::IonicFox ( const IonicFox& model )
 
     M_numberOfEquations = model.M_numberOfEquations;
     M_restingConditions = model.M_restingConditions;
+    M_numberOfGatingVariables = model.M_numberOfGatingVariables;
 }
 
 // ===================================================
@@ -258,6 +259,7 @@ IonicFox& IonicFox::operator= ( const IonicFox& model )
 
     M_numberOfEquations = model.M_numberOfEquations;
     M_restingConditions = model.M_restingConditions;
+    M_numberOfGatingVariables = model.M_numberOfGatingVariables;
 
     return *this;
 }
@@ -297,13 +299,29 @@ void IonicFox::computeRhs (const   std::vector<Real>&  v, std::vector<Real>& rhs
 
 }
 
+void IonicFox::computeNonGatingRhs ( const std::vector<Real>&  v, std::vector<Real>& rhs )
+{
+//    std::vector<Real> subSysCaRhs   ( computeLocalSubSysCaRhs (v) );
+//    std::copy ( subSysCaRhs.begin(), subSysCaRhs.end() - 1, rhs.begin() + M_numberOfGatingVariables );
+    std::vector<Real> gatingRhs     ( computeLocalGatingRhs (v) );
+    std::vector<Real> subSysCaRhs   ( computeLocalSubSysCaRhs (v) );
+
+    std::copy ( gatingRhs.begin(), gatingRhs.end(), rhs.begin() );
+    std::copy ( subSysCaRhs.begin(), subSysCaRhs.end() - 1, rhs.begin() + gatingRhs.size() );
+}
+
 Real IonicFox::computeLocalPotentialRhs ( const std::vector<Real>& v )
 {
-    Real INa = (fastINa (v) ) [0];
-    Real IKr = (rapidIK (v) ) [0];
-    Real IKs = (slowIK (v) ) [0];
-    Real It0 = (transOutIK (v) ) [0];
-    Real ICa = (computeLocalSubSysCaRhs (v) ) [5];
+    std::vector<Real> fastNa (fastINa (v));
+    std::vector<Real> rapidK (rapidIK (v));
+    std::vector<Real> slowK  (slowIK  (v));
+    std::vector<Real> transOutK(transOutIK (v));
+    std::vector<Real> subSysCaRHS (computeLocalSubSysCaRhs (v));
+    Real INa = fastNa[0];
+    Real IKr = rapidK[0];
+    Real IKs = slowK[0];
+    Real It0 = transOutK[0];
+    Real ICa = subSysCaRHS[5];
 
     return   - ( INa + timeIIK1 (v) + IKr + IKs + It0 + plaIKp (v) + pumpINaK (v)
                  + exINaCa (v) + backINab (v) + backICab (v) + pumpIpCa (v) + ICa ) ;
@@ -337,6 +355,49 @@ std::vector<Real> IonicFox::computeLocalGatingRhs ( const std::vector<Real>& v )
 
     return gatingRhs;
 }
+
+void IonicFox::computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt )
+{
+    Real m ( v[1] );
+    Real h ( v[2] );
+    Real j ( v[3] );
+
+    Real xr ( v[4] );
+    Real xks ( v[5] );
+    Real xt0 ( v[6] );
+    Real yt0 ( v[7] );
+
+    std::vector<Real> paramNa   ( fastINa (v) );
+    std::vector<Real> paramKr   ( rapidIK (v) );
+    std::vector<Real> paramKs   ( slowIK (v) );
+    std::vector<Real> paramKt0   ( transOutIK (v) );
+
+    Real TAU_M = 1.0 / ( paramNa[1] + paramNa[2] );
+    Real M_INF = paramNa[1] * TAU_M;
+    Real TAU_H = 1.0 / ( paramNa[3] + paramNa[4] );
+    Real H_INF = paramNa[3] * TAU_M;
+    Real TAU_J = 1.0 / ( paramNa[5] + paramNa[6] );
+    Real J_INF = paramNa[5] * TAU_M;
+
+    Real TAU_Xr = paramKr[2];
+    Real Xr_INF = paramKr[1];
+    Real TAU_Xks = paramKs[2];
+    Real Xks_INF = paramKs[1];
+
+    Real TAU_xto = 1.0 / ( paramKt0[1] + paramKt0[2] );
+    Real xto_INF = paramKt0[1] * TAU_M;
+    Real TAU_yto = 1.0 / ( paramKt0[3] + paramKt0[4] );
+    Real yto_INF = paramKt0[3] * TAU_M;
+
+    v[1] = M_INF    - ( M_INF    - m   ) * std::exp (- dt / TAU_M   );
+    v[2] = H_INF    - ( H_INF    - h   ) * std::exp (- dt / TAU_H   );
+    v[3] = J_INF    - ( J_INF    - j   ) * std::exp (- dt / TAU_J   );
+    v[4] = Xr_INF   - ( Xr_INF   - xr  ) * std::exp (- dt / TAU_Xr  );
+    v[5] = Xks_INF  - ( Xks_INF  - xks ) * std::exp (- dt / TAU_Xks );
+    v[6] = xto_INF  - ( xto_INF  - xt0 ) * std::exp (- dt / TAU_xto );
+    v[7] = yto_INF  - ( yto_INF  - yt0 ) * std::exp (- dt / TAU_yto );
+}
+
 
 //! Ca2+ Subsystem
 
@@ -438,13 +499,13 @@ std::vector<Real> IonicFox::rapidIK ( const std::vector<Real>& v )
     Real V   ( v[0] );
     Real xr  ( v[4] );
 
-    Real potK1  = ( M_R * M_T / M_F ) * log ( M_K0 / M_KIn );
-    Real RV     = 1.0 / ( 1.0 + 2.5 * exp ( 0.1 * ( V + 28.0 ) ) );
+    Real potK1  = ( M_R * M_T / M_F ) * std::log ( M_K0 / M_KIn );
+    Real RV     = 1.0 / ( 1.0 + 2.5 * std::exp ( 0.1 * ( V + 28.0 ) ) );
 
-    Real sxr    = 1.0 / ( 1.0 + exp ( -2.182 - 0.1819 * V ) );
-    Real txr    = 43.0 + ( 1.0 / ( exp ( -5.495 + 0.1691 * V ) + exp ( -7.677 - 0.0128 * V ) ) );
+    Real sxr    = 1.0 / ( 1.0 + std::exp ( -2.182 - 0.1819 * V ) );
+    Real txr    = 43.0 + ( 1.0 / ( std::exp ( -5.495 + 0.1691 * V ) + std::exp ( -7.677 - 0.0128 * V ) ) );
 
-    rapidK[0] = M_GKr * xr * RV * sqrt ( M_K0 / 4.0 ) * ( V - potK1 );
+    rapidK[0] = M_GKr * xr * RV * std::sqrt ( M_K0 / 4.0 ) * ( V - potK1 );
 
     rapidK[1] = sxr;
     rapidK[2] = txr;
@@ -455,22 +516,23 @@ std::vector<Real> IonicFox::rapidIK ( const std::vector<Real>& v )
 // slow K+ current
 std::vector<Real> IonicFox::slowIK ( const std::vector<Real>& v )
 {
-    std::vector<Real> slowK (3);
+
 
     Real V   ( v[0] );
     Real xs  ( v[5] );
 
-    Real potKs  = ( M_R * M_T / M_F ) * log ( ( M_K0 + 0.01833 * M_NaO ) / ( M_KIn + 0.01833 * M_NaIn ) );
+    Real potKs  = ( M_R * M_T / M_F ) * std::log ( ( M_K0 + 0.01833 * M_NaO ) / ( M_KIn + 0.01833 * M_NaIn ) );
 
-    Real sxs    = 1.0 / ( 1.0 + exp ( - ( V - 16.0 ) / 13.6 ) );
-    Real txs    = 1.0 / ( ( 0.0000719 * ( V - 10.0 ) / ( 1.0 - exp ( -0.148 * ( V - 10.0 ) ) ) )
-                          + ( 0.000131 * ( V - 10.0 ) / ( exp ( 0.0687 * (V - 10.0) ) - 1.0) ) );
+    Real sxs    = 1.0 / ( 1.0 + std::exp ( - ( V - 16.0 ) / 13.6 ) );
+    Real txs    = 1.0 / ( ( 0.0000719 * ( V - 10.0 ) / ( 1.0 - std::exp ( -0.148 * ( V - 10.0 ) ) ) )
+                          + ( 0.000131 * ( V - 10.0 ) / ( std::exp ( 0.0687 * (V - 10.0) ) - 1.0) ) );
 
-    slowK[0] = M_GKs * xs * xs * ( V - potKs );
-    slowK[1] = sxs;
-    slowK[2] = txs;
+    std::vector<Real> slow (3, 0.0);
+    slow[0] = M_GKs * xs * xs * ( V - potKs );
+    slow[1] = sxs;
+    slow[2] = txs;
 
-    return slowK;
+    return slow;
 }
 
 // transient outward K+ current

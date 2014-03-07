@@ -1136,23 +1136,26 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver (
 template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver (
     const ElectroETAMonodomainSolver& solver) :
-    M_surfaceVolumeRatio (solver.M_surfaceVolumeRatio), M_ionicModelPtr (
-        solver.M_ionicModelPtr), M_commPtr (solver.M_commPtr), M_localMeshPtr (
-            solver.M_localMeshPtr), M_fullMeshPtr (solver.M_fullMeshPtr), M_ETFESpacePtr (
-                solver.M_ETFESpacePtr), M_feSpacePtr (solver.M_feSpacePtr), M_massMatrixPtr (
-                    new matrix_Type (* (solver.M_massMatrixPtr) ) ), M_stiffnessMatrixPtr (
-                        new matrix_Type (* (solver.M_stiffnessMatrixPtr) ) ), M_globalMatrixPtr (
-                            new matrix_Type (* (solver.M_globalMatrixPtr) ) ), M_initialTime (
-                                solver.M_initialTime), M_endTime (solver.M_endTime), M_timeStep (
-                                    solver.M_timeStep), M_diffusionTensor (solver.M_diffusionTensor), M_rhsPtr (
-                                        new vector_Type (* (solver.M_rhsPtr) ) ), M_rhsPtrUnique (
-                                            new vector_Type (* (M_rhsPtr), Unique) ), M_potentialPtr (
-                                                new vector_Type (solver.M_ETFESpacePtr->map() ) ), M_linearSolverPtr (
-                                                    new LinearSolver (* (solver.M_linearSolverPtr) ) ), M_elementsOrder (
-                                                        solver.M_elementsOrder), M_fiberPtr (
-                                                            new vector_Type (* (solver.M_fiberPtr) )
-
-                                                        ) ,
+    M_surfaceVolumeRatio (solver.M_surfaceVolumeRatio),
+    M_ionicModelPtr (solver.M_ionicModelPtr),
+    M_commPtr (solver.M_commPtr),
+    M_localMeshPtr ( solver.M_localMeshPtr),
+    M_fullMeshPtr (solver.M_fullMeshPtr),
+    M_ETFESpacePtr ( solver.M_ETFESpacePtr),
+    M_feSpacePtr (solver.M_feSpacePtr),
+    M_massMatrixPtr ( new matrix_Type (* (solver.M_massMatrixPtr) ) ),
+    M_stiffnessMatrixPtr ( new matrix_Type (* (solver.M_stiffnessMatrixPtr) ) ),
+    M_globalMatrixPtr ( new matrix_Type (* (solver.M_globalMatrixPtr) ) ),
+    M_initialTime ( solver.M_initialTime),
+    M_endTime (solver.M_endTime),
+    M_timeStep ( solver.M_timeStep),
+    M_diffusionTensor (solver.M_diffusionTensor),
+    M_rhsPtr ( new vector_Type (* (solver.M_rhsPtr) ) ),
+    M_rhsPtrUnique (  new vector_Type (* (M_rhsPtr), Unique) ),
+    M_potentialPtr ( new vector_Type (solver.M_ETFESpacePtr->map() ) ),
+    M_linearSolverPtr ( new LinearSolver (* (solver.M_linearSolverPtr) ) ),
+    M_elementsOrder ( solver.M_elementsOrder),
+    M_fiberPtr ( new vector_Type (* (solver.M_fiberPtr) ) ) ,
     M_lumpedMassMatrix (false),
     M_verbose (false)
 {
@@ -1958,10 +1961,28 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneStepGatingVariablesRL
     M_ionicModelPtr->superIonicModel::computeNonGatingRhs (M_globalSolution,
                                                            M_globalRhs);
     int offset = M_ionicModelPtr->numberOfGatingVariables() + 1;
+//    std::cout << "\n offset = " << offset;
+//    * (M_globalSolution.at (8) ) = * (M_globalSolution.at (8) )
+//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (8) ) );
+//    std::cout << "\n size = " << M_ionicModelPtr->Size();
+//    * (M_globalSolution.at (9) ) = * (M_globalSolution.at (9) )
+//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (9) ) );
+//    std::cout << "\n size = " << M_ionicModelPtr->Size();
+//    * (M_globalSolution.at (10) ) = * (M_globalSolution.at (10) )
+//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (10) ) );
+//    std::cout << "\n size = " << M_ionicModelPtr->Size();
+//    * (M_globalSolution.at (11) ) = * (M_globalSolution.at (11) )
+//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (11) ) );
+//    std::cout << "\n size = " << M_ionicModelPtr->Size();
+//    * (M_globalSolution.at (12) ) = * (M_globalSolution.at (12) )
+//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (12) ) );
+//    std::cout << "\n size = " << M_ionicModelPtr->Size();
     for (int i = offset; i < M_ionicModelPtr->Size(); i++)
     {
-        * (M_globalSolution.at (i) ) = * (M_globalSolution.at (i) )
-                                       + ( (M_timeStep) ) * (* (M_globalRhs.at (i) ) );
+    	*(M_globalRhs[i]) *= M_timeStep;
+    	* (M_globalSolution[i]) += *(M_globalRhs[i]);
+//        * (M_globalSolution.at (i) ) = * (M_globalSolution.at (i) )
+//                                       + ( (M_timeStep) ) * (* (M_globalRhs.at (i) ) );
     }
 }
 
@@ -2004,7 +2025,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI()
             std::cout << "\nETA Monodomain Solver: updating rhs with SVI";
         }
         M_ionicModelPtr->superIonicModel::computePotentialRhsSVI (M_globalSolution,
-                                                                  M_globalRhs, (*M_feSpacePtr), quadRuleTetra4ptNodal );
+                                                                  M_globalRhs, (*M_feSpacePtr) );
     }
     updateRhs();
 }
