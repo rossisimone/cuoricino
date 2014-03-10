@@ -110,7 +110,7 @@ public:
 
     typedef boost::function<Real ( Real const&, Real const&, Real const&, Real const&, ID const& ) > fct_type;
     //Exporters Typedefs
-    typedef typename LifeV::Exporter<mesh_Type >                  filter_Type;
+    typedef LifeV::Exporter<mesh_Type >                  filter_Type;
     typedef boost::shared_ptr<filter_Type >                       filterPtr_Type;
 
     typedef LifeV::ExporterEmpty<mesh_Type >                      emptyExporter_Type;
@@ -306,7 +306,7 @@ Structure::run3d()
         const std::string partsFileName (dataFile ("partitioningOffline/hdf5_file_name", "NO_DEFAULT_VALUE.h5") );
 
         boost::shared_ptr<Epetra_MpiComm> mpiComm =
-            boost::dynamic_pointer_cast<Epetra_MpiComm>(parameters->comm);
+            boost::dynamic_pointer_cast<Epetra_MpiComm> (parameters->comm);
         PartitionIO<mesh_Type> partitionIO (partsFileName, mpiComm);
 
         partitionIO.read (pointerToMesh);

@@ -1,0 +1,25 @@
+###################################################################################################
+#
+#                       This file is part of the LifeV Library
+#                Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
+#                Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
+#
+#      Author(s): Toni Lassila <toni.lassila@epfl.ch>
+#           Date: 2011-03-10
+#  License Terms: GNU LGPL
+#
+###################################################################################################
+
+[Multiscale]
+modelName        = MitralValve
+modelType        = Valve0D
+couplingFlags    = '0 1'
+
+[Coefficients]
+MinimumOpeningAngle         =  0.0
+#RegurgitantAreaFraction     = 0.05
+MaximumOpeningAngle         = 75.0
+FlowDischargeCoefficient    = 10.95
+FrictionalMomentCoefficient = 4.125
+ResistiveMomentCoefficient  = 50.0
+ConvectiveMomentCoefficient = 2.0

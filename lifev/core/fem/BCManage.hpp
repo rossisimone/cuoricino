@@ -1509,7 +1509,6 @@ bcEssentialManageResidual (VectorType&     res,
 
     if (sol.mapType() == Unique)
     {
-        std::cout << "pass me a repeated solution" << std::endl;
         VectorType repeatedSolution (sol, Repeated);
         bcEssentialManageResidual (  res,
                                      rhs,
@@ -2312,7 +2311,8 @@ void bcRobinManageResidual ( VectorType& residual,
 
     if (solution.mapType() == Repeated)
     {
-        std::cout << "pass me a non-repeated solution" << std::endl;
+        //SR: REMOVING OUTPUT
+        //std::cout << "pass me a non-repeated solution" << std::endl;
         VectorType uniqueSolution (solution, Unique, Zero);
         bcRobinManageResidual (  residual,
                                  rightHandSide,

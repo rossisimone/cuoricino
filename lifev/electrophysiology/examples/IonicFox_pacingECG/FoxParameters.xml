@@ -1,0 +1,17 @@
+<!-- Model Parameters -->
+<ParameterList name="Fox : Parameter list">
+	<Parameter name="InitialPotential" type="double" value="- 94.7"	/>
+	<Parameter name="gatingM" type="double" value="2.4676e-4"	/>
+	<Parameter name="gatingH" type="double" value="0.99869"  />
+	<Parameter name="gatingJ" type="double" value="0.99887"  />
+	<Parameter name="gatingXKR" type="double" value="0.229"  />
+	<Parameter name="gatingXKS" type="double" value="0.0001"  />
+	<Parameter name="gatingXT0" type="double" value="3.742e-5"  />
+	<Parameter name="gatingYT0" type="double" value="1.0"  />
+	<Parameter name="gatingF" type="double" value="0.983"  />
+	<Parameter name="gatingD" type="double" value="0.0001"  />
+	<Parameter name="gatingFCA" type="double" value="0.942"  />
+	<Parameter name="concentrationCAIN" type="double" value="0.0472"  />
+	<Parameter name="concentrationCASR" type="double" value="320.0"  />
+
+</ParameterList>

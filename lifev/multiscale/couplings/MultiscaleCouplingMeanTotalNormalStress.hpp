@@ -42,6 +42,7 @@
 #if defined(LIFEV_HAS_ZERODIMENSIONAL)
 #include <lifev/multiscale/models/MultiscaleModelWindkessel0D.hpp>
 #include <lifev/multiscale/models/MultiscaleModel0D.hpp>
+#include <lifev/multiscale/models/MultiscaleModelValve0D.hpp>
 #endif
 
 #if defined(LIFEV_HAS_ONEDFSI)
@@ -54,6 +55,9 @@
 
 #if defined(LIFEV_HAS_FSI)
 #include <lifev/multiscale/models/MultiscaleModelFSI3D.hpp>
+#if defined(LIFEV_HAS_ELECTROPHYSIOLOGY)
+#include <lifev/multiscale/models/MultiscaleModelFSI3DActivated.hpp>
+#endif
 #endif
 
 namespace LifeV

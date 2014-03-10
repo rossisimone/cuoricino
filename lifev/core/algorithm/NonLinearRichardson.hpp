@@ -77,7 +77,17 @@ namespace LifeV
     taken as constant relaxation parameter
 
  */
+/*template < class Fct >
+Int NonLinearRichardson ( VectorEpetra& sol,
+			  Fct&        functional,
+			 Real abstol,
+			 Real reltol,
+			 UInt& maxit,
+			Real eta_max,
+			Int NonLinearLineSearch,
+			UInt iter = U*/
 
+static Real  default_res1 = 1000.0;
 template < class Fct >
 Int NonLinearRichardson ( VectorEpetra& sol,
                           Fct&        functional,
@@ -89,9 +99,9 @@ Int NonLinearRichardson ( VectorEpetra& sol,
                           UInt iter = UInt (0),
                           UInt        verboseLevel = 0,
                           std::ostream& output = std::cout,
-                          const Real& time = 0
-                        )
-{
+                          const Real& time = 0,
+                          Real& res1 = default_res1 )
+ {
     /*
         */
 
@@ -145,6 +155,7 @@ Int NonLinearRichardson ( VectorEpetra& sol,
 
     //
 
+    res1 = normRes;
     Real solNormInf (sol.normInf() );
     Real stepNormInf;
     if ( verboseLevel > 1 )
@@ -184,9 +195,9 @@ Int NonLinearRichardson ( VectorEpetra& sol,
         stepNormInf = step.normInf();
         if ( verboseLevel > 1 )
         {
-            output   << std::setw (5) << iter
+            output   << std::endl << std::setw (5) << iter
                      << std::setw (15) << solNormInf
-                     << std::setw (15) << stepNormInf;
+                     << std::setw (15) << stepNormInf << std::endl;
         }
         linres = linearRelTol;
 
@@ -232,13 +243,18 @@ Int NonLinearRichardson ( VectorEpetra& sol,
             {
                 eta_new = std::max<Real> ( eta_new, gamma * eta_old * eta_old );
             }
-            linearRelTol = std::min<Real> ( eta_new, eta_max );
+            linearRelTol = std::min<Real> ( eta_new, eta_old / 2. );
             linearRelTol = std::min<Real> ( eta_max,
                                             std::max<Real> ( linearRelTol,
-                                                             .5 * stop_tol / normRes ) );
-            //if ( verboseLevel > 0 )
-            //    std::cout << "    Newton: forcing term eta = " << linearRelTol << std::endl;
-            //std::cout<<"\nVerbose = "<<verboseLevel<<std::endl;
+                                                             .5 * stop_tol * ratio * ratio ) );
+            if ( verboseLevel > 0 )
+            {
+                std::cout << "\n    Newton: eta_max                       = " << eta_max << std::endl;
+                std::cout << "      Newton: forcing term eta              = " << linearRelTol << std::endl;
+                std::cout << "      Newton: ratio                         = " << ratio << std::endl;
+                std::cout << "      Newton: eta_new                       = " << eta_new << std::endl;
+                std::cout << "      Newton: .5 * stop_tol * ratio * ratio = " << .5 * stop_tol* ratio* ratio << std::endl;
+            }
         }
 
     }

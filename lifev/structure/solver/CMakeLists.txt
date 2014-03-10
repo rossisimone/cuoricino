@@ -5,6 +5,9 @@ SET(solver_HEADERS
   solver/StructuralConstitutiveLaw.hpp
   solver/StructuralOperator.hpp
   solver/NeoHookeanMaterialNonLinear.hpp
+  solver/NeoHookeanActivatedMaterial.hpp
+  solver/HolzapfelOgdenMaterial.hpp
+  solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp
   solver/ExponentialMaterialNonLinear.hpp
   solver/SecondOrderExponentialMaterialNonLinear.hpp
   solver/VenantKirchhoffMaterialLinear.hpp

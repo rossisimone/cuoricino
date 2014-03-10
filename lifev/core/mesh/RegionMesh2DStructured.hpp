@@ -335,7 +335,7 @@ void regularMesh2D ( MeshType& mesh,
     }
 
     // edges update
-    mesh.updateElementFacets ( true, verbose, edgesNumber );
+    updateMeshFacets ( mesh, true, verbose, edgesNumber );
 
 }
 

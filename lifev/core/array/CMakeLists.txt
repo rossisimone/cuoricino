@@ -1,10 +1,10 @@
 SET(array_HEADERS
+  array/EnumMapEpetra.hpp
   array/VectorEpetra.hpp
   array/MapVector.hpp
   array/VectorSmall.hpp
+  array/MatrixSmall.hpp
   array/RNMTemplate.hpp
-  array/VectorBlockStructure.hpp
-  array/MatrixBlockStructure.hpp
   array/MatrixEpetraStructuredUtility.hpp
   array/MatrixEpetraStructuredView.hpp
   array/MapEpetra.hpp
@@ -22,13 +22,18 @@ SET(array_HEADERS
   array/VectorBlockMonolithicEpetraView.hpp
   array/VectorEpetraStructuredView.hpp
   array/ArraySimple.hpp
+  array/MatrixSmall.hpp
   array/VectorElemental.hpp
   array/RNMOperator.hpp
   array/MatrixContainer.hpp
+  array/GhostHandler.hpp
+  array/MatrixLU.hpp
+  array/VectorLU.hpp
+  array/MatrixStandard.hpp
+  array/VectorStandard.hpp
 CACHE INTERNAL "")
 
 SET(array_SOURCES
-  array/MatrixBlockStructure.cpp
   array/VectorElemental.cpp
   array/VectorSmall.cpp
   array/MatrixElemental.cpp
@@ -39,6 +44,10 @@ SET(array_SOURCES
   array/VectorEpetra.cpp
   array/MapEpetra.cpp
   array/VectorEpetraStructured.cpp
+  array/MatrixLU.cpp
+  array/VectorLU.cpp
+  array/MatrixStandard.cpp
+  array/VectorStandard.cpp
 CACHE INTERNAL "")
 
 

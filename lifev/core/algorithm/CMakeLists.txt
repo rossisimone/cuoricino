@@ -13,7 +13,7 @@ SET(algorithm_HEADERS
   algorithm/EigenSolver.hpp
   algorithm/LinearSolver.hpp
   algorithm/PreconditionerML.hpp
-  algorithm/PreconditionerLinearSolver.hpp
+  algorithm/MatrixStandardSolver.hpp
 CACHE INTERNAL "")
 
 SET(algorithm_SOURCES
@@ -26,7 +26,7 @@ SET(algorithm_SOURCES
   algorithm/SolverAztecOO.cpp
   algorithm/EigenSolver.cpp
   algorithm/LinearSolver.cpp
-  algorithm/PreconditionerLinearSolver.cpp
+  algorithm/MatrixStandardSolver.cpp
 CACHE INTERNAL "")
 
 

@@ -37,10 +37,6 @@
 #ifndef _MATRIXEPETRASTRUCTUREDUTILITY_HPP_
 #define _MATRIXEPETRASTRUCTUREDUTILITY_HPP_
 
-#include <boost/shared_ptr.hpp>
-#include <lifev/core/array/MatrixBlockStructure.hpp>
-#include <lifev/core/array/MatrixEpetra.hpp>
-#include <lifev/core/array/MatrixEpetraStructured.hpp>
 #include <lifev/core/array/MatrixEpetraStructuredView.hpp>
 
 namespace LifeV
@@ -59,8 +55,8 @@ void copyBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
                  const MatrixEpetraStructuredView<DataType>& destBlock )
 {
     // BLOCK COMPATIBILITY TEST
-    ASSERT ( srcBlock.numRows() <= destBlock.numRows(), "The destination block can not contain all the rows of the source block" );
-    ASSERT ( srcBlock.numColumns() <= destBlock.numColumns(), "The destination block can not contain all the columns of the source block" );
+    ASSERT ( srcBlock.numRows() == destBlock.numRows(), "The two blocks must have the same number of rows" );
+    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columnss" );
 
     // BLOCK PTR TEST
     ASSERT ( srcBlock.matrixPtr() != 0 , "The source block does not have a valid pointer" );
@@ -135,18 +131,6 @@ void copyBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
     }
 }
 
-//! Copy the block specified in another block
-/*!
-  @param srcBlock Source block
-  @param destBlock Destination block where the data will be stored
-*/
-template< typename DataType>
-void copyBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                 boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    copyBlock ( *srcBlock, *destBlock );
-}
-
 //! Create a block full of zeros
 /*!
   @param destBlock Block where the data will be stored
@@ -157,16 +141,6 @@ void createZeroBlock ( MatrixEpetraStructuredView<DataType>& /*destBlock*/ )
     // This method will maybe be replaced
     // by the method setBlockToZero
     ASSERT ( false, "The method is not yet implemented");
-}
-
-//! Create a block full of zeros
-/*!
-  @param destBlock Block where the data will be stored
-*/
-template< typename DataType >
-void createZeroBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    createZeroBlock ( *destBlock );
 }
 
 //! Create a block with an identical value on the diagonal
@@ -209,17 +183,6 @@ void createScalarBlock ( const MatrixEpetraStructuredView<DataType>& destBlock, 
     }
 }
 
-//! Create a block with an identical value on the diagonal
-/*!
-  @param destBlock Block where the data will be stored
-  @param diagonalValue Value to be inserted in the diagonal
-*/
-template< typename DataType >
-void createScalarBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock, const DataType& diagonalValue )
-{
-    createScalarBlock ( *destBlock, diagonalValue );
-}
-
 //! Create a block with ones on the diagonal
 /*!
   @param destBlock Block where the data will be stored
@@ -228,16 +191,6 @@ template< typename DataType >
 void createIdentityBlock ( const MatrixEpetraStructuredView<DataType>& destBlock )
 {
     createScalarBlock (destBlock, 1.0);
-}
-
-//! Create a block with ones on the diagonal
-/*!
-  @param destBlock Block where the data will be stored
-*/
-template< typename DataType >
-void createIdentityBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    createIdentityBlock ( *destBlock );
 }
 
 //! Copy the diagonal of the block specified to another block
@@ -255,7 +208,7 @@ void createDiagBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
 
     // BLOCK COMPATIBILITY TEST
     ASSERT ( srcBlock.numRows() == destBlock.numRows(), "The two blocks must have the same number of rows" );
-    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columns" );
+    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columnss" );
 
     // BLOCK PTR TEST
     ASSERT ( srcBlock.matrixPtr() != 0 , "The source block does not have a valid pointer" );
@@ -315,18 +268,6 @@ void createDiagBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
     }
 }
 
-//! Copy the diagonal of the block specified to another block
-/*!
-  @param srcBlock Source block
-  @param destBlock Destination block where the data will be stored
-*/
-template< typename DataType >
-void createDiagBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                       boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    createDiagBlock ( *srcBlock, *destBlock );
-}
-
 //! Copy the inverse of the diagonal of the block specified to another block
 /*!
   @param srcBlock Source block
@@ -342,7 +283,7 @@ void createInvDiagBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
 
     // BLOCK COMPATIBILITY TEST
     ASSERT ( srcBlock.numRows() == destBlock.numRows(), "The two blocks must have the same number of rows" );
-    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columns" );
+    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columnss" );
 
     // BLOCK PTR TEST
     ASSERT ( srcBlock.matrixPtr() != 0 , "The source block does not have a valid pointer" );
@@ -406,18 +347,6 @@ void createInvDiagBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
 
 }
 
-//! Copy the inverse of the diagonal of the block specified to another block
-/*!
-  @param srcBlock Source block
-  @param destBlock Destination block where the data will be stored
-*/
-template< typename DataType >
-void createInvDiagBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                          boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    createInvDiagBlock ( *srcBlock, *destBlock );
-}
-
 //! Copy the inverse of the square root of the diagonal of the block specified to another block
 /*!
   @param srcBlock Source block
@@ -433,7 +362,7 @@ void createInvSquaredDiagBlock ( const MatrixEpetraStructuredView<DataType>& src
 
     // BLOCK COMPATIBILITY TEST
     ASSERT ( srcBlock.numRows() == destBlock.numRows(), "The two blocks must have the same number of rows" );
-    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columns" );
+    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columnss" );
 
     // BLOCK PTR TEST
     ASSERT ( srcBlock.matrixPtr() != 0 , "The source block does not have a valid pointer" );
@@ -480,7 +409,7 @@ void createInvSquaredDiagBlock ( const MatrixEpetraStructuredView<DataType>& src
                     // ZERO ON DIAGONAL TEST
                     ASSERT ( srcValues[j] != 0, "You cannot ask for inverse squared diagonal block when there are zeros on the diagonal" );
 
-                    diagValue = 1 / sqrt (srcValues[j]);
+                    diagValue = 1 / std::sqrt (srcValues[j]);
                     j = numSrcEntries; //Exit the loop
                 }
             }
@@ -494,18 +423,6 @@ void createInvSquaredDiagBlock ( const MatrixEpetraStructuredView<DataType>& src
             }
         }
     }
-}
-
-//! Copy the inverse of the square root of the diagonal of the block specified to another block
-/*!
-  @param srcBlock Source block
-  @param destBlock Destination block where the data will be stored
-*/
-template< typename DataType >
-void createInvSquaredDiagBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                                 boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    createInvSquaredDiagBlock ( *srcBlock, *destBlock );
 }
 
 //! Copy the upper part of the block specified to another block
@@ -523,7 +440,7 @@ void createUpperTriangularBlock ( const MatrixEpetraStructuredView<DataType>& sr
 
     // BLOCK COMPATIBILITY TEST
     ASSERT ( srcBlock.numRows() == destBlock.numRows(), "The two blocks must have the same number of rows" );
-    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columns" );
+    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columnss" );
 
     // BLOCK PTR TEST
     ASSERT ( srcBlock.matrixPtr() != 0 , "The source block does not have a valid pointer" );
@@ -589,18 +506,6 @@ void createUpperTriangularBlock ( const MatrixEpetraStructuredView<DataType>& sr
     }
 }
 
-//! Copy the upper part of the block specified to another block
-/*!
-  @param srcBlock Source block
-  @param destBlock Destination block where the data will be stored
-*/
-template< typename DataType >
-void createUpperTriangularBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                                  boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    createUpperTriangularBlock ( *srcBlock, *destBlock );
-}
-
 //! Copy the lower part of the block specified to another block
 /*!
   @param srcBlock Source block
@@ -616,7 +521,7 @@ void createLowerTriangularBlock ( const MatrixEpetraStructuredView<DataType>& sr
 
     // BLOCK COMPATIBILITY TEST
     ASSERT ( srcBlock.numRows() == destBlock.numRows(), "The two blocks must have the same number of rows" );
-    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columns" );
+    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columnss" );
 
     // BLOCK PTR TEST
     ASSERT ( srcBlock.matrixPtr() != 0 , "The source block does not have a valid pointer" );
@@ -682,18 +587,6 @@ void createLowerTriangularBlock ( const MatrixEpetraStructuredView<DataType>& sr
     }
 }
 
-//! Copy the lower part of the block specified to another block
-/*!
-  @param srcBlock Source block
-  @param destBlock Destination block where the data will be stored
-*/
-template< typename DataType >
-void createLowerTriangularBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                                  boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    createLowerTriangularBlock ( *srcBlock, *destBlock );
-}
-
 
 //! Copy the lumped version of the block specified to another block
 /*!
@@ -710,7 +603,7 @@ void createLumpedBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
 
     // BLOCK COMPATIBILITY TEST
     ASSERT ( srcBlock.numRows() == destBlock.numRows(), "The two blocks must have the same number of rows" );
-    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columns" );
+    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columnss" );
 
     // BLOCK PTR TEST
     ASSERT ( srcBlock.matrixPtr() != 0 , "The source block does not have a valid pointer" );
@@ -769,18 +662,6 @@ void createLumpedBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
     }
 }
 
-//! Copy the lumped version of the block specified to another block
-/*!
-  @param srcBlock Source block
-  @param destBlock Destination block where the data will be stored
-*/
-template< typename DataType >
-void createLumpedBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                         boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    createLumpedBlock ( *srcBlock, *destBlock );
-}
-
 //! Copy the inverse of the lumped version of the block specified to another block
 /*!
   @param srcBlock Source block
@@ -796,7 +677,7 @@ void createInvLumpedBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock
 
     // BLOCK COMPATIBILITY TEST
     ASSERT ( srcBlock.numRows() == destBlock.numRows(), "The two blocks must have the same number of rows" );
-    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columns" );
+    ASSERT ( srcBlock.numColumns() == destBlock.numColumns(), "The two blocks must have the same number of columnss" );
 
     // BLOCK PTR TEST
     ASSERT ( srcBlock.matrixPtr() != 0 , "The source block does not have a valid pointer" );
@@ -860,199 +741,6 @@ void createInvLumpedBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock
     }
 }
 
-//! Copy the inverse of the lumped version of the block specified to another block
-/*!
-  @param srcBlock Source block
-  @param destBlock Destination block where the data will be stored
-*/
-template< typename DataType >
-void createInvLumpedBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                            boost::shared_ptr< MatrixEpetraStructuredView<DataType> > destBlock )
-{
-    createInvLumpedBlock ( *srcBlock, *destBlock );
-}
-
-//! Create a new matrix from the block specified
-/*!
-  @param srcBlock Source block
-  @param dstMatrix Pointer to be initialized with a new matrix
-  @param rowMap Row map. The column map will be defined in MatrixEpetraStructured<DataType>::GlobalAssemble(...,...)
-  @param closeMatrix If closeMatrix is equal to true, globalAssemble will be called.
-  @warning This method is only intended to be used with square blocks!
-*/
-template< typename DataType>
-void createMatrixFromBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
-                             boost::shared_ptr<MatrixEpetraStructured<DataType> >& destMatrix,
-                             const MapEpetra& rowMap,
-                             bool closeMatrix = true )
-{
-    // SQUARE TEST
-    ASSERT ( srcBlock.numRows() == srcBlock.numColumns() , "The source block must be square" );
-    ASSERT ( srcBlock.numRows() == rowMap.mapSize(), "The two blocks must have the same number of rows" );
-
-    // Create destination matrix
-    destMatrix.reset ( new MatrixEpetraStructured<DataType> ( rowMap, srcBlock.matrixPtr()->meanNumEntries() ) );
-
-    // Copy the entries
-    copyBlock ( srcBlock, * ( destMatrix->block ( 0, 0 ) ) );
-
-    // Close the matrix if requested
-    if ( closeMatrix )
-    {
-        destMatrix->globalAssemble();
-    }
-}
-
-//! Create a new matrix from the block specified
-/*!
-  @param srcBlock Source block
-  @param dstMatrix Pointer to be initialized with a new matrix
-  @param rowMap Row map. The column map will be defined in MatrixEpetraStructured<DataType>::GlobalAssemble(...,...)
-  @param closeMatrix If closeMatrix is equal to true, globalAssemble will be called.
-  @warning This method is only intended to be used with square blocks!
-*/
-template< typename DataType>
-void createMatrixFromBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                             boost::shared_ptr<MatrixEpetraStructured<DataType> >& destMatrix,
-                             const MapEpetra& rowMap,
-                             bool closeMatrix = true )
-{
-    createMatrixFromBlock ( *srcBlock, destMatrix, rowMap, closeMatrix );
-}
-
-//! Create a new matrix from the block specified (for rectangle matrix)
-/*!
-  @param srcBlock Source block
-  @param dstMatrix Pointer to be initialized with a new matrix
-  @param domainMap domain map. The column map will be defined in MatrixEpetraStructured<DataType>::GlobalAssemble(...,...)
-  @param rangeMap range map. The column map will be defined in MatrixEpetraStructured<DataType>::GlobalAssemble(...,...)
-  @param closeMatrix If closeMatrix is equal to true, globalAssemble will be called.
-  @warning This method is only intended to be used with square blocks!
-*/
-template< typename DataType>
-void createMatrixFromBlock ( const MatrixEpetraStructuredView<DataType>& srcBlock,
-                             boost::shared_ptr<MatrixEpetraStructured<DataType> >& destMatrix,
-                             boost::shared_ptr<MapEpetra> domainMap,
-                             boost::shared_ptr<MapEpetra> rangeMap,
-                             bool closeMatrix = true )
-{
-
-
-    // Create destination matrix
-    if ( domainMap->mapSize() > rangeMap->mapSize() )
-    {
-        destMatrix.reset ( new MatrixEpetraStructured<DataType> ( *domainMap, srcBlock.matrixPtr()->meanNumEntries() ) );
-    }
-    else
-    {
-        destMatrix.reset ( new MatrixEpetraStructured<DataType> ( *rangeMap, srcBlock.matrixPtr()->meanNumEntries() ) );
-    }
-
-    // Copy the entries
-    copyBlock ( srcBlock, * ( destMatrix->block ( 0, 0 ) ) );
-
-    // Close the matrix if requested
-    if ( closeMatrix )
-    {
-        destMatrix->globalAssemble ( domainMap, rangeMap );
-    }
-}
-
-//! Create a new matrix from the block specified
-/*!
-  @param srcBlock Source block
-  @param dstMatrix Pointer to be initialized with a new matrix
-  @param domainMap domain map. The column map will be defined in MatrixEpetraStructured<DataType>::GlobalAssemble(...,...)
-  @param rangeMap range map. The column map will be defined in MatrixEpetraStructured<DataType>::GlobalAssemble(...,...)
-  @param closeMatrix If closeMatrix is equal to true, globalAssemble will be called.
-  @warning This method is only intended to be used with square blocks!
-*/
-template< typename DataType>
-void createMatrixFromBlock ( boost::shared_ptr< MatrixEpetraStructuredView<DataType> > srcBlock,
-                             boost::shared_ptr<MatrixEpetraStructured<DataType> >& destMatrix,
-                             boost::shared_ptr<MapEpetra> domainMap,
-                             boost::shared_ptr<MapEpetra> rangeMap,
-                             bool closeMatrix = true )
-{
-    createMatrixFromBlock ( *srcBlock, destMatrix, domainMap, rangeMap, closeMatrix );
-}
-
-//! Create a block view using an unstructured matrix and block structure informations
-/*!
-  @param matrixPtr Pointer on an unstructured matrix
-  @param blockStructure Structure to be used to extract block view
-  @param rowIndex Row position of the block in the matrix
-  @param columnIndex Column position of the block in the matrix
-*/
-template <typename DataType>
-boost::shared_ptr< MatrixEpetraStructuredView<DataType> >
-createBlockView ( boost::shared_ptr<MatrixEpetra<DataType> > matrixPtr,
-                  const MatrixBlockStructure& blockStructure,
-                  const UInt& rowIndex,
-                  const UInt& columnIndex )
-{
-    ASSERT ( matrixPtr->matrixPtr()->NumGlobalCols() == blockStructure.numRows(), " Incompatible block structure (global size does not match) " );
-    ASSERT ( matrixPtr->matrixPtr()->NumGlobalRows() == blockStructure.numColumns(), " Incompatible block structure (global size does not match) " );
-
-    boost::shared_ptr< MatrixEpetraStructuredView<DataType> > matrixBlockView ( new MatrixEpetraStructuredView<DataType> );
-
-    matrixBlockView->setup ( blockStructure.rowBlockFirstIndex ( rowIndex ),
-                             blockStructure.columnBlockFirstIndex ( columnIndex ),
-                             blockStructure.blockNumRows ( rowIndex ),
-                             blockStructure.blockNumColumns ( columnIndex ),
-                             matrixPtr->matrixPtr().get() );
-
-    return matrixBlockView;
-}
-
-//! Fill a block view using an unstructured matrix and block structure informations
-/*!
-  @param matrixPtr Pointer on an unstructured matrix
-  @param blockStructure Structure to be used to extract block view
-  @param rowIndex Row position of the block in the matrix
-  @param columnIndex Column position of the block in the matrix
-  @param blockView block view to be filled with informations
-*/
-template <typename DataType>
-void
-fillBlockView ( boost::shared_ptr<MatrixEpetra<DataType> > matrixPtr,
-                const MatrixBlockStructure& blockStructure,
-                const UInt& rowIndex,
-                const UInt& columnIndex,
-                MatrixEpetraStructuredView<DataType>& blockView )
-{
-    ASSERT ( matrixPtr->matrixPtr()->NumGlobalCols() == blockStructure.numRows(), " Incompatible block structure (global size does not match) " );
-    ASSERT ( matrixPtr->matrixPtr()->NumGlobalRows() == blockStructure.numColumns(), " Incompatible block structure (global size does not match) " );
-
-    blockView.setup ( blockStructure.rowBlockFirstIndex ( rowIndex ),
-                      blockStructure.columnBlockFirstIndex ( columnIndex ),
-                      blockStructure.blockNumRows ( rowIndex ),
-                      blockStructure.blockNumColumns ( columnIndex ),
-                      matrixPtr.get() );
-}
-
-//! Fill a block view using an unstructured matrix and block structure informations
-/*!
-  @param matrixPtr Pointer on an unstructured matrix
-  @param blockStructure Structure to be used to extract block view
-  @param rowIndex Row position of the block in the matrix
-  @param columnIndex Column position of the block in the matrix
-  @param blockView block view to be filled with informations
-*/
-template <typename DataType>
-void
-fillBlockView ( boost::shared_ptr<MatrixEpetra<DataType> > matrixPtr,
-                const MatrixBlockStructure& blockStructure,
-                const UInt& rowIndex,
-                const UInt& columnIndex,
-                boost::shared_ptr< MatrixEpetraStructuredView<DataType> >& blockView )
-{
-    if ( blockView.get() == 0 )
-    {
-        blockView.reset ( new MatrixEpetraStructuredView<DataType> );
-    }
-    fillBlockView ( matrixPtr, blockStructure, rowIndex, columnIndex, *blockView );
-}
 
 } // namespace MatrixEpetraStructuredUtility
 

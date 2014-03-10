@@ -186,7 +186,10 @@ public:
 
     //! Destructor
     virtual ~ETFESpace()
-    {}
+    {
+        delete M_dof;
+        delete M_map;
+    }
 
     //@}
 

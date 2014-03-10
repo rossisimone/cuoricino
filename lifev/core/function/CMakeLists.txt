@@ -1,9 +1,11 @@
 SET(function_HEADERS
   function/Laplacian.hpp
+  function/Norm.hpp
 CACHE INTERNAL "")
 
 SET(function_SOURCES
   function/Laplacian.cpp
+  function/Norm.cpp
 CACHE INTERNAL "")
 
 

@@ -51,6 +51,7 @@
 #include <lifev/eta/expression/ExpressionSubstraction.hpp>
 #include <lifev/eta/expression/ExpressionProduct.hpp>
 #include <lifev/eta/expression/ExpressionPower.hpp>
+#include <lifev/eta/expression/ExpressionSquareRoot.hpp>
 #include <lifev/eta/expression/ExpressionLogarithm.hpp>
 #include <lifev/eta/expression/ExpressionExponential.hpp>
 #include <lifev/eta/expression/ExpressionDot.hpp>
@@ -78,6 +79,11 @@
 
 #include <lifev/eta/expression/ExpressionIfCrossed.hpp>
 
+#include <lifev/eta/expression/ExpressionRotateMatrix.hpp>
+#include <lifev/eta/expression/ExpressionRotateSmallMatrix.hpp>
+#include <lifev/eta/expression/ExpressionVectorsToMatrix.hpp>
+
+
 #include <lifev/eta/expression/EvaluationPhiI.hpp>
 #include <lifev/eta/expression/EvaluationPhiJ.hpp>
 #include <lifev/eta/expression/EvaluationDphiI.hpp>
@@ -93,6 +99,7 @@
 #include <lifev/eta/expression/EvaluationSubstraction.hpp>
 #include <lifev/eta/expression/EvaluationProduct.hpp>
 #include <lifev/eta/expression/EvaluationPower.hpp>
+#include <lifev/eta/expression/EvaluationSquareRoot.hpp>
 #include <lifev/eta/expression/EvaluationLogarithm.hpp>
 #include <lifev/eta/expression/EvaluationExponential.hpp>
 #include <lifev/eta/expression/EvaluationDot.hpp>
@@ -119,6 +126,10 @@
 #include <lifev/eta/expression/EvaluationNormal.hpp>
 
 #include <lifev/eta/expression/EvaluationIfCrossed.hpp>
+
+#include <lifev/eta/expression/EvaluationRotateMatrix.hpp>
+#include <lifev/eta/expression/EvaluationRotateSmallMatrix.hpp>
+#include <lifev/eta/expression/EvaluationVectorsToMatrix.hpp>
 
 namespace LifeV
 {
@@ -509,6 +520,19 @@ private:
     ~ExpressionToEvaluation();
 };
 
+// Specialized for a power
+template<typename ExpressionBase, UInt testDim, UInt solutionDim, UInt spaceDim>
+class ExpressionToEvaluation<ExpressionSquareRoot<ExpressionBase>, testDim, solutionDim, spaceDim>
+{
+public:
+    typedef EvaluationSquareRoot <
+    typename ExpressionToEvaluation<ExpressionBase, testDim, solutionDim, spaceDim>::evaluation_Type
+    > evaluation_Type;
+private:
+    ExpressionToEvaluation();
+    ~ExpressionToEvaluation();
+};
+
 // Specialized for a logarithm
 template<typename ExpressionBase, UInt testDim, UInt solutionDim, UInt spaceDim>
 class ExpressionToEvaluation<ExpressionLogarithm<ExpressionBase>, testDim, solutionDim, spaceDim>
@@ -646,6 +670,42 @@ private:
     ~ExpressionToEvaluation();
 };
 
+// Specialized for the rotation a vector small representing a diffusion tensor
+template<typename MeshType, typename MapType, UInt FESpaceDim, UInt FEFieldDim, UInt testDim, UInt solutionDim, UInt spaceDim>
+class ExpressionToEvaluation <
+    ExpressionRotateMatrix<MeshType, MapType, FESpaceDim, FEFieldDim>, testDim, solutionDim, spaceDim >
+{
+public:
+    typedef EvaluationRotateMatrix<MeshType, MapType, FESpaceDim, FEFieldDim> evaluation_Type;
+private:
+    ExpressionToEvaluation();
+    ~ExpressionToEvaluation();
+};
+
+
+// Specialized for the rotation a matrix small representing a diffusion tensor
+template<typename MeshType, typename MapType, UInt FESpaceDim, UInt FEFieldDim, UInt testDim, UInt solutionDim, UInt spaceDim>
+class ExpressionToEvaluation <
+    ExpressionRotateSmallMatrix<MeshType, MapType, FESpaceDim, FEFieldDim>, testDim, solutionDim, spaceDim >
+{
+public:
+    typedef EvaluationRotateSmallMatrix<MeshType, MapType, FESpaceDim, FEFieldDim> evaluation_Type;
+private:
+    ExpressionToEvaluation();
+    ~ExpressionToEvaluation();
+};
+
+// create a diffusion tensor from 3 vectors epetra
+template<typename MeshType, typename MapType, UInt FESpaceDim, UInt FEFieldDim, UInt testDim, UInt solutionDim, UInt spaceDim>
+class ExpressionToEvaluation <
+    ExpressionVectorsToMatrix<MeshType, MapType, FESpaceDim, FEFieldDim>, testDim, solutionDim, spaceDim >
+{
+public:
+    typedef EvaluationVectorsToMatrix<MeshType, MapType, FESpaceDim, FEFieldDim> evaluation_Type;
+private:
+    ExpressionToEvaluation();
+    ~ExpressionToEvaluation();
+};
 // \endcond
 
 } // Namespace ExpressionAssembly

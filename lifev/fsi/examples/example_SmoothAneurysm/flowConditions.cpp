@@ -244,7 +244,7 @@ Real FlowConditions::inDeltaRadius (const Real& /*t*/, const Real& x, const Real
         return 0;
     }
 
-    Real r ( sqrt (x * x + y * y) );
+    Real r ( std::sqrt (x * x + y * y) );
 
     switch (i)
     {
@@ -265,7 +265,7 @@ Real FlowConditions::outDeltaRadius (const Real& /*t*/, const Real& x, const Rea
         return 0;
     }
 
-    Real r ( sqrt (x * x + y * y) );
+    Real r ( std::sqrt (x * x + y * y) );
 
     switch (i)
     {

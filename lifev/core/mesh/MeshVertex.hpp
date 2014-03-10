@@ -132,6 +132,10 @@ public:
     {
         return M_coordinates[ 0 ];
     }
+    inline  void setX (Real p)
+    {
+        M_coordinates[ 0 ] = p;
+    }
     //! Returns the reference to the y-coordinate
     /*!
         Used to provide coordinates to object created using a constructor with no coordinates given, or to modify existing coordinates
@@ -141,6 +145,11 @@ public:
     {
         return M_coordinates[ 1 ];
     }
+    inline  void setY (Real p)
+    {
+        M_coordinates[ 1 ] = p;
+    }
+
     //! Returns the reference to the z-coordinate and checks if working in two dimensions
     /*!
         Used to provide coordinates to object created using a constructor with no coordinates given, or to modify existing coordinates
@@ -149,6 +158,10 @@ public:
     Real& z()
     {
         return M_coordinates[ 2 ];
+    }
+    inline void setZ (Real p)
+    {
+        M_coordinates[ 2 ] = p;
     }
     //! Returns the x-coordinate
     /*!
@@ -205,12 +218,27 @@ public:
 
     //! Returns the coordinates vector
     /*!
-        The method allows to access coordinates and modify them
+        The method allows to access coordinates
         @return Coordinates array
     */
     Vector3D const& coordinates () const
     {
         return M_coordinates;
+    }
+
+    //@}
+
+    //! @name Set Methods
+    //@{
+
+    //! Sets the coordinates vector
+    /*!
+        The method allows to set the coordinates
+        @coord Coordinates array to be set
+    */
+    void setCoordinates ( Vector3D const& coord )
+    {
+        M_coordinates = coord;
     }
 
     //@}
