@@ -352,6 +352,7 @@ private:
     bcInterfacePtr_Type    M_bc;
 
     dataPtr_Type           M_data;
+    bool                   M_idealValve;
 
     Real                   M_pressureLeft_tn;  // pressure left (P1) @ t=t(n)
     Real                   M_flowRate_tn;  // flowRate left (Q1) @ t=t(n)

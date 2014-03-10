@@ -67,7 +67,8 @@ MultiscaleModelValve0D::MultiscaleModelValve0D() :
                     M_flowDischargeCoefficient     (),
                     M_frictionalMomentCoefficient  (),
                     M_resistiveMomentCoefficient   (),
-                    M_convectiveMomentCoefficient  ()
+                    M_convectiveMomentCoefficient  (),
+                    M_idealValve                   ()
 {
 
 #ifdef HAVE_LIFEV_DEBUG
@@ -101,6 +102,7 @@ MultiscaleModelValve0D::setupData ( const std::string& fileName )
     M_frictionalMomentCoefficient = dataFile ( "Coefficients/FrictionalMomentCoefficient",  4.125 ); // K_P
     M_resistiveMomentCoefficient  = dataFile ( "Coefficients/ResistiveMomentCoefficient",  50.0 );   // K_f
     M_convectiveMomentCoefficient = dataFile ( "Coefficients/ConvectiveMomentCoefficient",  2.0 );   // K_b
+    M_idealValve                  = dataFile ( "Model/IdealValve", false);                           // Use ideal valve, otherwise use Korakianitis-Shi model
 
     // Convert degrees to radians
     M_minimumOpeningAngle = M_minimumOpeningAngle * 2. * M_PI / 360.;
@@ -440,8 +442,17 @@ MultiscaleModelValve0D::solveForFlowRate()
     debugStream ( 8150 ) << "MultiscaleModelValve0D::solveForFlowRate() \n";
 #endif
 
-    // Orifice model of Korakianitis-Shi '06
-    Real A ( (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ( (1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) );
+    Real A;
+
+    if (M_idealValve)
+    {
+        A = (M_pressureLeft > M_pressureRight) ? 1 : (1. - std::cos(M_minimumOpeningAngle)) * (1. - std::cos(M_minimumOpeningAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle)));
+    }
+    else
+    {
+        // Orifice model of Korakianitis-Shi '06
+        A = (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ( (1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) ;
+    }
 
     if (M_pressureLeft > M_pressureRight)
     {
@@ -462,6 +473,12 @@ MultiscaleModelValve0D::solveForPressure()
 #ifdef HAVE_LIFEV_DEBUG
     debugStream ( 8150 ) << "MultiscaleModelValve0D::solveForPressure() \n";
 #endif
+
+    if (M_idealValve)
+    {
+        std::cerr << " !!! Error: Cannot solve for pressure b.c. with ideal valve !!!" << std::endl;
+        return NaN;
+    }
 
     // Orifice model of Korakianitis-Shi '06
     Real A ( (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) );
@@ -554,9 +571,17 @@ MultiscaleModelValve0D::tangentSolveForFlowRate()
     debugStream ( 8150 ) << "MultiscaleModelValve0D::tangentSolveForFlowRate() \n";
 #endif
 
+    Real A;
 
-    // Orifice model of Korakianitis-Shi '06
-    Real A ( (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) );
+    if (M_idealValve)
+    {
+        A = (M_pressureLeft > M_pressureRight) ? 1 : (1. - std::cos(M_minimumOpeningAngle)) * (1. - std::cos(M_minimumOpeningAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle)));
+    }
+    else
+    {
+        // Orifice model of Korakianitis-Shi '06
+        A = (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) ;
+    }
 
     if (M_pressureLeft > M_pressureRight)
     {
@@ -577,6 +602,12 @@ MultiscaleModelValve0D::tangentSolveForPressure()
 #ifdef HAVE_LIFEV_DEBUG
     debugStream ( 8150 ) << "MultiscaleModelValve0D::tangentSolveForPressure() \n";
 #endif
+
+    if (M_idealValve)
+    {
+        std::cerr << " !!! Error: Cannot solve for pressure b.c. with ideal valve !!!" << std::endl;
+        return NaN;
+    }
 
     // Orifice model of Korakianitis-Shi '06
     Real A ( (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) );
