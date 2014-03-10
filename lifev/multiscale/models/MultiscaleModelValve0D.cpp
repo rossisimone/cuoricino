@@ -446,7 +446,8 @@ MultiscaleModelValve0D::solveForFlowRate()
 
     if (M_idealValve)
     {
-        A = (M_pressureLeft > M_pressureRight) ? 1 : (1. - std::cos(M_minimumOpeningAngle)) * (1. - std::cos(M_minimumOpeningAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle)));
+        A = (M_pressureLeft_tn > M_pressureRight_tn) ? 1 : (1. - std::cos(M_minimumOpeningAngle)) * (1. - std::cos(M_minimumOpeningAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle)));
+        M_openingAngle = (M_pressureLeft_tn > M_pressureRight_tn) ? M_maximumOpeningAngle : M_minimumOpeningAngle;
     }
     else
     {
@@ -534,7 +535,8 @@ MultiscaleModelValve0D::solveLinearModel ( bool& solveLinearSystem )
     }
 
     //Solve the opening angle first
-    solveForOpeningAngle();
+    if (!M_idealValve)
+      solveForOpeningAngle();
 
     //Solve the flow rate/pressure next
     switch ( M_bc->handler()->bc ( 1 ).bcType() )
@@ -575,7 +577,7 @@ MultiscaleModelValve0D::tangentSolveForFlowRate()
 
     if (M_idealValve)
     {
-        A = (M_pressureLeft > M_pressureRight) ? 1 : (1. - std::cos(M_minimumOpeningAngle)) * (1. - std::cos(M_minimumOpeningAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle)));
+        A = (M_pressureLeft_tn > M_pressureRight_tn) ? 1 : (1. - std::cos(M_minimumOpeningAngle)) * (1. - std::cos(M_minimumOpeningAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle)));
     }
     else
     {
