@@ -423,13 +423,8 @@ Structure::run3d()
         const std::string partsFileName (dataFile ("partitioningOffline/hdf5_file_name", "NO_DEFAULT_VALUE.h5") );
 
         boost::shared_ptr<Epetra_MpiComm> mpiComm =
-<<<<<<< HEAD
-            boost::dynamic_pointer_cast<Epetra_MpiComm>(parameters->comm);
-	PartitionIO<mesh_Type> partitionIO (partsFileName, mpiComm);
-=======
             boost::dynamic_pointer_cast<Epetra_MpiComm> (parameters->comm);
         PartitionIO<mesh_Type> partitionIO (partsFileName, mpiComm);
->>>>>>> origin/Heart
 
 
         partitionIO.read (pointerToMesh);
