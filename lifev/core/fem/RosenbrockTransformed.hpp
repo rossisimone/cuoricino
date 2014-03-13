@@ -77,10 +77,10 @@ public:
     virtual ~RosenbrockTransformed() {};
 
     template<typename RightHandSide>
-    void solve (RightHandSide& Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init);
+    void solve (RightHandSide& Fun, std::vector<Real>& y0, Real t0, Real TF, Real& dt_init);
 
     template<typename RightHandSide>
-    void solve (boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init);
+    void solve (boost::shared_ptr<RightHandSide> Fun, std::vector<Real>& y0, Real t0, Real TF, Real& dt_init);
 
     template<typename RightHandSide>
     void solve (RightHandSide& Fun, VectorStandard& y0, Real t0, Real TF, Real& dt_init);
@@ -131,7 +131,7 @@ void RosenbrockTransformed::solve (RightHandSide& Fun, VectorStandard& y0, Real 
 }
 
 template<typename RightHandSide>
-void RosenbrockTransformed::solve (RightHandSide& Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
+void RosenbrockTransformed::solve (RightHandSide& Fun, std::vector<Real>& y0, Real t0, Real TF, Real& dt_init)
 {
     boost::shared_ptr<RightHandSide> FunPtr (new RightHandSide (Fun) );
 
@@ -141,7 +141,7 @@ void RosenbrockTransformed::solve (RightHandSide& Fun, vector<Real>& y0, Real t0
 }
 
 template<typename RightHandSide>
-void RosenbrockTransformed::solve ( boost::shared_ptr<RightHandSide> Fun, vector<Real>& y0, Real t0, Real TF, Real& dt_init)
+void RosenbrockTransformed::solve ( boost::shared_ptr<RightHandSide> Fun, std::vector<Real>& y0, Real t0, Real TF, Real& dt_init)
 {
     VectorStandard y0LU (y0);
     solve (Fun, y0LU, t0, TF, dt_init);

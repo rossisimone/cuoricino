@@ -110,10 +110,9 @@ bool RosenbrockTransformed::computeError (const MatrixStandard& U, VectorStandar
     {
         err_n_1 = err_n;
         dt_old = dt;
-        dt = min<Real> ( Trem, min<Real> ( fac, fac_max ) * dt ); // dt(k+1) = min( TF-t, fac*dt(k), fac_max*dt(k) )
+        dt = std::min<Real> ( Trem, std::min<Real> ( fac, fac_max ) * dt ); // dt(k+1) = min( TF-t, fac*dt(k), fac_max*dt(k) )
         return false;
     }
 }
 
 } //namespace LifeV
-
