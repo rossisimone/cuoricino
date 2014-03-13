@@ -37,16 +37,20 @@ along with LifeV.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef EXPORTER_HDF5_H
 #define EXPORTER_HDF5_H 1
 
+#ifndef HAVE_HDF5
+
+#warning warning you should reconfigure with --with-hdf5=... flag
+
+#else
+
 #include <sstream>
 
 
-#include <Epetra_ConfigDefs.h>
 #include <EpetraExt_DistArray.h>
 #include <EpetraExt_HDF5.h>
 #include <Epetra_Comm.h>
 #include <Epetra_IntVector.h>
 #include <Epetra_MultiVector.h>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/shared_array.hpp>
 #include <boost/shared_ptr.hpp>
@@ -1023,41 +1027,34 @@ void ExporterHDF5<MeshType>::writeGeometry()
     UInt numberOfPoints = MeshType::elementShape_Type::S_numPoints;
 
     std::vector<Int> elementList;
-    UInt ownedElements = this->M_mesh->elementList().countElementsWithFlag ( EntityFlags::GHOST, &Flag::testOneNotSet );
-    elementList.reserve ( ownedElements * numberOfPoints );
-    UInt elementCount = 0;
-    for ( ID i = 0; i < this->M_mesh->numElements(); ++i )
-    {
-        typename MeshType::element_Type const& element (this->M_mesh->element (i) );
-        if ( element.isOwned() )
-        {
-            UInt lid = elementCount * numberOfPoints;
-            for (ID j = 0; j < numberOfPoints; ++j, ++lid)
-            {
-                elementList[lid] = element.id() * numberOfPoints + j;
-            }
-            elementCount++;
-        }
-    }
-
-    Epetra_Map connectionsMap ( this->M_mesh->numGlobalElements() *numberOfPoints,
-                                ownedElements * numberOfPoints,
-                                &elementList[0],
-                                0, this->M_dataVector.begin()->storedArrayPtr()->comm() );
-
-    Epetra_IntVector connections (connectionsMap);
-    elementCount = 0;
+    elementList.reserve (this->M_mesh->numElements() *numberOfPoints);
     for (ID i = 0; i < this->M_mesh->numElements(); ++i)
     {
         typename MeshType::element_Type const& element (this->M_mesh->element (i) );
-        if ( element.isOwned() )
+        UInt lid = i * numberOfPoints;
+        for (ID j = 0; j < numberOfPoints; ++j, ++lid)
         {
-            UInt lid = elementCount * numberOfPoints;
-            for (ID j = 0; j < numberOfPoints; ++j, ++lid)
-            {
-                connections[lid] = element.point (j).id();
-            }
-            elementCount++;
+            elementList[lid] = element.id() * numberOfPoints + j;
+        }
+    }
+
+    Epetra_Map connectionsMap (this->M_mesh->numGlobalElements() *numberOfPoints,
+                               this->M_mesh->numElements() *numberOfPoints,
+                               &elementList[0],
+                               0, this->M_dataVector.begin()->storedArrayPtr()->comm() );
+
+    Epetra_IntVector connections (connectionsMap);
+    for (ID i = 0; i < this->M_mesh->numElements(); ++i)
+    {
+        typename MeshType::element_Type const& element (this->M_mesh->element (i) );
+<<<<<<< HEAD
+        if ( element.isOwned() )
+=======
+        UInt lid = i * numberOfPoints;
+        for (ID j = 0; j < numberOfPoints; ++j, ++lid)
+>>>>>>> origin/Heart
+        {
+            connections[lid] = element.point (j).id();
         }
     }
 
@@ -1137,19 +1134,20 @@ void ExporterHDF5<MeshType>::writeGeometry()
             point = this->M_mesh->meshTransformer().pointInitial (i);
         }
 
+<<<<<<< HEAD
         if ( point.isOwned() )
         {
+=======
+        gid = point.id();
+>>>>>>> origin/Heart
 
-            gid = point.id();
+        bool insertedX (true);
+        bool insertedY (true);
+        bool insertedZ (true);
 
-            bool insertedX (true);
-            bool insertedY (true);
-            bool insertedZ (true);
-
-            insertedX = insertedX && pointsX.setCoefficient (gid, point.x() );
-            insertedY = insertedY && pointsY.setCoefficient (gid, point.y() );
-            insertedZ = insertedZ && pointsZ.setCoefficient (gid, point.z() );
-        }
+        insertedX = insertedX && pointsX.setCoefficient (gid, point.x() );
+        insertedY = insertedY && pointsY.setCoefficient (gid, point.y() );
+        insertedZ = insertedZ && pointsZ.setCoefficient (gid, point.z() );
     }
 
     // Now we are ready to export the vectors to the hdf5 file

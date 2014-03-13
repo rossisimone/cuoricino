@@ -19,14 +19,14 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 #  STANDARD_PASS_OUTPUT
   )
 
-TRIBITS_ADD_EXECUTABLE_AND_TEST(
-  GhostHandler
-  SOURCES test_ghosthandler.cpp
-  ARGS -c
-  NUM_MPI_PROCS 2
-  COMM serial mpi
-#  STANDARD_PASS_OUTPUT
-  )
+#TRIBITS_ADD_EXECUTABLE_AND_TEST(
+#  GhostHandler
+#  SOURCES test_ghosthandler.cpp
+#  ARGS -c
+#  NUM_MPI_PROCS 2
+#  COMM serial mpi
+##  STANDARD_PASS_OUTPUT
+#  )
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_GhostHandler
   SOURCE_FILES data_ghosthandler
@@ -75,4 +75,3 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(mesh_neighborsCircle
   SOURCE_FILES square_unstructured.msh
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/lifev/core/data/mesh/freefem
 )
-

@@ -176,6 +176,7 @@ private:
       therefore it is private
       @param map: underlying Epetra_Map
      */
+public:
     MapEpetra ( const map_type map );
 
 public:
@@ -382,4 +383,3 @@ typedef MapVector<MapEpetra> MapEpetraVector;
 } // end namespace LifeV
 
 #endif
-

@@ -192,12 +192,14 @@ darcy_nonlinear::run()
         const std::string structuredSection = Members->discretization_section + "/space_discretization/";
 
         // Set up the structured mesh
-        regularMesh2D ( *fullMeshPtr, 0,
-                        dataFile ( ( structuredSection + "nx" ).data(), 4 ),
-                        dataFile ( ( structuredSection + "ny" ).data(), 4 ),
-                        dataFile ( ( structuredSection + "verbose" ).data(), false ),
-                        dataFile ( ( structuredSection + "lx" ).data(), 1. ),
-                        dataFile ( ( structuredSection + "ly" ).data(), 1. ) );
+        std::vector<UInt> subdivisions ( 2 );
+        subdivisions[0] = dataFile ( ( structuredSection + "nx" ).c_str(), 4 );
+        subdivisions[1] = dataFile ( ( structuredSection + "ny" ).c_str(), 4 );
+        Vector3D length;
+        length[0] = dataFile ( ( structuredSection + "lx" ).c_str(), 1. );
+        length[1] = dataFile ( ( structuredSection + "ly" ).c_str(), 1. );
+
+        regularMesh ( *fullMeshPtr, 0, subdivisions, dataFile ( ( structuredSection + "verbose" ).c_str(), false ), length );
     }
 
     // Create the local mesh ( local scope used to delete the meshPart object )

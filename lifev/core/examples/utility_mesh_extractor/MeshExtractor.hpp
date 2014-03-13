@@ -250,7 +250,7 @@ RegionMesh< typename RegionMesh<geoShape_Type>::facetShape_Type >*   extractBoun
 
 
     //(9) Update all the facets
-    mesh2D->updateElementFacets (true);
+    updateMeshFacets ( *mesh2D, true );
 
 
     return mesh2D;

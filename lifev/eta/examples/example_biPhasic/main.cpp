@@ -146,7 +146,7 @@ Real initLSFct ( const Real& /*t*/, const Real& /*x*/ , const Real& /*y*/, const
     Real distToSurface ( liquidHeight - z );
 
     return distToSurface;
-};
+}
 
 /* Velocity initial */
 Real initVelocity ( const Real& /*t*/, const Real& /*x*/ , const Real& /*y*/, const Real& /*z*/ , const ID& i)
@@ -156,20 +156,20 @@ Real initVelocity ( const Real& /*t*/, const Real& /*x*/ , const Real& /*y*/, co
         return 0.00;
     }
     return 0.0;
-};
+}
 
 
 /* Velocity initial */
 Real zeroFct ( const Real& /*t*/, const Real& /*x*/ , const Real& /*y*/, const Real& /*z*/ , const ID& /*i*/)
 {
     return 0.0;
-};
+}
 
 /* Velocity initial */
 Real oneFct ( const Real& /*t*/, const Real& /*x*/ , const Real& /*y*/, const Real& /*z*/ , const ID& /*i*/)
 {
     return 1.0;
-};
+}
 
 
 /* Velocity initial */
@@ -206,7 +206,7 @@ Real volumeForce ( const Real& t, const Real& /*x*/, const Real& /*y*/, const Re
     }
 
     return 0.0;
-};
+}
 
 void displayMotionParameters ( const Real& t)
 {
@@ -236,15 +236,15 @@ void displayMotionParameters ( const Real& t)
 Real volumeForce0 ( const Real& t, const Real& x , const Real& y, const Real& z , const ID& /*i*/)
 {
     return volumeForce (t, x, y, z, 0);
-};
+}
 Real volumeForce1 ( const Real& t, const Real& x , const Real& y, const Real& z , const ID& /*i*/)
 {
     return volumeForce (t, x, y, z, 1);
-};
+}
 Real volumeForce2 ( const Real& t, const Real& x , const Real& y, const Real& z , const ID& /*i*/)
 {
     return volumeForce (t, x, y, z, 2);
-};
+}
 
 Real normalDirection ( const Real& /*t*/, const Real& x , const Real& y, const Real& /*z*/ , const ID& i)
 {
@@ -259,7 +259,7 @@ Real normalDirection ( const Real& /*t*/, const Real& x , const Real& y, const R
     }
 
     return 0.0;
-};
+}
 
 Real slipFct ( Real ls )
 {
@@ -278,7 +278,7 @@ Real slipFct ( Real ls )
         return slipFriction;
     }
     return noSlipCoef;
-};
+}
 
 
 void meshMap ( Real& x, Real& y, Real& z )
@@ -309,7 +309,7 @@ void meshMap ( Real& x, Real& y, Real& z )
     }
 
     z = z * cylinderHeight / 0.4;
-};
+}
 
 
 /* Heaviside function class */

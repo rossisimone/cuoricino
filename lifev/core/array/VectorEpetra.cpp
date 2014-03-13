@@ -1123,4 +1123,3 @@ operator* ( const VectorEpetra::data_type& scalar, const VectorEpetra& vector )
 }
 
 }  // end namespace LifeV
-

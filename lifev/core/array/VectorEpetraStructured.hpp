@@ -40,7 +40,6 @@
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 #include <lifev/core/array/MapVector.hpp>
-#include <lifev/core/array/VectorBlockStructure.hpp>
 #include <lifev/core/array/VectorEpetraStructuredView.hpp>
 
 
@@ -118,10 +117,10 @@ public:
                                       const combineMode_Type combineMode = Add );
 
     //! Copy constructor
-    VectorEpetraStructured ( const VectorEpetraStructured& vector );
+    VectorEpetraStructured ( const VectorEpetraStructured& vector);
 
     //! Copy constructor with a specified map type (Repeated/Unique)
-    VectorEpetraStructured ( const VectorEpetraStructured& vector, const mapType_type& mapType );
+    VectorEpetraStructured ( const VectorEpetraStructured& vector, const mapType_type& mapType);
 
     //! Copy constructor with specified map type and combine mode
     VectorEpetraStructured ( const VectorEpetraStructured& vector,
@@ -152,12 +151,7 @@ public:
       through this method, nor its map.
       @param The MapVector containing the maps
      */
-    void setBlockStructure ( const mapVector_type& mapVector );
-
-    /*! Set the block structure of the vector
-     *  @param blockStructure Structure of the vector
-     */
-    void setBlockStructure ( const VectorBlockStructure& blockStructure );
+    void setBlockStructure ( const mapVector_type& mapVector);
 
     //@}
 
@@ -170,32 +164,32 @@ public:
       @param index Index of the block
       @return size of the index-th block
      */
-    UInt blockSize ( const UInt& index ) const;
+    UInt blockSize (const UInt& index) const
+    {
+        ASSERT ( index < M_blockSize.size(), "Invalid block index");
+        return M_blockSize[index];
+    }
 
     //! Getter for the block index
     /*!
       @param index Index of the block
       @param blockView The blockView to be filled
      */
-    void blockView ( const UInt& index, block_type& blockView );
+    void blockView ( const UInt& index, block_type& blockView);
 
     //! Getter for the block index
     /*!
       @param index Index of the block
       @return The index-th block
      */
-    block_ptrType block ( const UInt& index );
-
-    /*! Get the block structure of the vector
-     *  @param blockStructure Structure of the vector
-     */
-    VectorBlockStructure blockStructure() const;
+    block_ptrType block ( const UInt& index);
 
     //@}
 
 private:
 
-    VectorBlockStructure M_blockStructure;
+    std::vector<UInt> M_blockSize;
+    std::vector<UInt> M_blockFirstIndex;
 
 };
 

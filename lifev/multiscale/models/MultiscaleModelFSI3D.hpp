@@ -82,12 +82,14 @@
 #include <lifev/multiscale/models/MultiscaleModel.hpp>
 #include <lifev/multiscale/framework/MultiscaleInterface.hpp>
 
+
+
 namespace LifeV
 {
 namespace Multiscale
 {
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
 // Forward declaration
 class FSI3DBoundaryStressFunction;
 #endif
@@ -147,7 +149,7 @@ public:
     typedef BCInterface3D< bc_Type, FSIOperator >              bcInterface_Type;
     typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     typedef FSI3DBoundaryStressFunction                        boundaryStressFunction_Type;
     typedef boost::shared_ptr< boundaryStressFunction_Type >   boundaryStressFunctionPtr_Type;
     typedef std::vector< boundaryStressFunctionPtr_Type >      boundaryStressFunctionContainer_Type;
@@ -208,35 +210,35 @@ public:
     /*!
      * @param fileName Name of data file.
      */
-    void setupData ( const std::string& fileName );
+    virtual void setupData ( const std::string& fileName );
 
     //! Setup the model.
-    void setupModel();
+    virtual void setupModel();
 
     //! Build the initial model.
-    void buildModel();
+    virtual void buildModel();
 
     //! Update the model.
-    void updateModel();
+    virtual void updateModel();
 
     //! Solve the model.
-    void solveModel();
+    virtual void solveModel();
 
     //! Update the solution.
-    void updateSolution();
+    virtual void updateSolution();
 
     //! Save the solution
-    void saveSolution();
+    virtual void saveSolution();
 
     //! Display some information about the model.
-    void showMe();
+    virtual void showMe();
 
     //! Return a specific scalar quantity to be used for a comparison with a reference value.
     /*!
      * This method is meant to be used for night checks.
      * @return reference quantity.
      */
-    Real checkSolution() const;
+    virtual Real checkSolution() const;
 
     //@}
 
@@ -442,6 +444,10 @@ public:
 
     //@}
 
+protected:
+
+    UInt                                    M_nonLinearRichardsonIteration;
+
 private:
 
     //! @name Unimplemented Methods
@@ -508,22 +514,22 @@ private:
     }
 
     //@}
-
+protected:
     // Operator
     FSIOperatorPtr_Type                     M_FSIoperator;
-
+private:
     // Data
     dataPtr_Type                            M_data;
-
+protected:
     // Exporters
     IOFilePtr_Type                          M_exporterFluid;
     IOFilePtr_Type                          M_exporterSolid;
-
+private:
     // Importers
     IOFilePtr_Type                          M_importerFluid;
     IOFilePtr_Type                          M_importerSolid;
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     // Stress coupling function container
     boundaryStressFunctionContainer_Type    M_boundaryStressFunctions;
 
@@ -557,8 +563,11 @@ private:
     vectorPtr_Type                          M_fluidPressure;
     vectorPtr_Type                          M_fluidDisplacement;
     vectorPtr_Type                          M_solidVelocity;
+
+protected:
     vectorPtr_Type                          M_solidDisplacement;
 
+private:
 #ifdef FSI_WITH_STRESSOUTPUT
     vectorPtr_Type                          M_solidStressXX;
     vectorPtr_Type                          M_solidStressXY;
@@ -571,8 +580,6 @@ private:
 
     vectorPtr_Type                          M_stateVariable;
 
-    UInt                                    M_nonLinearRichardsonIteration;
-
     // Boundary Conditions
     bcInterfacePtr_Type                     M_fluidBC;
     bcInterfacePtr_Type                     M_solidBC;
@@ -583,11 +590,13 @@ private:
     bcPtr_Type                              M_linearSolidBC;
     vectorPtr_Type                          M_linearRHS;
     vectorPtr_Type                          M_linearSolution;
+
+    UInt                                    M_verbosityLevel;
 };
 
 
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
 
 //! FSI3DBoundaryStressFunction - The FSI3D coupling function
 /*!

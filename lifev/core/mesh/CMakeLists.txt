@@ -11,6 +11,7 @@ SET(mesh_HEADERS
   mesh/MeshPartitioner.hpp
   mesh/MarkerDefinitions.hpp
   mesh/MeshUtility.hpp
+  mesh/MeshLoadingUtility.hpp
   mesh/BareMesh.hpp
   mesh/ConvertBareMesh.hpp
   mesh/MeshElement.hpp
@@ -27,6 +28,9 @@ SET(mesh_HEADERS
   mesh/MeshPartBuilder.hpp
   mesh/NeighborMarker.hpp
   mesh/RegionMesh2DStructured.hpp
+  mesh/MeshTransformer.hpp
+  mesh/UpdateMeshFacetsRidges.hpp
+  mesh/RegionMeshStructured.hpp
 CACHE INTERNAL "")
 
 SET(mesh_SOURCES

@@ -281,3 +281,6 @@ These files are removed. The last tag that has them is LIFEV_1_1_0.
 
 Bug Fixes
 ---------
+
+
+ -- Simone Deparis <simone.deparis@epfl.ch>, 3.2.2010

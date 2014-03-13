@@ -39,7 +39,8 @@
 
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 
-namespace LifeV {
+namespace LifeV
+{
 
 template <typename mesh_Type>
 class RBFlocallyRescaledVectorial: public RBFInterpolation<mesh_Type>
@@ -67,7 +68,7 @@ public:
     typedef LifeV::Preconditioner                                                 basePrec_Type;
     typedef boost::shared_ptr<basePrec_Type>                                      basePrecPtr_Type;
 
-    typedef LifeV::PreconditionerIfpack                                           prec_Type;
+    typedef LifeV::PreconditionerIfpack                                         prec_Type;
     typedef boost::shared_ptr<prec_Type>                                          precPtr_Type;
 
     typedef Teuchos::RCP< Teuchos::ParameterList >                                parameterList_Type;
@@ -104,18 +105,24 @@ public:
 
     void solutionrbf (vectorPtr_Type& Solution_rbf);
 
-    void updateRhs(vectorPtr_Type newRhs);
+    void updateRhs (vectorPtr_Type newRhs);
 
-    void getinterpolationOperatorMap(mapPtr_Type& map)
+    void getinterpolationOperatorMap (mapPtr_Type& map)
     {
-        map.reset(new map_Type(*M_interpolationOperatorMap));
+        map.reset (new map_Type (*M_interpolationOperatorMap) );
         *map += *M_interpolationOperatorMap;
         *map += *M_interpolationOperatorMap;
     }
 
-    void getSolutionOnGamma (vectorPtr_Type& GammaSolution) { GammaSolution.reset(new vector_Type ( *M_solOnGamma ) ); }
+    void getSolutionOnGamma (vectorPtr_Type& GammaSolution)
+    {
+        GammaSolution.reset (new vector_Type ( *M_solOnGamma ) );
+    }
 
-    void getprojectionOperatorMap (mapPtr_Type& map) { map.reset(new map_Type(*M_projectionOperatorMap)); }
+    void getprojectionOperatorMap (mapPtr_Type& map)
+    {
+        map.reset (new map_Type (*M_projectionOperatorMap) );
+    }
 
     void buildUnknownVectorialInterfaceMap();
 
@@ -356,8 +363,8 @@ void RBFlocallyRescaledVectorial<mesh_Type>::buildRhs()
     M_RhsOne.reset (new vector_Type (*M_interpolationOperatorMap) );
 
     M_RhsF1->subset (*M_knownField, *M_interpolationOperatorMap, 0, 0);
-    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3, 0);
-    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3*2, 0);
+    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3, 0);
+    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3 * 2, 0);
     *M_RhsOne += 1;
 }
 
@@ -469,12 +476,12 @@ void RBFlocallyRescaledVectorial<mesh_Type>::interpolate()
 
     M_unknownField_rbf.reset (new vector_Type (M_unknownField->map() ) );
     M_unknownField_rbf->subset (*rbf_f1, *M_projectionOperatorMap, 0, 0);
-    M_unknownField_rbf->subset (*rbf_f2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
-    M_unknownField_rbf->subset (*rbf_f3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
+    M_unknownField_rbf->subset (*rbf_f2, *M_projectionOperatorMap, 0, M_unknownField->size() / 3);
+    M_unknownField_rbf->subset (*rbf_f3, *M_projectionOperatorMap, 0, M_unknownField->size() / 3 * 2);
 
     M_unknownField->subset (*solution1, *M_projectionOperatorMap, 0, 0);
-    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
-    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
+    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size() / 3);
+    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size() / 3 * 2);
 
     /*
     mapPtr_Type solOnGammaMap;
@@ -500,8 +507,10 @@ void RBFlocallyRescaledVectorial<mesh_Type>::buildUnknownVectorialInterfaceMap()
     for ( UInt i = 0; i < M_localMeshUnknown->numVertices(); ++i )
         if ( this->isInside (M_localMeshUnknown->point (i).markerID(), M_flags) )
             if (M_unknownField->blockMap().LID (M_localMeshUnknown->point (i).id() ) != -1)
-                for(int nDim = 0; nDim < 3; ++nDim)
-                    GID_vectorial.insert (M_localMeshUnknown->point (i).id() + nDim*M_fullMeshUnknown->numVertices());
+                for (int nDim = 0; nDim < 3; ++nDim)
+                {
+                    GID_vectorial.insert (M_localMeshUnknown->point (i).id() + nDim * M_fullMeshUnknown->numVertices() );
+                }
 
     int LocalNodesNumber = GID_vectorial.size();
     //std::cout << LocalNodesNumber << std::endl;
@@ -562,14 +571,14 @@ double RBFlocallyRescaledVectorial<mesh_Type>::rbf (double x1, double y1, double
 }
 
 template <typename mesh_Type>
-void RBFlocallyRescaledVectorial<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
+void RBFlocallyRescaledVectorial<mesh_Type>::updateRhs (vectorPtr_Type newRhs)
 {
     *M_RhsF1 *= 0;
     M_RhsF1->subset (*newRhs, *M_interpolationOperatorMap, 0, 0);
     *M_RhsF2 *= 0;
-    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3, 0);
+    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size() / 3, 0);
     *M_RhsF3 *= 0;
-    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3*2, 0);
+    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size() / 3 * 2, 0);
 }
 
 template <typename mesh_Type>
@@ -586,7 +595,7 @@ void RBFlocallyRescaledVectorial<mesh_Type>::solutionrbf (vectorPtr_Type& Soluti
 
 //! Factory create function
 template <typename mesh_Type>
-inline RBFInterpolation<mesh_Type> * createRBFlocallyRescaledVectorial()
+inline RBFInterpolation<mesh_Type>* createRBFlocallyRescaledVectorial()
 {
     return new RBFlocallyRescaledVectorial< mesh_Type > ();
 }

@@ -1,0 +1,78 @@
+###################################################################################################
+#
+#                       This file is part of the LifeV Library
+#                Copyright (C) 2004, 2005, 2007 EPFL, Politecnico di Milano, INRIA
+#                Copyright (C) 2010 EPFL, Politecnico di Milano, Emory University
+#
+#      Author(s): Toni Lassila <toni.lassila@epfl.ch>
+#           Date: 10-01-2014
+#  License Terms: GNU LGPL
+#
+###################################################################################################
+
+[problem]
+
+   [./boundary_conditions]
+    list = 'Endo Epi'
+
+        [./Endo]
+        type       = Essential
+        flag       = 20
+        mode       = Full
+	component  = 1
+	function  = '0.0'
+
+        [../Epi]
+        type       = Essential
+        flag       = 10
+        mode       = Full
+	component  = 1
+	function  = '1.0'
+    
+        [../]
+[../]
+
+[exporter]
+type       = hdf5 
+multimesh  = false
+start      = 0
+save       = 1
+
+
+[prec]
+    reuse           = true
+    prectype        = ML
+
+    [./ML] # preconditioner for the first factor in case our choice was ML
+    displayList = false
+    default_parameter_list = SA    # Domain-decomposition
+    prec_type =  MGV               # Multigrid, single V-cycle
+    max_levels = 5
+    inc_or_dec = increasing
+
+    [./energy_minimization]
+    enable = true
+    type   = 3
+
+    [../repartition]
+    enable              = 1
+    max_min_ratio       = 1.3
+    min_per_proc        = 500
+    partitioner         = ParMETIS #Zoltan: to be implemented
+
+    [../aggregation]
+    #type                = METIS
+    treshold            = 0.0
+    nodes_per_aggregate = 32
+
+    [../coarse]
+    max_size            = 500
+    type                = self
+
+    [../smoother]
+    type        = 'symmetric Gauss-Seidel'           # Gauss-Seidel smoother
+    sweeps      = 2
+    pre_or_post = both
+
+    [../] # end of ML
+[../] # prec 

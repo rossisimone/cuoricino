@@ -39,7 +39,8 @@
 
 #include <lifev/core/interpolation/RBFInterpolation.hpp>
 
-namespace LifeV {
+namespace LifeV
+{
 
 template <typename mesh_Type>
 class RBFvectorial: public RBFInterpolation<mesh_Type>
@@ -67,7 +68,7 @@ public:
     typedef LifeV::Preconditioner                                                 basePrec_Type;
     typedef boost::shared_ptr<basePrec_Type>                                      basePrecPtr_Type;
 
-    typedef LifeV::PreconditionerIfpack                                           prec_Type;
+    typedef LifeV::PreconditionerIfpack                                         prec_Type;
     typedef boost::shared_ptr<prec_Type>                                          precPtr_Type;
 
     typedef Teuchos::RCP< Teuchos::ParameterList >                                parameterList_Type;
@@ -84,6 +85,11 @@ public:
 
     void interpolationOperator();
 
+    virtual inline void spyInterpolationOperator (std::string filename)
+    {
+        M_interpolationOperator -> spy (filename);
+    }
+
     void projectionOperator();
 
     void buildRhs();
@@ -98,11 +104,11 @@ public:
 
     void solution (vectorPtr_Type& Solution);
 
-    void updateRhs(vectorPtr_Type newRhs);
+    void updateRhs (vectorPtr_Type newRhs);
 
     void setRadius ( double radius );
 
-    void setBasis (const std::string & basis);
+    void setBasis (const std::string& basis);
 
 private:
 
@@ -134,8 +140,8 @@ private:
 };
 
 template <typename mesh_Type>
-RBFvectorial<mesh_Type>::RBFvectorial():
-    M_radius(0)
+RBFvectorial<mesh_Type>::RBFvectorial() :
+    M_radius (0)
 {}
 
 template <typename mesh_Type>
@@ -154,7 +160,7 @@ void RBFvectorial<mesh_Type>::setup ( meshPtr_Type fullMeshKnown, meshPtr_Type l
 }
 
 template <typename mesh_Type>
-void RBFvectorial<mesh_Type>::setBasis ( const std::string & basis )
+void RBFvectorial<mesh_Type>::setBasis ( const std::string& basis )
 {
     M_basis = basis;
 }
@@ -186,12 +192,13 @@ void RBFvectorial<Mesh>::buildOperators()
 template <typename Mesh>
 void RBFvectorial<Mesh>::interpolationOperator()
 {
-    ASSERT(M_radius!=0, "Please set the basis radius using RBFscalar<mesh_Type>::setRadius(double radius)");
-    if(M_basis=="TPS"||M_basis=="IMQ"){
+    ASSERT (M_radius != 0, "Please set the basis radius using RBFscalar<mesh_Type>::setRadius(double radius)");
+    if (M_basis == "TPS" || M_basis == "IMQ")
+    {
         this->identifyNodes (M_localMeshKnown, M_GIdsKnownMesh, M_knownField);
         int LocalNodesNumber = M_GIdsKnownMesh.size();
         M_globalNodesNumber = 0;
-        MPI_Allreduce(&LocalNodesNumber,&M_globalNodesNumber,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce (&LocalNodesNumber, &M_globalNodesNumber, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
         int* ElementsPerRow = new int[LocalNodesNumber];
         int* GlobalID = new int[LocalNodesNumber];
         int k = 0;
@@ -214,7 +221,7 @@ void RBFvectorial<Mesh>::interpolationOperator()
             k = 0;
             for ( int j = 0; j < M_fullMeshKnown->numVertices(); ++j)
             {
-                if(isInside(M_fullMeshKnown->point (j).markerID(),M_flags))
+                if (isInside (M_fullMeshKnown->point (j).markerID(), M_flags) )
                 {
                     Indices[k] = j;
                     Values[k]  = rbf ( M_fullMeshKnown->point (GlobalID[i]).x(),
@@ -235,7 +242,8 @@ void RBFvectorial<Mesh>::interpolationOperator()
         delete ElementsPerRow;
         delete GlobalID;
     }
-    if(M_basis=="BW"){
+    if (M_basis == "BW")
+    {
         this->identifyNodes (M_localMeshKnown, M_GIdsKnownMesh, M_knownField);
         M_neighbors.reset ( new neighbors_Type ( M_fullMeshKnown, M_localMeshKnown, M_knownField->mapPtr(), M_knownField->mapPtr()->commPtr() ) );
         if (M_flags[0] == -1)
@@ -305,7 +313,8 @@ void RBFvectorial<mesh_Type>::projectionOperator()
     this->identifyNodes (M_localMeshUnknown, M_GIdsUnknownMesh, M_unknownField);
     int LocalNodesNumber = M_GIdsUnknownMesh.size();
 
-    if(M_basis=="TPS"||M_basis=="IMQ"){
+    if (M_basis == "TPS" || M_basis == "IMQ")
+    {
 
         int* ElementsPerRow = new int[LocalNodesNumber];
         int* GlobalID = new int[LocalNodesNumber];
@@ -329,7 +338,7 @@ void RBFvectorial<mesh_Type>::projectionOperator()
             k = 0;
             for ( int j = 0; j < M_fullMeshKnown->numVertices(); ++j)
             {
-                if(isInside(M_fullMeshKnown->point(j).markerID(),M_flags))
+                if (isInside (M_fullMeshKnown->point (j).markerID(), M_flags) )
                 {
                     Indices[k] = j;
                     Values[k]  = rbf ( M_fullMeshUnknown->point (GlobalID[i]).x(),
@@ -351,8 +360,8 @@ void RBFvectorial<mesh_Type>::projectionOperator()
         delete GlobalID;
     }
 
-    if(M_basis=="BW"){
-
+    if (M_basis == "BW")
+    {
         std::vector<std::set<ID> > MatrixGraph (LocalNodesNumber);
         int* ElementsPerRow = new int[LocalNodesNumber];
         int* GlobalID = new int[LocalNodesNumber];
@@ -370,9 +379,9 @@ void RBFvectorial<mesh_Type>::projectionOperator()
             {
                 if ( M_flags[0] == -1 || this->isInside (M_fullMeshKnown->point (j).markerID(), M_flags) )
                 {
-                    d = std::sqrt ( pow (M_fullMeshKnown->point (j).x() - M_fullMeshUnknown->point (GlobalID[k]).x(), 2)
-                                    + pow (M_fullMeshKnown->point (j).y() - M_fullMeshUnknown->point (GlobalID[k]).y(), 2)
-                                    + pow (M_fullMeshKnown->point (j).z() - M_fullMeshUnknown->point (GlobalID[k]).z(), 2) );
+                    d = std::sqrt ( std::pow (M_fullMeshKnown->point (j).x() - M_fullMeshUnknown->point (GlobalID[k]).x(), 2)
+                                    + std::pow (M_fullMeshKnown->point (j).y() - M_fullMeshUnknown->point (GlobalID[k]).y(), 2)
+                                    + std::pow (M_fullMeshKnown->point (j).z() - M_fullMeshUnknown->point (GlobalID[k]).z(), 2) );
                     if (d < d_min)
                     {
                         d_min = d;
@@ -432,8 +441,8 @@ void RBFvectorial<mesh_Type>::buildRhs()
     M_RhsOne.reset (new vector_Type (*M_interpolationOperatorMap) );
 
     M_RhsF1->subset (*M_knownField, *M_interpolationOperatorMap, 0, 0);
-    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3, 0);
-    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3*2, 0);
+    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3, 0);
+    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3 * 2, 0);
     *M_RhsOne += 1;
 }
 
@@ -454,7 +463,7 @@ void RBFvectorial<mesh_Type>::interpolate()
     prec_Type* precRawPtr;
     basePrecPtr_Type precPtr;
     precRawPtr = new prec_Type;
-    precRawPtr->setDataFromGetPot ( M_datafile, "prec" );
+    precRawPtr->setDataFromGetPot ( M_datafile, "interpolation/prec" );
     precPtr.reset ( precRawPtr );
 
     LinearSolver solverRBF1;
@@ -497,8 +506,8 @@ void RBFvectorial<mesh_Type>::interpolate()
     M_projectionOperator->multiply (false, *gamma_f3, *solution3);
 
     M_unknownField->subset (*solution1, *M_projectionOperatorMap, 0, 0);
-    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
-    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
+    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size() / 3);
+    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size() / 3 * 2);
 
 }
 
@@ -528,8 +537,10 @@ template <typename mesh_Type>
 bool RBFvectorial<mesh_Type>::isInside (ID pointMarker, flagContainer_Type flags)
 {
     int check = 0;
-    if(flags[0]==-1)
+    if (flags[0] == -1)
+    {
         return true;
+    }
     else
     {
         for (UInt i = 0; i < flags.size(); ++i)
@@ -544,28 +555,37 @@ bool RBFvectorial<mesh_Type>::isInside (ID pointMarker, flagContainer_Type flags
 template <typename mesh_Type>
 double RBFvectorial<mesh_Type>::rbf (double x1, double y1, double z1, double x2, double y2, double z2, double radius)
 {
-    double distance = sqrt ( pow (x1 - x2, 2) + pow (y1 - y2, 2) + pow (z1 - z2, 2) );
+    double distance = std::sqrt ( std::pow (x1 - x2, 2) + std::pow (y1 - y2, 2) + std::pow (z1 - z2, 2) );
 
-    if(M_basis=="BW")
-        return pow (1 - distance / radius, 4) * (4 * distance / radius + 1);
-    else if(M_basis=="TPS")
+    if (M_basis == "BW")
+    {
+        return std::pow (1 - distance / radius, 4) * (4 * distance / radius + 1);
+    }
+    else if (M_basis == "TPS")
         if (distance == 0)
+        {
             return 0;
+        }
         else
-            return abs(distance/radius)*abs(distance/radius)*log(distance/radius);
-    else if(M_basis=="IMQ")
-        return 1/sqrt( abs(distance)*abs(distance) + radius*radius);
+        {
+            return std::abs (distance / radius) * std::abs (distance / radius) * std::log (distance / radius);
+        }
+    else if (M_basis == "IMQ")
+    {
+        return 1 / std::sqrt ( std::abs (distance) * std::abs (distance) + radius * radius);
+    }
+
 }
 
 template <typename mesh_Type>
-void RBFvectorial<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
+void RBFvectorial<mesh_Type>::updateRhs (vectorPtr_Type newRhs)
 {
     *M_RhsF1 *= 0;
     M_RhsF1->subset (*newRhs, *M_interpolationOperatorMap, 0, 0);
     *M_RhsF2 *= 0;
-    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3, 0);
+    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size() / 3, 0);
     *M_RhsF3 *= 0;
-    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3*2, 0);
+    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size() / 3 * 2, 0);
 }
 
 template <typename mesh_Type>
@@ -576,7 +596,7 @@ void RBFvectorial<mesh_Type>::solution (vectorPtr_Type& Solution)
 
 //! Factory create function
 template <typename mesh_Type>
-inline RBFInterpolation<mesh_Type> * createRBFvectorial()
+inline RBFInterpolation<mesh_Type>* createRBFvectorial()
 {
     return new RBFvectorial< mesh_Type > ();
 }

@@ -1440,12 +1440,9 @@ void MeshPartitioner<MeshType>::finalSetup()
         (*M_meshPartitions) [i]->setNumVertices (nNodes );
         (*M_meshPartitions) [i]->setNumBVertices (M_nBoundaryPoints[i]);
 
-        if (MeshType::S_geoDimensions == 3)
-        {
-            (*M_meshPartitions) [i]->updateElementRidges();
-        }
+        updateMeshRidges ( * ( (*M_meshPartitions) [i] ) );
 
-        (*M_meshPartitions) [i]->updateElementFacets();
+        updateMeshFacets ( * ( (*M_meshPartitions) [i] ) );
 
 #ifdef HAVE_LIFEV_DEBUG
         if (M_serialMode)

@@ -160,6 +160,7 @@ public:
     typedef StructuralConstitutiveLawData                 data_Type;
 
     typedef RegionMesh<LinearTetra >                      mesh_Type;
+    typedef  boost::shared_ptr<mesh_Type>                 meshPtr_Type;
     typedef std::vector< mesh_Type::element_Type* >       vectorVolumes_Type;
     typedef std::vector< UInt >                           vectorIndexes_Type;
 
@@ -227,7 +228,7 @@ public:
     void setup ( boost::shared_ptr<data_Type>  data,
                  const FESpacePtr_Type&        dFESpace,
                  const ETFESpacePtr_Type&      dETFESpace,
-                 bcHandler_Type&       BCh,
+                 const bcHandler_Type&       BCh,
                  boost::shared_ptr<Epetra_Comm>&     comm
                );
 
@@ -496,7 +497,7 @@ public:
     //! Set the data fields with the Getpot data file for preconditioners and solver
     void setDataFromGetPot ( const GetPot& dataFile );
 
-    void setTimeAdvance( const timeAdvancePtr_Type& timeAdvancePtr )
+    void setTimeAdvance ( const timeAdvancePtr_Type& timeAdvancePtr )
     {
         M_timeAdvance = timeAdvancePtr;
     }
@@ -539,11 +540,20 @@ public:
     {
         return *M_dispFESpace;
     }
+    FESpacePtr_Type dispFESpacePtr()
+    {
+        return M_dispFESpace;
+    }
 
     //! Get the ETFESpace object
     ETFESpace_Type& dispETFESpace()
     {
         return *M_dispETFESpace;
+    }
+
+    ETFESpacePtr_Type dispETFESpacePtr()
+    {
+        return M_dispETFESpace;
     }
 
     //! Get the bCHandler object
@@ -677,6 +687,15 @@ public:
         return M_timeAdvance;
     }
 
+    inline meshPtr_Type mesh() const
+    {
+        return M_dispFESpace -> mesh();
+    }
+
+    inline Real res1() 
+    {
+        return M_res1;
+    }
     //@}
 
 protected:
@@ -787,6 +806,7 @@ protected:
 
     UInt                                 M_offset;
     Real                                 M_rescaleFactor;
+    Real M_res1;
     //  Real                                 M_zeta;
     //  Real                                 M_theta;
 
@@ -829,6 +849,7 @@ StructuralOperator<Mesh>::StructuralOperator( ) :
     M_residual_d                 ( ),
     M_out_iter                   ( ),
     M_out_res                    ( ),
+    M_res1 (0.0),
     M_BCh                        ( ),
     M_localMap                   ( ),
     M_massMatrix                 ( ),
@@ -856,7 +877,7 @@ void
 StructuralOperator<Mesh>::setup (boost::shared_ptr<data_Type>          data,
                                  const FESpacePtr_Type& dFESpace,
                                  const ETFESpacePtr_Type& dETFESpace,
-                                 bcHandler_Type&                    BCh,
+                                 const bcHandler_Type&                    BCh,
                                  boost::shared_ptr<Epetra_Comm>&   comm)
 {
     setup (data, dFESpace, dETFESpace, comm);
@@ -1091,10 +1112,17 @@ StructuralOperator<Mesh>::iterate ( const bcHandler_Type& bch )
 
     M_BCh = bch;
 
-    Real abstol  = 1.e-7;
-    Real reltol  = 1.e-7;
+//    Int argc; char** argv;
+//    GetPot command_line (argc, argv);
+//    string data_file_name = command_line.follow ("data", 2, "-f", "--file");
+//    GetPot dataFile ( data_file_name );
+//
+//    Real abstol  = dataFile ( "solid/Newton/abstol", 1.e-7 );
+//    Real reltol  = dataFile ( "solid/Newton/reltol", 1.e-7 );
+    Real abstol = 5e-6;
+    Real reltol = 1e-6;
     UInt maxiter = 200;
-    Real etamax  = 1e-7;
+    Real etamax  = 1e-1;
     Int NonLinearLineSearch = 0;
 
     Real time = M_data->dataTime()->time();
@@ -1103,7 +1131,7 @@ StructuralOperator<Mesh>::iterate ( const bcHandler_Type& bch )
 
     if ( M_data->verbose() )
     {
-        status = NonLinearRichardson ( *M_disp, *this, abstol, reltol, maxiter, etamax, NonLinearLineSearch, 0, 2, M_out_res, M_data->dataTime()->time() );
+        status = NonLinearRichardson ( *M_disp, *this, abstol, reltol, maxiter, etamax, NonLinearLineSearch, 0, 2, M_out_res, M_data->dataTime()->time(), M_res1 );
     }
     else
     {
@@ -1481,6 +1509,7 @@ StructuralOperator<Mesh>::evalResidual ( vector_Type& residual, const vector_Typ
     {
         chrono.start();
         *M_rhs = *M_rhsNoBC;
+        M_massMatrix -> globalAssemble();
         residual = *M_massMatrix * solution;
         residual += *M_material->stiffVector();
         vector_Type solRep (solution, Repeated);
@@ -1666,7 +1695,7 @@ template <typename Mesh>
 void StructuralOperator<Mesh>::
 solveJacobian (vector_Type&           step,
                const vector_Type&     res,
-               Real&                 /*linear_rel_tol*/,
+               Real&                 linear_rel_tol,
                bcHandler_Type&       /* BCh*/)
 {
     LifeChrono chrono;
@@ -1700,7 +1729,7 @@ solveJacobian (vector_Type&           step,
     //Setting up the quantities
     M_linearSolver->setOperator ( matrFull );
     M_linearSolver->setRightHandSide ( pointerToRes );
-
+    M_linearSolver-> setTolerance ( linear_rel_tol );
     //Solving the system
     M_linearSolver->solve ( pointerToStep );
 

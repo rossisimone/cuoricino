@@ -9,7 +9,6 @@ TRIBITS_ADD_EXECUTABLE(
   )
 
 IF (LifeV_ENABLE_NavierStokes)
-
 TRIBITS_ADD_TEST(
   Framework
   POSTFIX_AND_ARGS_0 Fluid3D_MTNS       -s 1 -f MultiscaleDatabase/Test_Fluid3D.dat                   -c 267617.11076637130 -o Test_1
@@ -20,7 +19,6 @@ TRIBITS_ADD_TEST(
 ENDIF ()
 
 IF (LifeV_ENABLE_FSI)
-
 TRIBITS_ADD_TEST(
   Framework
   POSTFIX_AND_ARGS_0 FSI3D_MTNS         -s 1 -f MultiscaleDatabase/Test_FSI3D.dat                     -c 69.503547600977484 -o Test_3
@@ -30,8 +28,7 @@ TRIBITS_ADD_TEST(
   
 ENDIF ()
 
-IF (LifeV_ENABLE_OneDFSI)
-  
+IF (LifeV_ENABLE_OneDFSI)  
 TRIBITS_ADD_TEST(
   Framework
   POSTFIX_AND_ARGS_0 FSI1D_MNS          -s 1 -f MultiscaleDatabase/Test_FSI1D.dat                     -c 1281.4882585623886 -o Test_2
@@ -43,6 +40,12 @@ IF (LifeV_ENABLE_ZeroDimensional)
 TRIBITS_ADD_TEST(
   Framework
   POSTFIX_AND_ARGS_0 Windkessel0D       -s 1 -f MultiscaleDatabase/Test_Windkessel0D.dat              -c 105330.10083689842 -o Test_0
+  NUM_MPI_PROCS 4
+  COMM mpi
+  )
+TRIBITS_ADD_TEST(
+  Framework
+  POSTFIX_AND_ARGS_0 Valve0D            -s 1 -f MultiscaleDatabase/Test_Valve0D.dat                   -c 105330.10083689842 -o Test_5
   NUM_MPI_PROCS 4
   COMM mpi
   )

@@ -1043,8 +1043,8 @@ void regularMesh3D ( RegionMesh<GeoShape, MC>& mesh,
          << " IS (ALMOST) ZERO" << std::endl;
 
     // Updates the connectivity of the mesh
-    mesh.updateElementEdges ( true, verbose );
-    mesh.updateElementFaces ( true, verbose );
+    updateMeshRidges ( mesh, true, verbose );
+    updateMeshFacets ( mesh, true, verbose );
 }
 
 //@}

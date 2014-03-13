@@ -118,6 +118,10 @@ public:
     typedef FESpace< MeshType, MapEpetra >                FESpace_Type;
     typedef boost::shared_ptr<FESpace_Type>               FESpacePtr_Type;
 
+    typedef MeshType                                        mesh_Type;
+    typedef ETFESpace< mesh_Type, MapEpetra, 3, 1 >                        scalarETFESpace_Type;
+    typedef boost::shared_ptr<ETFESpace< mesh_Type, MapEpetra, 3, 1 > >    scalarETFESpacePtr_Type;
+
     //Vector for vector parameters
     typedef std::vector<std::vector<Real> >           vectorsParameters_Type;
     typedef boost::shared_ptr<vectorsParameters_Type> vectorsParametersPtr_Type;
@@ -188,6 +192,9 @@ public:
                                      const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
                                      const displayerPtr_Type& displayer ) = 0;
 
+    virtual  void computeResidual ( const vector_Type& disp ) {}
+
+
 
     //! Computes the deformation Gradient F, the cofactor of F Cof(F),
     //! the determinant of F J = det(F), the trace of C Tr(C).
@@ -203,7 +210,7 @@ public:
        \param fileNameStiff the filename where to apply the spy method for the Stiffness matrix
     */
     virtual void showMe ( std::string const& fileNameStiff, std::string const& fileNameJacobian ) = 0;
-
+    // virtual void showMyParameters ();
 
     //! Compute the First Piola Kirchhoff Tensor
     /*!
@@ -230,8 +237,13 @@ public:
 
     //! @name Get Methods
     //@{
-
+    virtual void showMyParameters () {}
     //! Getters
+    inline const dataPtr_Type materialData() const
+    {
+        return M_dataMaterial;
+    }
+
     //! Get the Epetramap
     MapEpetra   const& map()     const
     {
@@ -260,6 +272,83 @@ public:
                          const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
                          const mapMarkerIndexesPtr_Type mapsMarkerIndexes) = 0;
 
+
+    ///EMPTY METHODS FOR ACTIVATED MATERIALS
+    inline virtual  vectorPtr_Type const fiberVector() const
+    {
+        /*return (new vector_Type( M_dispFESpace -> map() ) ); */
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
+    }
+
+    inline virtual void setFiberVector ( const vector_Type& /*fiberVector*/) {  }
+
+    inline virtual void setSheetVector ( const vector_Type& /*sheetVector*/) {  }
+
+    inline virtual void setGammaf (const vector_Type& /*gammaf*/) {}
+    inline virtual void setGammas (const vector_Type& /*gammas*/) {}
+    inline virtual void setGamman (const vector_Type& /*gamman*/) {}
+
+    inline virtual vectorPtr_Type gammaf()
+    {
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
+    }
+    inline virtual vectorPtr_Type gammas()
+    {
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
+    }
+    inline virtual vectorPtr_Type gamman()
+    {
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
+    }
+
+    inline virtual vectorPtr_Type fiberVectorPtr()
+    {
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
+    }
+    inline virtual vectorPtr_Type sheetVectorPtr()
+    {
+        vectorPtr_Type k;
+        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        return k;
+    }
+
+
+    inline virtual void setupFiberVector ( Real& /*fx*/, Real& /*fy*/, Real& /*fz*/ ) {}
+
+    inline virtual void setupSheetVector ( Real& /*sx*/, Real& /*sy*/, Real& /*sz*/ ) {}
+
+    inline  virtual scalarETFESpacePtr_Type activationSpace()
+    {
+        M_displayer->leaderPrint ("\nERROR: them chosen material law does not contain an activation space!!!! You fool!!!\n\n");
+        scalarETFESpacePtr_Type k;
+        return k;
+    }
+
+
+    inline virtual MatrixSmall<3, 3>& identity()
+    {
+        MatrixSmall<3, 3> I;
+        I (0, 0) = 1.0;
+        I (0, 1) = 0.0;
+        I (0, 2) = 0.0;
+        I (1, 0) = 0.0;
+        I (1, 1) = 1.0;
+        I (1, 2) = 0.0;
+        I (2, 0) = 0.0;
+        I (2, 1) = 0.0;
+        I (2, 2) = 1.0;
+        return I;
+    }
     //@}
 
 protected:

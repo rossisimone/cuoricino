@@ -70,6 +70,9 @@
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
 #include <lifev/structure/solver/ExponentialMaterialNonLinear.hpp>
 #include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
+#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
+#include <lifev/structure/solver/HolzapfelOgdenMaterial.hpp>
+#include <lifev/structure/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
 
 #include <lifev/core/fem/DOFInterface3Dto3D.hpp>
 #include <lifev/core/fem/DOFInterface3Dto2D.hpp>
@@ -116,7 +119,7 @@ public:
 #ifdef HAVE_HDF5
     typedef ExporterHDF5Mesh3D<mesh_Type>                                           meshFilter_Type;
 #endif
-
+    typedef boost::shared_ptr<mesh_Type>                                            meshPtr_Type;
     typedef OseenSolverShapeDerivative   <mesh_Type>                                fluid_Type;
     typedef StructuralOperator  <mesh_Type>                                           solid_Type;
     typedef HarmonicExtensionSolver<mesh_Type>                                      meshMotion_Type;
@@ -328,7 +331,6 @@ public:
     {
         return new VenantKirchhoffMaterialLinear< FSIOperator::mesh_Type >();
     }
-
     static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createVenantKirchhoffNonLinear()
     {
         return new VenantKirchhoffMaterialNonLinear< FSIOperator::mesh_Type >();
@@ -337,7 +339,6 @@ public:
     {
         return new ExponentialMaterialNonLinear< FSIOperator::mesh_Type >();
     }
-
     static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createNeoHookeanMaterialNonLinear()
     {
         return new NeoHookeanMaterialNonLinear< FSIOperator::mesh_Type >();
@@ -346,12 +347,23 @@ public:
     {
         return new VenantKirchhoffMaterialNonLinearPenalized< FSIOperator::mesh_Type >();
     }
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createNeoHookeanMaterialActivated()
+    {
+        return new NeoHookeanActivatedMaterial< FSIOperator::mesh_Type >();
+    }
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createHolzapfelOgdenMaterial()
+    {
+        return new HolzapfelOgdenMaterial< FSIOperator::mesh_Type >();
+    }
+    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createGeneralizedActiveHolzapfelOgdenMaterial()
+    {
+        return new GeneralizedActiveHolzapfelOgdenMaterial< FSIOperator::mesh_Type >();
+    }
 
     static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createSecondOrderExponentialMaterialNonLinear()
     {
         return new SecondOrderExponentialMaterialNonLinear< FSIOperator::mesh_Type >();
     }
-
 
     //@}
 
@@ -374,7 +386,7 @@ public:
        \param velAndPressure: initial vector containing the velocity and pressure
        \param displacement: initial vector containing the mesh displacement
      */
-    void initializeFluid ( const vector_Type& velAndPressure, const vector_Type& displacement );
+    void initializeFluid ( const vector_Type& velAndPressure, vector_Type& displacement );
 
     //! initializes the solid solver with vectors
     /**
@@ -387,7 +399,7 @@ public:
     /**
        \param disp displacement of the mesh, must be the difference between the current solution of the HE problem and the one at the previous time step.
      */
-    void moveMesh ( const vector_Type& disp );
+    void moveMesh ( vector_Type& disp );
 
     //     void solveLinearFluid();
     //     void solveLinearSolid();
@@ -604,6 +616,11 @@ public:
     {
         return *M_solid;
     }
+    //! Getter for the solid solver
+    const solidPtr_Type solidPtr()                                     const
+    {
+        return M_solid;
+    }
     //! Getter for the harmonic extension solver
     const meshMotion_Type& meshMotion()                           const
     {
@@ -671,6 +688,12 @@ public:
     {
         return *M_solidLocalMesh;
     }
+
+    inline meshPtr_Type& solidLocalMeshPtr()
+    {
+        return M_solidLocalMesh;
+    }
+
 
     //!getter for the fluid velocity FESpace
     const FESpace<mesh_Type, MapEpetra>& uFESpace()               const

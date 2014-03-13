@@ -105,7 +105,7 @@ public:
 
     void solutionrbf (vectorPtr_Type& Solution_rbf);
 
-    void updateRhs(vectorPtr_Type newRhs);
+    void updateRhs (vectorPtr_Type newRhs);
 
     void approximateInverse();
 
@@ -233,8 +233,10 @@ void RBFhtpVectorial<mesh_Type>::setupRBFData (vectorPtr_Type KnownField, vector
 template <typename Mesh>
 void RBFhtpVectorial<Mesh>::buildOperators()
 {
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "\n[Assembling Interpolation and Projection operators ] -----> ";
+    }
     LifeChrono TimeBuilding;
     TimeBuilding.start();
 
@@ -242,13 +244,17 @@ void RBFhtpVectorial<Mesh>::buildOperators()
     this->projectionOperator();
 
     TimeBuilding.stop();
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "done in " << TimeBuilding.diff() << " s \n\n";
+    }
 
     this->buildRhs();
 
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "[Computing the RBF interpolation matrix ] -----> ";
+    }
 
     LifeChrono TimeBuildingMatrix;
     TimeBuildingMatrix.start();
@@ -257,25 +263,29 @@ void RBFhtpVectorial<Mesh>::buildOperators()
 
     this->buildInterpolationMatrix();
 
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "done in " << TimeBuildingMatrix.diff() << " s \n\n";
+    }
 }
 
 template <typename Mesh>
 void RBFhtpVectorial<Mesh>::approximateInverse()
 {
-    M_multiplicative.reset(new matrix_Type(*M_interpolationOperator));
+    M_multiplicative.reset (new matrix_Type (*M_interpolationOperator) );
     *M_approximatedInverse -= *M_interpolationOperator;
     matrixPtr_Type result;
 
     for (int n = 2; n < 12; ++n)
     {
-        if(n>2)
-            M_multiplicative.reset(new matrix_Type(*result));
-        result.reset( new matrix_Type (*M_interpolationOperatorMap, 5000));
+        if (n > 2)
+        {
+            M_multiplicative.reset (new matrix_Type (*result) );
+        }
+        result.reset ( new matrix_Type (*M_interpolationOperatorMap, 5000) );
         M_multiplicative->globalAssemble();
-        M_multiplicative->multiply(false, *M_interpolationOperator, false, *result, true);
-        ( n%2==0 ) ? *M_approximatedInverse += *result : *M_approximatedInverse -= *result;
+        M_multiplicative->multiply (false, *M_interpolationOperator, false, *result, true);
+        ( n % 2 == 0 ) ? *M_approximatedInverse += *result : *M_approximatedInverse -= *result;
     }
     M_approximatedInverse->globalAssemble();
     result.reset();
@@ -285,7 +295,7 @@ template <typename Mesh>
 void RBFhtpVectorial<Mesh>::buildInterpolationMatrix()
 {
     M_RBFMatrix.reset ( new matrix_Type (*M_projectionOperatorMap, 5000) );
-    M_projectionOperator->multiply(false, *M_approximatedInverse, false, *M_RBFMatrix, false);
+    M_projectionOperator->multiply (false, *M_approximatedInverse, false, *M_RBFMatrix, false);
     M_RBFMatrix->globalAssemble (M_interpolationOperatorMap, M_projectionOperatorMap);
 
     vectorPtr_Type solutionOne;
@@ -293,28 +303,28 @@ void RBFhtpVectorial<Mesh>::buildInterpolationMatrix()
     M_RBFMatrix->multiply (false, *M_RhsOne, *solutionOne);
 
     matrixPtr_Type invDiag;
-    invDiag.reset ( new matrix_Type(*M_projectionOperatorMap, 5000) );
+    invDiag.reset ( new matrix_Type (*M_projectionOperatorMap, 5000) );
 
     int* Indices = new int[1];
     double Values;
 
     for ( int i = 0 ; i < M_projectionOperator->matrixPtr()->Map().NumMyElements(); ++i )
     {
-        if(solutionOne->blockMap().LID (solutionOne->blockMap().GID (i) ) != -1)
+        if (solutionOne->blockMap().LID (solutionOne->blockMap().GID (i) ) != -1)
         {
-            Indices[0] = M_projectionOperator->matrixPtr()->RowMap().GID(i);
-            Values = 1/((*solutionOne)[Indices[0]]);
+            Indices[0] = M_projectionOperator->matrixPtr()->RowMap().GID (i);
+            Values = 1 / ( (*solutionOne) [Indices[0]]);
             invDiag->matrixPtr()->InsertGlobalValues (Indices[0], 1, &Values, Indices);
         }
     }
 
-    delete Indices;
+    delete [] Indices;
 
     invDiag->globalAssemble ();
 
-    M_RescaledRBFMatrix.reset ( new matrix_Type(*M_projectionOperatorMap, 5000) );
-    invDiag->multiply(false, *M_RBFMatrix, false, *M_RescaledRBFMatrix, false);
-    M_RescaledRBFMatrix->globalAssemble(M_interpolationOperatorMap, M_projectionOperatorMap);
+    M_RescaledRBFMatrix.reset ( new matrix_Type (*M_projectionOperatorMap, 5000) );
+    invDiag->multiply (false, *M_RBFMatrix, false, *M_RescaledRBFMatrix, false);
+    M_RescaledRBFMatrix->globalAssemble (M_interpolationOperatorMap, M_projectionOperatorMap);
 
 }
 
@@ -332,8 +342,10 @@ void RBFhtpVectorial<mesh_Type>::interpolate()
     vectorPtr_Type solution3;
     solution3.reset (new vector_Type (*M_projectionOperatorMap) );
 
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "[Interpolate ] -----> ";
+    }
     LifeChrono TimeInterpolate;
     TimeInterpolate.start();
 
@@ -341,12 +353,14 @@ void RBFhtpVectorial<mesh_Type>::interpolate()
     M_RescaledRBFMatrix->multiply (false, *M_RhsF2, *solution2);
     M_RescaledRBFMatrix->multiply (false, *M_RhsF3, *solution3);
 
-    if(M_knownField->mapPtr()->commPtr()->MyPID()==0)
+    if (M_knownField->mapPtr()->commPtr()->MyPID() == 0)
+    {
         std::cout << "done in " << TimeInterpolate.diff() << " s \n\n";
+    }
 
     M_unknownField->subset (*solution1, *M_projectionOperatorMap, 0, 0);
-    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size()/3);
-    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size()/3*2);
+    M_unknownField->subset (*solution2, *M_projectionOperatorMap, 0, M_unknownField->size() / 3);
+    M_unknownField->subset (*solution3, *M_projectionOperatorMap, 0, M_unknownField->size() / 3 * 2);
 }
 
 template <typename Mesh>
@@ -398,15 +412,15 @@ void RBFhtpVectorial<Mesh>::interpolationOperator()
         k = 0;
         for ( boost::unordered_set<ID>::iterator it = MatrixGraph[i].begin(); it != MatrixGraph[i].end(); ++it)
         {
-                Indices[k] = *it;
-                Values[k]  = rbf ( M_fullMeshKnown->point (GlobalID[i]).x(),
-                                   M_fullMeshKnown->point (GlobalID[i]).y(),
-                                   M_fullMeshKnown->point (GlobalID[i]).z(),
-                                   M_fullMeshKnown->point (*it).x(),
-                                   M_fullMeshKnown->point (*it).y(),
-                                   M_fullMeshKnown->point (*it).z(),
-                                   RBF_radius[i]);
-                ++k;
+            Indices[k] = *it;
+            Values[k]  = rbf ( M_fullMeshKnown->point (GlobalID[i]).x(),
+                               M_fullMeshKnown->point (GlobalID[i]).y(),
+                               M_fullMeshKnown->point (GlobalID[i]).z(),
+                               M_fullMeshKnown->point (*it).x(),
+                               M_fullMeshKnown->point (*it).y(),
+                               M_fullMeshKnown->point (*it).z(),
+                               RBF_radius[i]);
+            ++k;
         }
         M_interpolationOperator->matrixPtr()->InsertGlobalValues (GlobalID[i], k, Values, Indices);
         M_approximatedInverse->matrixPtr()->InsertGlobalValues (GlobalID[i], 1, &diag, &GlobalID[i]);
@@ -519,8 +533,8 @@ void RBFhtpVectorial<mesh_Type>::buildRhs()
     M_RhsOne.reset (new vector_Type (*M_interpolationOperatorMap) );
 
     M_RhsF1->subset (*M_knownField, *M_interpolationOperatorMap, 0, 0);
-    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3, 0);
-    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size()/3*2, 0);
+    M_RhsF2->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3, 0);
+    M_RhsF3->subset (*M_knownField, *M_interpolationOperatorMap, M_knownField->size() / 3 * 2, 0);
     *M_RhsOne += 1;
 }
 
@@ -566,14 +580,14 @@ double RBFhtpVectorial<mesh_Type>::rbf (double x1, double y1, double z1, double 
 }
 
 template <typename mesh_Type>
-void RBFhtpVectorial<mesh_Type>::updateRhs(vectorPtr_Type newRhs)
+void RBFhtpVectorial<mesh_Type>::updateRhs (vectorPtr_Type newRhs)
 {
     *M_RhsF1 *= 0;
     M_RhsF1->subset (*newRhs, *M_interpolationOperatorMap, 0, 0);
     *M_RhsF2 *= 0;
-    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3, 0);
+    M_RhsF2->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size() / 3, 0);
     *M_RhsF3 *= 0;
-    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size()/3*2, 0);
+    M_RhsF3->subset (*newRhs, *M_interpolationOperatorMap, newRhs->size() / 3 * 2, 0);
 }
 
 template <typename mesh_Type>
@@ -590,7 +604,7 @@ void RBFhtpVectorial<mesh_Type>::solutionrbf (vectorPtr_Type& Solution_rbf)
 
 //! Factory create function
 template <typename mesh_Type>
-inline RBFInterpolation<mesh_Type> * createRBFhtpVectorial()
+inline RBFInterpolation<mesh_Type>* createRBFhtpVectorial()
 {
     return new RBFhtpVectorial< mesh_Type > ();
 }

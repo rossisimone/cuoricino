@@ -306,7 +306,7 @@ FSIMonolithic::computeFluidNormals ( vector_Type& normals)
 }
 
 void
-FSIMonolithic::solveJac ( vector_Type& step, const vector_Type& res, const Real /*linearRelTol*/ )
+FSIMonolithic::solveJac ( vector_Type& step, const vector_Type& res, const Real linearRelTol )
 {
     setupBlockPrec( );
 
@@ -319,7 +319,7 @@ FSIMonolithic::solveJac ( vector_Type& step, const vector_Type& res, const Real 
 #ifdef HAVE_LIFEV_DEBUG
     M_solid->displayer().leaderPrint ("  M-  Residual NormInf:                        ", res.normInf(), "\n");
 #endif
-    iterateMonolithic (res, step);
+    iterateMonolithic (res, step, linearRelTol);
 #ifdef HAVE_LIFEV_DEBUG
     M_solid->displayer().leaderPrint ("  M-  Solution NormInf:                        ", step.normInf(), "\n");
 #endif
@@ -338,7 +338,7 @@ FSIMonolithic::updateSystem()
 // Protected Methods
 // ===================================================
 void
-FSIMonolithic::iterateMonolithic (const vector_Type& rhs, vector_Type& step)
+FSIMonolithic::iterateMonolithic (const vector_Type& rhs, vector_Type& step, const Real linearRelTol)
 {
     LifeChrono chrono;
 
@@ -348,7 +348,7 @@ FSIMonolithic::iterateMonolithic (const vector_Type& rhs, vector_Type& step)
     //necessary if we did not imposed Dirichlet b.c.
 
     M_linearSolver->setOperator (*M_monolithicMatrix->matrix()->matrixPtr() );
-
+    M_linearSolver->setTolerance ( linearRelTol );
     M_linearSolver->setReusePreconditioner ( (M_reusePrec) && (!M_resetPrec) );
 
     int numIter = M_precPtr->solveSystem ( rhs, step, M_linearSolver );
@@ -424,6 +424,7 @@ evalResidual ( const vector_Type& sol, const vectorPtr_Type& rhs, vector_Type& r
         // Computing residual
         M_solid->apply (*solidPart, *resSolidPart);
 
+        /* DF add */
         resSolidPart->globalAssemble();
 
         // reassembling them in the right places
@@ -431,12 +432,14 @@ evalResidual ( const vector_Type& sol, const vectorPtr_Type& rhs, vector_Type& r
         // sol.subset( *solidPart, solidPart->map(), UInt(0), M_offset);
         res.subset ( *resSolidPart, resSolidPart->map(), UInt (0), M_offset);
 
+        /* DF add */
         res.globalAssemble();
 
         M_fluidBlock->globalAssemble();
 
         res += ( (*M_fluidBlock) * sol);
 
+        /* DF add */
         M_monolithicMatrix->coupling()->globalAssemble();
 
         res += *M_monolithicMatrix->coupling() * sol;
@@ -574,8 +577,8 @@ void FSIMonolithic::initializeMonolithicOperator ( std::vector< vectorPtr_Type> 
             }
             for (i = 0; i < M_ALETimeAdvance->size(); ++i)
             {
-	        vectorPtr_Type vec (new vector_Type ( M_mmFESpace->map() ) );
-	        df0.push_back (vec); // couplingVariableMap()
+                vectorPtr_Type vec (new vector_Type ( M_mmFESpace->map() ) );
+                df0.push_back (vec); // couplingVariableMap()
             }
         }
         if ( this->isSolid() )

@@ -40,6 +40,8 @@
 #ifndef _REGIONMESH_HH_
 #define _REGIONMESH_HH_
 
+#include <cstdlib>
+#include <iomanip>
 #include <fstream>
 
 
@@ -61,7 +63,9 @@
 #include <lifev/core/mesh/MeshEntityContainer.hpp>
 #include <lifev/core/array/ArraySimple.hpp>
 #include <lifev/core/mesh/ElementShapes.hpp>
-#include <lifev/core/mesh/MeshUtility.hpp>
+#include <lifev/core/mesh/MeshTransformer.hpp>
+#include <lifev/core/mesh/UpdateMeshFacetsRidges.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 
 namespace LifeV
 {
@@ -273,6 +277,18 @@ public:
     //! Setter for the communicator
     void setComm ( commPtr_Type const& comm );
 
+    //! Getter for M_elemToFacet
+    ArraySimple<UInt>& elemToFacet()
+    {
+        return M_ElemToFacet;
+    }
+
+    //! Getter for M_elemToRidge
+    ArraySimple<UInt>& elemToRidge()
+    {
+        return M_ElemToRidge;
+    }
+
     /** @} */ // End of group Utilities
 
     /** @name Switches Methods
@@ -371,6 +387,16 @@ public:
     bool isPartitioned() const
     {
         return M_isPartitioned;
+    }
+
+    //! get M_geoDim
+    /**
+     * @brief geoDim
+     * @return M_geoDim member
+     */
+    geoDim_Type geoDim() const
+    {
+        return M_geoDim;
     }
 
     /** @} */ // End of group Generic Methods
@@ -609,7 +635,7 @@ public:
      *  methods in #include MeshChecks.hpp
      *
      */
-    void updateElementFacets ( bool createFaces = false, bool verbose = false, UInt estimateFacetNumber = 0 );
+    LIFEV_DEPRECATED ( void updateElementFacets ( bool createFaces = false, bool verbose = false, UInt estimateFacetNumber = 0 ) );
 
 
 
@@ -628,7 +654,7 @@ public:
      *  methods in #include MeshChecks.hpp
      *
      */
-    void updateElementFaces ( bool createFaces = false, const bool verbose = false, UInt estimateFaceNumber = 0 );
+    LIFEV_DEPRECATED ( void updateElementFaces ( bool createFaces = false, const bool verbose = false, UInt estimateFaceNumber = 0 ) );
 
     //! Destroys element-to-facet container. Useful to save memory!
     void cleanElementFacets();
@@ -699,10 +725,10 @@ public:
      *  @note This method does not assume that boundary edges are stores, since
      *  this condition is NOT a a paradigm for a RegionMesh.
      */
-    void updateElementRidges ( bool createRidges = false, const bool verbose = false,
-                               UInt estimateRidgeNumber = 0, bool renumber = true)
+    LIFEV_DEPRECATED ( void updateElementRidges ( bool createRidges = false, const bool verbose = false,
+                                                  UInt estimateRidgeNumber = 0, bool renumber = true) )
     {
-        updateElementRidges ( M_geoDim, createRidges, verbose, estimateRidgeNumber, renumber);
+        updateMeshRidges ( *this, createRidges, verbose, estimateRidgeNumber, renumber);
     }
 
     //! Builds localEdgeId table and optionally fills the list of Edges
@@ -722,8 +748,8 @@ public:
      *  @note This method does not assume that boundary edges are already stored, since
      *  this condition is NOT an invariant of a RegionMesh3D.
      */
-    void updateElementEdges ( bool createEdges = false, const bool verbose = false,
-                              UInt estimateEdgeNumber = 0, bool renumber = true)
+    LIFEV_DEPRECATED ( void updateElementEdges ( bool createEdges = false, const bool verbose = false,
+                                                 UInt estimateEdgeNumber = 0, bool renumber = true) )
     {
         updateElementEdges ( edge_Type(), createEdges, verbose, estimateEdgeNumber, renumber);
     }
@@ -2374,27 +2400,27 @@ private:
     }
 
     //! Build localEdgeId table and optionally fills the list of Edges
-    void updateElementEdges ( ridge_Type, bool createEdges = false, const bool verbose = false,
-                              UInt estimateEdgeNumber = 0, bool renumber = true)
+    LIFEV_DEPRECATED ( void updateElementEdges ( ridge_Type, bool createEdges = false, const bool verbose = false,
+                                                 UInt estimateEdgeNumber = 0, bool renumber = true) )
     {
-        updateElementRidges ( M_geoDim, createEdges, verbose, estimateEdgeNumber, renumber);
+        updateMeshRidges ( *this, createEdges, verbose, estimateEdgeNumber, renumber);
     }
 
     //! Build localEdgeId table and optionally fills the list of Edges
-    void updateElementEdges ( facet_Type, bool createEdges = false, const bool verbose = false,
-                              UInt estimateEdgeNumber = 0, bool /*renumber*/ = true)
+    LIFEV_DEPRECATED ( void updateElementEdges ( facet_Type, bool createEdges = false, const bool verbose = false,
+                                                 UInt estimateEdgeNumber = 0, bool /*renumber*/ = true) )
     {
         updateElementFacets ( createEdges, verbose, estimateEdgeNumber);
     }
 
     //! Build localRidgeId table and optionally fills the list of Ridges
-    void updateElementRidges ( threeD_Type, bool createRidges = false, const bool verbose = false,
-                               UInt estimateRidgeNumber = 0, bool renumber = true);
-    void updateElementRidges ( twoD_Type, bool, const bool, UInt, bool)
+    LIFEV_DEPRECATED ( void updateElementRidges ( threeD_Type, bool createRidges = false, const bool verbose = false,
+                                                  UInt estimateRidgeNumber = 0, bool renumber = true) );
+    LIFEV_DEPRECATED ( void updateElementRidges ( twoD_Type, bool, const bool, UInt, bool) )
     {
         ERROR_MSG ("RegionMesh::updateElementRidges, It is not possible to use this method with 2D geometries.");
     }
-    void updateElementRidges ( oneD_Type, bool, const bool, UInt, bool)
+    LIFEV_DEPRECATED ( void updateElementRidges ( oneD_Type, bool, const bool, UInt, bool) )
     {
         ERROR_MSG ("RegionMesh::updateElementRidges, It is not possible to use this method with 1D geometries.");
     }
@@ -3513,49 +3539,7 @@ RegionMesh<GeoShapeType, MCType>::showMe ( bool verbose, std::ostream& out ) con
     out << "**************************************************" << std::endl;
     if ( verbose )
     {
-        out << "list of points " << this->numPoints() << std::endl;
-        for ( UInt i = 0; i < this->numPoints(); i++ )
-        {
-            out << "p " << i << " (" << this->point ( i ).id() << "): "
-                << this->point ( i ).coordinate ( 0 ) << " "
-                << this->point ( i ).coordinate ( 1 ) << " "
-                << this->point ( i ).coordinate ( 2 ) << std::endl;
-        }
-
-        out << "list of elements " << this->numElements() << std::endl;
-        for ( UInt i = 0; i < this->numElements(); i++ )
-        {
-            out << "e " << i << " (" << this->element ( i ).id() << "): ";
-            for ( UInt j = 0; j < element_Type::S_numPoints; j++ )
-            {
-                out << this->element ( i ).point ( j ).localId() << " ";
-            }
-            out << std::endl;
-        }
-
-        out << "list of facets " << this->numFacets() << std::endl;
-        for ( UInt i = 0; i < this->numFacets(); i++ )
-        {
-            out << "f " << i << " (" << this->facet ( i ).id() << "): ";
-            for ( UInt j = 0; j < facet_Type::S_numPoints; j++ )
-            {
-                out << this->facet ( i ).point ( j ).localId() << " ";
-            }
-            out << std::endl;
-        }
-
-        // @todo the ridge part cannot be printed since in 2d ridges
-        // do not have S_numPoints
-        /*
-                out << "list of ridges " << this->numRidges() << std::endl;
-                for( UInt i = 0; i < this->numRidges(); i++ )
-                {
-                    out << "r " << i << " (" << this->ridge( i ).id() << "): ";
-                    for ( UInt j = 0; j < ridge_Type::S_numPoints; j++ )
-                        out << this->ridge( i ).point( j ).localId() << " ";
-                    out << std::endl;
-                }
-        */
+        std::cout << "Verbose version not implemented yet";
     }
     return out;
 
@@ -3960,7 +3944,7 @@ RegionMesh<GeoShapeType, MCType>::boundaryFacet ( oneD_Type, const UInt& i )
 
 // Forward Declarations
 template <typename GeoShapeType, typename MCType>
-void
+inline void
 RegionMesh<GeoShapeType, MCType>::updateElementRidges (threeD_Type, bool ce, bool verb, UInt ee, bool renumber )
 {
     bool verbose = verb && ( M_comm->MyPID() == 0 );
@@ -4150,214 +4134,17 @@ RegionMesh<GeoShapeType, MCType>::updateElementRidges (threeD_Type, bool ce, boo
 //
 
 template <typename GeoShapeType, typename MCType>
-void
+inline void
 RegionMesh<GeoShapeType, MCType>::updateElementFacets ( bool cf, bool verbose, UInt ef )
 {
-    verbose = verbose && ( M_comm->MyPID() == 0 );
-
-    typedef BareEntitySelector<typename facetShape_Type::BasRefSha> bareEntitySelector_Type;
-    typedef typename bareEntitySelector_Type::bareEntity_Type bareFacet_type;
-
-    if (verbose)
-    {
-        std::cout << "     Updating element facets ... " << std::flush;
-    }
-
-    ASSERT0 ( ! cf || numBoundaryFacets() > 0, std::stringstream ( std::string ("Boundary Facets Must have been set") +
-                                                                   std::string ("in order to call updateElementFacets with createFacets=true") +
-                                                                   std::string ("\nUse buildBoundaryFacets(..) from mesh_util.h") ).str().c_str() );
-    // If the counter is set we trust it! Otherwise we use Euler formula
-
-    if ( cf && ef == 0 )
-    {
-        ef = numFacets() > numBoundaryFacets() ? numFacets() : ( geoShape_Type::S_numFacets * numElements() + numBoundaryFacets() ) / 2;
-    }
-
-    ASSERT ( cf || numFacets() > 0 , "Mesh is not properly set!" );
-
-    if ( cf )
-    {
-        facetList().setMaxNumItems ( ef );
-    }
-
-
-
-    facet_Type aFacet;
-
-    MeshElementBareHandler<bareFacet_type> bareFacet;
-    // Extra map for facets stored which are not boundary facets
-    MeshElementBareHandler<bareFacet_type> extraBareFacet;
-    std::pair<UInt, bool> e;
-    M_ElemToFacet.reshape ( element_Type::S_numLocalFacets, numElements() ); // DIMENSION ARRAY
-
-    UInt elemLocalID;
-    std::pair<bareFacet_type, bool>_facet;
-
-    GeoShapeType ele;
-    // If we have all facets and the facets store all adjacency info
-    // everything is easier
-    if ( (facetList().size() == numFacets() ) && getLinkSwitch ( "FACETS_HAVE_ADIACENCY" ) && getLinkSwitch ( "HAS_ALL_FACETS" ) )
-    {
-        for ( typename facets_Type::iterator itf = facetList().begin(); itf != facetList().end(); ++itf )
-        {
-            if ( itf->firstAdjacentElementPosition() != NotAnId && itf->firstAdjacentElementIdentity() != NotAnId)
-            {
-                M_ElemToFacet ( itf->firstAdjacentElementPosition() , itf->firstAdjacentElementIdentity() ) = itf->localId();
-            }
-            if ( itf->secondAdjacentElementPosition() != NotAnId && itf->secondAdjacentElementIdentity() != NotAnId)
-            {
-                M_ElemToFacet ( itf->secondAdjacentElementPosition(), itf->secondAdjacentElementIdentity() ) = itf->localId();
-            }
-        }
-        // we finish here
-        setLinkSwitch ( "HAS_ELEMENT_TO_FACETS" );
-        if (verbose)
-        {
-            std::cout << " done." << std::endl;
-        }
-
-        return ;
-    }
-
-    // If I have only boundary facets I need to process them first to keep the correct numbering
-
-    // First We check if we have already Facets stored
-    UInt _numOriginalStoredFacets = facetList().size();
-    ID points[facetShape_Type::S_numVertices];
-    if ( ! facetList().empty() )
-    {
-        // dump all facets in the container, to maintain the correct numbering
-        // if everything is correct the numbering in the bareFacet structure
-        // will reflect the actual facet numbering. However, if I want to create
-        // the internal facets I need to make sure that I am processing only the
-        // boundary ones in a special way.
-        std::pair<UInt, bool> _check;
-        for ( UInt j = 0; j < facetList().size(); ++j )
-        {
-            for (UInt k = 0; k < facetShape_Type::S_numVertices; k++)
-            {
-                points[k] = ( facet ( j ).point ( k ) ).localId();
-            }
-            _facet = bareEntitySelector_Type::makeBareEntity ( points );
-            _check = bareFacet.addIfNotThere ( _facet.first );
-            if ( ! ( this->facet ( j ).boundary() ) )
-            {
-                extraBareFacet.addIfNotThere ( _facet.first, j);
-            }
-        }
-    }
-    UInt numFoundBoundaryFacets = bareFacet.size();
-    UInt facetCount = numFoundBoundaryFacets;
-    for ( typename elements_Type::iterator elemIt = elementList().begin();
-            elemIt != elementList().end(); ++elemIt )
-    {
-        elemLocalID = elemIt->localId();
-        for ( UInt j = 0; j < element_Type::S_numLocalFacets; j++ )
-        {
-            for (UInt k = 0; k < facetShape_Type::S_numVertices; k++)
-            {
-                UInt id = ele.facetToPoint ( j, k );
-                points[k] = elemIt->point ( id ).localId();
-            }
-            _facet = bareEntitySelector_Type::makeBareEntity ( points );
-
-            e = bareFacet.addIfNotThere ( _facet.first );
-            M_ElemToFacet ( j, elemLocalID ) = e.first;
-            bool _isBound = e.first < numFoundBoundaryFacets;
-            // Is the facet an extra facet (not on the boundary but originally included in the list)?
-            bool _isExtra = (e.first >= numFoundBoundaryFacets && e.first < _numOriginalStoredFacets);
-            if ( _isBound )
-            {
-                facet_Type& _thisFacet (facet (e.first) );
-                _thisFacet.firstAdjacentElementIdentity()   = elemLocalID;
-                _thisFacet.firstAdjacentElementPosition()   = j;
-                _thisFacet.secondAdjacentElementIdentity()  = NotAnId;
-                _thisFacet.secondAdjacentElementPosition()  = NotAnId;
-            }
-            else if (_isExtra)
-            {
-                // This is not a bfacets and I need to set up all info about adjacency properly
-                facet_Type& _thisFacet (facet (e.first) );
-                // I need to check if it is the first time I meet it. Then I delete it from the
-                // map: if it as there it means that it is the first time I am treating this face
-                if (extraBareFacet.deleteIfThere (_facet.first) )
-                {
-                    // I need to be sure about orientation, the easiest thing is to rewrite the facet points
-                    for ( UInt k = 0; k < facet_Type::S_numPoints; ++k )
-                    {
-                        _thisFacet.setPoint ( k, elemIt->point ( ele.facetToPoint ( j, k ) ) );
-                    }
-                    _thisFacet.firstAdjacentElementIdentity()  = elemLocalID;
-                    _thisFacet.firstAdjacentElementPosition()  = j;
-
-                }
-                else
-                {
-                    _thisFacet.secondAdjacentElementIdentity()  = elemLocalID;
-                    _thisFacet.secondAdjacentElementPosition()  = j;
-                }
-            }
-            else if ( cf ) // A facet not contained in the original list.
-                // I process it only if requested!
-            {
-                if ( e.second )
-                {
-                    // a new facet It must be internal.
-                    for ( UInt k = 0; k < facet_Type::S_numPoints; ++k )
-                    {
-                        aFacet.setPoint ( k, elemIt->point ( ele.facetToPoint ( j, k ) ) );
-                    }
-
-                    aFacet.firstAdjacentElementIdentity()  = elemLocalID;
-                    aFacet.firstAdjacentElementPosition() = j;
-
-                    // gets the marker from the RegionMesh
-                    aFacet.setMarkerID ( NotAnId );
-                    aFacet.setBoundary (false);
-                    aFacet.setId ( facetCount++ );
-                    addFacet ( aFacet); //The id should be correct
-                }
-                else
-                {
-                    facet ( e.first ).secondAdjacentElementIdentity() = elemLocalID;
-                    facet ( e.first ).secondAdjacentElementPosition() = j;
-                }
-            }
-        }
-    }
-
-    UInt n = bareFacet.maxId();
-    // LF Fix _numfacets. This part has to be checked. One may want to use
-    // this method on a partitioned mesh, in which case the Global facets are there
-    setNumFacets (n); // We have found the right total number of facets in the mesh
-    if (numGlobalFacets() == 0)
-    {
-        setMaxNumGlobalFacets (n);    // If not already set fix it.
-    }
-
-    if (verbose)
-    {
-        std::cout << n << " facets ";
-    }
-    //ASSERT_POS( n == M_numFacets , "#Facets found inconsistent with that stored in RegionMesh" ) ;
-    setLinkSwitch ( "HAS_ELEMENT_TO_FACETS" );
-    if ( cf )
-    {
-        setLinkSwitch ( "HAS_ALL_FACETS" );
-    }
-    //if ( cf ) Facets have adjacency in any case!
-    setLinkSwitch ( "FACETS_HAVE_ADIACENCY" );
-    if (verbose)
-    {
-        std::cout << " done." << std::endl;
-    }
+    updateMeshFacets ( *this, cf, verbose, ef );
 }
 
 template <typename GeoShapeType, typename MCType>
-void RegionMesh<GeoShapeType, MCType>::updateElementFaces ( bool createFaces, const bool verbose, UInt estimateFaceNumber)
+inline void RegionMesh<GeoShapeType, MCType>::updateElementFaces ( bool createFaces, const bool verbose, UInt estimateFaceNumber)
 {
     ASSERT_PRE (S_geoDimensions == 3, "RegionMesh::updateElementFaces, It is not possible to use this method with 2D and 1D geometries.");
-    updateElementFacets ( createFaces , verbose, estimateFaceNumber );
+    updateMeshFacets ( *this, createFaces , verbose, estimateFaceNumber );
 }
 
 template <typename GeoShapeType, typename MCType>
@@ -4425,4 +4212,3 @@ void inline RegionMesh<GeoShapeType, MCType>::setComm ( commPtr_Type const& comm
 } // End of namespace LifeV
 
 #endif //REGIONMESH_H
-

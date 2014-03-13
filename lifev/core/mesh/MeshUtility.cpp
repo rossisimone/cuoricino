@@ -35,6 +35,12 @@
  */
 
 #include <lifev/core/mesh/MeshUtility.hpp>
+#include <lifev/core/util/LifeChrono.hpp>
+#include <lifev/core/util/Displayer.hpp>
+#include <lifev/core/mesh/MeshData.hpp>
+#include <lifev/core/mesh/RegionMesh3DStructured.hpp>
+#include <lifev/core/mesh/MeshPartitioner.hpp>
+#include <lifev/core/filter/PartitionIO.hpp>
 
 namespace LifeV
 {
@@ -85,6 +91,12 @@ const
     ret[ 1 ] = 1.0;
     ret[ 2 ] = 1.0;
 }
+
+//void
+//resetMesh ( boost::shared_ptr< RegionMesh<LinearTetra, defaultMarkerCommon_Type > >& fullmesh)
+//{
+//  fullMesh.reset(); //Freeing the global mesh to save memory
+//}
 
 } // namespace MeshUtility
 

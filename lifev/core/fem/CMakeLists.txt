@@ -41,6 +41,8 @@ SET(fem_HEADERS
   fem/TimeAdvanceData.hpp
   fem/TimeAdvanceNewmark.hpp
   fem/TimeData.hpp
+  fem/RosenbrockTransformed.hpp
+  fem/ROS3P.hpp
 CACHE INTERNAL "")
 
 SET(fem_SOURCES
@@ -72,6 +74,8 @@ SET(fem_SOURCES
   fem/ReferenceFEScalar.cpp
   fem/TimeAdvanceData.cpp
   fem/TimeData.cpp
+  fem/RosenbrockTransformed.cpp
+  fem/ROS3P.cpp
 CACHE INTERNAL "")
 
 

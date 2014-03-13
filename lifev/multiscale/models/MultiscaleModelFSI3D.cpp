@@ -54,7 +54,7 @@ MultiscaleModelFSI3D::MultiscaleModelFSI3D() :
     M_exporterSolid                (),
     M_importerFluid                (),
     M_importerSolid                (),
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     M_boundaryStressFunctions      (),
     M_externalPressureScalar       (),
 #endif
@@ -91,7 +91,8 @@ MultiscaleModelFSI3D::MultiscaleModelFSI3D() :
     M_linearFluidBC                (),
     M_linearSolidBC                (),
     M_linearRHS                    (),
-    M_linearSolution               ()
+    M_linearSolution               (),
+    M_verbosityLevel               (1)
 {
 
 #ifdef HAVE_LIFEV_DEBUG
@@ -111,11 +112,12 @@ MultiscaleModelFSI3D::MultiscaleModelFSI3D() :
 
     MonolithicBlockMatrix::Factory_Type::instance().registerProduct ("AdditiveSchwarz",   &MonolithicBlockMatrix::createAdditiveSchwarz ) ;
     MonolithicBlockMatrix::Factory_Type::instance().registerProduct ("AdditiveSchwarzRN", &MonolithicBlockMatrixRN::createAdditiveSchwarzRN ) ;
-
-    FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "linearVenantKirchhoff",    &FSIOperator::createVenantKirchhoffLinear );
-    FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "nonLinearVenantKirchhoff", &FSIOperator::createVenantKirchhoffNonLinear );
-    FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "exponential",              &FSIOperator::createExponentialMaterialNonLinear );
-    FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "neoHookean",               &FSIOperator::createNeoHookeanMaterialNonLinear );
+    /*
+        FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "linearVenantKirchhoff",    &FSIOperator::createVenantKirchhoffLinear );
+        FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "nonLinearVenantKirchhoff", &FSIOperator::createVenantKirchhoffNonLinear );
+        FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "exponential",              &FSIOperator::createExponentialMaterialNonLinear );
+        FSIOperator::solid_Type::material_Type::StructureMaterialFactory::instance().registerProduct ( "neoHookean",               &FSIOperator::createNeoHookeanMaterialNonLinear );
+    */
 }
 
 // ===================================================
@@ -164,6 +166,9 @@ MultiscaleModelFSI3D::setupData ( const std::string& fileName )
         setupExporter ( M_exporterSolid, dataFile, "_Solid" );
         setupImporter ( M_importerSolid, dataFile, "_Solid" );
     }
+
+    // Set verbosite level for NonLinearRichardson
+    M_verbosityLevel = dataFile ("problem/verbose", 1);
 
 #ifndef FSI_WITHOUT_VELOCITYPROFILE
     std::map< std::string, FSI3DBoundaryFlowRate_Type > boundaryFlowRateMap;
@@ -310,17 +315,26 @@ MultiscaleModelFSI3D::solveModel()
         M_FSIoperator->updateRHS();
         M_FSIoperator->applyBoundaryConditions();
     }
+    else if ( M_data->reuseSolution() )
+    {
+        // Set initial guess as extrapolation from previous time step only if this is the first
+        // MS iteration, otherwise use the solution at the last MS iteration as initial guess.
+        M_FSIoperator->extrapolation ( *M_stateVariable );
+    }
 
     // Non-linear Richardson solver
     UInt maxSubIterationNumber = M_data->maxSubIterationNumber();
-    M_FSIoperator->extrapolation ( *M_stateVariable );
+    if ( !M_data->reuseSolution() )
+    {
+        M_FSIoperator->extrapolation ( *M_stateVariable );
+    }
 
     NonLinearRichardson ( *M_stateVariable, *M_FSIoperator,
                           M_data->absoluteTolerance(), M_data->relativeTolerance(),
                           maxSubIterationNumber, M_data->errorTolerance(),
                           M_data->NonLinearLineSearch(),
                           M_nonLinearRichardsonIteration,
-                          1
+                          M_verbosityLevel
                         );
 
     // TODO This is a workaround of Paolo Crosetto to make it possible to perform subiterations
@@ -437,7 +451,7 @@ MultiscaleModelFSI3D::imposeBoundaryFlowRate ( const multiscaleID_Type& boundary
             M_boundaryFlowRateFunctions.push_back ( boundaryFlowRateFunction );
 
             base.setFunction ( boost::bind ( &FSI3DBoundaryFlowRateFunction::function, M_boundaryFlowRateFunctions.back(), _1, _2, _3, _4, _5 ) );
-            M_fluidBC->handler()->addBC ( "CouplingFlowRate_Model_" + number2string ( M_ID ) + "_BoundaryID_" + number2string ( boundaryID ), boundaryFlag ( boundaryID ), EssentialVertices, Full, base, 3 );
+            M_fluidBC->handler()->addBC ( "CouplingFlowRate_Model_" + number2string ( M_ID ) + "_BoundaryID_" + number2string ( boundaryID ), boundaryFlag ( boundaryID ), Essential, Full, base, 3 );
 
             break;
         }
@@ -476,7 +490,7 @@ void
 MultiscaleModelFSI3D::imposeBoundaryMeanNormalStress ( const multiscaleID_Type& boundaryID, const function_Type& function )
 {
     BCFunctionBase base;
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     base.setFunction ( function );
 #else
     boundaryStressFunctionPtr_Type boundaryStressFunction ( new boundaryStressFunction_Type() );
@@ -510,7 +524,7 @@ MultiscaleModelFSI3D::imposeBoundaryArea ( const multiscaleID_Type& boundaryID, 
 Real
 MultiscaleModelFSI3D::boundaryMeanNormalStress ( const multiscaleID_Type& boundaryID ) const
 {
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     return M_FSIoperator->fluid().meanNormalStress ( boundaryFlag ( boundaryID ), *M_fluidBC->handler(), *M_stateVariable );
 #else
     return M_FSIoperator->fluid().meanNormalStress ( boundaryFlag ( boundaryID ), *M_fluidBC->handler(), *M_stateVariable ) - M_externalPressureScalar;
@@ -520,7 +534,7 @@ MultiscaleModelFSI3D::boundaryMeanNormalStress ( const multiscaleID_Type& bounda
 Real
 MultiscaleModelFSI3D::boundaryMeanTotalNormalStress ( const multiscaleID_Type& boundaryID ) const
 {
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     return M_FSIoperator->fluid().meanTotalNormalStress ( boundaryFlag ( boundaryID ), *M_fluidBC->handler(), *M_stateVariable );
 #else
     return M_FSIoperator->fluid().meanTotalNormalStress ( boundaryFlag ( boundaryID ), *M_fluidBC->handler(), *M_stateVariable ) - M_externalPressureScalar;
@@ -557,7 +571,7 @@ MultiscaleModelFSI3D::boundaryDeltaMeanTotalNormalStress ( const multiscaleID_Ty
 Real
 MultiscaleModelFSI3D::boundaryPressure ( const multiscaleID_Type& boundaryID ) const
 {
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     return M_FSIoperator->fluid().pressure ( boundaryFlag ( boundaryID ), *M_stateVariable );
 #else
     return M_FSIoperator->fluid().pressure ( boundaryFlag ( boundaryID ), *M_stateVariable ) + M_externalPressureScalar;
@@ -567,7 +581,7 @@ MultiscaleModelFSI3D::boundaryPressure ( const multiscaleID_Type& boundaryID ) c
 Real
 MultiscaleModelFSI3D::boundaryTotalPressure ( const multiscaleID_Type& boundaryID ) const
 {
-#ifdef FSI_WITH_EXTERNALPRESSURE
+#ifndef FSI_WITH_EXTERNALPRESSURE
     return M_FSIoperator->fluid().pressure ( boundaryFlag ( boundaryID ), *M_stateVariable )
            + M_FSIoperator->fluid().kineticNormalStress ( boundaryFlag ( boundaryID ), *M_stateVariable );
 #else
@@ -579,7 +593,7 @@ MultiscaleModelFSI3D::boundaryTotalPressure ( const multiscaleID_Type& boundaryI
 Real
 MultiscaleModelFSI3D::externalPressure() const
 {
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     return M_externalPressureScalar;
 #else
     return M_data->dataSolid()->externalPressure();
@@ -651,7 +665,7 @@ MultiscaleModelFSI3D::initializeSolution()
     debugStream ( 8140 ) << "MultiscaleModelFSI3D::initializeSolution() \n";
 #endif
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
     // Initialize the external pressure scalar
     M_externalPressureScalar = M_data->dataSolid()->externalPressure();
     M_data->dataSolid()->setExternalPressure ( 0.0 );
@@ -679,7 +693,7 @@ MultiscaleModelFSI3D::initializeSolution()
                 M_exporterSolid->setTimeIndex ( iterationImported + 1 );
             }
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
             // Remove external pressure
             *M_fluidPressure -= M_externalPressureScalar;
 #endif
@@ -920,7 +934,7 @@ MultiscaleModelFSI3D::exportFluidSolution()
         M_FSIoperator->exportFluidPressure ( *M_fluidPressure );
         M_FSIoperator->exportFluidDisplacement ( *M_fluidDisplacement );
 
-#ifndef FSI_WITH_EXTERNALPRESSURE
+#ifdef FSI_WITH_EXTERNALPRESSURE
         // Add the external pressure
         *M_fluidPressure += M_externalPressureScalar;
 #endif

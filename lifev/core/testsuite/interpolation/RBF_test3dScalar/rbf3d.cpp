@@ -149,9 +149,9 @@ int main (int argc, char** argv )
     flags[0] = -1;
 
     interpolationPtr_Type RBFinterpolant;
-    RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject (dataFile("interpolation/interpolation_Type","none")));
+    RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject (dataFile ("interpolation/interpolation_Type", "none") ) );
 
-    RBFinterpolant->setup(Fluid_mesh_ptr, Fluid_localMesh, Solid_mesh_ptr, Solid_localMesh, flags);
+    RBFinterpolant->setup (Fluid_mesh_ptr, Fluid_localMesh, Solid_mesh_ptr, Solid_localMesh, flags);
 
     //if(dataFile("interpolation/interpolation_Type","none")!="RBFlocallyRescaledScalar")
     //    RBFinterpolant->setRadius((double) MeshUtility::MeshStatistics::computeSize (*Fluid_mesh_ptr).maxH);
@@ -165,8 +165,10 @@ int main (int argc, char** argv )
 
     RBFinterpolant->solution (Solid_solution);
 
-    if(dataFile("interpolation/interpolation_Type","none")!="RBFscalar")
+    if (dataFile ("interpolation/interpolation_Type", "none") != "RBFscalar")
+    {
         RBFinterpolant->solutionrbf (Solid_solution_rbf);
+    }
 
     // COMPUTING THE ERROR
     vectorPtr_Type Solid_exact_solution (new vector_Type (Solid_fieldFESpace->map(), Unique) );
@@ -182,8 +184,10 @@ int main (int argc, char** argv )
                                                                                          Solid_mesh_ptr->point (Solid_exact_solution->blockMap().GID (i) ).z() );
 
                 (*myError) [myError->blockMap().GID (i)] = (*Solid_exact_solution) [Solid_exact_solution->blockMap().GID (i)] - (*Solid_solution) [Solid_solution->blockMap().GID (i)];
-                if(dataFile("interpolation/interpolation_Type","none")!="RBFscalar")
+                if (dataFile ("interpolation/interpolation_Type", "none") != "RBFscalar")
+                {
                     (*rbfError) [rbfError->blockMap().GID (i)] = (*Solid_exact_solution) [Solid_exact_solution->blockMap().GID (i)] - (*Solid_solution_rbf) [Solid_solution_rbf->blockMap().GID (i)];
+                }
 
             }
 
@@ -194,7 +198,7 @@ int main (int argc, char** argv )
     Solid_exporter.addVariable (ExporterData<mesh_Type>::ScalarField, "Exact solution", Solid_fieldFESpace, Solid_exact_solution, UInt (0) );
     Solid_exporter.addVariable (ExporterData<mesh_Type>::ScalarField, "Solution", Solid_fieldFESpace, Solid_solution, UInt (0) );
     Solid_exporter.addVariable (ExporterData<mesh_Type>::ScalarField, "Error", Solid_fieldFESpace, myError, UInt (0) );
-    if(dataFile("interpolation/interpolation_Type","none")!="RBFscalar")
+    if (dataFile ("interpolation/interpolation_Type", "none") != "RBFscalar")
     {
         Solid_exporter.addVariable (ExporterData<mesh_Type>::ScalarField, "RBF's solution", Solid_fieldFESpace, Solid_solution_rbf, UInt (0) );
         Solid_exporter.addVariable (ExporterData<mesh_Type>::ScalarField, "RBF's error", Solid_fieldFESpace, rbfError, UInt (0) );
@@ -203,9 +207,9 @@ int main (int argc, char** argv )
     Solid_exporter.closeFile();
 
     Real err_Inf = myError->normInf();
-    Real err_L2  = myError->norm2()/Solid_mesh_ptr->numVertices();
+    Real err_L2  = myError->norm2() / Solid_mesh_ptr->numVertices();
 
-    if(Comm->MyPID()==0)
+    if (Comm->MyPID() == 0)
     {
         std::cout << "Error, norm_Inf = " <<  err_Inf  << std::endl;
         std::cout << "Error, normL2   = " <<  err_L2   << std::endl;

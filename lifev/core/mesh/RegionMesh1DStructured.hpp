@@ -41,6 +41,7 @@
 
 #include <lifev/core/LifeV.hpp>
 #include <lifev/core/mesh/RegionMesh.hpp>
+#include <lifev/core/mesh/UpdateMeshFacetsRidges.hpp>
 
 namespace LifeV
 {
@@ -163,7 +164,7 @@ void regularMesh1D ( MeshType& mesh,
     mesh.setNumEdges (mesh.edgeList.size() );
     mesh.setMaxNumGlobalEdges (mesh.edgeList.size() );
 
-    mesh.updateElementFacets ( true, false, mesh.pointList.size() );
+    updateMeshFacets ( mesh, true, false, mesh.pointList.size() );
 } // regularMesh1D
 
 } // Namespace LifeV

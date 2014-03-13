@@ -223,7 +223,7 @@ void readMesh ( RegionMesh<LinearTriangle, MC>& mesh, const MeshData& data )
     }
 
     //Update Edges
-    mesh.updateElementFacets (true);
+    updateMeshFacets ( mesh, true );
 
     if ( data.verbose() )
     {
@@ -268,8 +268,8 @@ void readMesh ( RegionMesh<GEOSHAPE, MC>& mesh, const MeshData& data )
     //Update Edges & Faces
     if (updateEdgesAndFaces)
     {
-        mesh.updateElementRidges ( true, data.verbose() );
-        mesh.updateElementFacets ( true, data.verbose() );
+        updateMeshRidges ( mesh, true, data.verbose() );
+        updateMeshFacets ( mesh, true, data.verbose() );
     }
 
     if ( data.verbose() )

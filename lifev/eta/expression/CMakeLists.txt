@@ -11,6 +11,7 @@ SET(expression_HEADERS
 	expression/EvaluationExtract1.hpp
 	expression/EvaluationExtract2.hpp
 	expression/EvaluationFunctor.hpp
+	expression/EvaluationMatrix.hpp
 	expression/EvaluationHK.hpp
 	expression/EvaluationIfCrossed.hpp
 	expression/EvaluationInterpolateGradient.hpp
@@ -22,7 +23,11 @@ SET(expression_HEADERS
 	expression/EvaluationPhiJ.hpp
 	expression/EvaluationPosition.hpp
 	expression/EvaluationProduct.hpp
+	expression/EvaluationRotateMatrix.hpp
+	expression/EvaluationRotateSmallMatrix.hpp	
+	expression/EvaluationVectorsToMatrix.hpp	
 	expression/EvaluationPower.hpp
+	expression/EvaluationSquareRoot.hpp
 	expression/EvaluationLogarithm.hpp
 	expression/EvaluationExponential.hpp
 	expression/EvaluationNormal.hpp
@@ -55,9 +60,14 @@ SET(expression_HEADERS
 	expression/ExpressionPhiI.hpp
 	expression/ExpressionPhiJ.hpp
 	expression/ExpressionPosition.hpp
+	expression/ExpressionMatrix.hpp
+	expression/ExpressionRotateMatrix.hpp
+	expression/ExpressionRotateSmallMatrix.hpp	
+	expression/ExpressionVectorsToMatrix.hpp		
 	expression/ExpressionNormal.hpp
 	expression/ExpressionProduct.hpp
 	expression/ExpressionPower.hpp
+	expression/ExpressionSquareRoot.hpp
 	expression/ExpressionLogarithm.hpp
 	expression/ExpressionExponential.hpp
 	expression/ExpressionScalar.hpp

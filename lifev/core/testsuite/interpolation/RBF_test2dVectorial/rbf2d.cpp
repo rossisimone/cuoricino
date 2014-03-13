@@ -136,26 +136,26 @@ int main (int argc, char** argv )
 
     for ( UInt j = 0; j < 3; ++j)
         for ( UInt i = 0; i < Solid_vector->epetraVector().MyLength(); ++i )
-            if( Solid_vector->blockMap().GID (i) < Solid_mesh_ptr->pointList.size())
-                if (Solid_vector->blockMap().LID (Solid_vector->blockMap().GID(i) + Solid_vector->size()/3*j ) != -1)
+            if ( Solid_vector->blockMap().GID (i) < Solid_mesh_ptr->pointList.size() )
+                if (Solid_vector->blockMap().LID (Solid_vector->blockMap().GID (i) + Solid_vector->size() / 3 * j ) != -1)
                 {
                     switch (j)
                     {
-                    case(0):
-                        (*Solid_vector) [Solid_vector->blockMap().GID (i) + Solid_vector->size()/3*j ] = fx ( Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).x(),
-                                                                                                              Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).y(),
-                                                                                                              Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).z() );
-                        break;
-                    case(1):
-                        (*Solid_vector) [Solid_vector->blockMap().GID (i) + Solid_vector->size()/3*j ] = fy ( Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).x(),
-                                                                                                              Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).y(),
-                                                                                                              Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).z() );
-                        break;
-                    case(2):
-                        (*Solid_vector) [Solid_vector->blockMap().GID (i) + Solid_vector->size()/3*j ] = fz ( Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).x(),
-                                                                                                              Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).y(),
-                                                                                                              Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).z() );
-                        break;
+                        case (0) :
+                            (*Solid_vector) [Solid_vector->blockMap().GID (i) + Solid_vector->size() / 3 * j ] = fx ( Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).x(),
+                                    Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).y(),
+                                    Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).z() );
+                            break;
+                        case (1) :
+                            (*Solid_vector) [Solid_vector->blockMap().GID (i) + Solid_vector->size() / 3 * j ] = fy ( Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).x(),
+                                    Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).y(),
+                                    Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).z() );
+                            break;
+                        case (2) :
+                            (*Solid_vector) [Solid_vector->blockMap().GID (i) + Solid_vector->size() / 3 * j ] = fz ( Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).x(),
+                                    Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).y(),
+                                    Solid_mesh_ptr->point (Solid_vector->blockMap().GID (i) ).z() );
+                            break;
                     }
                 }
 
@@ -177,15 +177,19 @@ int main (int argc, char** argv )
 
     interpolationPtr_Type RBFinterpolant;
 
-    RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject (dataFile("interpolation/interpolation_Type","none")));
+    RBFinterpolant.reset ( interpolation_Type::InterpolationFactory::instance().createObject (dataFile ("interpolation/interpolation_Type", "none") ) );
 
-    RBFinterpolant->setup(Solid_mesh_ptr, Solid_localMesh, Fluid_mesh_ptr, Fluid_localMesh, flags);
+    RBFinterpolant->setup (Solid_mesh_ptr, Solid_localMesh, Fluid_mesh_ptr, Fluid_localMesh, flags);
 
-    if(dataFile("interpolation/interpolation_Type","none")=="RBFvectorial")
-        RBFinterpolant->setBasis(dataFile("interpolation/basis","none"));
+    if (dataFile ("interpolation/interpolation_Type", "none") == "RBFvectorial")
+    {
+        RBFinterpolant->setBasis (dataFile ("interpolation/basis", "none") );
+    }
 
-    if(dataFile("interpolation/interpolation_Type","none")!="RBFlocallyRescaledVectorial")
-        RBFinterpolant->setRadius((double) MeshUtility::MeshStatistics::computeSize (*Solid_mesh_ptr).maxH);
+    if (dataFile ("interpolation/interpolation_Type", "none") != "RBFlocallyRescaledVectorial")
+    {
+        RBFinterpolant->setRadius ( (double) MeshUtility::MeshStatistics::computeSize (*Solid_mesh_ptr).maxH);
+    }
 
     RBFinterpolant->setupRBFData (Solid_vector, Fluid_solution, dataFile, belosList);
 
@@ -201,29 +205,29 @@ int main (int argc, char** argv )
 
     for ( UInt j = 0; j < 3; ++j)
         for ( UInt i = 0; i < Fluid_exact_solution->epetraVector().MyLength(); ++i )
-            if ( Fluid_exact_solution->blockMap().GID (i) < Fluid_mesh_ptr->pointList.size())
-                if (Fluid_exact_solution->blockMap().LID (Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size()/3*j ) != -1)
+            if ( Fluid_exact_solution->blockMap().GID (i) < Fluid_mesh_ptr->pointList.size() )
+                if (Fluid_exact_solution->blockMap().LID (Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size() / 3 * j ) != -1)
                 {
                     switch (j)
                     {
-                    case(0):
-                        (*Fluid_exact_solution) [Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size()/3*j ] = fx ( Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).x(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).y(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).z() );
-                        break;
-                    case(1):
-                        (*Fluid_exact_solution) [Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size()/3*j ] = fy ( Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).x(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).y(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).z() );
-                        break;
-                    case(2):
-                        (*Fluid_exact_solution) [Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size()/3*j ] = fz ( Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).x(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).y(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).z() );
-                        break;
+                        case (0) :
+                            (*Fluid_exact_solution) [Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size() / 3 * j ] = fx ( Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).x(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).y(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).z() );
+                            break;
+                        case (1) :
+                            (*Fluid_exact_solution) [Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size() / 3 * j ] = fy ( Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).x(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).y(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).z() );
+                            break;
+                        case (2) :
+                            (*Fluid_exact_solution) [Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size() / 3 * j ] = fz ( Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).x(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).y(), Fluid_mesh_ptr->point (Fluid_exact_solution->blockMap().GID (i) ).z() );
+                            break;
                     }
 
-                    (*myError) [myError->blockMap().GID (i) + Fluid_exact_solution->size()/3*j ] = (*Fluid_exact_solution) [Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size()/3*j ] - (*Fluid_solution) [Fluid_solution->blockMap().GID (i) + Fluid_exact_solution->size()/3*j ];
-		}
+                    (*myError) [myError->blockMap().GID (i) + Fluid_exact_solution->size() / 3 * j ] = (*Fluid_exact_solution) [Fluid_exact_solution->blockMap().GID (i) + Fluid_exact_solution->size() / 3 * j ] - (*Fluid_solution) [Fluid_solution->blockMap().GID (i) + Fluid_exact_solution->size() / 3 * j ];
+                }
 
     Real err_Inf = myError->normInf();
-    Real err_L2  = myError->norm2()/Solid_mesh_ptr->numVertices();
+    Real err_L2  = myError->norm2() / Solid_mesh_ptr->numVertices();
 
-    if(Comm->MyPID()==0)
+    if (Comm->MyPID() == 0)
     {
         std::cout << "Error, norm_Inf = " <<  err_Inf  << std::endl;
         std::cout << "Error, normL2   = " <<  err_L2   << std::endl;

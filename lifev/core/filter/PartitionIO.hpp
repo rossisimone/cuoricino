@@ -1117,8 +1117,8 @@ void PartitionIO<MeshType>::readElements()
         }
     }
 
-    M_meshPartIn->updateElementEdges (false, false);
-    M_meshPartIn->updateElementFaces (false, false);
+    updateMeshRidges ( *M_meshPartIn, false, false);
+    updateMeshFacets ( *M_meshPartIn, false, false);
 }
 
 } /* namespace LifeV */
