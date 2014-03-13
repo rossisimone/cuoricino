@@ -232,20 +232,6 @@ public:
                  boost::shared_ptr<Epetra_Comm>&     comm
                );
 
-    //! Setup the created object of the class Venantkirchhof
-    /*!
-          \param data_file GetPot data file
-          \param refFE reference FE for the displacement
-          \param BCh boundary conditions for the displacement
-          \param comm the Epetra Comunicator
-     */
-    void setup ( boost::shared_ptr<data_Type>  data,
-    		const FESpacePtr_Type&        dFESpace,
-    		const ETFESpacePtr_Type&      dETFESpace,
-    		const bcHandler_Type&       BCh,
-    		boost::shared_ptr<Epetra_Comm>&     comm
-    );
-
 
     /*!
       \param data_file GetPot data file
@@ -692,7 +678,7 @@ public:
         return M_dispFESpace -> mesh();
     }
 
-    inline Real res1() 
+    inline Real res1()
     {
         return M_res1;
     }
@@ -870,18 +856,6 @@ StructuralOperator<Mesh>::StructuralOperator( ) :
 {
 
     //    M_Displayer->leaderPrint("I am in the constructor for the solver");
-}
-
-template <typename Mesh>
-void
-StructuralOperator<Mesh>::setup (boost::shared_ptr<data_Type>          data,
-                                 const FESpacePtr_Type& dFESpace,
-                                 const ETFESpacePtr_Type& dETFESpace,
-                                 const bcHandler_Type&                    BCh,
-                                 boost::shared_ptr<Epetra_Comm>&   comm)
-{
-    setup (data, dFESpace, dETFESpace, comm);
-    M_BCh = BCh;
 }
 
 template <typename Mesh>
