@@ -41,7 +41,7 @@
 #include <lifev/core/LifeV.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/GhostHandler.hpp>
-#include <lifev/core/algorithm/PreconditionerML.hpp>
+#include <lifev/core/algorithm/PreconditionerIfpack.hpp>
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include <Teuchos_XMLParameterListHelpers.hpp>
@@ -86,7 +86,7 @@ public:
 
     virtual ~RBFInterpolation() {}
 
-    virtual void setup ( meshPtr_Type fullMeshKnown, meshPtr_Type localMeshKnown, meshPtr_Type fullMeshUnknown, meshPtr_Type localMeshUnknown, flagContainer_Type flags ) = 0;
+    virtual void setup( meshPtr_Type fullMeshKnown, meshPtr_Type localMeshKnown, meshPtr_Type fullMeshUnknown, meshPtr_Type localMeshUnknown, flagContainer_Type flags ) = 0;
 
     virtual void setupRBFData (vectorPtr_Type KnownField, vectorPtr_Type UnknownField, GetPot datafile, parameterList_Type belosList) = 0;
 
@@ -108,7 +108,7 @@ public:
 
     virtual double computeRBFradius (meshPtr_Type , meshPtr_Type , idContainer_Type , ID ) {};
 
-    virtual void setBasis (const std::string&) {};
+    virtual void setBasis (const std::string &) {};
 
     virtual double rbf (double x1, double y1, double z1, double x2, double y2, double z2, double radius) = 0;
 
@@ -116,19 +116,19 @@ public:
 
     virtual void solution (vectorPtr_Type& Solution) = 0;
 
-    virtual void solutionrbf (vectorPtr_Type& ) {};
+    virtual void solutionrbf (vectorPtr_Type & ) {};
 
-    virtual void updateRhs (vectorPtr_Type newRhs) = 0;
+    virtual void updateRhs(vectorPtr_Type newRhs) = 0;
 
-    virtual void setRadius ( double ) {};
+    virtual void setRadius ( double ){};
 
     virtual void approximateInverse ( ) {};
 
-    virtual void getinterpolationOperatorMap (mapPtr_Type&) { };
+    virtual void getinterpolationOperatorMap(mapPtr_Type&){ };
 
-    virtual void getprojectionOperatorMap (mapPtr_Type& ) { };
+    virtual void getprojectionOperatorMap(mapPtr_Type& ){ };
 
-    virtual void getSolutionOnGamma (vectorPtr_Type& ) { };
+    virtual void getSolutionOnGamma(vectorPtr_Type& ) { };
 
     virtual mapPtr_Type interpolationMap() {};
 
