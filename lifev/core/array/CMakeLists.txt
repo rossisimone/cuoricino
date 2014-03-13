@@ -18,6 +18,8 @@ SET(array_HEADERS
   array/MatrixEpetraStructured.hpp
   array/MatrixBlockMonolithicEpetraView.hpp
   array/MatrixBlockMonolithicEpetra.hpp
+  array/MatrixBlockStructure.hpp
+  array/VectorBlockStructure.hpp
   array/MatrixSmall.hpp
   array/VectorBlockMonolithicEpetra.hpp
   array/VectorBlockMonolithicEpetraView.hpp
@@ -40,6 +42,7 @@ SET(array_SOURCES
   array/MatrixElemental.cpp
   array/VectorBlockMonolithicEpetra.cpp
   array/VectorBlockMonolithicEpetraView.cpp
+  array/MatrixBlockStructure.cpp
   array/VectorBlockStructure.cpp
   array/VectorEpetraStructuredView.cpp
   array/VectorEpetra.cpp
