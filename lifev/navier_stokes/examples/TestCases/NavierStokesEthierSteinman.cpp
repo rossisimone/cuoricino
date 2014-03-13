@@ -38,7 +38,7 @@
 #include <lifev/navier_stokes/function/RossEthierSteinmanDec.hpp>
 #include <lifev/navier_stokes/function/RossEthierSteinmanInc.hpp>
 #include <lifev/navier_stokes/examples/TestCases/NavierStokesEthierSteinman.hpp>
-#include <lifev/navier_stokes/examples/TestCases/MeshUtility.hpp>
+#include <lifev/core/mesh/MeshLoadingUtility.hpp>
 
 namespace LifeV
 {
@@ -145,8 +145,8 @@ NavierStokesEthierSteinman::mesh ( boost::shared_ptr< RegionMesh<LinearTetra> >&
         std::cout << "ERROR: The mesh refinement requested is not valid." << std::endl;
         exit ( 0 );
     }
-    std::vector<Real> width (3, -1.0);
-    std::vector<Real> shift (3, -1.0);
+    LifeV::Vector3D  width (-1.0, -1.0, -1.0);
+    LifeV::Vector3D shift (-1.0, -1.0, -1.0);
     std::vector<UInt> numMeshElem (3, M_refinement);
     MeshUtility::fillWithStructuredMesh ( mesh, 1, numMeshElem, false, width, shift );
 
