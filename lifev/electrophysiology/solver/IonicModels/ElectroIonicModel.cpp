@@ -113,13 +113,13 @@ ElectroIonicModel& ElectroIonicModel::operator = ( const ElectroIonicModel& Ioni
     return      *this;
 }
 
-vector< vector<Real> > ElectroIonicModel::getJac (const vector<Real>& v, Real h)
+std::vector< std::vector<Real> > ElectroIonicModel::getJac (const std::vector<Real>& v, Real h)
 {
-    vector< vector<Real> > J ( M_numberOfEquations, vector<Real> (M_numberOfEquations, 0.0) );
-    vector<Real> f1 (M_numberOfEquations, 0.0);
-    vector<Real> f2 (M_numberOfEquations, 0.0);
-    vector<Real> y1 (M_numberOfEquations, 0.0);
-    vector<Real> y2 (M_numberOfEquations, 0.0);
+    std::vector< std::vector<Real> > J ( M_numberOfEquations, std::vector<Real> (M_numberOfEquations, 0.0) );
+    std::vector<Real> f1 (M_numberOfEquations, 0.0);
+    std::vector<Real> f2 (M_numberOfEquations, 0.0);
+    std::vector<Real> y1 (M_numberOfEquations, 0.0);
+    std::vector<Real> y2 (M_numberOfEquations, 0.0);
 
     for (int i = 0; i < M_numberOfEquations; i++)
     {

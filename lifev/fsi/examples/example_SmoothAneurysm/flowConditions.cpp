@@ -169,7 +169,7 @@ void FlowConditions::renewParameters ( FSISolver&  oper_,
         M_outP = Pout;
 
         area = qn * std::sqrt (M_rhos) / ( (2.*std::sqrt (2) ) *
-                                           std::sqrt ( M_outP + M_beta * sqrt (M_area0) ) - std::sqrt ( M_beta * sqrt (M_area0) ) );
+                                           std::sqrt ( M_outP + M_beta * std::sqrt (M_area0) ) - std::sqrt ( M_beta * std::sqrt (M_area0) ) );
 
         assert (area >= 0 );
         if (area < 1e-8 * M_area0)

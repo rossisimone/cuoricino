@@ -61,7 +61,7 @@ namespace LifeV
 namespace ElectrophysiologyUtility
 {
 
-typedef std::set<ID> neighbors_Type;
+typedef boost::unordered_set<ID> neighbors_Type;
 typedef std::vector<neighbors_Type> neighborList_Type;
 
 //! HeartUtility - A string parser grammar based on \c boost::spirit::qi
@@ -285,7 +285,7 @@ template<typename Mesh> inline void randomNPointsInSetAndNeighborhood (std::vect
     /* initialize random seed: */
     Teuchos::ScalarTraits<Real>::seedrandom (time (NULL) );
     neighborList_Type listNeighborhood;
-    createNodeNeighbors<Mesh> (fullMesh, listNeighborhood);
+    createPointNeighbors<Mesh> (fullMesh, listNeighborhood);
     Real timePmj (Comm->MyPID() *deltaT);
     for (int i = 0; i < N; i++)
     {

@@ -290,7 +290,7 @@ public:
 	 * @param v vector of  the  state variables
 	 * @param h differentiation step
 	 */
-    virtual vector< vector<Real> > getJac (const vector<Real>& v, Real h = 1.0e-8);
+    virtual std::vector< std::vector<Real> > getJac (const std::vector<Real>& v, Real h = 1.0e-8);
 
 
 

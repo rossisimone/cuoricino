@@ -173,7 +173,7 @@ public:
 
     //compute the Jacobian
     matrix_Type getJac (const vector_Type& v, Real h = 1.0e-8);
-    vector< vector<Real> > getJac (const std::vector<Real>& v, Real h = 1.0e-8);
+    std::vector< std::vector<Real> > getJac (const std::vector<Real>& v, Real h = 1.0e-8);
     MatrixSmall<2, 2> getJac (const VectorSmall<2>& v, Real h = 1.0e-8);
 
     //! Display information about the model
