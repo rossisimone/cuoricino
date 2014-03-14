@@ -50,23 +50,11 @@
 using namespace LifeV;
 
 // Shortcuts
-typedef VectorEpetra 								vector_Type;
-typedef boost::shared_ptr<vector_Type> 				vectorPtr_Type;
-
-typedef RegionMesh<LinearTetra> 					mesh_Type;
-
-typedef MapEpetra 					    			map_Type;
 typedef boost::shared_ptr<map_Type> 				mapPtr_Type;
-
 typedef HarmonicExtensionSolver<mesh_Type>      	meshMotion_Type;
 typedef boost::shared_ptr<meshMotion_Type>      	meshMotionPtr_Type;
-
 typedef ExporterHDF5<mesh_Type>                 	exporter_Type;
 typedef boost::shared_ptr<exporter_Type>        	exporterPtr_Type;
-
-typedef TimeAdvance<vector_Type> 					timeAdvance_Type;
-typedef boost::shared_ptr<timeAdvance_Type>			timeAdvancePtr_Type;
-
 typedef FESpace< RegionMesh<LinearTetra>, MapEpetra > FESpace_type;
 
 using namespace LifeV;
