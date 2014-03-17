@@ -45,7 +45,7 @@ TRIBITS_ADD_TEST(
   )
 TRIBITS_ADD_TEST(
   Framework
-  POSTFIX_AND_ARGS_0 Valve0D            -s 1 -f MultiscaleDatabase/Test_Valve0D.dat                   -c 105330.10083689842 -o Test_5
+  POSTFIX_AND_ARGS_0 Valve0D            -s 1 -f MultiscaleDatabase/Test_Valve0D.dat                   -c  -0.0000159247 -o Test_5
   NUM_MPI_PROCS 4
   COMM mpi
   )
