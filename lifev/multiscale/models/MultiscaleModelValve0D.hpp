@@ -201,14 +201,26 @@ public:
 
     //! Get the area on a specific boundary interface of the model
     /*!
-     *  Note: returns always a NaN since the area is not defined in the windkessel model
+     *  Note: returns relative effective orifice area of the valve
      *
      * @param boundaryID ID of the boundary interface
      * @return area value
      */
     Real boundaryArea ( const multiscaleID_Type& /*boundaryID*/ ) const
     {
-        return NaN;
+        Real A;
+
+        if (M_idealValve)
+        {
+            A = (M_pressureLeft_tn > M_pressureRight_tn) ? 1 : (1. - std::cos(M_minimumOpeningAngle)) * (1. - std::cos(M_minimumOpeningAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle)));
+        }
+        else
+        {
+            // Orifice model of Korakianitis-Shi '06
+            A = (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) ;
+        }
+
+        return A;
     }
 
     //! Get the variation of the flow rate (on a specific boundary interface) using the linear model
@@ -378,6 +390,7 @@ private:
     Real                   M_frictionalMomentCoefficient;
     Real                   M_resistiveMomentCoefficient;
     Real                   M_convectiveMomentCoefficient;
+    Real                   M_vortexMomentCoefficient;
 };
 
 //! Factory create function

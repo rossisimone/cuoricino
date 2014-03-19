@@ -68,6 +68,7 @@ MultiscaleModelValve0D::MultiscaleModelValve0D() :
                     M_frictionalMomentCoefficient  (),
                     M_resistiveMomentCoefficient   (),
                     M_convectiveMomentCoefficient  (),
+                    M_vortexMomentCoefficient      (),
                     M_idealValve                   ()
 {
 
@@ -102,6 +103,7 @@ MultiscaleModelValve0D::setupData ( const std::string& fileName )
     M_frictionalMomentCoefficient = dataFile ( "Coefficients/FrictionalMomentCoefficient",  4.125 ); // K_P
     M_resistiveMomentCoefficient  = dataFile ( "Coefficients/ResistiveMomentCoefficient",  50.0 );   // K_f
     M_convectiveMomentCoefficient = dataFile ( "Coefficients/ConvectiveMomentCoefficient",  2.0 );   // K_b
+    M_vortexMomentCoefficient     = dataFile ( "Coefficients/VortexMomentCoefficient",      3.5 );   // K_b
     M_idealValve                  = dataFile ( "Model/IdealValve", false);                           // Use ideal valve, otherwise use Korakianitis-Shi model
 
     // Convert degrees to radians
@@ -650,8 +652,6 @@ MultiscaleModelValve0D::solveForOpeningAngle()
     std::cout              << "M_pressureRight = " << M_pressureRight << std::endl;
     std::cout              << "M_flowRate  = " << M_flowRate << std::endl;
 
-    Real M_vortexMomentCoefficient( 3.5 );
-
     Real k1_v ( M_thetaVel_tn );
     Real k1_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn)
     - M_resistiveMomentCoefficient * M_thetaVel_tn
@@ -690,12 +690,10 @@ MultiscaleModelValve0D::solveForOpeningAngle()
     if (M_openingAngle > M_maximumOpeningAngle)
     {
         M_openingAngle = M_maximumOpeningAngle;
-        //M_thetaVel = 0;
     }
     else if (M_openingAngle < M_minimumOpeningAngle)
     {
         M_openingAngle = M_minimumOpeningAngle;
-        //M_thetaVel = 0;
     }
 
     if ( M_comm->MyPID() == 0 )
