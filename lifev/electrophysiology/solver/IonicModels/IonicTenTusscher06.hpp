@@ -1179,6 +1179,9 @@ public:
         Endo, Epi, MCell
     };
 
+    inline WallFlag getFlag(){ return flag; }
+
+
 private:
     //! Model Parameters
 

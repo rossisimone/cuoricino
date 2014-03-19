@@ -756,54 +756,6 @@ void IonicTenTusscher06::solveOneStep (std::vector<Real>& v, Real dt)
     Real CaSR = v[17];
     Real RR = v[18];
 
-
-    //    Real itot = Itot(V, m, h, j, d, f, f2, fcass, r, s, xr1, xr2, xs, Nai, Ki, Cai, CaSS );
-    //    Real iK1 = IK1(V,Ki);
-    //    Real ito = Ito(V,r,s,Ki);
-    //    Real iKr = IKr(V,xr1,xr2,Ki);
-    //    Real iKs = IKs(V,xs,Ki,Nai);
-    //    Real iCaL = ICaL(V,d,f,f2,fcass,CaSS);
-    //    Real iNa = INa(V,m,h,j,Nai);
-    //    Real ibNa = IbNa(V,Nai);
-    //    Real iNaCa = INaCa(V,Nai,Cai);
-    //    Real ibCa = IbCa(V,Cai);
-    //    Real ipK = IpK(V,Ki);
-    //    Real ipCa = IpCa(Cai);
-
-    //    std::cout << "\n";//Gkr * std::sqrt(Ko/5.4) * xr1 * xr2 * ( V - Ek(Ki) )
-    //    std::cout << Ek(Ki) << "\n";
-    //    std::cout << Gkr << "\n";
-    //    std::cout << Ko << "\n";
-    //    std::cout << std::sqrt(Ko/5.4) << "\n";
-    //    std::cout << xr1 << "\n";
-    //    std::cout << xr2 << "\n";
-    //    std::cout << V << "\n";
-    //
-    //    std::cout << "\nCurrents";
-    //    std::cout << "Itot:"<< M_appliedCurrent-itot << "\n";
-    //    std::cout << "Ik1:"<< iK1 << "\n";
-    //    std::cout << "Ito:"<< ito << "\n";
-    //    std::cout << "Ikr:"<< iKr << "\n";
-    //    std::cout << "Iks:"<< iKs << "\n";
-    //    std::cout << "Ical:"<< iCaL << "\n";
-    //    std::cout << "Ina:"<< iNa << "\n";
-    //    std::cout << "Ibna:"<< ibNa << "\n";
-    //    std::cout << "Inaca:"<< iNaCa << "\n";
-    //    std::cout << "Ibca:"<< ibCa << "\n";
-    //    std::cout << "Ipk:"<< ipK << "\n";
-    //    std::cout << "Ipca:"<< ipCa << "\n";
-    //    std::cout << "Iapp:" << M_appliedCurrent << "\n";
-    //    std::cout << "\n";
-    //
-    //     std::cout << "\n****  Iks   ******* ";
-    //     std::cout << "\nGks: " << Gks;
-    //     std::cout << "\nxs: " << xs;
-    //     std::cout << "\nV: " << V;
-    //     std::cout << "\nKi: " << Ki;
-    //     std::cout << "\nNai: " << Nai;
-    //     std::cout << "\nEks: " << Eks(Ki, Nai);
-    //     std::cout << "\n*********** ";
-
     computeGatingVariablesWithRushLarsen (v, dt);
 
     v[0] = solveV (V, m, h, j, d, f, f2, fcass, r, s, xr1, xr2, xs, Nai, Ki, Cai, CaSS, dt);
