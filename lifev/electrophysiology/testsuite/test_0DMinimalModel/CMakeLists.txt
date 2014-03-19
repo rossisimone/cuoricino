@@ -7,7 +7,7 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
   test_0DMinimalModel
   SOURCES main.cpp
   ARGS "-i ParametersTNNP.xml -c"
-  NUM_MPI_PROCS 2
+  NUM_MPI_PROCS 1
   COMM serial mpi
 )
 

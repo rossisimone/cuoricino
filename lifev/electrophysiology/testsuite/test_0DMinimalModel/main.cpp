@@ -68,6 +68,8 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
+#define SolutionTestNorm  1.441222535546675e+04
+
 Int main ( Int argc, char** argv )
 {
     //! Initializing Epetra communicator
@@ -86,7 +88,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     GetPot commandLine ( argc, argv );
-    std::string xmlParameterFilename = commandLine.follow ("Parameters.xml", 2, "-i", "--file"); ;
+    std::string xmlParameterFilename = commandLine.follow ("ParametersTNNP.xml", 2, "-i", "--file"); ;
 
     std::cout << "Importing parameters list...";
     //    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "Parameters.xml" ) );
@@ -121,12 +123,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.Size(), 0);
-    //    states.at (0) = 0.0;
-    //    states.at (1) = 1.0;
-    //    states.at (2) = 1.0;
-    //    states.at (3) = 0.021553043080281;
     ionicModel.initialize (states);
-    std::vector<Real>& rStates = states;
     std::cout << " Done!" << endl;
 
 
@@ -139,7 +136,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing rhs..." ;
     std::vector<Real> rhs (ionicModel.Size(), 0);
-    //std::vector<Real>& rRhs = rhs;
     std::cout << " Done! "  << endl;
 
 
@@ -157,9 +153,14 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (550);
+    Real TF (400);
     Real dt (0.02);
 
+    //********************************************//
+    // We record the norm of the solution to      //
+    // check the failure of the test              //
+    //********************************************//
+    Real SolutionNorm = states[0];
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -168,7 +169,7 @@ Int main ( Int argc, char** argv )
     string filename = "output.txt";
     std::ofstream output ("output.txt");
 
-    cout << "Potential: " << rStates.at (0) << endl;
+    cout << "Potential: " << states[0] << endl;
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
@@ -180,7 +181,7 @@ Int main ( Int argc, char** argv )
         // Compute Calcium concentration. Here it is  //
         // given as a function of time.               //
         //********************************************//
-        if ( t >= 50 && t <= 52 )
+        if ( t >= 10 && t <= 12 )
         {
             Iapp = 0.4;
         }
@@ -213,14 +214,21 @@ Int main ( Int argc, char** argv )
         output << t << ", ";
         for ( int j (0); j < ionicModel.Size() - 1; j++)
         {
-            output << rStates.at (j) << ", ";
+            output << states[j] << ", ";
         }
-        output << rStates.at ( ionicModel.Size() - 1 ) << "\n";
+        output << states[ ionicModel.Size() - 1] << "\n";
 
         //********************************************//
         // Update the time.                           //
         //********************************************//
         t = t + dt;
+
+        //********************************************//
+        // Update the norm of the solution to check   //
+        // test failure                               //
+        //********************************************//
+        SolutionNorm = SolutionNorm + states[0];
+
     }
     std::cout << "\n...Time loop ends.\n";
     std::cout << "Solution written on file: " << filename << "\n";
@@ -233,8 +241,10 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    if (std::abs (rStates.at ( ionicModel.Size() - 2 ) - 0.962965) > 1e-4 )
+    Real err = std::abs (SolutionNorm - SolutionTestNorm) / std::abs(SolutionTestNorm);
+    if ( err > 1e-2 )
     {
+    	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " <<  SolutionNorm << "\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
@@ -243,3 +253,5 @@ Int main ( Int argc, char** argv )
     }
     return ( returnValue );
 }
+
+#undef SolutionTestNorm
