@@ -60,13 +60,12 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
 
-#include <lifev/electrophysiology/solver/StimulationProtocol.hpp>
+#include <lifev/electrophysiology/Stimulus/StimulusPacingProtocol.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
 
-using std::cout;
 using std::endl;
 using namespace LifeV;
 
@@ -77,7 +76,7 @@ Int main ( Int argc, char** argv )
     Epetra_MpiComm Comm (MPI_COMM_WORLD);
     if ( Comm.MyPID() == 0 )
     {
-        cout << "% using MPI" << endl;
+        std::cout << "% using MPI" << endl;
     }
 
 
@@ -87,10 +86,10 @@ Int main ( Int argc, char** argv )
     // in the execution directory.                //
     //********************************************//
 
-    cout << "Importing parameters list...";
+    std::cout << "Importing parameters list...";
     Teuchos::ParameterList ionicMParameterList = * ( Teuchos::getParametersFromXmlFile ( "JafriRiceWinslowParameters.xml" ) );
     Teuchos::ParameterList pacingPParameterList = * ( Teuchos::getParametersFromXmlFile ( "StimulationParameters.xml" ) );
-    cout << " Done!" << endl;
+    std::cout << " Done!" << endl;
 
 
     //********************************************//
@@ -100,10 +99,10 @@ Int main ( Int argc, char** argv )
     // parameter list in the constructor          //
     //********************************************//
 
-    cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
+    std::cout << "Building Constructor for JafriRiceWinslow Model with parameters ... ";
     IonicJafriRiceWinslow model       ( ionicMParameterList );
-    StimulationProtocol   stimulation ( pacingPParameterList );
-    cout << " Done!" << endl;
+//    StimulationProtocol   stimulation ( pacingPParameterList );
+    std::cout << " Done!" << endl;
 
 
     //********************************************//
@@ -112,7 +111,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     model.showMe();
-    stimulation.showMe();
+//    stimulation.showMe();
 
 
     //********************************************//
@@ -122,41 +121,10 @@ Int main ( Int argc, char** argv )
     // variables of the model.                    //
     //********************************************//
 
-    cout << "Initializing solution vector...";
+    std::cout << "Initializing solution vector...";
     std::vector<Real> unknowns  (model.Size(), 0 );
-    std::vector<Real> unknowns0 (model.Size(), 0 );
-    unknowns[0]  = -86.1638;
-    unknowns[1]  = 3.28302e-2;
-    unknowns[2]  = 0.988354;
-    unknowns[3]  = 0.99254;
-    unknowns[4]  = 9.28836e-4;
-    unknowns[5]  = 10.2042;
-    unknowns[6]  = 143.727;
-    unknowns[7]  = 5.4;
-    unknowns[8]  = 9.94893e-5;
-    unknowns[9]  = 1.24891;
-    unknowns[10] = 1.36058e-4;
-    unknowns[11] = 1.17504;
-    unknowns[12] = 0.762527;
-    unknowns[13] = 1.19168e-3;
-    unknowns[14] = 6.30613e-9;
-    unknowns[15] = 0.236283;
-    unknowns[16] = 0.997208;
-    unknowns[17] = 6.38897e-5;
-    unknowns[18] = 1.535e-9;
-    unknowns[19] = 1.63909e-14;
-    unknowns[20] = 6.56337e-20;
-    unknowns[21] = 9.084546e-21;
-    unknowns[22] = 2.72826e-3;
-    unknowns[23] = 6.99215e-7;
-    unknowns[24] = 6.71989e-11;
-    unknowns[25] = 2.87031e-15;
-    unknowns[26] = 4.59752e-20;
-    unknowns[27] = 0.0;
-    unknowns[28] = 0.998983;
-    unknowns[29] = 6.349973e-3;
-    unknowns[30] = 135.9813e-3;
-    cout << " Done!" << endl;
+    model.initialize(unknowns);
+    std::cout << " Done!" << endl;
 
 
     //********************************************//
@@ -167,13 +135,9 @@ Int main ( Int argc, char** argv )
     // the differential equation.                 //
     //********************************************//
 
-    cout << "Initializing rhs..." ;
+    std::cout << "Initializing rhs..." ;
     std::vector<Real> rhs  (model.Size(), 0);
-    std::vector<Real> rhs1 (model.Size(), 0);
-    std::vector<Real> rhs2 (model.Size(), 0);
-    std::vector<Real> rhs3 (model.Size(), 0);
-    std::vector<Real> rhs4 (model.Size(), 0);
-    cout << " Done! "  << endl;
+    std::cout << " Done! "  << endl;
 
 
     //********************************************//
@@ -181,6 +145,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
 
     Real Iapp (0.0);
+
 
 
     //********************************************//
@@ -194,12 +159,19 @@ Int main ( Int argc, char** argv )
     Real tStim  ( 0 );
 
     //********************************************//
+    // Setup pacing protocol                      //
+    //********************************************//
+    StimulusPacingProtocol stimulus;
+    stimulus.setParameters(pacingPParameterList);
+    stimulus.setTimeStep(dt);
+
+    //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
 
-    string filename             = "output.txt";
-    string filenameStimPro      = "outputStimPro.txt";
+    std::string filename             = "output.txt";
+    std::string filenameStimPro      = "outputStimPro.txt";
 
     std::ofstream output        ("output3.txt");
     std::ofstream outputStimPro ("outputStimPro.txt");
@@ -208,7 +180,7 @@ Int main ( Int argc, char** argv )
     // Time loop starts.                          //
     //********************************************//
 
-    cout << "Time loop starts...\n";
+    std::cout << "Time loop starts...\n";
 
     int iter (0);
     int savedt ( ionicMParameterList.get ( "savedt", 1.0) / dt );
@@ -222,19 +194,23 @@ Int main ( Int argc, char** argv )
         // according to different pacing protocol     //
         //********************************************//
 
-        stimulation.pacingProtocolChoice ( t, dt, NbStimulus, Iapp ); // Protocol stimulation
-        // The list of protocols are described in the StimulationProtocol.hpp
+        Iapp =  stimulus.pacingProtocolChoice ( t ); // Protocol stimulation
+        std::cout << "\ntime = " << t << " ms.       " << std::endl;
+        std::cout << "Iapp = " << Iapp << std::endl;
+//        std::cout << "time step = " <<stimulus.timeStep() << std::endl;
+//        std::cout << "Stimulus starting time = " <<stimulus.startingTimeStimulus() << std::endl;
+//        std::cout << "Stimulus duration = " <<stimulus.stimDuration()<< std::endl;
+        std::cout << "V = " << unknowns[0]<< std::endl;
 
 
-        cout << "\r " << t << " ms.       " << std::flush;
+//        std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
         model.setAppliedCurrent (Iapp);
         model.computeRhs ( unknowns, rhs );
-        //        std::vector<Real> gateInf     ( model.gateInf( unknowns ) );
-        //        std::vector<Real> otherVarInf ( model.otherVarInf( unknowns ) );
+        model.addAppliedCurrent(rhs);
 
         //********************************************//
         // Writes solution on file.                   //
@@ -262,7 +238,7 @@ Int main ( Int argc, char** argv )
         }
 
 
-        tStim = stimulation.timeSt();
+        //tStim = stimulation.timeSt();
 
         if ( t >= tStim && t <= tStim + dt )
         {
@@ -277,73 +253,24 @@ Int main ( Int argc, char** argv )
         // This ones are treated with Euler implicit  //
         // method and Newton algorithm.               //
         //********************************************//
-
         for (int j (0); j <= 30; ++j)
         {
-            //          if ( ( j <= 4 ) || ( j >= 12 ) )
-            unknowns.at (j) = unknowns.at (j) + dt * rhs.at (j);
-
-            //          if( j == 0 || j >= 12 )
-            //              unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-            //          else if ( ( j <= 4 ) && ( j != 0 ) )
-            //              unknowns.at (j) = gateInf.at(j-1) + ( unknowns.at (j) - gateInf.at(j-1) ) * exp( dt * rhs.at(j) );
-            //          else if ( j >= 12 )
-            //              unknowns.at (j) = otherVarInf.at(j-12) + ( unknowns.at (j) - otherVarInf.at(j-12) ) * exp( dt * rhs.at(j) );
+            unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+            if(unknowns[j]!=unknowns[j])
+            {
+            	std::cout << "\n FOUND NAN! at " << j <<" "\n Stopping";
+            	break;
+            }
         }
 
-        //        unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
-        //        unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
-        //        unknowns.at (7)  = model.computeNewtonKo    (unknowns, dt, 10);
-        //        unknowns.at (8)  = model.computeNewtonCai   (unknowns, dt, 10);
-        //        unknowns.at (9)  = model.computeNewtonCaNSR (unknowns, dt, 10);
-        //        unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
-        //        unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
 
-
-        //        unknowns0 = unknowns;
-        //
-        //        for(int step(1); step <= 4; ++step)
-        //        {
-        //          for(int j(0); j <= 30; ++j)
-        //          {
-        //              if ( step != 4 )
-        //                  unknowns.at (j) = unknowns0.at (j) + 0.5 * dt * rhs.at (j);
-        //              else
-        //                  unknowns.at (j) = unknowns0.at (j) + dt * rhs.at (j);
-        //          }
-        //
-        //          model.computeRhs ( unknowns, Iapp, rhs );
-        //
-        //          switch (step)
-        //          {
-        //              case 1:
-        //              {
-        //                  rhs1 = rhs;
-        //                  break;
-        //              }
-        //              case 2:
-        //              {
-        //                  rhs2 = rhs;
-        //                  break;
-        //              }
-        //              case 3:
-        //              {
-        //                  rhs3 = rhs;
-        //                  break;
-        //              }
-        //              case 4:
-        //              {
-        //                  rhs4 = rhs;
-        //                  break;
-        //              }
-        //          }
-        //        }
-        //
-        //       for(int j(0); j <= 30; ++j)
-        //        {
-        //          unknowns.at (j) = unknowns0.at (j) + 0.1666666667 * dt * ( rhs1.at (j) +  2 * rhs2.at (j) + 2 * rhs3.at (j) + rhs4.at (j) );
-        //        }
-
+        unknowns.at (5)  = model.computeNewtonNa    (unknowns, dt, 10);
+        unknowns.at (6)  = model.computeNewtonKi    (unknowns, dt, 10);
+        unknowns.at (7)  = model.computeNewtonKo    (unknowns, dt, 10);
+        unknowns.at (8)  = model.computeNewtonCai   (unknowns, dt, 10);
+        unknowns.at (9)  = model.computeNewtonCaNSR (unknowns, dt, 10);
+        unknowns.at (10) = model.computeNewtonCaSS  (unknowns, dt, 10);
+        unknowns.at (11) = model.computeNewtonCaJSR (unknowns, dt, 10);
 
         //********************************************//
         // Update the time.                           //
@@ -352,8 +279,8 @@ Int main ( Int argc, char** argv )
         t = t + dt;
     }
 
-    cout << "\n...Time loop ends.\n";
-    cout << "Solution written on file: " << filename << " and " << filenameStimPro << "\n";
+    std::cout << "\n...Time loop ends.\n";
+    std::cout << "Solution written on file: " << filename << " and " << filenameStimPro << "\n";
 
     //********************************************//
     // Close exported file.                       //

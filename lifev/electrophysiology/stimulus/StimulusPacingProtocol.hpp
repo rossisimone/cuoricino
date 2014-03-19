@@ -95,11 +95,11 @@ public:
 
     inline const Real& StInt() const
     {
-        return M_stInt;
+        return M_stimulusInterval;
     }
     inline void setStInt (const Real& StInt)
     {
-        this->M_stInt = StInt;
+        this->M_stimulusInterval = StInt;
     }
 
     inline const Real& timeShortS1S1() const
@@ -240,6 +240,23 @@ public:
     //! @name Methods
     //@{
     Real appliedCurrent ( const Real& t, const Real& x, const Real& y, const Real& z, const ID& i );
+
+
+    // Stimulation at constant frequency
+    Real fixedCycleLength ( const Real& t );
+
+    // Stimulation at constant frequency with extra stimulation ( respective Si-Sj interval = constant )
+    Real fixedCycleLengthwExtraStim ( const Real& t );
+
+    // Standard stimulation protocol
+    Real standardS1S2Protocol ( const Real& t );
+
+    // Dynamic stimulation protocol
+    Real dynamicProtocol ( const Real& t );
+
+    Real pacingProtocolChoice ( const Real& t );
+
+
     void showMe();
 
     //@}
@@ -256,7 +273,7 @@ private:
     // Values of the stimulation interval used in the protocols.
     Real M_startingTimeStimulus;
     Real M_tShortS1S1;
-    Real M_stInt;                   //Duration of the time interval between two stimuli
+    Real M_stimulusInterval;                   //Duration of the time interval between two stimuli
     Real M_stIntMin;                //Minimum duration of the time interval between two stimuli in a dynamic pacing protocol
     Real M_stIntS1S2;
     Real M_stIntS1S2Min;
@@ -279,19 +296,7 @@ private:
     //the pacing train
     Real M_dt;
 
-    // Stimulation at constant frequency
-    Real fixedCycleLength ( const Real& t );
 
-    // Stimulation at constant frequency with extra stimulation ( respective Si-Sj interval = constant )
-    Real fixedCycleLengthwExtraStim ( const Real& t );
-
-    // Standard stimulation protocol
-    Real standardS1S2Protocol ( const Real& t );
-
-    // Dynamic stimulation protocol
-    Real dynamicProtocol ( const Real& t );
-
-    Real pacingProtocolChoice ( const Real& t );
 
 };
 
