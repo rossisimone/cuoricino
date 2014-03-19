@@ -8,6 +8,7 @@ ADD_SUBDIRECTORIES(
   ActivationWith0DTenTusscher06Model
   FiberInterpolation
   XbNegroniLascano96
+  example_0DJafriRiceWinslowModelwStimPro
   IonicRogersMcCulloch_pacingECG
   IonicRogersMcCullochSpiral
   IonicMinimalModel
