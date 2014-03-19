@@ -66,8 +66,6 @@
 
 #define SolutionTestNorm -1.394552404010000e+04
 
-using std::cout;
-using std::endl;
 using namespace LifeV;
 
 Int main ( Int argc, char** argv )
@@ -77,19 +75,8 @@ Int main ( Int argc, char** argv )
     Epetra_MpiComm Comm (MPI_COMM_WORLD);
     if ( Comm.MyPID() == 0 )
     {
-        cout << "% using MPI" << endl;
+    	std::cout << "% using MPI" << std::endl;
     }
-
-
-    //********************************************//
-    // Import parameters from an xml list. Use    //
-    // Teuchos to create a list from a given file //
-    // in the execution directory.                //
-    //********************************************//
-
-    //std::cout << "Importing parameters list...";
-    // Teuchos::ParameterList NLParameterList = *( Teuchos::getParametersFromXmlFile( "NegroniLascano96Parameters.xml" ) );
-    //std::cout << " Done!" << endl;
 
 
     //********************************************//
@@ -100,7 +87,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Building Constructor for Luo Rudy I Model with parameters ... ";
     IonicLuoRudyI  ionicModel;
-    std::cout << " Done!" << endl;
+    std::cout << " Done!" << std::endl;
 
 
     //********************************************//
@@ -119,7 +106,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.restingConditions() );
-    std::cout << " Done!" << endl;
+    std::cout << " Done!" << std::endl;
 
 
     //********************************************//
@@ -131,7 +118,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing rhs..." ;
     std::vector<Real> rhs (ionicModel.Size(), 0);
-    std::cout << " Done! "  << endl;
+    std::cout << " Done! "  << std::endl;
 
 
 
@@ -164,10 +151,10 @@ Int main ( Int argc, char** argv )
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
-    string filename = "output.txt";
+    std::string filename = "output.txt";
     std::ofstream output ("output.txt");
 
-    cout << "Potential: " << states[0] << endl;
+    std::cout << "Potential: " << states[0] << std::endl;
     //********************************************//
     // Time loop starts.                          //
     //********************************************//

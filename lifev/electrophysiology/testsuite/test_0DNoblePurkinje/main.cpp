@@ -75,7 +75,7 @@ Int main ( Int argc, char** argv )
     Epetra_MpiComm Comm (MPI_COMM_WORLD);
     if ( Comm.MyPID() == 0 )
     {
-        cout << "% using MPI" << endl;
+        cout << "% using MPI" << std::endl;
     }
 
     //********************************************//
@@ -86,7 +86,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
     IonicNoblePurkinje  ionicModel;
-    std::cout << " Done!" << endl;
+    std::cout << " Done!" << std::endl;
 
 
     //********************************************//
@@ -106,7 +106,7 @@ Int main ( Int argc, char** argv )
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.Size(), 0);
     ionicModel.initialize (states);
-    std::cout << " Done!" << endl;
+    std::cout << " Done!" << std::endl;
 
 
     //********************************************//
@@ -118,7 +118,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing rhs..." ;
     std::vector<Real> rhs (ionicModel.Size(), 0);
-    std::cout << " Done! "  << endl;
+    std::cout << " Done! "  << std::endl;
 
 
 
@@ -152,7 +152,7 @@ Int main ( Int argc, char** argv )
     std::string filename = "output.txt";
     std::ofstream output ("output.txt");
 
-    cout << "Potential: " << states.at (0) << endl;
+    std::cout << "Potential: " << states.at (0) << std::endl;
     //********************************************//
     // Time loop starts.                          //
     //********************************************//

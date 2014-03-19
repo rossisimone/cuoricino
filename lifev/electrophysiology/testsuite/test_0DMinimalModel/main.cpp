@@ -64,8 +64,7 @@
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
 
-using std::cout;
-using std::endl;
+
 using namespace LifeV;
 
 #define SolutionTestNorm  1.441222535546675e+04
@@ -77,7 +76,7 @@ Int main ( Int argc, char** argv )
     Epetra_MpiComm Comm (MPI_COMM_WORLD);
     if ( Comm.MyPID() == 0 )
     {
-        cout << "% using MPI" << endl;
+    	std::cout << "% using MPI" << std::endl;
     }
 
 
@@ -93,7 +92,7 @@ Int main ( Int argc, char** argv )
     std::cout << "Importing parameters list...";
     //    Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( "Parameters.xml" ) );
     Teuchos::ParameterList ParameterList = * ( Teuchos::getParametersFromXmlFile ( xmlParameterFilename ) );
-    std::cout << " Done!" << endl;
+    std::cout << " Done!" << std::endl;
 
 
     //********************************************//
@@ -104,7 +103,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Building Constructor for Minimal  Model with parameters ... ";
     IonicMinimalModel  ionicModel (ParameterList);
-    std::cout << " Done!" << endl;
+    std::cout << " Done!" << std::endl;
 
 
     //********************************************//
@@ -124,7 +123,7 @@ Int main ( Int argc, char** argv )
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.Size(), 0);
     ionicModel.initialize (states);
-    std::cout << " Done!" << endl;
+    std::cout << " Done!" << std::endl;
 
 
     //********************************************//
@@ -136,7 +135,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing rhs..." ;
     std::vector<Real> rhs (ionicModel.Size(), 0);
-    std::cout << " Done! "  << endl;
+    std::cout << " Done! "  << std::endl;
 
 
 
@@ -169,7 +168,7 @@ Int main ( Int argc, char** argv )
     string filename = "output.txt";
     std::ofstream output ("output.txt");
 
-    cout << "Potential: " << states[0] << endl;
+    std::cout << "Potential: " << states[0] << std::endl;
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
