@@ -60,6 +60,7 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
 #include <lifev/core/LifeV.hpp>
 
+#include <lifev/electrophysiology/stimulus/StimulusPacingProtocol.hpp>
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
@@ -214,6 +215,12 @@ Int main ( Int argc, char** argv )
         for ( int j (0); j < ionicModel.Size() - 1; j++)
         {
             output << states[j] << ", ";
+//            unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
+//            if(unknowns[j]!=unknowns[j])
+//            {
+//            	std::cout << "\n FOUND NAN! at " << j << " \n Stopping";
+//            	break;
+//            }
         }
         output << states[ ionicModel.Size() - 1] << "\n";
 
