@@ -4,7 +4,7 @@
     <Parameter name="starting_time_stimulus" type="double" value="1.0"/>
     <Parameter name="applied_total_current" type="double" value="60."/>
 	<Parameter name="tShortS1S1" type="double" value="30e3"/>
-	<Parameter name="stInt" type="double" value="1000.0"/>
+	<Parameter name="stInt" type="double" value="250.0"/>
 	<Parameter name="stIntS1S2" type="double" value="350.0"/>
 	<Parameter name="stIntS2S3" type="double" value="250.0"/>
 	<Parameter name="stIntS3S4" type="double" value="150.0"/>

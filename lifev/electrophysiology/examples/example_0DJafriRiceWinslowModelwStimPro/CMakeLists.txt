@@ -3,7 +3,7 @@ INCLUDE(TribitsAddExecutableAndTest)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
-TRIBITS_ADD_EXECUTABLE_AND_TEST(
+TRIBITS_ADD_EXECUTABLE(
   test_0DJafriRiceWinslowModelwStimPro
   SOURCES main.cpp
   ARGS -c

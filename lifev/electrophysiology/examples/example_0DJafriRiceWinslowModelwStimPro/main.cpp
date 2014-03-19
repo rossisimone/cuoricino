@@ -60,7 +60,7 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
 
-#include <lifev/electrophysiology/Stimulus/StimulusPacingProtocol.hpp>
+#include <lifev/electrophysiology/stimulus/StimulusPacingProtocol.hpp>
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -195,15 +195,15 @@ Int main ( Int argc, char** argv )
         //********************************************//
 
         Iapp =  stimulus.pacingProtocolChoice ( t ); // Protocol stimulation
-        std::cout << "\ntime = " << t << " ms.       " << std::endl;
-        std::cout << "Iapp = " << Iapp << std::endl;
+//        std::cout << "\ntime = " << t << " ms.       " << std::endl;
+//        std::cout << "Iapp = " << Iapp << std::endl;
 //        std::cout << "time step = " <<stimulus.timeStep() << std::endl;
 //        std::cout << "Stimulus starting time = " <<stimulus.startingTimeStimulus() << std::endl;
 //        std::cout << "Stimulus duration = " <<stimulus.stimDuration()<< std::endl;
-        std::cout << "V = " << unknowns[0]<< std::endl;
+//        std::cout << "V = " << unknowns[0]<< std::endl;
 
 
-//        std::cout << "\r " << t << " ms.       " << std::flush;
+        std::cout << "\r " << t << " ms.       " << std::flush;
 
         //********************************************//
         // Compute the rhs using the model equations  //
@@ -258,7 +258,7 @@ Int main ( Int argc, char** argv )
             unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
             if(unknowns[j]!=unknowns[j])
             {
-            	std::cout << "\n FOUND NAN! at " << j <<" "\n Stopping";
+            	std::cout << "\n FOUND NAN! at " << j <<"\n Stopping";
             	break;
             }
         }
