@@ -297,7 +297,7 @@ Int main ( Int argc, char** argv )
     if ( ionic_model == "Fox")
     {
         model.reset ( new IonicFox() );
-        ASSERT("\nFox model is not properly working in 3D.\n"); //TO DO: Fix It!
+        ASSERT(false, "\nFox model is not properly working in 3D.\n"); //TO DO: Fix It!
     }
 
     if ( Comm->MyPID() == 0 )
