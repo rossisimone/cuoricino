@@ -64,6 +64,8 @@
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
 
+#define SolutionTestNorm -1.394552404010000e+04
+
 using std::cout;
 using std::endl;
 using namespace LifeV;
@@ -117,7 +119,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.restingConditions() );
-    std::vector<Real>& rStates = states;
     std::cout << " Done!" << endl;
 
 
@@ -130,7 +131,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing rhs..." ;
     std::vector<Real> rhs (ionicModel.Size(), 0);
-    std::vector<Real>& rRhs = rhs;
     std::cout << " Done! "  << endl;
 
 
@@ -155,13 +155,19 @@ Int main ( Int argc, char** argv )
     int iter (0);
 
     //********************************************//
+    // We record the norm of the solution to      //
+    // check the failure of the test              //
+    //********************************************//
+    Real SolutionNorm = states[0];
+
+    //********************************************//
     // Open the file "output.txt" to save the     //
     // solution.                                  //
     //********************************************//
     string filename = "output.txt";
     std::ofstream output ("output.txt");
 
-    cout << "Potential: " << rStates.at (0) << endl;
+    cout << "Potential: " << states[0] << endl;
     //********************************************//
     // Time loop starts.                          //
     //********************************************//
@@ -188,25 +194,20 @@ Int main ( Int argc, char** argv )
         //********************************************//
         ionicModel.setAppliedCurrent (Iapp);
         ionicModel.computeRhs ( states, rhs);
-        rhs[0] += Iapp;
+        ionicModel.addAppliedCurrent(rhs);
 
         //********************************************//
         // Use forward Euler method to advance the    //
         // solution in time.                          //
         //********************************************//
 
-        //        for ( int j (0); j < ionicModel.Size(); j++)
-        //        {
-        //            rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
-        //        }
-        rStates.at (0) = rStates.at (0)  + dt * rRhs.at (0);
+        states[0] = states[0]  + dt * rhs[0];
         ionicModel.computeGatingVariablesWithRushLarsen ( states, dt);
 
         int offset = 1 + ionicModel.numberOfGatingVariables();
         for ( int j (0); j < ( ionicModel.Size() - offset ); j++)
         {
-            rStates.at (j + offset) = rStates.at (j + offset)  + dt * rRhs.at (j + offset);
-
+            states[j + offset] = states[j + offset]  + dt * rhs[j + offset];
         }
 
         //********************************************//
@@ -217,14 +218,22 @@ Int main ( Int argc, char** argv )
             output << t << ", ";
             for ( int j (0); j < ionicModel.Size() - 1; j++)
             {
-                output << rStates.at (j) << ", ";
+                output << states[j] << ", ";
             }
-            output << rStates.at ( ionicModel.Size() - 1 ) << "\n";
+            output << states.at ( ionicModel.Size() - 1 ) << "\n";
+
+            //********************************************//
+            // Update the norm of the solution to check   //
+            // test failure                               //
+            //********************************************//
+            SolutionNorm = SolutionNorm + states[0];
         }
         //********************************************//
         // Update the time.                           //
         //********************************************//
         t = t + dt;
+
+
     }
     std::cout << "\n...Time loop ends.\n";
     std::cout << "Solution written on file: " << filename << "\n";
@@ -237,8 +246,10 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    if (std::abs (rStates.at ( ionicModel.Size() - 2 ) - 0.21885) > 1e-4 )
+    Real err = std::abs (SolutionNorm - SolutionTestNorm) / std::abs(SolutionTestNorm);
+    if ( err > 1e-2 )
     {
+    	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " <<  SolutionNorm << "\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
@@ -247,3 +258,5 @@ Int main ( Int argc, char** argv )
     }
     return ( returnValue );
 }
+
+#undef SolutionTestNorm
