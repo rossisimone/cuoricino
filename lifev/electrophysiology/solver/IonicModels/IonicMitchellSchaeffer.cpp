@@ -49,7 +49,10 @@ IonicMitchellSchaeffer::IonicMitchellSchaeffer()    :
     M_tauOpen   ( 120.0 ),
     M_tauIn     ( 0.3 ),
     M_tauOut    ( 6.0 )
-{}
+{
+    M_restingConditions.at (0) = 0.0;
+    M_restingConditions.at (1) = 1.0;
+}
 
 IonicMitchellSchaeffer::IonicMitchellSchaeffer ( Teuchos::ParameterList& parameterList ) :
     super       ( 2 )
@@ -59,6 +62,9 @@ IonicMitchellSchaeffer::IonicMitchellSchaeffer ( Teuchos::ParameterList& paramet
     M_tauOpen     =  parameterList.get ("tauOpen", 120.0);
     M_tauIn       =  parameterList.get ("tauIn", 0.3);
     M_tauOut      =  parameterList.get ("tauOut", 6.0);
+
+    M_restingConditions.at (0) = 0.0;
+    M_restingConditions.at (1) = 1.0;
 }
 
 IonicMitchellSchaeffer::IonicMitchellSchaeffer ( const IonicMitchellSchaeffer& model )
@@ -70,6 +76,7 @@ IonicMitchellSchaeffer::IonicMitchellSchaeffer ( const IonicMitchellSchaeffer& m
     M_tauOut    =  model.M_tauOut;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
 }
 
 // ===================================================
@@ -84,6 +91,7 @@ IonicMitchellSchaeffer& IonicMitchellSchaeffer::operator= ( const IonicMitchellS
     M_tauOut    =  model.M_tauOut;
 
     M_numberOfEquations = model.M_numberOfEquations;
+    M_restingConditions = model.M_restingConditions;
 
     return *this;
 }
