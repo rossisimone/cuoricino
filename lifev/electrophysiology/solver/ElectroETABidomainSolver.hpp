@@ -379,7 +379,7 @@ public:
         return M_rhsPtr;
     }
     //! get the pointer to the unique version of the right hand side
-    inline const vectorPtr_Type rhsPtrUnique() const
+    inline const blockVectorPtr_Type rhsPtrUnique() const
     {
         return M_rhsPtrUnique;
     }
@@ -387,6 +387,11 @@ public:
     inline const vectorPtr_Type potentialTransPtr() const
     {
         return M_potentialTransPtr;
+    }
+    //! get the pointer to the  potential
+    inline blockVectorPtr_Type potentialGlobalPtr()
+    {
+        return M_potentialGlobalPtr;
     }
     //! get the pointer to the extra cellular potential
     inline const vectorPtr_Type potentialExtraPtr() const
@@ -1872,7 +1877,7 @@ template<typename Mesh, typename IonicModel>
 void ElectroETABidomainSolver<Mesh, IonicModel>::solveOneSplittingStep()
 {
     solveOneReactionStepFE();
-    (*M_rhsPtrUnique) *= 0;
+    (*M_rhsPtrUnique) *= 0.0;
     updateRhs();
     solveOneDiffusionStepBE();
 }
