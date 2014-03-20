@@ -11,10 +11,7 @@ ADD_SUBDIRECTORIES(
   example_0DJafriRiceWinslowModelwStimPro
   IonicRogersMcCulloch_pacingECG
   IonicRogersMcCullochSpiral
-  IonicMinimalModel
   IonicMinimalModel_pacingECG
   IonicFox
   IonicFox_pacingECG
-  Restart
-  IonicHodgkinHuxley
 )
