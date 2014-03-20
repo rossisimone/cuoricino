@@ -244,7 +244,7 @@ Int main ( Int argc, char** argv )
     monodomain -> setParameters ( monodomainList );
 
     //********************************************//
-    // Create a fiber direction                   //
+    // fiber direction                            //
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
