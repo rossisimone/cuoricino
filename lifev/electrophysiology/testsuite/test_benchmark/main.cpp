@@ -35,24 +35,6 @@
     @mantainer Simone Rossi <simone.rossi@epfl.ch>
  */
 
-// Tell the compiler to ignore specific kind of warnings:
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
-
-//Tell the compiler to restore the warning previously silented
-#pragma GCC diagnostic warning "-Wunused-variable"
-#pragma GCC diagnostic warning "-Wunused-parameter"
-
-
-
 #include <fstream>
 #include <string>
 
@@ -76,14 +58,10 @@
 #endif
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
-#include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
-#include <lifev/electrophysiology/solver/IonicModels/IonicLuoRudyI.hpp>
-#include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher06.hpp>
-#include <lifev/electrophysiology/solver/IonicModels/IonicHodgkinHuxley.hpp>
-#include <lifev/electrophysiology/solver/IonicModels/IonicNoblePurkinje.hpp>
-#include <lifev/electrophysiology/solver/IonicModels/IonicFox.hpp>
 
-#include <lifev/core/LifeV.hpp>
+#include <lifev/electrophysiology/testsuite/test_benchmark/benchmarkUtility.hpp>
+
+
 
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
@@ -93,93 +71,7 @@
 
 using namespace LifeV;
 
-Real PacingProtocolMM ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
-{
-
-    Real pacingSite_X = 0.0;
-    Real pacingSite_Y = 0.0;
-    Real pacingSite_Z = 0.0;
-    Real stimulusRadius = 0.15;
-    Real stimulusValue = 10;
-
-    Real returnValue;
-
-    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius
-            &&
-            std::abs ( z - pacingSite_Z ) <= stimulusRadius
-            &&
-            std::abs ( y - pacingSite_Y ) <= stimulusRadius
-            &&
-            t <= 2)
-    {
-        returnValue = stimulusValue;
-    }
-    else
-    {
-        returnValue = 0.;
-    }
-
-    return returnValue;
-}
-
-Real PacingProtocolHH ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
-{
-
-    Real pacingSite_X = 0.0;
-    Real pacingSite_Y = 0.0;
-    Real pacingSite_Z = 0.0;
-    Real stimulusRadius = 0.15;
-    Real stimulusValue = 500.;
-
-    Real returnValue;
-
-    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius
-            &&
-            std::abs ( z - pacingSite_Z ) <= stimulusRadius
-            &&
-            std::abs ( y - pacingSite_Y ) <= stimulusRadius
-            &&
-            t <= 2)
-    {
-        returnValue = stimulusValue;
-    }
-    else
-    {
-        returnValue = 0.;
-    }
-
-    return returnValue;
-}
-
-Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z, const ID&   /*id*/)
-{
-
-    Real pacingSite_X = 0.0;
-    Real pacingSite_Y = 0.0;
-    Real pacingSite_Z = 0.0;
-    Real stimulusRadius = 0.15;
-    Real stimulusValue = 40.0;
-
-    Real returnValue;
-
-    if ( std::abs ( x - pacingSite_X ) <= stimulusRadius
-            &&
-            std::abs ( z - pacingSite_Z ) <= stimulusRadius
-            &&
-            std::abs ( y - pacingSite_Y ) <= stimulusRadius
-            &&
-            t <= 2)
-    {
-        returnValue = stimulusValue;
-    }
-    else
-    {
-        returnValue = 0.;
-    }
-
-    return returnValue;
-}
-
+#define finalActivationTime  39.19
 
 Int main ( Int argc, char** argv )
 {
@@ -209,7 +101,7 @@ Int main ( Int argc, char** argv )
     }
 
     //********************************************//
-    // Starts the chronometer.                    //
+    // Some typedefs                              //
     //********************************************//
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
@@ -229,7 +121,9 @@ Int main ( Int argc, char** argv )
     typedef MatrixEpetra<Real> matrix_Type;
     typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
 
-
+    //********************************************//
+    // Staring the chronometers                   //
+    //********************************************//
     LifeChrono chronoinitialsettings;
 
     if ( Comm->MyPID() == 0 )
@@ -253,6 +147,11 @@ Int main ( Int argc, char** argv )
         std::cout << " Done!" << endl;
     }
 
+    //********************************************//
+    // Creates a new model object representing the//
+    // ionic model.  The model parameters are the //
+    // default ones.                              //
+    //********************************************//
     std::string ionic_model ( monodomainList.get ("ionic_model", "minimalModel") );
     if ( Comm->MyPID() == 0 )
     {
@@ -260,52 +159,13 @@ Int main ( Int argc, char** argv )
     }
 
 
-
-    //********************************************//
-    // Creates a new model object representing the//
-    // model from Aliev and Panfilov 1996.  The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
-    //********************************************//
     if ( Comm->MyPID() == 0 )
     {
         std::cout << "\nBuilding Constructor for " << ionic_model << " Model with parameters ... ";
     }
     ionicModelPtr_Type  model;
-    Real activationThreshold = 0.95;
-    if ( ionic_model == "LuoRudyI" )
-    {
-        model.reset ( new IonicLuoRudyI() );
-    }
-    if ( ionic_model == "TenTusscher06")
-    {
-        model.reset (new IonicTenTusscher06() );
-    }
-    if ( ionic_model == "HodgkinHuxley")
-    {
-        model.reset (new IonicHodgkinHuxley() );
-        activationThreshold = 10.0;
-    }
-    if ( ionic_model == "NoblePurkinje")
-    {
-        model.reset (new IonicNoblePurkinje() );
-    }
-    if ( ionic_model == "MinimalModel")
-    {
-        model.reset ( new IonicMinimalModel() );
-    }
-    if ( ionic_model == "Fox")
-    {
-        model.reset ( new IonicFox() );
-        ASSERT(false, "\nFox model is not properly working in 3D.\n"); //TO DO: Fix It!
-    }
+    Real activationThreshold = BenchmarkUtility::chooseIonicModel(model, ionic_model, *Comm );
 
-    if ( Comm->MyPID() == 0 )
-    {
-        std::cout << " Done!" << endl;
-    }
-
-    model -> showMe();
 
 
     //********************************************//
@@ -322,10 +182,7 @@ Int main ( Int argc, char** argv )
     GetPot dataFile  (argc, argv);
 
     //********************************************//
-    // We create three solvers to solve with:     //
-    // 1) Operator Splitting method               //
-    // 2) Ionic Current Interpolation             //
-    // 3) State Variable Interpolation            //
+    // We create monodomain solver.               //
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
@@ -337,7 +194,6 @@ Int main ( Int argc, char** argv )
     {
         std::cout << " solver done... ";
     }
-
 
     //********************************************//
     // Setting up the initial condition form      //
@@ -353,23 +209,12 @@ Int main ( Int argc, char** argv )
     solver -> initializeAppliedCurrent();
     solver -> setInitialConditions();
 
+
+    //********************************************//
+    // Set initial stimulus.                      //
+    //********************************************//
     function_Type stimulus;
-    if (ionic_model == "MinimalModel" )
-    {
-        stimulus = &PacingProtocolMM;
-    }
-    else if (ionic_model == "HodgkinHuxley" )
-    {
-        if (Comm -> MyPID() == 0)
-        {
-            std::cout << "\nUsing Hodgkin Huxley pacing protocol";
-        }
-        stimulus = &PacingProtocolHH;
-    }
-    else
-    {
-        stimulus = &PacingProtocol;
-    }
+    BenchmarkUtility::setStimulus(stimulus, ionic_model);
     solver -> setAppliedCurrentFromFunction (stimulus, 0.0);
 
     if ( Comm->MyPID() == 0 )
@@ -378,7 +223,7 @@ Int main ( Int argc, char** argv )
     }
 
     //********************************************//
-    // Setting up the time data                   //
+    // Setting up the monodomain solver           //
     //********************************************//
     solver -> setParameters ( monodomainList );
 
@@ -487,8 +332,14 @@ Int main ( Int argc, char** argv )
 
     for ( Real t = 0.0; t < TF; )
     {
+        //********************************************//
+        // Updating the applied current               //
+        //********************************************//
         solver -> setAppliedCurrentFromFunction ( stimulus, t );
 
+        //********************************************//
+        // Solving using the operator splitting method//
+        //********************************************//
         if ( solutionMethod == "splitting" )
         {
 			chrono.reset();
@@ -509,6 +360,9 @@ Int main ( Int argc, char** argv )
 			chrono.stop();
 			timeDiff += chrono.globalDiff( *Comm );
 		}
+        //********************************************//
+        // Solving using the L-ICI method             //
+        //********************************************//
         else if( solutionMethod == "L-ICI" )
         {
 			chrono.reset();
@@ -521,6 +375,9 @@ Int main ( Int argc, char** argv )
 			chrono.stop();
 			timeReacDiff += chrono.globalDiff( *Comm );
         }
+        //********************************************//
+        // Solving using the ICI method             //
+        //********************************************//
         else if( solutionMethod == "ICI" )
         {
 			chrono.reset();
@@ -533,6 +390,9 @@ Int main ( Int argc, char** argv )
 			chrono.stop();
 			timeReacDiff += chrono.globalDiff( *Comm );
         }
+        //********************************************//
+        // Solving using the SVI  method             //
+        //********************************************//
         else if( solutionMethod == "SVI" )
         {
 			chrono.reset();
@@ -549,8 +409,16 @@ Int main ( Int argc, char** argv )
         //register activation time
         k++;
         t = t + dt;
+
+        //********************************************//
+        // Save the activation time                   //
+        //********************************************//
         solver -> registerActivationTime (*activationTimeVector, t, activationThreshold);
 
+
+        //********************************************//
+        // export the solution                        //
+        //********************************************//
         if ( k % iter == 0 )
         {
 	        if ( Comm->MyPID() == 0 )
@@ -568,6 +436,10 @@ Int main ( Int argc, char** argv )
         std::cout << "\n2-norm of potential solution: " << normSolution;
     }
 
+    //********************************************//
+    // Closing exporters                          //
+    //********************************************//
+
     exporter.closeFile();
     activationTimeExporter.postProcess (0);
     activationTimeExporter.closeFile();
@@ -581,8 +453,15 @@ Int main ( Int argc, char** argv )
     // Saving Fiber direction to file             //
     //********************************************//
     solver -> exportFiberDirection(problemFolder);
+
+
+    //********************************************//
+    // Destroy the solver                         //
+    //********************************************//
     solver.reset();
 
+    Real fullActivationTime = activationTimeVector -> maxValue();
+    std::cout << std::setprecision(8) << fullActivationTime;
     if ( Comm->MyPID() == 0 )
     {
         chronoinitialsettings.stop();
@@ -606,5 +485,22 @@ Int main ( Int argc, char** argv )
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();
 
-    return ( EXIT_SUCCESS );
+
+    //********************************************//
+    // Checking if the test failed                //
+    //********************************************//
+    Real returnValue;
+
+    Real err = std::abs (fullActivationTime - finalActivationTime) / std::abs(finalActivationTime);
+    if ( err > 1e-2 )
+    {
+    	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " <<  fullActivationTime << "\n";
+        returnValue = EXIT_FAILURE; // Norm of solution did not match
+    }
+    else
+    {
+        returnValue = EXIT_SUCCESS;
+    }
+    return ( returnValue );
 }
+
