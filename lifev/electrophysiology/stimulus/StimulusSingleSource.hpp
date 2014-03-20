@@ -35,7 +35,7 @@
  */
 
 #ifndef STIMULUSSINGLESOURCE_HPP_
-#define CARDIACSTIMULUSSINGLESOURCE_HPP_
+#define STIMULUSSINGLESOURCE_HPP_
 
 #include <lifev/electrophysiology/stimulus/ElectroStimulus.hpp>
 
