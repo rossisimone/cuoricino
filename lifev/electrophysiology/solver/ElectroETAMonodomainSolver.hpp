@@ -330,6 +330,11 @@ public:
         return M_localMeshPtr;
     }
     //! get the pointer to the partitioned mesh
+    inline meshPtr_Type localMeshPtr()
+    {
+        return M_localMeshPtr;
+    }
+    //! get the pointer to the partitioned mesh
     inline const meshPtr_Type fullMeshPtr() const
     {
         return M_fullMeshPtr;
@@ -943,6 +948,7 @@ public:
      * where $\mathbf{I}$ is the vector of the ionic currents $I_j = I_{ion}(V_j^n)$
      */
     void solveOneICIStep (IOFile_Type& exporter, Real t);
+    void solveOneICIStep (IOFile_Type& exporter, Real t, matrix_Type& mass);
     //!Solve one full step with ionic current interpolation  and export the solution
     /*!
      * \f[
@@ -958,6 +964,8 @@ public:
     void solveSVI (IOFile_Type& exporter);
     //!Solve the system using ICI from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
     void solveICI (IOFile_Type& exporter, Real dt);
+    //!Solve the system using ICI from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
+    void solveICI (IOFile_Type& exporter, Real dt, matrixPtr_Type mass);
     //!Solve the using SVI from M_initialTime to the M_endTime with time step M_timeStep and export the solution every dt
     void solveSVI (IOFile_Type& exporter, Real dt);
     //! Generates a file where the fiber direction is saved
@@ -970,8 +978,7 @@ public:
         exporter.postProcess (t);
     }
     //! Import solution
-    void importSolution (GetPot& dataFile, std::string prefix,
-                         std::string postDir, Real time);
+    void importSolution (std::string prefix, std::string postDir, Real time = 0.0);
 
     void inline setInitialConditions()
     {
@@ -1274,13 +1281,9 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::exportFiberDirection (
 }
 
 template<typename Mesh, typename IonicModel>
-void ElectroETAMonodomainSolver<Mesh, IonicModel>::importSolution (
-    GetPot& dataFile, std::string prefix, std::string postDir, Real time)
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::importSolution (std::string prefix, std::string postDir, Real time)
 {
-    const std::string exporterType = dataFile ("exporter/type", "ensight");
-
     IOFilePtr_Type importer (new hdf5IOFile_Type() );
-    importer->setDataFromGetPot (dataFile);
     importer->setPrefix (prefix);
     importer->setPostDir (postDir);
 
@@ -1295,18 +1298,12 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::importSolution (
                                M_globalSolution.at (i), static_cast<UInt> (0) );
     importer->importFromTime (time);
     importer->closeFile();
-
 }
 
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup (GetPot& dataFile,
                                                           short int ionicSize)
 {
-
-
-    //  M_feSpacePtr.reset(
-    //          new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
-    //                  1, M_commPtr));
     M_feSpacePtr.reset (
         new feSpace_Type (M_localMeshPtr, M_elementsOrder, 1, M_commPtr) );
     M_ETFESpacePtr.reset (
@@ -1348,8 +1345,6 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setup (std::string meshName,
 template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupMassMatrix()
 {
-
-
     if (M_lumpedMassMatrix)
     {
         if (M_displacementPtr)
@@ -2158,6 +2153,14 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneICIStep (
 }
 
 template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneICIStep (
+    IOFile_Type& exporter, Real t, matrix_Type& mass)
+{
+    solveOneICIStep(mass);
+    exportSolution (exporter, t);
+}
+
+template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneSVIStep (
     IOFile_Type& exporter, Real t)
 {
@@ -2234,6 +2237,49 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveICI (
                 solveOneICIStep();
             }
 
+        }
+    }
+}
+
+
+template<typename Mesh, typename IonicModel>
+void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveICI (
+    IOFile_Type& exporter, Real dt, matrixPtr_Type mass)
+{
+    assert (
+        dt >= M_timeStep
+        && "Cannot save the solution for step smaller than the timestep!");
+    if (!mass)
+    {
+    	solveICI(exporter, dt);
+    }
+    else
+    {
+        int iter ( (dt / M_timeStep) + 1e-9);
+        int k (0);
+
+        if (M_endTime > M_timeStep)
+        {
+            for (Real t = M_initialTime; t < M_endTime;)
+            {
+
+                t += M_timeStep;
+                if (t > M_endTime)
+                {
+                    M_timeStep = M_endTime - (t - dt);
+                }
+                k++;
+                solveOneStepGatingVariablesFE();
+                if (k % iter == 0)
+                {
+                    solveOneICIStep (exporter, t, *mass);
+                }
+                else
+                {
+                    solveOneICIStep(*mass);
+                }
+
+            }
         }
     }
 }
