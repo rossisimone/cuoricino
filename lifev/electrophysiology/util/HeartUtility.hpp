@@ -413,6 +413,65 @@ inline void normalize ( VectorEpetra& vector )
     }
 }
 
+
+//! Add random component to the fibers
+/*!
+ * @param fiberVector    VectorEpetra object for storing the vector field
+ * @param fiberDirection Direction of fiber vectors as a VectorSmall
+ */
+inline void addNoiseToFibers ( VectorEpetra& fiberVector, Real magnitude = 0.01,  std::vector<bool> component =  std::vector<bool>(3,true) )
+{
+    int n1 = fiberVector.epetraVector().MyLength();
+    int d1 = n1 / 3;
+    int i (0);
+    int j (0);
+    int k (0);
+
+    for ( int l (0); l < d1; l++)
+    {
+        if(component[0])
+        {
+			i = fiberVector.blockMap().GID (l);
+			fiberVector [i] += magnitude * (0.01 * ( (std::rand() % 100 ) -50.0 ) );
+        }
+        if(component[1])
+        {
+			j = fiberVector.blockMap().GID (l + d1);
+			fiberVector [j] += magnitude * (0.01 * ( (std::rand() % 100 ) -50.0 ) );
+        }
+        if(component[2])
+        {
+			k = fiberVector.blockMap().GID (l + 2 * d1);
+			fiberVector [k] += magnitude * (0.01 * ( (std::rand() % 100 ) - 50.0 ) );
+        }
+    }
+
+    HeartUtility::normalize(fiberVector);
+}
+
+
+
+typedef boost::function < Real (const Real&  t,
+                                 const Real&  x,
+                                 const Real&  y,
+                                 const Real&  z,
+                                 const ID&    i ) >   function_Type;
+template<typename Mesh> inline void setFibersFromFunction (  boost::shared_ptr<VectorEpetra> vector, boost::shared_ptr< Mesh > localMesh, function_Type f)
+{
+    typedef Mesh                                                                         mesh_Type;
+    typedef ExporterData<mesh_Type>                                                      exporterData_Type;
+    typedef boost::shared_ptr< LifeV::Exporter<LifeV::RegionMesh<LifeV::LinearTetra> > > filterPtr_Type;
+    typedef LifeV::ExporterHDF5< RegionMesh<LinearTetra> >                               hdf5Filter_Type;
+    typedef boost::shared_ptr<hdf5Filter_Type>                                           hdf5FilterPtr_Type;
+
+
+    boost::shared_ptr<Epetra_Comm>  comm ( new Epetra_MpiComm (MPI_COMM_WORLD) );
+    boost::shared_ptr<FESpace< mesh_Type, MapEpetra > > feSpace ( new FESpace< mesh_Type, MapEpetra > ( localMesh, "P1", 3, comm ) );
+
+    feSpace->interpolate (
+        static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type> (f),
+        *vector, 0.0);
+}
 //@}
 
 } // namespace HeartUtility
