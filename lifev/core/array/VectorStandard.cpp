@@ -69,7 +69,7 @@ VectorStandard VectorStandard::operator+ (const VectorStandard& w) const
 
 VectorStandard& VectorStandard::operator+= (const VectorStandard& w)
 {
-    for (Int i = 0; i < this->size(); i++)
+    for (UInt i = 0; i < this->size(); i++)
     {
         this->at (i) += w[i];
     }
@@ -84,7 +84,7 @@ VectorStandard VectorStandard::operator- (const VectorStandard& w) const
 
 VectorStandard& VectorStandard::operator-= (const VectorStandard& w)
 {
-    for (Int i = 0; i < this->size(); i++)
+    for (UInt i = 0; i < this->size(); i++)
     {
         this->at (i) -= w[i];
     }
@@ -99,7 +99,7 @@ VectorStandard VectorStandard::operator* (const Real r) const
 
 VectorStandard& VectorStandard::operator*= (const Real r)
 {
-    for (Int i = 0; i < this->size(); i++)
+    for (UInt i = 0; i < this->size(); i++)
     {
         this->at (i) *= r;
     }
@@ -114,7 +114,7 @@ VectorStandard VectorStandard::operator/ (const Real r) const
 
 VectorStandard& VectorStandard::operator/= (const Real r)
 {
-    for (Int i = 0; i < this->size(); i++)
+    for (UInt i = 0; i < this->size(); i++)
     {
         this->at (i) /= r;
     }
