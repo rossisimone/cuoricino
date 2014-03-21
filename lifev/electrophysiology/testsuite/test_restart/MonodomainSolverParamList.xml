@@ -16,7 +16,6 @@
     <Parameter name="fibers_X" type="double" value="0.0"  />
     <Parameter name="fibers_Y" type="double" value="0.0"  />
     <Parameter name="fibers_Z" type="double" value="1.0"  />
-    <Parameter name="format" type="int" value="1"  />
 
 
     <Parameter name="Reuse Preconditioner" type="bool" value="true"/>

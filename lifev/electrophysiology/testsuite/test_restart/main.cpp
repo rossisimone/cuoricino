@@ -251,15 +251,20 @@ Int main ( Int argc, char** argv )
         cout << "\nImporting fibers:  " ;
     }
     VectorSmall<3> fibers;
-    fibers[0] = 0.0;
-    fibers[1] = 0.0;
-    fibers[2] = 1;
+    fibers[0] = monodomainList.get ("fibers_X", 0.0);
+    fibers[1] = monodomainList.get ("fibers_Y", 0.0);
+    fibers[2] = monodomainList.get ("fibers_Z", 1.0);
 
     monodomain -> setupFibers(fibers);
     if ( Comm->MyPID() == 0 )
     {
         cout << "Done! \n" ;
     }
+    //********************************************//
+    // Saving Fiber direction to file             //
+    //********************************************//
+    monodomain -> exportFiberDirection(problemFolder);
+
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
@@ -293,8 +298,8 @@ Int main ( Int argc, char** argv )
     Real dt = monodomainList.get ("timeStep", 0.1);
     Real cutTime = monodomainList.get ("cutTime", 150.0);
     //Uncomment for proper use
-    //Real TF = monodomainList.get ("endTime", 48.0);
-    Real TF = 100.0;
+    Real TF = monodomainList.get ("endTime", 48.0);
+    //Real TF = 100.0;
     Real DT = monodomainList.get ("saveStep", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
 
@@ -330,10 +335,7 @@ Int main ( Int argc, char** argv )
     exporter.closeFile();
 
     Real newSolutionNorm = monodomain -> potentialPtr() -> norm2();
-    //********************************************//
-    // Saving Fiber direction to file             //
-    //********************************************//
-    monodomain -> exportFiberDirection(problemFolder);
+
 
 
     monodomain.reset();
