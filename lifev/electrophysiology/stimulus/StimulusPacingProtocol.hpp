@@ -68,10 +68,10 @@ public:
         M_radius = r;
     }
 
-    inline void setTotalCurrent ( Real I )
+    inline void setStimulusAmplitude ( Real I )
     {
         ASSERT (I >= 0, "Invalid current value.");
-        M_totalCurrent = I;
+        M_stimulusAmplitude = I;
     }
 
     inline void setPacingSite ( Real x , Real y , Real z )
@@ -80,12 +80,6 @@ public:
         M_pacingSite_Y = y;
         M_pacingSite_Z = z;
     }
-
-    inline void setStimulusValue ( Real stimulusValue )
-    {
-        M_stimulusValue = stimulusValue;
-    }
-
 
     inline void setPacingProtocol ( std::string PacingProtocol )
     {
@@ -122,11 +116,11 @@ public:
 
     inline const Real& stIntMin() const
     {
-        return M_stIntMin;
+        return M_minimumStimulusInterval;
     }
     inline void setStIntMin (const Real& stIntMin)
     {
-        this->M_stIntMin = stIntMin;
+        this->M_minimumStimulusInterval = stIntMin;
     }
 
     inline const Real& timeStep() const
@@ -193,13 +187,13 @@ public:
         this->M_repeatSt = repeatSt;
     }
 
-    inline const Real& stimDuration() const
+    inline const Real& stimulusDuration() const
     {
-        return M_StimDuration;
+        return M_stimulusDuration;
     }
-    inline void setStimDuration (const Real& stimDur)
+    inline void setStimulusDuration (const Real& stimDur)
     {
-        this->M_StimDuration = stimDur;
+        this->M_stimulusDuration = stimDur;
     }
 
     inline void setPacingProtocolType (const std::string& pacProTyp)
@@ -210,23 +204,25 @@ public:
 
 	void setParameters (list_Type&  list)
 	{
-	    this->setStartingTimeStimulus( list.get ("starting_time_stimulus", 0.0) );
-		this->setTimeShortS1S1( list.get ("tShortS1S1", 0.001) );
-		this->setStInt( list.get ("stInt", 0.0 ) );
+		M_startingTimeStimulus =  list.get ("starting_time_stimulus", 0.0);
+		M_tShortS1S1 = list.get ("tShortS1S1", 0.001);
+		M_stimulusInterval = list.get ("stimulus_interval", 0.0 );
         this->setStIntMin( list.get ("stIntMin", 0.001) );
         this->setStIntS1S2( list.get ("stIntS1S2", 0.0) );
-        this->setStIntS1S2Min( list.get ("stIntS1S2Min", 100.0) );
+        this->setStIntS1S2Min( list.get ("stIntS1S2Min", 10.0) );
         this->setStIntS2S3( list.get ("stIntS2S3", 0.01) );
         this->setStIntS3S4( list.get ("stIntS3S4", 0.01) );
-        this->setNbStimMax( list.get ("nbStimMax", 1) );
+        M_nbStimMax = list.get ("nbStimMax", 1);
         this->setRepeatSt( list.get ("repeatSt", 1) );
         this->setTimeStep( list.get ("dt", 0.01) );
         this->setPacingProtocol( list.get ("pacPro", "FCL-ExtraSt") );
         this->setPacingProtocolType( list.get ("pacProType", "S1-S2") );
-        this->setStimDuration( list.get ("duration_stimulus", 1.0 ) );
-        this->setPacingSite (list.get ( "pacing_site_X", 1.0 ),list.get ( "pacing_site_Y", 1.0 ),list.get ( "pacing_site_Z", 1.0 ) );
-		this->setRadius ( list.get ( "applied_current_radius", 0.2 ) );
-		this->setTotalCurrent ( list.get ( "applied_total_current", 1.0 ) );
+        M_stimulusDuration = list.get ("duration_stimulus", 1.0 );
+        M_pacingSite_X = list.get ( "pacing_site_X", 1.0 );
+        M_pacingSite_Y = list.get ( "pacing_site_Y", 1.0 );
+        M_pacingSite_Z = list.get ( "pacing_site_Z", 1.0 );
+        M_radius = list.get ( "applied_current_radius", 0.2 );
+		M_stimulusAmplitude = list.get ( "stimulus_amplitude", 1.0 );
 	}
 
 
@@ -264,24 +260,23 @@ public:
 private:
 
     Real         M_radius;
-    Real         M_totalCurrent;
+    Real         M_stimulusAmplitude;
     Real 		 M_pacingSite_X;
     Real 		 M_pacingSite_Y;
     Real  		 M_pacingSite_Z;
-    Real 		 M_stimulusValue;
 
     // Values of the stimulation interval used in the protocols.
     Real M_startingTimeStimulus;
     Real M_tShortS1S1;
     Real M_stimulusInterval;                   //Duration of the time interval between two stimuli
-    Real M_stIntMin;                //Minimum duration of the time interval between two stimuli in a dynamic pacing protocol
+    Real M_minimumStimulusInterval;                //Minimum duration of the time interval between two stimuli in a dynamic pacing protocol
     Real M_stIntS1S2;
     Real M_stIntS1S2Min;
     Real M_stIntS2S3;
     Real M_stIntS3S4;
 
     // Number of stimulation information
-    int M_nbStimMax;                //Number of stimuli that we want to apply
+    int M_nbStimMax;                //Number of stimuli that we want to apply // infinity = -1
     int M_repeatSt;
     int M_numberStimulus;
 
@@ -290,7 +285,7 @@ private:
     std::string M_pacingProtocolType;
 
     // Value of the current stimulation
-    Real M_StimDuration;
+    Real M_stimulusDuration;
 
     //Discretization time step used to understand when a stimulus in
     //the pacing train

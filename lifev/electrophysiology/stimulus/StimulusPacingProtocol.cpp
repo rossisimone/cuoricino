@@ -43,16 +43,14 @@ namespace LifeV
 // ===================================================
 StimulusPacingProtocol::StimulusPacingProtocol() :
     M_radius ( 0 ),
-    M_totalCurrent ( 0 ),
+    M_stimulusAmplitude ( 0 ),
     M_pacingSite_X ( 0 ),
     M_pacingSite_Y ( 0 ),
     M_pacingSite_Z ( 0 ),
-    M_stimulusValue ( 0 ),
-    M_numberStimulus ( 0 )
+    M_numberStimulus ( 0 ),
+    M_nbStimMax(-1)
 {
-
 }
-
 
 // ===================================================
 //! Methods
@@ -72,7 +70,7 @@ Real StimulusPacingProtocol::pacingProtocolChoice ( const Real& t)
         return fixedCycleLengthwExtraStim ( t );
     }
 
-    else if ( M_pacingProtocol == "S1S2Pro" )
+    else if ( M_pacingProtocol == "S1S2" )
     {
         return standardS1S2Protocol ( t );
     }
@@ -94,13 +92,14 @@ Real StimulusPacingProtocol::pacingProtocolChoice ( const Real& t)
 Real StimulusPacingProtocol::fixedCycleLength ( const Real& t )
 {
     Real current = 0;
-    if ( M_numberStimulus < M_nbStimMax )
+    if ( M_numberStimulus < M_nbStimMax || M_nbStimMax == -1 )
     {
-        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration )
+        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_stimulusDuration )
         {
-            current = M_totalCurrent;
-            if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
+            current = M_stimulusAmplitude;
+            if ( t + M_dt >=  M_startingTimeStimulus + M_stimulusDuration )
             {
+            	std::cout << "\nUpdating the stimulus interval";
                 M_numberStimulus++;
                 M_startingTimeStimulus = M_startingTimeStimulus + M_stimulusInterval;
             }
@@ -120,13 +119,13 @@ Real StimulusPacingProtocol::fixedCycleLength ( const Real& t )
 Real StimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
 {
     Real current = 0;
-    if ( M_numberStimulus < M_nbStimMax )
+    if ( M_numberStimulus < M_nbStimMax || M_nbStimMax == -1 )
     {
-        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration )
+        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_stimulusDuration )
         {
-            current = M_totalCurrent;
+            current = M_stimulusAmplitude;
 
-            if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
+            if ( t + M_dt >=  M_startingTimeStimulus + M_stimulusDuration  )
             {
                 if ( M_numberStimulus < M_repeatSt )
                 {
@@ -178,15 +177,8 @@ Real StimulusPacingProtocol::fixedCycleLengthwExtraStim ( const Real& t )
                 }
             }
         }
-        else
-        {
-            current = 0;
-        }
     }
-    else
-    {
-        current = 0;
-    }
+
     return current;
 }
 
@@ -195,11 +187,11 @@ Real StimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
     Real current = 0;
     if ( t < M_nbStimMax * M_stimulusInterval )
     {
-        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration )
+        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_stimulusDuration )
         {
-            current = M_totalCurrent;
+            current = M_stimulusAmplitude;
 
-            if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
+            if ( t + M_dt >=  M_startingTimeStimulus + M_stimulusDuration )
             {
                 M_startingTimeStimulus = M_startingTimeStimulus + M_stimulusInterval;
 
@@ -213,20 +205,16 @@ Real StimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
                 }
             }
         }
-        else
-        {
-            current = 0;
-        }
     }
     else
     {
         if ( M_stIntS1S2 >= M_stIntS1S2Min )
         {
-            if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration)
+            if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_stimulusDuration)
             {
-                current = M_totalCurrent;
+                current = M_stimulusAmplitude;
 
-                if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
+                if ( t >= M_startingTimeStimulus + M_stimulusDuration - M_dt && t <= M_startingTimeStimulus + M_stimulusDuration )
                 {
                     M_numberStimulus++;
 
@@ -245,36 +233,28 @@ Real StimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
                         M_startingTimeStimulus = M_startingTimeStimulus + M_stimulusInterval;
                         M_numberStimulus = 0;
 
-                        if ( M_stIntS1S2 > 1000 )
+                        if ( M_stIntS1S2 > 100 )
                         {
-                            M_stIntS1S2 = M_stIntS1S2 - 1000;
+                            M_stIntS1S2 = M_stIntS1S2 - 100;
                         }
 
-                        else if ( M_stIntS1S2 <= 1000 && M_stIntS1S2 > 300 )
+                        else if ( M_stIntS1S2 <= 100 && M_stIntS1S2 > 30 )
                         {
-                            M_stIntS1S2 = M_stIntS1S2 - 50;
+                            M_stIntS1S2 = M_stIntS1S2 - 5;
                         }
 
-                        else if (  M_stIntS1S2 <= 300 &&  M_stIntS1S2 > 200 )
+                        else if (  M_stIntS1S2 <= 30 &&  M_stIntS1S2 > 20 )
                         {
-                            M_stIntS1S2 = M_stIntS1S2 - 10;
+                            M_stIntS1S2 = M_stIntS1S2 - 1;
                         }
 
-                        else if ( M_stIntS1S2 <= 200 )
+                        else if ( M_stIntS1S2 <= 20 )
                         {
                             M_stIntS1S2 = M_stIntS1S2 - 5;
                         }
                     }
                 }
             }
-            else
-            {
-                current = 0;
-            }
-        }
-        else
-        {
-            current = 0;
         }
     }
     return current;
@@ -283,13 +263,13 @@ Real StimulusPacingProtocol::standardS1S2Protocol ( const Real& t)
 Real StimulusPacingProtocol::dynamicProtocol ( const Real& t )
 {
     Real current = 0;
-    if ( M_stimulusInterval >= M_stIntMin )
+    if ( M_stimulusInterval >= M_minimumStimulusInterval )
     {
-        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_StimDuration )
+        if ( t >= M_startingTimeStimulus && t <= M_startingTimeStimulus + M_stimulusDuration )
         {
-            current = M_totalCurrent;
+            current = M_stimulusAmplitude;
 
-            if ( t >= M_startingTimeStimulus + M_StimDuration - M_dt && t <= M_startingTimeStimulus + M_StimDuration )
+            if ( t >= M_startingTimeStimulus + M_stimulusDuration - M_dt && t <= M_startingTimeStimulus + M_stimulusDuration )
             {
                 M_numberStimulus++;
                 M_startingTimeStimulus = M_startingTimeStimulus + M_stimulusInterval;
@@ -351,8 +331,8 @@ void StimulusPacingProtocol::showMe()
 
     std::cout << "\n\t\tList of parameters:\n\n";
 
-    std::cout << "Istim: " << M_totalCurrent << std::endl;
-    std::cout << "StimDuration: " << M_StimDuration << std::endl;
+    std::cout << "Istim: " << M_stimulusAmplitude << std::endl;
+    std::cout << "StimDuration: " << M_stimulusDuration << std::endl;
     std::cout << "1st stimuli time: " << M_startingTimeStimulus << std::endl;
     std::cout << "Pacing protocol: " << M_pacingProtocol << std::endl;
     std::cout << "Pacing site: " << M_pacingSite_X << " " << M_pacingSite_Y << " " << M_pacingSite_Z << std::endl;
@@ -397,7 +377,7 @@ void StimulusPacingProtocol::showMe()
     else if ( M_pacingProtocol == "DynPro" )
     {
         std::cout << "First S1-S1 interval: " << M_stimulusInterval << std::endl;
-        std::cout << "Minimum S1-S1 interval: " << M_stIntMin << std::endl;
+        std::cout << "Minimum S1-S1 interval: " << M_minimumStimulusInterval << std::endl;
         std::cout << "First time S1-S1 interval decrease: " << M_tShortS1S1 << std::endl;
     }
     else
