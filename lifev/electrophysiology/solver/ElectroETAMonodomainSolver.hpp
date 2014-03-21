@@ -389,6 +389,11 @@ public:
     {
         return M_fiberPtr;
     }
+    //! get the pointer to the fiber vector
+    inline vectorPtr_Type fiberPtr()
+    {
+        return M_fiberPtr;
+    }
     //! get the pointer to the applied current vector
     inline const vectorPtr_Type appliedCurrentPtr()
     {
@@ -807,7 +812,7 @@ public:
                                                       Real time = 0.0)
     {
 
-        M_ionicModelPtr->setAppliedCurrentFromCardiacStimulus (stimulus, M_feSpacePtr, time);
+        M_ionicModelPtr->setAppliedCurrentFromElectroStimulus (stimulus, M_feSpacePtr, time);
     }
 
     //! Solves one reaction step using the forward Euler scheme
