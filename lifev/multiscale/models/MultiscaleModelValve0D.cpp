@@ -334,6 +334,12 @@ MultiscaleModelValve0D::boundaryDeltaMeanNormalStress ( const multiscaleID_Type&
     return -M_tangentPressureRight;
 }
 
+Real
+MultiscaleModelValve0D::boundaryDeltaArea ( const multiscaleID_Type& /*boundaryID*/, bool& solveLinearSystem )
+{
+    return 0; // Explicit valve, A does not depend on pressure/flow rate at current iteration
+}
+
 // ===================================================
 // Private Methods
 // ===================================================

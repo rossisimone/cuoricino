@@ -220,7 +220,7 @@ public:
             A = (1. - std::cos(M_openingAngle)) * (1. - std::cos(M_openingAngle)) / ((1. - std::cos(M_maximumOpeningAngle)) * (1. - std::cos(M_maximumOpeningAngle))) ;
         }
 
-        return A;
+        return 1.0;
     }
 
     //! Get the variation of the flow rate (on a specific boundary interface) using the linear model
@@ -260,10 +260,7 @@ public:
      * @param solveLinearSystem a flag to which determine if the linear system has to be solved
      * @return variation of the area
      */
-    Real boundaryDeltaArea ( const multiscaleID_Type& /*boundaryID*/, bool& /*solveLinearSystem*/ )
-    {
-        return NaN;
-    }
+    Real boundaryDeltaArea ( const multiscaleID_Type& /*boundaryID*/, bool& solveLinearSystem );
 
     //@}
 
