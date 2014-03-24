@@ -1,0 +1,103 @@
+[mesh]
+	mesh_dir  = /home/marco/SRC/lifev-env/lifev-build/lifev/eta/examples/exampleValveMOX/
+	mesh_file = mesh_2-4-6mm.mesh # mesh_2-4-6mm.mesh, mesh_debugLittle.mesh
+	mesh_type = .mesh
+	units_factor = 1 # 1 if mesh in mm, else set: units_factor*mm = your_unit_measure
+
+[restart]
+	active = false
+	file = starter/solution
+
+
+[levelset]
+	resistance = 5.e4           # 5.e5
+	epsilon = 0.5               # [mm]
+	status_valve = onoff        # closed, open, moving, onoff
+	smooth_heaviside = false
+	global_psi = true
+	global_ls = true
+
+
+[physics]
+	viscosity = 0.0035          # [mm]
+	density = 0.001             # [mm]
+	angle_min = 0.087266463     # 5.*3.1415/180.
+	angle_max = 1.308996939     # 75.*3.1415/180.
+	angle = angle_min
+
+
+[exporter]
+	type = hdf5
+	multimesh = false
+	start = 0
+	save = 1
+
+
+[problem]
+	[./space_discretization]	# P1, P1Bubble, P2
+		vel_order = P1Bubble
+		press_order = P1
+		ls_order = P2
+
+	[../time]
+		initial = 0.19
+		final = 0.52
+		sistole_dt = 0.001 #5.e-4
+		diastole_dt = 0.001 #5.e-4
+		movingvalve_dt = 0.001 #5.e-4
+
+	[../ipstab]
+		gammaBeta = 2.e-6       # 0.1
+		gammaDiv = 0.01         # 0.2
+		gammaPress = 0          # 0.2
+
+	[../bc]
+		wall_label = 100
+		inlet_label = 3
+		outlet_label = 2
+		inlet = switch          # p, pconst, v, switch
+		outlet = p              # p, pconst, nostress
+		p_rescale_factor = 0.1
+		u_rescale_factor = 0.1
+		flowrate_correction = 1.3739 # 2-4-6mm: 1.3739, debugLittle: 5.99007
+
+	[../]
+
+
+[prec]
+	prectype = Ifpack           # Ifpack or ML
+	displayList = false
+
+	[./ifpack]
+		overlap = 2
+
+		[./fact]
+			ilut_level-of-fill = 1
+			drop_tolerance = 1.e-5
+			relax_value = 0
+
+		[../amesos]             # ILUT, Amesos_Umfpack, Amesos_KLU
+			solvertype = Amesos_Umfpack
+
+		[../partitioner]
+			overlap = 2
+
+		[../schwarz]
+			reordering_type = none  # metis, rcm, none
+			filter_singletons = true
+
+		[../]
+	[../]
+
+
+[solver]
+	solver = gmres
+	scaling = none
+	output = all                # none
+	conv = rhs
+	max_iter = 120
+	reuse = false
+	max_iter_reuse = 80
+	kspace = 100
+	tol = 1.e-8	                # AztecOO tolerance
+
