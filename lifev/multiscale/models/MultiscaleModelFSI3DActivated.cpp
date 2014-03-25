@@ -343,7 +343,7 @@ MultiscaleModelFSI3DActivated::setupModel()
     if ( super::solver() -> data().dataFluid()->dataTime()->initialTime() > 0)
     {
         std::string prefix = multiscaleProblemPrefix + "_Model_" + number2string ( M_ID ) +  "_Electro_" + number2string ( multiscaleProblemStep - 1);
-        M_monodomain -> importSolution (dataFile, prefix, multiscaleProblemFolder, super::solver() -> data().dataFluid()->dataTime()->initialTime() );
+        M_monodomain -> importSolution ( prefix, multiscaleProblemFolder, super::solver() -> data().dataFluid()->dataTime()->initialTime() );
     }
 
     // Setup activation solver
