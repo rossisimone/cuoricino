@@ -88,10 +88,9 @@
 
 using namespace LifeV;
 
-Real cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/);
-Real initialCondition ( const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID&   /*id*/);
+#define solutionNorm 38.2973164904655
+
 Real fiberDistribution ( const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& z, const ID&   id);
-Real fiberDistribution2 ( const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& z, const ID&   id);
 
 Int main ( Int argc, char** argv )
 {
@@ -233,15 +232,14 @@ Int main ( Int argc, char** argv )
     fibers[2] = monodomainList.get ("fibers_Z", 1.0);
 
     monodomain -> setupFibers(fibers);
-    function_Type fibre = &fiberDistribution2;
-    HeartUtility::setFibersFromFunction(monodomain -> fiberPtr(), monodomain -> localMeshPtr(), fibre);
-    //HeartUtility::normalize(*(monodomain -> fiberPtr()));
+    function_Type fibreFunction = &fiberDistribution;
+    HeartUtility::setFibersFromFunction(monodomain -> fiberPtr(), monodomain -> localMeshPtr(), fibreFunction);
+    HeartUtility::normalize(*(monodomain -> fiberPtr()));
 
 
     bool randomNoise = monodomainList.get ("noise", false);
     if(randomNoise)
     {
-//    	HeartUtility::addNoiseToFibers(*(monodomain -> fiberPtr()), 1e-4);
     	std::vector<bool> component(3,false);
     	component[0]=true;
     	Real magnitude = monodomainList.get ("noise_magnitude", 1e-3);
@@ -287,22 +285,11 @@ Int main ( Int argc, char** argv )
     }
 
     Real dt = monodomainList.get ("timeStep", 0.1);
-    Real cutTime = monodomainList.get ("cutTime", 150.0);
     //Uncomment for proper use
     Real TF = monodomainList.get ("endTime", 48.0);
-    //Real TF = 100.0;
     Real DT = monodomainList.get ("saveStep", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
 
-
-    //********************************************//
-    // Defining the cut for the spiral            //
-    //********************************************//
-	vectorPtr_Type spiral( new vector_Type( ( monodomain -> globalSolution().at(0) ) -> map() ) );
-	function_Type f = &cut;
-	monodomain -> feSpacePtr() -> interpolate(
-			static_cast<FESpace<RegionMesh<LinearTetra>, MapEpetra>::function_Type>(f),
-			*spiral, 0.0);
 
     //********************************************//
     // Define the pacing protocol                 //
@@ -337,94 +324,49 @@ Int main ( Int argc, char** argv )
 		loop++;
         t += dt;
 
-//        if(t>=cutTime && t<=cutTime + dt)
-//        {
-//    	    *(monodomain -> potentialPtr() ) *= *spiral;
-//        }
         monodomain -> solveOneStepGatingVariablesFE();
         monodomain -> solveOneICIStep();
-        if(loop % iter == 0 ) exporter.postProcess (t);
+        if(loop % iter == 0 )
+	{
+	    if ( Comm->MyPID() == 0 )
+	    {
+		 std::cout << "\ntime = " << t;
+	    }
+	 exporter.postProcess (t);
+	}
     }
 
     exporter.closeFile();
 
-//    Real newSolutionNorm = monodomain -> potentialPtr() -> norm2();
-//
-
+    Real newSolutionNorm = monodomain -> potentialPtr() -> norm2();
 
     monodomain.reset();
     MPI_Barrier (MPI_COMM_WORLD);
     MPI_Finalize();
 
-//    Real err = std::abs (newSolutionNorm - solutionNorm) / std::abs(solutionNorm);
-//    if ( err > 1e-3 )
-//    {
-//    	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " <<  newSolutionNorm << "\n";
-//        return EXIT_FAILURE; // Norm of solution did not match
-//    }
-//    else
-//    {
+
+    Real err = std::abs (newSolutionNorm - solutionNorm) / std::abs(solutionNorm);
+    if ( err > 1e-3 )
+    {
+    	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " <<  newSolutionNorm << "\n";
+        return EXIT_FAILURE; // Norm of solution did not match
+    }
+    else
+    {
         return EXIT_SUCCESS;
-//    }
-}
-
-
-
-
-Real cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
-{
-    if ( y >= 2.5)
-    {
-        return 1.0;
-    }
-    else
-    {
-        return 0.0;
     }
 }
 
-Real initialCondition ( const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& z, const ID&   /*id*/)
-{
-    if ( z <= 0.4 )
-    {
-        return 1.0;
-    }
-    else
-    {
-        return 0;
-    }
-}
+#undef solutionNorm
 
 
 Real fiberDistribution ( const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& z, const ID&   id)
-{
-	Real norm = std::sqrt(y*y+z*z);
-
-	switch( id )
-	{
-		case 0:
-			return 0.0;
-		case 1:
-			if(norm>1e-16) return z/norm;
-			else return 0.0;
-		case 2:
-			if(norm>1e-16) return -y/norm;
-			else return 1.0;
-		default:
-			return 0.0;
-	}
-}
-
-
-Real fiberDistribution2 ( const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& z, const ID&   id)
 {
 	Real y0 = 2.5;
 	Real z0 = 2.5;
 	Real a = 2.0;
 	Real b = 1.5;
 	Real r = std::sqrt((y-y0)*(y-y0)+(z-z0)*(z-z0));
-	Real teta = 1/b * std::log(r/a);
-	r = a*std::exp(b*teta);
 
 	switch( id )
 	{
