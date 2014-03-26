@@ -6,6 +6,7 @@ ADD_SUBDIRECTORIES(
   0DNegroniLascanoModel
   0DNegroniLascanoModelJafriRiceWinslow
   ActivationWith0DTenTusscher06Model
+  benchmarkPurkinje
   FiberInterpolation
   XbNegroniLascano96
   example_0DJafriRiceWinslowModelwStimPro
