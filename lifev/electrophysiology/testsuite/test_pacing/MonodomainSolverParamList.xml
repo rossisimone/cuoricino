@@ -3,15 +3,11 @@
     <Parameter name="membraneCapacitance" type="double" value="1.0"/>
     <Parameter name="timeStep" type="double" value="0.02"  />
     <Parameter name="endTime" type="double" value="50.05"  />
-    <Parameter name="cutTime" type="double" value="30.1"  />
-    <Parameter name="importTime" type="double" value="45.0"  />
-    <Parameter name="importPrefix" type="string" value="Solution"  />
-    <Parameter name="importDir" type="string" value="./"  />
-    <Parameter name="saveStep" type="double" value="2.0"  />
-    <Parameter name="longitudinalDiffusion" type="double" value="2.3342"  />
-    <Parameter name="transversalDiffusion" type="double" value ="0.517606"  />
+    <Parameter name="saveStep" type="double" value="5.0"  />
+    <Parameter name="longitudinalDiffusion" type="double" value="3.3342"  />
+    <Parameter name="transversalDiffusion" type="double" value ="1.17606"  />
     <Parameter name="elementsOrder" type="string" value="P1"  />
-    <Parameter name="mesh_name" type="string" value="lid100.mesh"  />
+    <Parameter name="mesh_name" type="string" value="lid50.mesh"  />
     <Parameter name="mesh_path" type="string" value="./"  />
     <Parameter name="fibers_X" type="double" value="0.0"  />
     <Parameter name="fibers_Y" type="double" value="1.0"  />
