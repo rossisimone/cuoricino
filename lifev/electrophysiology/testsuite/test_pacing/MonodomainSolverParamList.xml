@@ -9,9 +9,6 @@
     <Parameter name="elementsOrder" type="string" value="P1"  />
     <Parameter name="mesh_name" type="string" value="lid50.mesh"  />
     <Parameter name="mesh_path" type="string" value="./"  />
-    <Parameter name="fibers_X" type="double" value="0.0"  />
-    <Parameter name="fibers_Y" type="double" value="1.0"  />
-    <Parameter name="fibers_Z" type="double" value="1.0"  />
     <Parameter name="noise" type="bool" value="false"/>
     <Parameter name="noise_magnitude" type="double" value="10.0"  />
     
