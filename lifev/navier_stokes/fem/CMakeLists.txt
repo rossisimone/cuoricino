@@ -1,8 +1,10 @@
 SET(fem_HEADERS
   fem/TimeAdvanceBDFNavierStokes.hpp
+  fem/ResistiveImmersedSurfaceData.hpp
 CACHE INTERNAL "")
 
 SET(fem_SOURCES
+  fem/ResistiveImmersedSurfaceData.cpp
 CACHE INTERNAL "")
 
 

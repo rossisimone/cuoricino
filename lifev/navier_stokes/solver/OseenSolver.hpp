@@ -53,6 +53,7 @@
 #include <lifev/core/array/MatrixElemental.hpp>
 #include <lifev/core/array/VectorElemental.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
+#include <lifev/core/array/MatrixEpetraStructured.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
 
 #include <lifev/core/util/LifeChrono.hpp>
@@ -65,8 +66,11 @@
 #include <lifev/core/fem/PostProcessingBoundary.hpp>
 #include <lifev/core/fem/FESpace.hpp>
 
+#include <lifev/eta/expression/Integrate.hpp>
+
 #include <lifev/navier_stokes/solver/StabilizationIP.hpp>
 #include <lifev/navier_stokes/solver/OseenData.hpp>
+#include <lifev/navier_stokes/fem/ResistiveImmersedSurfaceData.hpp>
 
 #include <boost/shared_ptr.hpp>
 
@@ -113,6 +117,9 @@ public:
 #else
     typedef typename linearSolver_Type::matrix_type     matrix_Type;
 #endif
+
+    typedef MatrixEpetraStructured<Real>                matrixBlock_Type;
+    typedef boost::shared_ptr<matrixBlock_Type>         matrixBlockPtr_Type;
     typedef boost::shared_ptr<matrix_Type>              matrixPtr_Type;
     typedef typename linearSolver_Type::vector_type     vector_Type;
     typedef boost::shared_ptr<vector_Type>              vectorPtr_Type;
@@ -122,6 +129,9 @@ public:
 
     typedef typename linearSolver_Type::prec_raw_type   preconditioner_Type;
     typedef typename linearSolver_Type::prec_type       preconditionerPtr_Type;
+
+    typedef ETFESpace<mesh_Type,MapEpetra,3,3>          ETAvectorSpace_Type;
+    typedef ETFESpace<mesh_Type,MapEpetra,3,1>          ETAscalarSpace_Type;
 
     //@}
 
@@ -795,6 +805,9 @@ protected:
         return M_pressureFESpace.dim();
     }
 
+    //! Assemble the mass matrix of the resistive immersed surface
+    void assembleResistiveImmersedSurface();
+
     //@}
 
     //private members
@@ -813,6 +826,7 @@ protected:
 
     //! mass matrix
     matrixPtr_Type                 M_velocityMatrixMass;
+    matrixBlockPtr_Type            M_velocityMatrixRIS;
 
     //! mass matrix
     matrixPtr_Type                 M_pressureMatrixMass;
@@ -871,7 +885,8 @@ protected:
     UInt                           M_count;
 
     bool                           M_recomputeMatrix;
-
+    bool                           M_resistiveImmersedSurface;
+    boost::shared_ptr<ResistiveImmersedSurfaceData> M_RIS_data;
     bool                           M_isDiagonalBlockPreconditioner;
 
     //! Elementary matrices and vectors
@@ -907,6 +922,7 @@ OseenSolver ( boost::shared_ptr<data_Type>    dataType,
     M_Displayer              ( communicator ),
     M_localMap               ( M_velocityFESpace.map() + M_pressureFESpace.map() + lagrangeMultiplier),
     M_velocityMatrixMass     ( ),
+    M_velocityMatrixRIS      ( ),
     M_pressureMatrixMass     ( ),
     M_matrixStokes           ( ),
     M_matrixNoBC             ( ),
@@ -939,6 +955,8 @@ OseenSolver ( boost::shared_ptr<data_Type>    dataType,
     M_diagonalize            ( false ),
     M_count                  ( 0 ),
     M_recomputeMatrix        ( false ),
+    M_resistiveImmersedSurface ( false ),
+    M_RIS_data               ( ),
     M_elementMatrixStiff     ( M_velocityFESpace.fe().nbFEDof(), velocityFESpace.fieldDim(), velocityFESpace.fieldDim() ),
     M_elementMatrixMass      ( M_velocityFESpace.fe().nbFEDof(), velocityFESpace.fieldDim(), velocityFESpace.fieldDim() ),
     M_elementMatrixPreconditioner ( M_pressureFESpace.fe().nbFEDof(), 1, 1 ),
@@ -973,6 +991,7 @@ OseenSolver ( boost::shared_ptr<data_Type>    dataType,
     M_Displayer              ( communicator ),
     M_localMap               ( monolithicMap ),
     M_velocityMatrixMass     ( ),
+    M_velocityMatrixRIS      ( ),
     M_matrixStokes           ( ),
     M_matrixNoBC             ( ),
     M_matrixStabilization    ( ),
@@ -996,6 +1015,8 @@ OseenSolver ( boost::shared_ptr<data_Type>    dataType,
     M_diagonalize            ( false ),
     M_count                  ( 0 ),
     M_recomputeMatrix        ( false ),
+    M_resistiveImmersedSurface ( false ),
+    M_RIS_data               ( ),
     M_elementMatrixStiff     ( M_velocityFESpace.fe().nbFEDof(), M_velocityFESpace.fieldDim(), M_velocityFESpace.fieldDim() ),
     M_elementMatrixMass      ( M_velocityFESpace.fe().nbFEDof(), M_velocityFESpace.fieldDim(), M_velocityFESpace.fieldDim() ),
     M_elementMatrixPreconditioner                 ( M_pressureFESpace.fe().nbFEDof(), 1, 1 ),
@@ -1029,6 +1050,7 @@ OseenSolver ( boost::shared_ptr<data_Type>    dataType,
     M_Displayer              ( communicator ),
     M_localMap               ( M_velocityFESpace.map() + M_pressureFESpace.map() + lagrangeMultipliers ),
     M_velocityMatrixMass     ( ),
+    M_velocityMatrixRIS      ( ),
     M_matrixStokes           ( ),
     M_matrixNoBC             ( ),
     M_matrixStabilization    ( ),
@@ -1052,6 +1074,8 @@ OseenSolver ( boost::shared_ptr<data_Type>    dataType,
     M_diagonalize            ( false ),
     M_count                  ( 0 ),
     M_recomputeMatrix        ( false ),
+    M_resistiveImmersedSurface ( false ),
+    M_RIS_data               ( ),
     M_elementMatrixStiff     ( M_velocityFESpace.fe().nbFEDof(), M_velocityFESpace.fieldDim(), M_velocityFESpace.fieldDim() ),
     M_elementMatrixMass      ( M_velocityFESpace.fe().nbFEDof(), M_velocityFESpace.fieldDim(), M_velocityFESpace.fieldDim() ),
     M_elementMatrixPreconditioner ( M_pressureFESpace.fe().nbFEDof(), 1, 1 ),
@@ -1118,6 +1142,13 @@ OseenSolver<MeshType, SolverType>::setUp ( const GetPot& dataFile )
     M_ipStabilization.setGammaBeta ( M_gammaBeta );
     M_ipStabilization.setGammaDiv  ( M_gammaDiv );
     M_ipStabilization.setGammaPress ( M_gammaPress );
+
+    if (dataFile( "immersedSurface/resistance", 0.0 ) > 0.0)
+    {
+        // Resistive immersed surface defined
+        M_RIS_data.reset( new ResistiveImmersedSurfaceData() );
+        M_RIS_data->setup( dataFile );
+    }
 }
 
 
@@ -1340,6 +1371,13 @@ OseenSolver<MeshType, SolverType>::buildSystem()
                                       numVelocityComponent * velocityTotalDof, iComponent * velocityTotalDof );
             chronoDivAssemble.stop();
         }
+    }
+
+    // Separate assembly for the resistive immersed surface -term using ETA
+    if ( !M_resistiveImmersedSurface )
+    {
+        // TODO: Add reading of immersed level set surface functions
+        assembleResistiveImmersedSurface( );
     }
 
     //    for (UInt ii = M_velocityFESpace.fieldDim()*dimVelocity(); ii < M_velocityFESpace.fieldDim()*dimVelocity() + dimPressure(); ++ii)
@@ -2040,6 +2078,35 @@ OseenSolver<MeshType, SolverType>::applyBoundaryConditions ( matrix_Type&       
     }
 
 } // applyBoundaryCondition
+
+template<typename MeshType, typename SolverType>
+void
+OseenSolver<MeshType, SolverType>::assembleResistiveImmersedSurface ( )
+{
+
+    boost::shared_ptr<ETAvectorSpace_Type> ETuFESpace(new ETAvectorSpace_Type( M_velocityFESpace.mesh(), &(M_velocityFESpace.refFE()), M_Displayer.comm() ) );
+    boost::shared_ptr<ETAscalarSpace_Type> ETpFESpace(new ETAscalarSpace_Type( M_pressureFESpace.mesh(), &(M_pressureFESpace.refFE()), M_Displayer.comm() ) );
+    matrixBlockPtr_Type M_velocityMatrixRIS ( new matrixBlock_Type ( ETuFESpace->map() | ETpFESpace->map() ) );
+
+    {
+        using namespace ExpressionAssembly;
+
+        integrate
+        (
+                        elements(ETuFESpace->mesh()),
+                        //adapt(ETlsFESpace,LSSolutionOld, uFESpace->qr()), // adapted quadrature rule
+                        M_velocityFESpace.qr(), // non-adapted quadratude rule
+                        ETuFESpace,
+                        ETuFESpace,
+                        //value( ETpFESpace, M_RIS_data->eval() )
+                        dot( phi_j, phi_i )
+        )
+        >> M_velocityMatrixRIS->block(0,0);
+    }
+
+    M_velocityMatrixRIS->globalAssemble();
+
+} // assembleResistiveImmersedSurface()
 
 // ===================================================
 // Set Methods
