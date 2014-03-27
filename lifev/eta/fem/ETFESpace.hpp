@@ -137,7 +137,7 @@ public:
     ETFESpace (const meshPtr_Type& mesh,
                const ReferenceFE* refFE,
                const GeometricMap* geoMap,
-               commPtr_Type& commptr);
+               const commPtr_Type& commptr);
 
     //! Constructor where the geometric mapping is guessed
     /*!
@@ -150,7 +150,7 @@ public:
      */
     ETFESpace (const meshPtr_Type& mesh,
                const ReferenceFE* refFE,
-               commPtr_Type& commptr);
+               const commPtr_Type& commptr);
 
     //! Full constructor using the partitioner of the mesh
     /*!
@@ -162,7 +162,7 @@ public:
     ETFESpace (const MeshPartitioner<MeshType>& meshPartitioner,
                const ReferenceFE* refFE,
                const GeometricMap* geoMap,
-               commPtr_Type& commptr);
+               const commPtr_Type& commptr);
 
     //! Full constructor using the partitioner of the mesh and a guessed geometric map
     /*!
@@ -175,7 +175,7 @@ public:
      */
     ETFESpace (const MeshPartitioner<MeshType>& meshPartitioner,
                const ReferenceFE* refFE,
-               commPtr_Type& commptr);
+               const commPtr_Type& commptr);
 
 
     //! Copy constructor
@@ -311,7 +311,7 @@ private:
 
 template<typename MeshType, typename MapType, UInt SpaceDim, UInt FieldDim>
 ETFESpace<MeshType, MapType, SpaceDim, FieldDim>::
-ETFESpace (const meshPtr_Type& mesh, const ReferenceFE* refFE, const GeometricMap* geoMap, commPtr_Type& commptr)
+ETFESpace (const meshPtr_Type& mesh, const ReferenceFE* refFE, const GeometricMap* geoMap, const commPtr_Type& commptr)
 
     : M_mesh (mesh),
       M_referenceFE (refFE),
@@ -324,7 +324,7 @@ ETFESpace (const meshPtr_Type& mesh, const ReferenceFE* refFE, const GeometricMa
 
 template<typename MeshType, typename MapType, UInt SpaceDim, UInt FieldDim>
 ETFESpace<MeshType, MapType, SpaceDim, FieldDim>::
-ETFESpace (const meshPtr_Type& mesh, const ReferenceFE* refFE, commPtr_Type& commptr)
+ETFESpace (const meshPtr_Type& mesh, const ReferenceFE* refFE, const commPtr_Type& commptr)
 
     : M_mesh (mesh),
       M_referenceFE (refFE),
@@ -341,7 +341,7 @@ ETFESpace<MeshType, MapType, SpaceDim, FieldDim>::
 ETFESpace (const MeshPartitioner<MeshType>& meshPartitioner,
            const ReferenceFE* refFE,
            const GeometricMap* geoMap,
-           commPtr_Type& commptr)
+           const commPtr_Type& commptr)
     : M_mesh (meshPartitioner.meshPartition() ),
       M_referenceFE (refFE),
       M_geometricMap (geoMap),
@@ -355,7 +355,7 @@ template<typename MeshType, typename MapType, UInt SpaceDim, UInt FieldDim>
 ETFESpace<MeshType, MapType, SpaceDim, FieldDim>::
 ETFESpace (const MeshPartitioner<MeshType>& meshPartitioner,
            const ReferenceFE* refFE,
-           commPtr_Type& commptr)
+           const commPtr_Type& commptr)
     : M_mesh (meshPartitioner.meshPartition() ),
       M_referenceFE (refFE),
       M_geometricMap ( &geometricMapFromMesh<MeshType>() ),
