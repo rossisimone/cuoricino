@@ -73,6 +73,7 @@
 #include <lifev/navier_stokes/fem/ResistiveImmersedSurfaceData.hpp>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/bind.hpp>
 
 #include <list>
 
@@ -1639,6 +1640,12 @@ updateSystem ( const Real         alpha,
         }
     }
 
+    if ( M_resistiveImmersedSurface )
+    {
+        assembleResistiveImmersedSurface();
+        *matrixNoBC += *M_velocityMatrixRIS;
+    }
+
     if ( alpha != 0. )
     {
         *matrixNoBC += (*M_velocityMatrixMass) * alpha;
@@ -2084,22 +2091,30 @@ void
 OseenSolver<MeshType, SolverType>::assembleResistiveImmersedSurface ( )
 {
 
-    boost::shared_ptr<ETAvectorSpace_Type> ETuFESpace(new ETAvectorSpace_Type( M_velocityFESpace.mesh(), &(M_velocityFESpace.refFE()), M_Displayer.comm() ) );
-    boost::shared_ptr<ETAscalarSpace_Type> ETpFESpace(new ETAscalarSpace_Type( M_pressureFESpace.mesh(), &(M_pressureFESpace.refFE()), M_Displayer.comm() ) );
-    matrixBlockPtr_Type M_velocityMatrixRIS ( new matrixBlock_Type ( ETuFESpace->map() | ETpFESpace->map() ) );
+    boost::shared_ptr<ETAvectorSpace_Type> ETvectorialFESpace(new ETAvectorSpace_Type( M_velocityFESpace.mesh(), &(M_velocityFESpace.refFE()), M_Displayer.comm() ) );
+    boost::shared_ptr<ETAscalarSpace_Type> ETscalarFESpace(   new ETAscalarSpace_Type( M_pressureFESpace.mesh(), &(M_pressureFESpace.refFE()), M_Displayer.comm() ) );
+
+    matrixBlockPtr_Type M_velocityMatrixRIS ( new matrixBlock_Type ( ETvectorialFESpace->map() | ETscalarFESpace->map() ) ); // TODO: Add Lagrange multiplier for b.c.
+
+    vector_Type psiVector(ETscalarFESpace->map(), Unique);
+    vector_Type phiVector(ETscalarFESpace->map(), Unique);
+
+    M_pressureFESpace.interpolate( boost::bind( &ResistiveImmersedSurfaceData::psiFunction, M_RIS_data, _1, _1, _1, _1, _1 ), psiVector, 0.0 );
+    M_pressureFESpace.interpolate( boost::bind( &ResistiveImmersedSurfaceData::phiFunction, M_RIS_data, _1, _1, _1, _1, _1 ), phiVector, 0.0);
 
     {
         using namespace ExpressionAssembly;
 
         integrate
         (
-                        elements(ETuFESpace->mesh()),
-                        //adapt(ETlsFESpace,LSSolutionOld, uFESpace->qr()), // adapted quadrature rule
+                        elements(ETvectorialFESpace->mesh()),
                         M_velocityFESpace.qr(), // non-adapted quadratude rule
-                        ETuFESpace,
-                        ETuFESpace,
-                        //value( ETpFESpace, M_RIS_data->eval() )
-                        dot( phi_j, phi_i )
+                        ETvectorialFESpace,
+                        ETvectorialFESpace,
+                        value( M_RIS_data->resistance() )
+                        * ( value(1.0) - eval( M_RIS_data->heavisideFunctor(), value(ETscalarFESpace, psiVector ) ) )
+                        * ( eval( M_RIS_data->diracFunctor(), value(ETscalarFESpace, phiVector ) ) )
+                        * dot( phi_j, phi_i )
         )
         >> M_velocityMatrixRIS->block(0,0);
     }

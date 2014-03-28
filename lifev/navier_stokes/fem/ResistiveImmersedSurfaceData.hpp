@@ -42,6 +42,38 @@
 
 namespace LifeV {
 
+
+class SmoothHeavisideFct
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator()(const Real& value)
+    {
+        return 0.0;
+    }
+
+    SmoothHeavisideFct(){}
+    SmoothHeavisideFct(const SmoothHeavisideFct&){}
+    ~SmoothHeavisideFct(){}
+};
+
+
+class SmoothDeltaFct
+{
+public:
+    typedef Real return_Type;
+
+    return_Type operator()(const Real& value)
+    {
+        return 0.0;
+    }
+
+    SmoothDeltaFct(){}
+    SmoothDeltaFct(const SmoothDeltaFct&){}
+    ~SmoothDeltaFct(){}
+};
+
 class ResistiveImmersedSurfaceData
 {
 public:
@@ -78,6 +110,26 @@ public:
         return M_resistance;
     }
 
+    inline Real psiFunction( const Real& t, const Real& x, const Real& y, const Real& z , const ID& i)
+    {
+
+    }
+
+    inline Real phiFunction( const Real& t, const Real& x, const Real& y, const Real& z , const ID& i)
+    {
+
+    }
+
+    inline boost::shared_ptr<SmoothHeavisideFct> heavisideFunctor()
+    {
+
+    }
+
+    inline boost::shared_ptr<SmoothDeltaFct> diracFunctor()
+    {
+
+    }
+
     //@}
 
 private:
@@ -89,7 +141,6 @@ private:
     UInt M_nofSurfaces;
 
 };
-
 
 }
 
