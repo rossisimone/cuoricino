@@ -401,9 +401,9 @@ addTo (VectorType& vec)
                 // Set the row global indices in the local vector
                 for (UInt i (0); i < nbTestDof; ++i)
                 {
-		  M_elementalVector.setRowIndex
-		    (i + iblock * nbTestDof,
-		     M_testSpace->dof().localToGlobalMap (iElement, i) + iblock * M_testSpace->dof().numTotalDof() + M_offset);
+                    M_elementalVector.setRowIndex
+                    (i + iblock * nbTestDof,
+                     M_testSpace->dof().localToGlobalMap (iElement, i) + iblock * M_testSpace->dof().numTotalDof() + M_offset);
                 }
 
                 // Make the assembly
