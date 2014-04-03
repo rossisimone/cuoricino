@@ -1375,7 +1375,7 @@ OseenSolver<MeshType, SolverType>::buildSystem()
     }
 
     // Separate assembly for the resistive immersed surface -term using ETA
-    if ( !M_resistiveImmersedSurface )
+    if ( M_resistiveImmersedSurface )
     {
         // TODO: Add reading of immersed level set surface functions
         assembleResistiveImmersedSurface( );
