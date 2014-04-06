@@ -40,8 +40,8 @@
  */
 
 
-#ifndef _INTRACELLULARCALCIUMGOLDBETER_H_
-#define _INTRACELLULARCALCIUMGOLDBETER_H_
+#ifndef _IONICGOLDBETER_H_
+#define _IONICGOLDBETER_H_
 
 #include <lifev/electrophysiology/solver/IonicModels/ElectroIonicModel.hpp>
 
@@ -54,7 +54,7 @@ namespace LifeV
 {
 
 
-class IntracellularCalciumGoldbeter : public virtual ElectroIonicModel
+class IonicGoldbeter : public virtual ElectroIonicModel
 {
 
 public:
@@ -71,27 +71,27 @@ public:
     //@{
 
     //! Constructor
-    IntracellularCalciumGoldbeter();
+    IonicGoldbeter();
 
     /*!
      * @param Epetra communicator
      * @param list of parameters in an xml file
      */
-    IntracellularCalciumGoldbeter ( Teuchos::ParameterList& parameterList );
+    IonicGoldbeter ( Teuchos::ParameterList& parameterList );
 
     /*!
      * @param IntracellularCalciumGoldbeter object
      */
-    IntracellularCalciumGoldbeter ( const IntracellularCalciumGoldbeter& model );
+    IonicGoldbeter ( const IonicGoldbeter& model );
     //! Destructor
-    virtual ~IntracellularCalciumGoldbeter() {}
+    virtual ~IonicGoldbeter() {}
 
     //@}
 
     //! @name Overloads
     //@{
 
-    IntracellularCalciumGoldbeter& operator= ( const IntracellularCalciumGoldbeter& model );
+    IonicGoldbeter& operator= ( const IonicGoldbeter& model );
 
     //@}
 

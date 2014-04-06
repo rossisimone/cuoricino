@@ -39,7 +39,7 @@
   @last update 09-2013
  */
 
-#include <lifev/electrophysiology/solver/IonicModels/IntracellularCalciumGoldbeter.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicGoldbeter.hpp>
 
 
 #include <Teuchos_RCP.hpp>
@@ -51,7 +51,7 @@ namespace LifeV
 // ===================================================
 //! Constructors
 // ===================================================
-IntracellularCalciumGoldbeter::IntracellularCalciumGoldbeter()    :
+IonicGoldbeter::IonicGoldbeter()    :
     super       ( 2.0  ),
     M_nu1       ( 1.58 ),
     M_nu2       ( 16.0 ),
@@ -68,7 +68,7 @@ IntracellularCalciumGoldbeter::IntracellularCalciumGoldbeter()    :
     M_restingConditions.at (1) = 1.6;
 }
 
-IntracellularCalciumGoldbeter::IntracellularCalciumGoldbeter ( Teuchos::ParameterList& parameterList   )   :
+IonicGoldbeter::IonicGoldbeter ( Teuchos::ParameterList& parameterList   )   :
     super       ( 2 )
 {
     M_nu1       =  parameterList.get ("nu1", 1.58);
@@ -83,7 +83,7 @@ IntracellularCalciumGoldbeter::IntracellularCalciumGoldbeter ( Teuchos::Paramete
 
 }
 
-IntracellularCalciumGoldbeter::IntracellularCalciumGoldbeter ( const IntracellularCalciumGoldbeter& model )
+IonicGoldbeter::IonicGoldbeter ( const IonicGoldbeter& model )
 {
 
     M_nu1       =  model.M_nu1;
@@ -103,7 +103,7 @@ IntracellularCalciumGoldbeter::IntracellularCalciumGoldbeter ( const Intracellul
 // ===================================================
 //! Operator
 // ===================================================
-IntracellularCalciumGoldbeter& IntracellularCalciumGoldbeter::operator= ( const IntracellularCalciumGoldbeter& model )
+IonicGoldbeter& IonicGoldbeter::operator= ( const IonicGoldbeter& model )
 {
     M_nu1       =  model.M_nu1;
     M_nu2       =  model.M_nu2;
@@ -126,7 +126,7 @@ IntracellularCalciumGoldbeter& IntracellularCalciumGoldbeter::operator= ( const 
 //! Methods
 // ===================================================
 //Only sarcoplasmic calcium
-void IntracellularCalciumGoldbeter::computeGatingRhs (    const   std::vector<Real>&  v,
+void IonicGoldbeter::computeGatingRhs (    const   std::vector<Real>&  v,
                                                           std::vector<Real>& rhs )
 {
 
@@ -138,7 +138,7 @@ void IntracellularCalciumGoldbeter::computeGatingRhs (    const   std::vector<Re
 }
 
 //Both cytosolic (V) and sarcoplasmic calcium (r)
-void IntracellularCalciumGoldbeter::computeRhs (    const   std::vector<Real>&  v,
+void IonicGoldbeter::computeRhs (    const   std::vector<Real>&  v,
                                                     std::vector<Real>& rhs )
 {
 
@@ -153,7 +153,7 @@ void IntracellularCalciumGoldbeter::computeRhs (    const   std::vector<Real>&  
 }
 
 
-Real IntracellularCalciumGoldbeter::computeLocalPotentialRhs ( const std::vector<Real>& v )
+Real IonicGoldbeter::computeLocalPotentialRhs ( const std::vector<Real>& v )
 {
     return (M_nu1 - M_nu2 * std::pow (v[0], 2.0) / (M_k2 + std::pow (v[0], 2.0) ) + M_nu3 * std::pow (v[0], 4.0) * std::pow (v[1], 2.0) /
             ( (M_k3 + std::pow (v[1], 2.0) ) * (M_k4 + std::pow (v[0], 4.0) ) ) - M_nu4 * v[0] );
@@ -162,7 +162,7 @@ Real IntracellularCalciumGoldbeter::computeLocalPotentialRhs ( const std::vector
 
 
 
-void IntracellularCalciumGoldbeter::showMe()
+void IonicGoldbeter::showMe()
 {
     std::cout << "\n\n\t\tIntracellularCalciumGoldbeter Informations\n\n";
     std::cout << "number of unkowns: "  << this->Size() << std::endl;

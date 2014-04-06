@@ -63,7 +63,7 @@ int main (int argc, char** argv)
                                     const Real &   y,
                                     const Real& /*z*/,
                                     const ID&   /*i*/ ) >   function_Type;
-    typedef IntracellularCalciumGoldbeter ionicModel_Type;
+    typedef IonicGoldbeter ionicModel_Type;
     typedef boost::shared_ptr< ionicModel_Type >  ionicModelPtr_Type;
 
     typedef ElectroETAMonodomainSolver< mesh_Type, ionicModel_Type >        monodomainSolver_Type;
