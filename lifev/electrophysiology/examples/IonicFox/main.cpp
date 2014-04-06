@@ -69,7 +69,6 @@
 
 #include <lifev/core/algorithm/LinearSolver.hpp>
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
-#include <lifev/electrophysiology/solver/ElectroIonicSolver.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
