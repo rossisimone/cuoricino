@@ -98,9 +98,6 @@ SET(expression_HEADERS
 CACHE INTERNAL "")
 
 SET(expression_SOURCES ""
-	expression/EvaluationPhiI.cpp
-	expression/EvaluationPhiJ.cpp
-	expression/EvaluationScalar.cpp
 	expression/ExpressionDivI.cpp
 	expression/ExpressionDivJ.cpp
 	expression/ExpressionDphiI.cpp
@@ -112,9 +109,6 @@ SET(expression_SOURCES ""
 	expression/ExpressionPosition.cpp
 	expression/ExpressionNormal.cpp
 	expression/ExpressionScalar.cpp
-	expression/EvaluationPhiI.cpp
-	expression/EvaluationPhiJ.cpp
-	expression/EvaluationScalar.cpp
 CACHE INTERNAL "")
 
 
