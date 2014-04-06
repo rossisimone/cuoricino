@@ -1,6 +1,6 @@
 #include <lifev/core/LifeV.hpp>
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
-#include <lifev/electrophysiology/solver/IonicModels/IntracellularCalciumGoldbeter.hpp>
+#include <lifev/electrophysiology/solver/IonicModels/IonicGoldbeter.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
