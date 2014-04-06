@@ -36,7 +36,8 @@
  ( reaction diffusion equation ) using the ETA framework.
  The solution can be performed using three different methods:
  -operator splitting method (at this point available only with forward Euler
- for the reaction step and backward Euler for the diffusion step. );
+ for the reaction step and backward Euler for the diffusion step.
+ Second order splitting is available but still experimental. );
  -Ionic Currents Interpolation (at this point only forward Euler);
  -State Variable interpolation (at this point only forward Euler).
  */
@@ -101,7 +102,7 @@
 namespace LifeV
 {
 
-//! monodomainSolver - Class featuring the usual solver for monodomain equations
+//! monodomainSolver - Class featuring the solver for monodomain equations
 
 template<typename Mesh, typename IonicModel>
 class ElectroETAMonodomainSolver
@@ -145,10 +146,8 @@ public:
     typedef LinearSolver linearSolver_Type;
     typedef boost::shared_ptr<LinearSolver> linearSolverPtr_Type;
 
-    //    typedef ExporterHDF5< mesh_Type >          exporter_Type;
-    //    typedef boost::shared_ptr<exporter_Type>                       exporterPtr_Type;
-    typedef Exporter<mesh_Type> IOFile_Type;    //                IOFile_Type;
-    typedef boost::shared_ptr<IOFile_Type> IOFilePtr_Type; //                IOFilePtr_Type;
+    typedef Exporter<mesh_Type> IOFile_Type;
+    typedef boost::shared_ptr<IOFile_Type> IOFilePtr_Type;
     typedef ExporterData<mesh_Type> IOData_Type;
     typedef ExporterEnsight<mesh_Type> ensightIOFile_Type;
 #ifdef HAVE_HDF5
@@ -1149,12 +1148,12 @@ template<typename Mesh, typename IonicModel>
 ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver (
     const ElectroETAMonodomainSolver& solver) :
     M_surfaceVolumeRatio (solver.M_surfaceVolumeRatio),
-    M_ionicModelPtr (solver.M_ionicModelPtr),
+    M_ionicModelPtr (new IonicModel(*solver.M_ionicModelPtr)),
     M_commPtr (solver.M_commPtr),
     M_localMeshPtr ( solver.M_localMeshPtr),
     M_fullMeshPtr (solver.M_fullMeshPtr),
-    M_ETFESpacePtr ( solver.M_ETFESpacePtr),
-    M_feSpacePtr (solver.M_feSpacePtr),
+    M_ETFESpacePtr ( new ETFESpace_Type(*solver.M_ETFESpacePtr)),
+    M_feSpacePtr ( new feSpace_Type(*solver.M_feSpacePtr)),
     M_massMatrixPtr ( new matrix_Type (* (solver.M_massMatrixPtr) ) ),
     M_stiffnessMatrixPtr ( new matrix_Type (* (solver.M_stiffnessMatrixPtr) ) ),
     M_globalMatrixPtr ( new matrix_Type (* (solver.M_globalMatrixPtr) ) ),
@@ -1168,8 +1167,9 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver (
     M_linearSolverPtr ( new LinearSolver (* (solver.M_linearSolverPtr) ) ),
     M_elementsOrder ( solver.M_elementsOrder),
     M_fiberPtr ( new vector_Type (* (solver.M_fiberPtr) ) ) ,
-    M_lumpedMassMatrix (false),
-    M_verbose (false)
+    M_lumpedMassMatrix (solver.M_lumpedMassMatrix),
+    M_verbose (solver.M_verbose),
+    M_identity(solver.M_identity)
 {
     if (M_verbose && M_commPtr -> MyPID() == 0)
     {
@@ -1181,6 +1181,13 @@ ElectroETAMonodomainSolver<Mesh, IonicModel>::ElectroETAMonodomainSolver (
     copyGlobalSolution (solver.M_globalSolution);
     setupGlobalRhs (M_ionicModelPtr->Size() );
     copyGlobalRhs (solver.M_globalRhs);
+
+    if(solver.M_displacementPtr)
+    {
+    	M_displacementPtr.reset(new vector_Type(*solver.M_displacementPtr));
+        M_displacementETFESpacePtr.reset(new ETFESpaceVectorial_Type(*solver.ETFESpaceVectorialPtr_Type));
+    }
+
 }
 
 template<typename Mesh, typename IonicModel>

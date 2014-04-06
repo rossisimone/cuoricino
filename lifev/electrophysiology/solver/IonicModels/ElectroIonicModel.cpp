@@ -88,9 +88,9 @@ ElectroIonicModel::ElectroIonicModel ( const ElectroIonicModel& Ionic ) :
     M_appliedCurrent    ( Ionic.M_appliedCurrent ),
     M_pacingProtocol (Ionic.M_pacingProtocol)
 {
-    if (Ionic.M_appliedCurrent)
+    if (Ionic.M_appliedCurrentPtr)
     {
-        M_appliedCurrentPtr = Ionic.M_appliedCurrentPtr;
+        M_appliedCurrentPtr.reset(new vector_Type(*Ionic.M_appliedCurrentPtr));
     }
 }
 
