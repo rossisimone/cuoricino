@@ -5,6 +5,7 @@ ADD_SUBDIRECTORIES(
 	test_benchmark 
     test_bidomain
 	test_pacing
+	test_restart
 	test_0DAlievPanfilovModel
 	test_0DLuoRudyIModel
 	test_0DJafriRiceWinslowModel

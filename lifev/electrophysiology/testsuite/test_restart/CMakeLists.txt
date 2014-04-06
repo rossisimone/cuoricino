@@ -13,11 +13,11 @@ TRIBITS_ADD_EXECUTABLE_AND_TEST(
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_heart_test_restart_data
   CREATE_SYMLINK
-  SOURCE_FILES MonodomainSolverParamList.xml
+  SOURCE_FILES MonodomainSolverParamList.xml Solution.xmf Solution.h5
   SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(lidmesh_test_restart
-  SOURCE_FILES lid16.mesh lid50.mesh
+  SOURCE_FILES lid16.mesh lid50.mesh 
   SOURCE_DIR ${CMAKE_SOURCE_DIR}/lifev/electrophysiology/data/mesh/inria/
 )
