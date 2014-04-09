@@ -107,6 +107,13 @@ enum couplings_Type
     MeanTotalNormalStressArea /*!< Mean total normal stress with area coupling condition */
 };
 
+enum coupling_status_Type
+{
+    Default,                /*!< Default value, take no special actions */
+    ValveOpen,              /*!< Passed to FSI3D models to indicate a closed valve coupling */
+    ValveClosed             /*!< Passed to FSI3D models to indicate an open valve coupling */
+};
+
 enum errors_Type
 {
     IterationsMaximumNumber, /*!< Maximum number of iterations reached */

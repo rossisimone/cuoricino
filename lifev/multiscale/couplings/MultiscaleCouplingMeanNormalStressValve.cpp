@@ -48,7 +48,8 @@ MultiscaleCouplingMeanNormalStressValve::MultiscaleCouplingMeanNormalStressValve
     multiscaleCoupling_Type     (),
     super_Type                  (),
     M_valveIsOpen               ( true ),
-    M_topologyChange            ( false )
+    M_topologyChange            ( false ),
+    M_useDedicatedValveModel    ( false )
 {
 
 #ifdef HAVE_LIFEV_DEBUG
@@ -80,7 +81,8 @@ MultiscaleCouplingMeanNormalStressValve::setupCoupling()
         }
         if ( M_flowRateInterfaces != modelsNumber() )
         {
-            std::cout << "!!! WARNING: MultiscaleCouplingMeanNormalStressValve does not work with stress boundary data !!!" << std::endl;
+            M_useDedicatedValveModel = true; // l.h.s. of coupling is a valve model
+            //std::cout << "!!! WARNING: MultiscaleCouplingMeanNormalStressValve does not work with stress boundary data !!!" << std::endl;
         }
     }
 }
@@ -103,15 +105,24 @@ MultiscaleCouplingMeanNormalStressValve::initializeCouplingVariables()
     if ( myModel ( 0 ) )
         if ( isModelLeaderProcess ( 0 ) )
         {
-            if ( localCouplingVariables ( 0 ) [M_flowRateInterfaces] <= 1e-10 )
+            if (M_useDedicatedValveModel)
             {
-                std::cout << " MS-  Valve closed at coupling " << M_ID << std::endl;
-                localValvePosition = 0;
+                // Dedicated valve open initially
+                std::cout << " MS-  Valve open at coupling " << M_ID << std::endl;
+                localValvePosition = 1;
             }
             else
             {
-                std::cout << " MS-  Valve open at coupling " << M_ID << std::endl;
-                localValvePosition = 1;
+                if ( localCouplingVariables ( 0 ) [M_flowRateInterfaces] <= 1e-10 )
+                {
+                    std::cout << " MS-  Valve closed at coupling " << M_ID << std::endl;
+                    localValvePosition = 0;
+                }
+                else
+                {
+                    std::cout << " MS-  Valve open at coupling " << M_ID << std::endl;
+                    localValvePosition = 1;
+                }
             }
         }
 
@@ -148,46 +159,71 @@ MultiscaleCouplingMeanNormalStressValve::updateCoupling()
     // then we share the information with the other processes.
     Int localTopology ( 0 );
     Int globalTopology ( 0 );
-    if ( M_valveIsOpen )
+    Real P_left_local ( 0 );
+    Real P_right_local ( 0 );
+    Real P_left_global ( 0 );
+    Real P_right_global ( 0 );
+
+    if ( M_useDedicatedValveModel )
     {
-        if ( myModel ( 0 ) )
+        // Check valve state from pressure gradient sign
+        if ( myModel(0) )
         {
-            Real myValue = multiscaleDynamicCast< MultiscaleInterface > ( M_models[0] )->boundaryFlowRate ( M_boundaryIDs[0] );
-            if ( isModelLeaderProcess ( 0 ) && myValue < 0 )
-            {
-                std::cout << " MS-  Closing the valve at coupling " << M_ID << std::endl;
-                localTopology = 1;
-            }
+            P_left_local = multiscaleDynamicCast< MultiscaleInterface > ( M_models[0] )->boundaryMeanNormalStress( M_boundaryIDs[1] );
         }
+        if ( myModel(0) )
+        {
+            P_right_local = multiscaleDynamicCast< MultiscaleInterface > ( M_models[0] )->boundaryMeanNormalStress( M_boundaryIDs[0] );
+        }
+
+        M_comm->SumAll ( &P_left_local,  &P_left_global, 1 );
+        M_comm->SumAll ( &P_right_local, &P_right_global, 1 );
+        M_valveIsOpen = (-P_left_global > -P_right_global);
+
     }
     else
     {
-        Real globalSum ( 0 );
-        Real localSum ( 0 );
-
-        if ( myModel ( 1 ) )
+        // Check valve state from direction of flow
+        if ( M_valveIsOpen )
         {
-            Real myValue = multiscaleDynamicCast< MultiscaleInterface > ( M_models[1] )->boundaryMeanNormalStress ( M_boundaryIDs[1] );
-            if ( isModelLeaderProcess ( 1 ) )
+            if ( myModel ( 0 ) )
             {
-                localSum = myValue;
+                Real myValue = multiscaleDynamicCast< MultiscaleInterface > ( M_models[0] )->boundaryFlowRate ( M_boundaryIDs[0] );
+                if ( isModelLeaderProcess ( 0 ) && myValue < 0 )
+                {
+                    std::cout << " MS-  Closing the valve at coupling " << M_ID << std::endl;
+                    localTopology = 1;
+                }
             }
         }
-
-        // We use the SumAll() instead of the Broadcast() because this way we don't need the id of the leader process.
-        M_comm->SumAll ( &localSum, &globalSum, 1 );
-
-        if ( myModel ( 0 ) )
+        else
         {
-            Real myValue = globalSum - multiscaleDynamicCast< MultiscaleInterface > ( M_models[0] )->boundaryMeanNormalStress ( M_boundaryIDs[0] );
-            if ( isModelLeaderProcess ( 0 ) && myValue > 0 )
+            Real globalSum ( 0 );
+            Real localSum ( 0 );
+
+            if ( myModel ( 1 ) )
             {
-                std::cout << " MS-  Opening the valve at coupling " << M_ID << std::endl;
-                localTopology = 1;
+                Real myValue = multiscaleDynamicCast< MultiscaleInterface > ( M_models[1] )->boundaryMeanNormalStress ( M_boundaryIDs[1] );
+                if ( isModelLeaderProcess ( 1 ) )
+                {
+                    localSum = myValue;
+                }
+            }
+
+            // We use the SumAll() instead of the Broadcast() because this way we don't need the id of the leader process.
+            M_comm->SumAll ( &localSum, &globalSum, 1 );
+
+            if ( myModel ( 0 ) )
+            {
+                Real myValue = globalSum - multiscaleDynamicCast< MultiscaleInterface > ( M_models[0] )->boundaryMeanNormalStress ( M_boundaryIDs[0] );
+                if ( isModelLeaderProcess ( 0 ) && myValue > 0 )
+                {
+                    std::cout << " MS-  Opening the valve at coupling " << M_ID << std::endl;
+                    localTopology = 1;
+                }
             }
         }
     }
-
     // We use the SumAll() instead of the Broadcast() because this way we don't need the id of the leader process.
     M_comm->SumAll ( &localTopology, &globalTopology, 1 );
 
@@ -202,6 +238,25 @@ MultiscaleCouplingMeanNormalStressValve::updateCoupling()
     else
     {
         M_topologyChange = false;
+    }
+
+    // Pass state of the valve to all the FSI3D models
+    if ( M_useDedicatedValveModel )
+    {
+        for (int i=0; i < myModelsNumber(); i++)
+        {
+            if ( myModel(i) && (M_models[i]->type() == FSI3D || M_models[i]->type() == FSI3DActivated) )
+            {
+                if ( M_valveIsOpen )
+                {
+                    M_models[i]->setCouplingStatus( ValveOpen );
+                }
+                else
+                {
+                    M_models[i]->setCouplingStatus( ValveClosed );
+                }
+            }
+        }
     }
 }
 

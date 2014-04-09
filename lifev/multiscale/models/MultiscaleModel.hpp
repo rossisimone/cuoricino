@@ -250,6 +250,11 @@ public:
         M_comm = comm;
     }
 
+    void setCouplingStatus ( const coupling_status_Type & status )
+    {
+        M_couplingStatus = status;
+    }
+
     //@}
 
 
@@ -361,6 +366,8 @@ protected:
     boost::array< Real, NDIM >           M_geometryTranslate;  // Global geometrical translation
 
     multiscaleCommPtr_Type               M_comm;               // Communicator
+
+    coupling_status_Type                 M_couplingStatus;
 
 private:
 

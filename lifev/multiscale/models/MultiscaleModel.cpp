@@ -56,7 +56,8 @@ MultiscaleModel::MultiscaleModel() :
     M_geometryScale     (),
     M_geometryRotate    (),
     M_geometryTranslate (),
-    M_comm              ()
+    M_comm              (),
+    M_couplingStatus    (Default)
 {
 
 #ifdef HAVE_LIFEV_DEBUG

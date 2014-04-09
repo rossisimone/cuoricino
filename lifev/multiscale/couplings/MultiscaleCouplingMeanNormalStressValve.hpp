@@ -146,6 +146,7 @@ private:
 
     bool                     M_valveIsOpen;
     bool                     M_topologyChange;
+    bool                     M_useDedicatedValveModel;
 };
 
 //! Factory create function
