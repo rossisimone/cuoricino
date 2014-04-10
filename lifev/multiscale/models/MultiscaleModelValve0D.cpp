@@ -662,7 +662,7 @@ MultiscaleModelValve0D::solveForOpeningAngle()
     Real k1_F ( M_frictionalMomentCoefficient * (M_pressureLeft - M_pressureRight) * std::cos(M_openingAngle_tn)
     - M_resistiveMomentCoefficient * M_thetaVel_tn
     - M_convectiveMomentCoefficient * M_flowRate * std::cos(M_openingAngle_tn)
-    + (M_flowRate < 0 ? 1.0 : 0.0) * M_vortexMomentCoefficient * M_flowRate * std::sin(M_openingAngle_tn) );
+    + (M_flowRate < 0 ? 1.0 : 0.0) * M_vortexMomentCoefficient * M_flowRate * std::sin(2.0 * M_openingAngle_tn) );
 
 
     M_openingAngle = M_openingAngle_tn + dt * k1_v;
