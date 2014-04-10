@@ -1519,6 +1519,15 @@ void FSIOperator::setRobinOuterWall (function_Type const& dload, function_Type c
                                             E);
 }
 
+void FSIOperator::setValveStatus ( const Real status )
+{
+    if ( this->isFluid() )
+    {
+        // Pass state variable for valve position directly into the OseenSolver
+        M_fluid->setValveStatus( status );
+    }
+}
+
 
 // ===================================================
 //  Protected Methods

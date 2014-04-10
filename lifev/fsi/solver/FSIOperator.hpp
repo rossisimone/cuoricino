@@ -1142,6 +1142,7 @@ public:
     void setDerFluidLoadToStructure          ( const vector_Type& dload, UInt type = 0 );
     void setDerFluidLoadToFluid              ( const vector_Type& dload, UInt type = 0 );
     void setRobinOuterWall                   ( const function_Type& dload, const function_Type& E);
+    void setValveStatus                      ( const Real status);
 
     //! Setter for the time derivative of the interface displacement
     void setSolutionDerivative ( const vector_Type& solutionDerivative )
@@ -1351,6 +1352,7 @@ private:
     int                                               M_solidLeader;
 
     std::string                                       M_aleOrder;
+
     //@}
 
 };

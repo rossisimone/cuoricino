@@ -556,6 +556,8 @@ public:
      */
     void setTolMaxIteration ( const Real& tolerance, const Int& maxIteration = -1 );
 
+    void setValveStatus( const Real status );
+
     //@}
 
     //! @name Get Methods
@@ -887,6 +889,7 @@ protected:
 
     bool                           M_recomputeMatrix;
     bool                           M_resistiveImmersedSurface;
+    Real                           M_valveStatus;
     boost::shared_ptr<ResistiveImmersedSurfaceData> M_RIS_data;
     bool                           M_isDiagonalBlockPreconditioner;
 
@@ -2146,6 +2149,21 @@ OseenSolver<MeshType, SolverType>::setTolMaxIteration ( const Real& tolerance, c
 {
     M_linearSolver->setTolerance ( tolerance );
     M_linearSolver->setMaxNumIterations ( maxIteration );
+}
+
+template<typename MeshType, typename SolverType>
+void
+OseenSolver<MeshType, SolverType>::setValveStatus ( const Real status )
+{
+    if (status >= 0. && status <= 1.)
+    {
+        M_valveStatus = status;
+        std::cout << "I WAS SUCCESSFULLY PASSED VALVE STATUS = " << M_valveStatus << std::endl;
+    }
+    else
+    {
+        // Invalid state for the valve. raise an error!
+    }
 }
 
 

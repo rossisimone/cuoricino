@@ -268,6 +268,7 @@ MultiscaleModelFSI3D::buildModel()
     //    if ( M_comm->MyPID() == 0 )
     //        M_data->showMe();
 
+    M_FSIoperator->fluid().setValveStatus( (M_couplingStatus == ValveOpen) ? 1.0 : 0.0 ); // Pass valve status binary for now
     M_FSIoperator->buildSystem();
     M_FSIoperator->updateSystem();
 
@@ -284,6 +285,7 @@ MultiscaleModelFSI3D::updateModel()
 #endif
 
     // Update System
+    M_FSIoperator->setValveStatus( (M_couplingStatus == ValveOpen) ? 1.0 : 0.0 ); // Pass valve status binary for now
     M_FSIoperator->updateSystem();
 
     // Update BCInterface solver variables
