@@ -26,9 +26,9 @@
 
 /*!
     @file
-    @brief Test for ElectroETAMonodomainSolver and IonicMinimalModel
+    @brief Test to restart a simulation from an hdf5 exported solution
 
-    @date 08−2013
+    @date 03 - 2014
     @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
@@ -51,48 +51,30 @@
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
-#include <fstream>
-#include <string>
-
-#include <lifev/core/array/VectorSmall.hpp>
-
-#include <lifev/core/array/VectorEpetra.hpp>
-#include <lifev/core/array/MatrixEpetra.hpp>
-#include <lifev/core/array/MapEpetra.hpp>
-#include <lifev/core/mesh/MeshData.hpp>
+//We use this to transform the mesh from [0,1]x[0,1] to [0,5]x[0,5]
 #include <lifev/core/mesh/MeshTransformer.hpp>
-#include <lifev/core/mesh/MeshPartitioner.hpp>
-#include <lifev/core/filter/ExporterEnsight.hpp>
-#include <lifev/core/filter/ExporterHDF5.hpp>
-#include <lifev/core/filter/ExporterEmpty.hpp>
 
-#include <lifev/core/algorithm/LinearSolver.hpp>
+//We will use the ETAMonodomainSolver
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
 
-#include <lifev/core/filter/ExporterEnsight.hpp>
-#ifdef HAVE_HDF5
-#include <lifev/core/filter/ExporterHDF5.hpp>
-#endif
-#include <lifev/core/filter/ExporterEmpty.hpp>
-
-#include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
+//We will use the Aliev Panfilov model for simplicity
 #include <lifev/electrophysiology/solver/IonicModels/IonicAlievPanfilov.hpp>
+
+//Include LifeV
 #include <lifev/core/LifeV.hpp>
 
-#include <Teuchos_RCP.hpp>
-#include <Teuchos_ParameterList.hpp>
-#include "Teuchos_XMLParameterListHelpers.hpp"
-
-
+//this is useful to save the out in a separate folder
 #include <sys/stat.h>
 
 using namespace LifeV;
 
+//Forward declaration of the function defining the fiber direction.
+//See the end of the file for the implementation
 Real cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/);
 Real initialCondition ( const Real& /*t*/, const Real& x, const Real& /*y*/, const Real& /*z*/, const ID&   /*id*/);
-Real fiberdiDistribution ( const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& z, const ID&   id);
 
-
+//Forward declaration of the function defining the fiber direction.
+//See the end of the file for the implementation
 Int main ( Int argc, char** argv )
 {
 
@@ -103,9 +85,11 @@ Int main ( Int argc, char** argv )
     {
         cout << "% using MPI" << endl;
     }
+
     //*********************************************//
     // creating output folder
     //*********************************************//
+
     GetPot commandLine ( argc, argv );
     std::string problemFolder = commandLine.follow ( "Output", 2, "-o", "--output" );
     // Create the problem folder
@@ -120,10 +104,11 @@ Int main ( Int argc, char** argv )
     }
 
     //********************************************//
-    // Starts the chronometer.                    //
+    // Some typedefs                              //
     //********************************************//
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
+
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
@@ -132,10 +117,9 @@ Int main ( Int argc, char** argv )
 
     typedef ElectroETAMonodomainSolver< mesh_Type, IonicAlievPanfilov > monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >                 monodomainSolverPtr_Type;
+
     typedef VectorEpetra                                               vector_Type;
     typedef boost::shared_ptr<vector_Type>                             vectorPtr_Type;
-    typedef MatrixEpetra<Real>                                         matrix_Type;
-    typedef boost::shared_ptr<matrix_Type>                             matrixPtr_Type;
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -181,15 +165,11 @@ Int main ( Int argc, char** argv )
     // We need the GetPot datafile for to setup   //
     // the preconditioner.                        //
     //********************************************//
-    GetPot command_line (argc, argv);
-    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
-    GetPot dataFile (data_file_name);
+
+    GetPot dataFile (argc, argv);
 
     //********************************************//
-    // We create three solvers to solve with:     //
-    // 1) Operator Splitting method               //
-    // 2) Ionic Current Interpolation             //
-    // 3) State Variable Interpolation            //
+    // We create the monodomain solver            //
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
@@ -202,6 +182,10 @@ Int main ( Int argc, char** argv )
         std::cout << " Splitting solver done... ";
     }
 
+    //********************************************//
+    // We transform the mesh to get a larger      //
+    // domain.                                    //
+    //********************************************//
     std::vector<Real> scale(3,1.0);
     scale[2] = 5.0; scale[1] = 5.0;
     std::vector<Real> rotate(3,0.0);
@@ -223,6 +207,7 @@ Int main ( Int argc, char** argv )
     // Setting up the initial condition form      //
     // importing the old solution                 //
     //********************************************//
+
     if ( Comm->MyPID() == 0 )
     {
         cout << "\nInitializing potential:  " ;
@@ -230,8 +215,6 @@ Int main ( Int argc, char** argv )
 
     Real initialTime = monodomainList.get ("importTime", 0.0);
     monodomain -> importSolution(prefix, dir, initialTime);
-
-
 
     if ( Comm->MyPID() == 0 )
     {
@@ -241,15 +224,18 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Setting up the monodomain solver           //
     //********************************************//
+
     monodomain -> setParameters ( monodomainList );
 
     //********************************************//
     // fiber direction                            //
     //********************************************//
+
     if ( Comm->MyPID() == 0 )
     {
         cout << "\nImporting fibers:  " ;
     }
+
     VectorSmall<3> fibers;
     fibers[0] = monodomainList.get ("fibers_X", 0.0);
     fibers[1] = monodomainList.get ("fibers_Y", 0.0);
@@ -260,14 +246,17 @@ Int main ( Int argc, char** argv )
     {
         cout << "Done! \n" ;
     }
+
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
+
     monodomain -> exportFiberDirection(problemFolder);
 
     //********************************************//
     // Create the global matrix: mass + stiffness //
     //********************************************//
+
     if ( Comm->MyPID() == 0 )
     {
         cout << "\nSetup operators:  " ;
@@ -283,6 +272,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Creating exporters to save the solution    //
     //********************************************//
+
     ExporterHDF5< RegionMesh <LinearTetra> > exporter;
     monodomain -> setupExporter ( exporter, monodomainList.get ("OutputFile", "Solution"), problemFolder );
     monodomain -> exportSolution ( exporter, 0);
@@ -290,22 +280,23 @@ Int main ( Int argc, char** argv )
     //********************************************//
     // Solving the system                         //
     //********************************************//
+
     if ( Comm->MyPID() == 0 )
     {
         std::cout << "\nstart solving:  " ;
     }
 
-    Real dt = monodomainList.get ("timeStep", 0.1);
+    Real dt = monodomain -> timeStep();
     Real cutTime = monodomainList.get ("cutTime", 150.0);
     //Uncomment for proper use
-    Real TF = monodomainList.get ("endTime", 48.0);
+    Real TF =  monodomain -> endTime();
     //Real TF = 100.0;
     Real DT = monodomainList.get ("saveStep", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
 
 
     //********************************************//
-    // Defining the cut for the spiral            //
+    // Defining the cut for generating the spiral //
     //********************************************//
 	vectorPtr_Type spiral( new vector_Type( ( monodomain -> globalSolution().at(0) ) -> map() ) );
 	function_Type f = &cut;
@@ -332,11 +323,18 @@ Int main ( Int argc, char** argv )
         if(loop % iter == 0 ) exporter.postProcess (t);
     }
 
+    //********************************************//
+	// Close the exporter                         //
+	//********************************************//
+
     exporter.closeFile();
 
+
+    //********************************************//
+	// Check if the test failed                   //
+	//********************************************//
+
     Real newSolutionNorm = monodomain -> potentialPtr() -> norm2();
-
-
 
     monodomain.reset();
     MPI_Barrier (MPI_COMM_WORLD);
@@ -356,7 +354,7 @@ Int main ( Int argc, char** argv )
 
 
 
-
+// Function to cut the spiral
 Real cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/, const ID& /*i*/)
 {
     if ( y >= 2.5)
@@ -369,6 +367,7 @@ Real cut (const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& /*z*/
     }
 }
 
+//Initial condition used for the precomputed solution
 Real initialCondition ( const Real& /*t*/, const Real& /*x*/, const Real& /*y*/, const Real& z, const ID&   /*id*/)
 {
     if ( z <= 0.4 )
@@ -382,17 +381,3 @@ Real initialCondition ( const Real& /*t*/, const Real& /*x*/, const Real& /*y*/,
 }
 
 
-Real fiberDistribution ( const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& z, const ID&   id)
-{
-	switch( id )
-	{
-		case 0:
-			return 0.0;
-		case 1:
-			return y;
-		case 2:
-			return z;
-		default:
-			return 0.0;
-	}
-}
