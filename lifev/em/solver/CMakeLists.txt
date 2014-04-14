@@ -3,6 +3,7 @@ SET(solver_HEADERS
   solver/EMEvaluate.hpp
   solver/EMSolver.hpp
   solver/EMETAFunctors.hpp
+  solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES

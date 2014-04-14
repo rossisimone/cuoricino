@@ -7,7 +7,7 @@
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
-#include <lifev/structure/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
+#include <lifev/em/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
 #include <lifev/em/solver/EMETAFunctors.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>

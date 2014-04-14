@@ -68,7 +68,9 @@
 #if defined(LIFEV_HAS_FSI)
 #include <lifev/multiscale/models/MultiscaleModelFSI3D.hpp>
 #if defined(LIFEV_HAS_ELECTROPHYSIOLOGY)
+#if defined(LIFEV_HAS_EM)
 #include <lifev/multiscale/models/MultiscaleModelFSI3DActivated.hpp>
+#endif
 #endif
 #endif
 
