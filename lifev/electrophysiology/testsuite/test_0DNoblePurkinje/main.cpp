@@ -28,11 +28,10 @@
     @file
     @brief 0D test with the minimal model
 
-    @date 01−2013
-    @author Simone Rossi <simone.rossi@epfl.ch>
+    @date 09 - 2013
+    @author Simone Palamara <palamara.simone@gmail.com>
 
-    @contributor
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
+    @contributor Simone Rossi <simone.rossi@epfl.ch>
  */
 
 // Tell the compiler to ignore specific kind of warnings:
@@ -53,9 +52,6 @@
 
 
 #include <fstream>
-#include <string>
-
-#include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicNoblePurkinje.hpp>
 #include <lifev/core/LifeV.hpp>
@@ -84,7 +80,7 @@ Int main ( Int argc, char** argv )
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
-    std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
+    std::cout << "Building Constructor for Noble Model with parameters ... ";
     IonicNoblePurkinje  ionicModel;
     std::cout << " Done!" << std::endl;
 
@@ -95,16 +91,12 @@ Int main ( Int argc, char** argv )
     //********************************************//
     ionicModel.showMe();
 
-
     //********************************************//
-    // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
+    // Initialize the solution with the default   //
+    // values									  //
     //********************************************//
     std::cout << "Initializing solution vector...";
-    std::vector<Real> states (ionicModel.Size(), 0);
+    std::vector<Real> states (ionicModel.restingConditions());
     ionicModel.initialize (states);
     std::cout << " Done!" << std::endl;
 

@@ -53,7 +53,6 @@
 
 
 #include <fstream>
-#include <string>
 #include <algorithm>
 
 #include <lifev/core/array/VectorEpetra.hpp>

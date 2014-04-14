@@ -31,7 +31,7 @@
     @date 04−2013
     @author Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 
-    @contributor
+    @contributor Simone Rossi <simone.rossi@epfl.ch>
     @mantainer Luis Miguel de Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
  */
 
@@ -53,9 +53,6 @@
 
 
 #include <fstream>
-#include <string>
-
-#include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicJafriRiceWinslow.hpp>
 #include <lifev/core/LifeV.hpp>
@@ -114,8 +111,9 @@ Int main ( Int argc, char** argv )
 
 
     //********************************************//
-    // Initialize the solution to 0. The model    //
-    // consist of 31 state variables.             //
+    // Initialize the solution to with default    //
+    // values. The model                          //
+    // consists of 31 state variables.             //
     // model.Size() returns the number of state   //
     // variables of the model.                    //
     //********************************************//

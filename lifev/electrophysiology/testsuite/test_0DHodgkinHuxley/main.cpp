@@ -28,7 +28,7 @@
     @file
     @brief 0D test with the minimal model
 
-    @date 01−2013
+    @date 01 - 2013
     @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
@@ -53,9 +53,6 @@
 
 
 #include <fstream>
-#include <string>
-
-#include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicHodgkinHuxley.hpp>
 #include <lifev/core/LifeV.hpp>
@@ -81,25 +78,11 @@ Int main ( Int argc, char** argv )
         cout << "% using MPI" << endl;
     }
 
-
-    //********************************************//
-    // Import parameters from an xml list. Use    //
-    // Teuchos to create a list from a given file //
-    // in the execution directory.                //
-    //********************************************//
-
-    //std::cout << "Importing parameters list...";
-    // Teuchos::ParameterList NLParameterList = *( Teuchos::getParametersFromXmlFile( "NegroniLascano96Parameters.xml" ) );
-    //std::cout << " Done!" << endl;
-
-
     //********************************************//
     // Creates a new model object representing the//
-    // model from Negroni and Lascano 1996. The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
+    // model from Hodgkin Huxley model.           //
     //********************************************//
-    std::cout << "Building Constructor for NegrpniLascano96 Model with parameters ... ";
+    std::cout << "Building Constructor for Hodgkin Huxley Model with parameters ... ";
     IonicHodgkinHuxley  ionicModel;
     std::cout << " Done!" << endl;
 
@@ -112,16 +95,12 @@ Int main ( Int argc, char** argv )
 
 
     //********************************************//
-    // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
+    // Initialize the solution with the default   //
+    // values									  //
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.Size(), 0);
     ionicModel.initialize(states);
-    std::vector<Real>& rStates = states;
     std::cout << " Done!" << endl;
 
 
@@ -134,7 +113,6 @@ Int main ( Int argc, char** argv )
     //********************************************//
     std::cout << "Initializing rhs..." ;
     std::vector<Real> rhs (ionicModel.Size(), 0);
-    std::vector<Real>& rRhs = rhs;
     std::cout << " Done! "  << endl;
 
 
@@ -163,7 +141,7 @@ Int main ( Int argc, char** argv )
     string filename = "output.txt";
     std::ofstream output ("output.txt");
 
-    cout << "Potential: " << rStates.at (0) << endl;
+    cout << "Potential: " << states.at (0) << endl;
 
 
     //********************************************//
@@ -180,8 +158,8 @@ Int main ( Int argc, char** argv )
     {
 
         //********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
+        // Compute the applied current. This is a     //
+    	// simple switch.                             //
         //********************************************//
         if ( t > 20.5 && t < 21 )
         {
@@ -210,7 +188,7 @@ Int main ( Int argc, char** argv )
 
             for ( int j (0); j < 1; j++)
             {
-                rStates.at (j) = rStates.at (j)  + dt * (RHS);
+                states.at (j) = states.at (j)  + dt * (RHS);
             }
         }
         else
@@ -224,7 +202,7 @@ Int main ( Int argc, char** argv )
 
             for ( int j (0); j < ionicModel.Size(); j++)
             {
-                rStates.at (j) = rStates.at (j)  + dt * rRhs.at (j);
+                states.at (j) = states.at (j)  + dt * rhs.at (j);
             }
         }
 
@@ -235,9 +213,9 @@ Int main ( Int argc, char** argv )
         output << t << ", ";
         for ( int j (0); j < ionicModel.Size() - 1; j++)
         {
-            output << rStates.at (j) << ", ";
+            output << states.at (j) << ", ";
         }
-        output << rStates.at ( ionicModel.Size() - 1 ) << "\n";
+        output << states.at ( ionicModel.Size() - 1 ) << "\n";
 
         //********************************************//
         // Update the time.                           //

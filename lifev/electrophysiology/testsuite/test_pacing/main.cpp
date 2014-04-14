@@ -217,12 +217,13 @@ Int main ( Int argc, char** argv )
     {
         cout << "\nSetting fibers:  " ;
     }
-//    VectorSmall<3> fibers;
-//    fibers[0] = monodomainList.get ("fibers_X", 0.0);
-//    fibers[1] = monodomainList.get ("fibers_Y", 0.0);
-//    fibers[2] = monodomainList.get ("fibers_Z", 1.0);
-//
-//    monodomain -> setupFibers(fibers);
+    // This is used only to initialize the pointer in the solver
+    // could be replaced with a method "initialize fibers"
+    // where we just create the pointer to a vectorial vector.
+    // The method generates a default constant fiber direction (0,0,1).
+    // At least, in case of misuse, the fibers will not be zero
+    // and the signal may propagate.
+    monodomain -> setupFibers();
     function_Type fibreFunction = &fiberDistribution;
     HeartUtility::setFibersFromFunction(monodomain -> fiberPtr(), monodomain -> localMeshPtr(), fibreFunction);
     HeartUtility::normalize(*(monodomain -> fiberPtr()));
@@ -282,7 +283,6 @@ Int main ( Int argc, char** argv )
     Real dt = monodomain -> timeStep();
     //Uncomment for proper use
     Real TF = monodomainList.get ("endTime", 48.0);
-    Real DT = monodomainList.get ("saveStep", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
 
 
@@ -379,8 +379,6 @@ Real fiberDistribution ( const Real& /*t*/, const Real& /*x*/, const Real& y, co
 {
 	Real y0 = 2.5;
 	Real z0 = 2.5;
-	Real a = 2.0;
-	Real b = 1.5;
 	Real r = std::sqrt((y-y0)*(y-y0)+(z-z0)*(z-z0));
 
 	switch( id )

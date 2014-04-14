@@ -28,7 +28,10 @@
     @file
     @brief 0D test with the minimal model
 
-    @date 01−2013
+    Run  the test using one of the xml files:
+    ./Electrophysiology_test_0DMinimalModel -i xml_file_name
+
+    @date 01 - 2013
     @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
@@ -53,7 +56,6 @@
 
 
 #include <fstream>
-#include <string>
 
 #include <lifev/core/filter/GetPot.hpp>
 
@@ -98,7 +100,7 @@ Int main ( Int argc, char** argv )
 
     //********************************************//
     // Creates a new model object representing the//
-    // model from Negroni and Lascano 1996. The   //
+    // model from Bueno Orovio 2008. The          //
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
@@ -115,11 +117,8 @@ Int main ( Int argc, char** argv )
 
 
     //********************************************//
-    // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
+    // Initialize the solution with the default   //
+    // values									  //
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.Size(), 0);
@@ -178,8 +177,8 @@ Int main ( Int argc, char** argv )
     {
 
         //********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
+        // Compute the applied current. This is a     //
+    	// simple switch.                             //
         //********************************************//
         if ( t >= 10 && t <= 12 )
         {
@@ -215,12 +214,6 @@ Int main ( Int argc, char** argv )
         for ( int j (0); j < ionicModel.Size() - 1; j++)
         {
             output << states[j] << ", ";
-//            unknowns.at (j) = unknowns.at (j)   + dt * rhs.at (j);
-//            if(unknowns[j]!=unknowns[j])
-//            {
-//            	std::cout << "\n FOUND NAN! at " << j << " \n Stopping";
-//            	break;
-//            }
         }
         output << states[ ionicModel.Size() - 1] << "\n";
 

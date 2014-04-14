@@ -291,7 +291,6 @@ Int main ( Int argc, char** argv )
     //Uncomment for proper use
     Real TF =  monodomain -> endTime();
     //Real TF = 100.0;
-    Real DT = monodomainList.get ("saveStep", 150.0);
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
 
 

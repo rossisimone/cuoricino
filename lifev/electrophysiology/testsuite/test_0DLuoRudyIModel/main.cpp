@@ -26,9 +26,9 @@
 
 /*!
     @file
-    @brief 0D test with the minimal model
+    @brief 0D test with the Luo Rudy Phase I model
 
-    @date 01−2013
+    @date 07 - 2013
     @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
@@ -53,9 +53,6 @@
 
 
 #include <fstream>
-#include <string>
-
-#include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicLuoRudyI.hpp>
 #include <lifev/core/LifeV.hpp>
@@ -81,9 +78,7 @@ Int main ( Int argc, char** argv )
 
     //********************************************//
     // Creates a new model object representing the//
-    // model from Negroni and Lascano 1996. The   //
-    // model input are the parameters. Pass  the  //
-    // parameter list in the constructor          //
+    // model from Luo Rudy Phase I model 1991.    //
     //********************************************//
     std::cout << "Building Constructor for Luo Rudy I Model with parameters ... ";
     IonicLuoRudyI  ionicModel;
@@ -98,11 +93,7 @@ Int main ( Int argc, char** argv )
 
 
     //********************************************//
-    // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
+    // Initialize the solution to default.        //
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.restingConditions() );
@@ -163,8 +154,8 @@ Int main ( Int argc, char** argv )
     {
         iter++;
         //********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
+        // Compute the applied current. This is a     //
+    	// simple switch.                             //
         //********************************************//
         if ( t > 3 && t < 5 )
         {

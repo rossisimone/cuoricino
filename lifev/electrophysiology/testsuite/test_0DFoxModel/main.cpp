@@ -28,7 +28,7 @@
     @file
     @brief 0D test with the Fox model
 
-    @date 04−2013
+    @date 04 - 2013
     @author Marie Dupraz <dupraz.marie@gmail.com>
 
     @contributor
@@ -53,9 +53,6 @@
 
 
 #include <fstream>
-#include <string>
-
-#include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicFox.hpp>
 #include <lifev/core/LifeV.hpp>
@@ -108,13 +105,10 @@ Int main ( Int argc, char** argv )
     //********************************************//
     model.showMe();
 
-    //    //********************************************//
-    //    // Initialize the solution to 0. The model    //
-    //    // consist of three state variables. Xe.Size()//
-    //    // returns the number of state variables of   //
-    //    // the model. rStates is the reference to the //
-    //    // the vector states                          //
-    //    //********************************************//
+    //********************************************//
+    // Initialize the solution with the default   //
+    // values									  //
+    //********************************************//
     cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0 );
     model.initialize(unknowns);
@@ -174,8 +168,8 @@ Int main ( Int argc, char** argv )
     {
 
         //********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
+        // Compute the applied current. This is a     //
+    	// simple switch.                             //
         //********************************************//
         if ( t >= timeSt && t <= timeSt + 1.0 )
         {
