@@ -26,9 +26,11 @@
 
 /*!
     @file
-    @brief Test for ElectroETAMonodomainSolver and IonicMinimalModel
+    @brief Test for using the pacing protocol
 
-    @date 08−2013
+    In this test we use show an example of the use of the pacing protocols.
+
+    @date 03 - 2014
     @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
@@ -51,47 +53,34 @@
 #pragma GCC diagnostic warning "-Wunused-variable"
 #pragma GCC diagnostic warning "-Wunused-parameter"
 
-#include <fstream>
-#include <string>
-
-#include <lifev/core/array/VectorSmall.hpp>
-
-#include <lifev/core/array/VectorEpetra.hpp>
-#include <lifev/core/array/MatrixEpetra.hpp>
-#include <lifev/core/array/MapEpetra.hpp>
-#include <lifev/core/mesh/MeshData.hpp>
+//We use this to transform the mesh from [0,1]x[0,1] to [0,5]x[0,5]
 #include <lifev/core/mesh/MeshTransformer.hpp>
-#include <lifev/core/mesh/MeshPartitioner.hpp>
-#include <lifev/core/filter/ExporterEnsight.hpp>
-#include <lifev/core/filter/ExporterHDF5.hpp>
-#include <lifev/core/filter/ExporterEmpty.hpp>
 
-#include <lifev/core/algorithm/LinearSolver.hpp>
+//We will use the ETAMonodomainSolver
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
 
-#include <lifev/core/filter/ExporterEnsight.hpp>
-#ifdef HAVE_HDF5
-#include <lifev/core/filter/ExporterHDF5.hpp>
-#endif
-#include <lifev/core/filter/ExporterEmpty.hpp>
-
+//We will use the Aliev Panfilov model for simplicity
 #include <lifev/electrophysiology/solver/IonicModels/IonicAlievPanfilov.hpp>
+
+//Include LifeV
 #include <lifev/core/LifeV.hpp>
+
+//Include utilities for the pacing protocols
 #include <lifev/electrophysiology/stimulus/StimulusPacingProtocol.hpp>
 
-#include <Teuchos_RCP.hpp>
-#include <Teuchos_ParameterList.hpp>
-#include "Teuchos_XMLParameterListHelpers.hpp"
-
-
+//this is useful to save the out in a separate folder
 #include <sys/stat.h>
 
 using namespace LifeV;
 
+//Norm of the solution in order to check if the test failed
 #define solutionNorm 38.2973164904655
 
+//Forward declaration of the function defining the fiber direction.
+//See the end of the file for the implementation
 Real fiberDistribution ( const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& z, const ID&   id);
 
+// Test pacing
 Int main ( Int argc, char** argv )
 {
 
@@ -102,6 +91,7 @@ Int main ( Int argc, char** argv )
     {
         cout << "% using MPI" << endl;
     }
+
     //*********************************************//
     // creating output folder
     //*********************************************//
@@ -119,10 +109,11 @@ Int main ( Int argc, char** argv )
     }
 
     //********************************************//
-    // Starts the chronometer.                    //
+    // Some typedefs                              //
     //********************************************//
 
     typedef RegionMesh<LinearTetra>                         mesh_Type;
+
     typedef boost::function < Real (const Real& /*t*/,
                                     const Real &   x,
                                     const Real &   y,
@@ -131,10 +122,9 @@ Int main ( Int argc, char** argv )
 
     typedef ElectroETAMonodomainSolver< mesh_Type, IonicAlievPanfilov > monodomainSolver_Type;
     typedef boost::shared_ptr< monodomainSolver_Type >                 monodomainSolverPtr_Type;
+
     typedef VectorEpetra                                               vector_Type;
     typedef boost::shared_ptr<vector_Type>                             vectorPtr_Type;
-    typedef MatrixEpetra<Real>                                         matrix_Type;
-    typedef boost::shared_ptr<matrix_Type>                             matrixPtr_Type;
 
     //********************************************//
     // Import parameters from an xml list. Use    //
@@ -173,6 +163,7 @@ Int main ( Int argc, char** argv )
     // In the parameter list we need to specify   //
     // the mesh name and the mesh path.           //
     //********************************************//
+
     std::string meshName = monodomainList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = monodomainList.get ("mesh_path", "./");
 
@@ -180,15 +171,11 @@ Int main ( Int argc, char** argv )
     // We need the GetPot datafile for to setup   //
     // the preconditioner.                        //
     //********************************************//
-    GetPot command_line (argc, argv);
-    const string data_file_name = command_line.follow ("data", 2, "-f", "--file");
-    GetPot dataFile (data_file_name);
+
+    GetPot dataFile (argc, argv);
 
     //********************************************//
-    // We create three solvers to solve with:     //
-    // 1) Operator Splitting method               //
-    // 2) Ionic Current Interpolation             //
-    // 3) State Variable Interpolation            //
+    // We create the monodomain solver            //
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
@@ -201,6 +188,10 @@ Int main ( Int argc, char** argv )
         std::cout << " Splitting solver done... ";
     }
 
+    //********************************************//
+    // We transform the mesh to get a larger      //
+    // domain.                                    //
+    //********************************************//
     std::vector<Real> scale(3,1.0);
     scale[2] = 5.0; scale[1] = 5.0;
     std::vector<Real> rotate(3,0.0);
@@ -215,7 +206,7 @@ Int main ( Int argc, char** argv )
     monodomain -> setInitialConditions();
 
     //********************************************//
-    // Setting up the monodomain solver           //
+    // Setting up the monodomain solver parameters//
     //********************************************//
     monodomain -> setParameters ( monodomainList );
 
@@ -224,19 +215,22 @@ Int main ( Int argc, char** argv )
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        cout << "\nImporting fibers:  " ;
+        cout << "\nSetting fibers:  " ;
     }
-    VectorSmall<3> fibers;
-    fibers[0] = monodomainList.get ("fibers_X", 0.0);
-    fibers[1] = monodomainList.get ("fibers_Y", 0.0);
-    fibers[2] = monodomainList.get ("fibers_Z", 1.0);
-
-    monodomain -> setupFibers(fibers);
+//    VectorSmall<3> fibers;
+//    fibers[0] = monodomainList.get ("fibers_X", 0.0);
+//    fibers[1] = monodomainList.get ("fibers_Y", 0.0);
+//    fibers[2] = monodomainList.get ("fibers_Z", 1.0);
+//
+//    monodomain -> setupFibers(fibers);
     function_Type fibreFunction = &fiberDistribution;
     HeartUtility::setFibersFromFunction(monodomain -> fiberPtr(), monodomain -> localMeshPtr(), fibreFunction);
     HeartUtility::normalize(*(monodomain -> fiberPtr()));
 
-
+    //********************************************//
+    // Set some noise in the fiber.               //
+	// Set to false by default.                   //
+    //********************************************//
     bool randomNoise = monodomainList.get ("noise", false);
     if(randomNoise)
     {
@@ -249,6 +243,7 @@ Int main ( Int argc, char** argv )
     {
         cout << "Done! \n" ;
     }
+
     //********************************************//
     // Saving Fiber direction to file             //
     //********************************************//
@@ -284,7 +279,7 @@ Int main ( Int argc, char** argv )
         std::cout << "\nstart solving:  " ;
     }
 
-    Real dt = monodomainList.get ("timeStep", 0.1);
+    Real dt = monodomain -> timeStep();
     //Uncomment for proper use
     Real TF = monodomainList.get ("endTime", 48.0);
     Real DT = monodomainList.get ("saveStep", 150.0);
@@ -320,24 +315,44 @@ Int main ( Int argc, char** argv )
 	int loop = 0;
 	for (Real t = monodomain -> initialTime(); t < TF;)
     {
+	    //********************************************//
+	    // Set the applied current from the pacing    //
+		// protocol                                   //
+	    //********************************************//
 	    monodomain -> setAppliedCurrentFromElectroStimulus ( pacing, t);
 		loop++;
         t += dt;
 
+	    //********************************************//
+	    // Solve the monodomain equations.            //
+	    //********************************************//
+
         monodomain -> solveOneStepGatingVariablesFE();
         monodomain -> solveOneICIStep();
+
+        //********************************************//
+		// Exporting the solution.                    //
+		//********************************************//
         if(loop % iter == 0 )
-	{
-	    if ( Comm->MyPID() == 0 )
-	    {
-		 std::cout << "\ntime = " << t;
-	    }
-	 exporter.postProcess (t);
-	}
+		{
+			if ( Comm->MyPID() == 0 )
+			{
+				std::cout << "\ntime = " << t;
+			}
+			exporter.postProcess (t);
+		}
     }
+
+    //********************************************//
+	// Close the exporter                         //
+	//********************************************//
 
     exporter.closeFile();
 
+
+    //********************************************//
+	// Check if the test failed                   //
+	//********************************************//
     Real newSolutionNorm = monodomain -> potentialPtr() -> norm2();
 
     monodomain.reset();
@@ -359,7 +374,7 @@ Int main ( Int argc, char** argv )
 
 #undef solutionNorm
 
-
+//Definition of the fiber direction
 Real fiberDistribution ( const Real& /*t*/, const Real& /*x*/, const Real& y, const Real& z, const ID&   id)
 {
 	Real y0 = 2.5;
