@@ -614,7 +614,11 @@ public:
     {
         this->M_fiberPtr = p;
     }
-    //! set the pointer to displacement of the tissue
+
+    //! set the pointer to the displacement for mechanical feedback
+    /*!
+     @param boost::shared_ptr<VectorEpetra> pointer to the displacement vector
+     */
     inline void setDisplacementPtr (const vectorPtr_Type p)
     {
         this->M_displacementPtr = p;
@@ -726,10 +730,26 @@ public:
                 short int ionicSize);
 
     //! create mass matrix
+    /*!
+     * Computes the mass matrix calling different methods if the mass should be lumped
+     * and if the mechanical feedback (the displacement vector) is set.
+     */
     void setupMassMatrix(); //! create mass matrix
+    //! create mass matrix
+    /*!
+     * Computes the mass matrix calling with the mechanical feedback (the displacement vector).
+     */
     void setupMassMatrix (vector_Type& disp);
     //! create mass matrix
+    /*!
+     * Computes the lumped mass matrix by nodal integration.
+     */
     void setupLumpedMassMatrix();
+    //! create mass matrix
+    /*!
+     * Computes the lumped mass matrix by nodal integration and
+     * with the mechanical feedback (the displacement vector).
+     */
     void setupLumpedMassMatrix (vector_Type& disp);
     //! create stiffness matrix
     void setupStiffnessMatrix();
@@ -807,6 +827,7 @@ public:
     {
         M_ionicModelPtr->setAppliedCurrentFromFunction (f, M_feSpacePtr, time);
     }
+    //! given a ElectroStimulus object initialize the applied current
     void inline setAppliedCurrentFromElectroStimulus (ElectroStimulus& stimulus,
                                                       Real time = 0.0)
     {
@@ -814,13 +835,26 @@ public:
         M_ionicModelPtr->setAppliedCurrentFromElectroStimulus (stimulus, M_feSpacePtr, time);
     }
 
+    //! Solves one reaction step using the forward Euler scheme and N subiterations
+    /*!
+     * \f[
+     * \mathbf{V}^* = \mathbf{V}^{n+k/N} + \dfrac{\Delta t}{N} I_{ion}(\mathbf{V}^{n+k/N}), \quad \text{for } k=0,\dots,N-1.
+     * \f]
+     */
+    /*!
+     @param int number of subiterations
+     */
+    void solveOneReactionStepFE (int subiterations = 1);
     //! Solves one reaction step using the forward Euler scheme
     /*!
      * \f[
-     * \mathbf{V}^* = \mathbf{V}^n + \Delta t I_{ion}(\mathbf{V}^n).
+     * \mathbf{V}^* = \mathbf{V}^{n+k/N} + \dfrac{\Delta t}{N} M I_{ion}(\mathbf{V}^{n+k/N}), \quad \text{for } k=0,\dots,N-1.
      * \f]
      */
-    void solveOneReactionStepFE (int subiterations = 1);
+    /*!
+     @param matrix_Type full mass matrix
+     @param int number of subiterations
+     */
     void solveOneReactionStepFE (matrix_Type& mass, int subiterations = 1);
     void solveOneReactionStepRL (int subiterations = 1);
 
