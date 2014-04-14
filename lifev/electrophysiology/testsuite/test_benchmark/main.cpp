@@ -105,7 +105,7 @@ using namespace LifeV;
 // On Mac Os X 10.9 Mavercik with clang 503.0.38 the test has final time 40.
 // ---------------------------------------------------------------
 
-#define finalActivationTime  39.19
+#define finalActivationTime  42.71
 
 // ---------------------------------------------------------------
 //  We start the programm by the definition of the communicator.
@@ -734,7 +734,7 @@ Int main ( Int argc, char** argv )
     Real returnValue;
 
     Real err = std::abs (fullActivationTime - finalActivationTime) / std::abs(finalActivationTime);
-    if ( err > 2.5e-2 )
+    if ( err > 1e-4 )
     {
         if ( Comm->MyPID() == 0 )
         {

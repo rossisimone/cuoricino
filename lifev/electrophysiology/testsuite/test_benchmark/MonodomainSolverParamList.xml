@@ -2,7 +2,7 @@
     <Parameter name="surfaceVolumeRatio" type="double" value="1400.0"/><!-- cm ^ -1-->
     <Parameter name="membraneCapacitance" type="double" value="1.00"/><!-- mu F cm ^ -2 -->
     <Parameter name="timeStep" type="double" value="0.01"  /><!-- ms ^ -1-->
-    <Parameter name="endTime" type="double" value="40.0"  />
+    <Parameter name="endTime" type="double" value="43.0"  />
     <Parameter name="saveStep" type="double" value="1.0"  />
     <Parameter name="stimulus_value" type="double" value="80.0"  />
     <Parameter name="longitudinalDiffusion" type="double" value="1.3342"  /><!-- k Ohm ^-1 cm ^ -1-->
