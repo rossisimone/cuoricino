@@ -28,7 +28,6 @@
  @brief Class for solving the Bidomain equations in electrophysiology.
 
  @date 09-10-2013
- @author Simone Rossi <simone.rossi@epfl.ch>
  @author Toni Lassila <toni.lassila@epfl.ch>
  @author Matthias Lange <m.lange@sheffield.ac.uk>
 
@@ -886,8 +885,9 @@ public:
      */
     void inline updateRhs()
     {
-        (*M_rhsPtrUnique) += (*M_massMatrixPtr) * (*M_potentialGlobalPtr)
-                             * (M_ionicModelPtr -> membraneCapacitance() / (M_timeStep) );
+    	blockVectorPtr_Type tmp( new blockVector_Type( *M_rhsPtrUnique ) );
+    	M_massMatrixPtr -> multiply(false, (*M_potentialGlobalPtr) * (M_ionicModelPtr -> membraneCapacitance() / (M_timeStep) ), *tmp );
+    	(*M_rhsPtrUnique) += (*tmp);
     }
 
     //! Solves one diffusion step using the BDF2 scheme
