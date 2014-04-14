@@ -26,9 +26,9 @@
 
 /*!
     @file
-    @brief 0D test with the minimal model
+    @brief 0D test with Ten Tusscher et al. 2006 model
 
-    @date 01−2013
+    @date 08 - 2013
     @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
@@ -53,9 +53,7 @@
 
 
 #include <fstream>
-#include <string>
 
-#include <lifev/core/array/MatrixEpetra.hpp>
 
 #include <lifev/electrophysiology/solver/IonicModels/IonicTenTusscher06.hpp>
 #include <lifev/core/LifeV.hpp>
@@ -66,7 +64,7 @@
 
 using namespace LifeV;
 
-#define SolutionTestNorm  -2.848213312500001e+03
+#define SolutionTestNorm  -2812.58296424083  // on gcc  use -2.848213312500001e+03
 
 Int main ( Int argc, char** argv )
 {
@@ -78,22 +76,13 @@ Int main ( Int argc, char** argv )
     	std::cout << "% using MPI" << std::endl;
     }
 
-
-    //********************************************//
-    // Import parameters from an xml list. Use    //
-    // Teuchos to create a list from a given file //
-    // in the execution directory.                //
-    //********************************************//
-    std::cout << "Importing parameters list...";
-    Teuchos::ParameterList list = * ( Teuchos::getParametersFromXmlFile ( "Parameters.xml" ) );
-    std::cout << " Done!" << std::endl;
     //********************************************//
     // Creates a new model object representing the//
-    // model from Negroni and Lascano 1996. The   //
+    // model from TenTusscher et al. 2006. The    //
     // model input are the parameters. Pass  the  //
     // parameter list in the constructor          //
     //********************************************//
-    std::cout << "Building Constructor for TenTusscher 2006 Model with parameters ... ";
+    std::cout << "Building Constructor for TenTusscher 2006 Model with default parameters ... ";
     IonicTenTusscher06  ionicModel;
     std::cout << " Done!" << std::endl;
 
@@ -106,11 +95,8 @@ Int main ( Int argc, char** argv )
 
 
     //********************************************//
-    // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
-    // returns the number of state variables of   //
-    // the model. rStates is the reference to the //
-    // the vector states                          //
+    // Initialize the solution with the default   //
+    // values									  //
     //********************************************//
     std::cout << "Initializing solution vector...";
     std::vector<Real> states (ionicModel.restingConditions() );
@@ -143,8 +129,8 @@ Int main ( Int argc, char** argv )
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
-    Real TF (list.get ("TF", 100.) );
-    Real dt (list.get ("dt", 100.) );
+    Real TF (500.0);
+    Real dt (0.1);
 
 
     //********************************************//
@@ -174,16 +160,18 @@ Int main ( Int argc, char** argv )
     std::cout << "Time loop starts...\n";
 
 
-    int savestep ( ( list.get ("savestep", 1.) / dt ) );
-    int pacingstepstart ( ( list.get ("pacingstep", 1000.) / dt ) );
-    int pacingstepstop ( ( list.get ("pacingstep", 1001.) / dt ) );
-
-    int iter (1);
+    int savestep ( 1.0 / dt );
+    int iter (0);
 
 
 
     for ( Real t = 0; t < TF; )
     {
+
+        //********************************************//
+        // Compute the applied current. This is a     //
+    	// simple switch.                             //
+        //********************************************//
         if ( t > 50 && t < 52 )
         {
             Iapp = 50.;
@@ -256,7 +244,7 @@ Int main ( Int argc, char** argv )
     Real err = std::abs (SolutionNorm - SolutionTestNorm) / std::abs(SolutionTestNorm);
     if ( err > 1e-2 )
     {
-    	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " <<  SolutionNorm << "\n";
+    	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " << std::setprecision(15) <<  SolutionNorm << "\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
