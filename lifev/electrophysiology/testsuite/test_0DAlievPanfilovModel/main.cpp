@@ -26,46 +26,31 @@
 
 /*!
     @file
-    @brief 0D test with the Negroni Lascano model of 1996.
+    @brief 0D test with the Aliev - Panfilov model 1996. Parameters are from Nash - Panfilov 2004.
 
-    @date 01−2013
+    In this test we solve the Aliev - Panfilov ionic model alone as a set of ODEs.
+
+    @date 01 - 2013
     @author Simone Rossi <simone.rossi@epfl.ch>
 
     @contributor
     @mantainer Simone Rossi <simone.rossi@epfl.ch>
  */
 
-// Tell the compiler to ignore specific kind of warnings:
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic ignored "-Wunused-parameter"
-
-#include <Epetra_ConfigDefs.h>
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
-
-//Tell the compiler to restore the warning previously silented
-#pragma GCC diagnostic warning "-Wunused-variable"
-#pragma GCC diagnostic warning "-Wunused-parameter"
-
-
+// To save the solution
 #include <fstream>
-#include <string>
 
-#include <lifev/core/array/MatrixEpetra.hpp>
-
+// To solve the model
 #include <lifev/electrophysiology/solver/IonicModels/IonicAlievPanfilov.hpp>
+
+// To use LifeV
 #include <lifev/core/LifeV.hpp>
 
+// To import parameters from xml we use Teuchos
 #include <Teuchos_RCP.hpp>
 #include <Teuchos_ParameterList.hpp>
 #include "Teuchos_XMLParameterListHelpers.hpp"
 
-using std::cout;
-using std::endl;
 using namespace LifeV;
 
 //This is the norm of the precomputed solution
@@ -74,16 +59,6 @@ using namespace LifeV;
 
 Int main ( Int argc, char** argv )
 {
-    //! Initializing Epetra communicator
-    MPI_Init (&argc, &argv);
-    Epetra_MpiComm Comm (MPI_COMM_WORLD);
-    if ( Comm.MyPID() == 0 )
-    {
-        cout << "% using MPI" << endl;
-
-    }
-
-
     //********************************************//
     // Import parameters from an xml list. Use    //
     // Teuchos to create a list from a given file //
@@ -115,7 +90,8 @@ Int main ( Int argc, char** argv )
 
     //********************************************//
     // Initialize the solution to 0. The model    //
-    // consist of three state variables. Xe.Size()//
+    // consist of three state variables.          //
+    // The method model.Size()                    //
     // returns the number of state variables of   //
     // the model. rStates is the reference to the //
     // the vector states                          //
@@ -123,7 +99,6 @@ Int main ( Int argc, char** argv )
     std::cout << "Initializing solution vector...";
     std::vector<Real> unknowns (model.Size(), 0);
     std::cout << " Done!" << endl;
-
 
     //********************************************//
     // Initialize the rhs to 0. The rhs is the    //
@@ -136,24 +111,18 @@ Int main ( Int argc, char** argv )
     std::vector<Real> rhs (model.Size(), 0);
     std::cout << " Done! "  << endl;
 
-
-
-
     //********************************************//
     // The model needs as external informations   //
-    // the contraction velocity and the Calcium   //
-    // concentration.                             //
+    // the applied current.                       //
     //********************************************//
     Real Iapp (0.0);
 
-
-    //********************************************//
+   //********************************************//
     // Simulation starts on t=0 and ends on t=TF. //
     // The timestep is given by dt                //
     //********************************************//
     Real TF (60);
     Real dt (0.01);
-
 
     //********************************************//
     // Open the file "output.txt" to save the     //
@@ -176,8 +145,8 @@ Int main ( Int argc, char** argv )
     {
 
         //********************************************//
-        // Compute Calcium concentration. Here it is  //
-        // given as a function of time.               //
+        // Compute the applied current. This is a     //
+    	// simple switch.                             //
         //********************************************//
         if ( t > 0.1 && t < 0.2 )
         {
@@ -187,6 +156,10 @@ Int main ( Int argc, char** argv )
         {
             Iapp = 0;
         }
+
+        //********************************************//
+        // Set the applied current to the model.      //
+        //********************************************//
         model.setAppliedCurrent (Iapp);
         std::cout << "\r " << t << " ms.       " << std::flush;
 
@@ -225,9 +198,6 @@ Int main ( Int argc, char** argv )
     // Close exported file.                       //
     //********************************************//
     output.close();
-
-    //! Finalizing Epetra communicator
-    MPI_Finalize();
 
     Real returnValue;
     if (std::abs (SolutionTestNorm - SolutionNorm) > 1e-4 )
