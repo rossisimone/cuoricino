@@ -28,11 +28,11 @@
     @file
     @brief Test for ElectroETAbidomainSolver and IonicMinimalModel
 
-    @date 08−2013
-    @author Simone Rossi <simone.rossi@epfl.ch>
+    @date 08 - 013
+    @author Toni Lassila <toni.lassila@epfl.ch>
 
     @contributor
-    @mantainer Simone Rossi <simone.rossi@epfl.ch>
+    @mantainer Toni Lassila <toni.lassila@epfl.ch>
  */
 
 // Tell the compiler to ignore specific kind of warnings:
