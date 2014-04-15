@@ -420,13 +420,13 @@ namespace LifeV
 
 template <typename MeshType>
 class GeneralizedActiveHolzapfelOgdenMaterial :
-    public StructuralConstitutiveLaw<MeshType>
+    public ActiveStructuralConstitutiveLaw<MeshType>
 {
     //!@name Type definitions
     //@{
 
 public:
-    typedef StructuralConstitutiveLaw<MeshType>          super;
+    typedef ActiveStructuralConstitutiveLaw<MeshType>          super;
 
     typedef StructuralConstitutiveLawData            data_Type;
 
@@ -1459,13 +1459,13 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeLocalFirstPiolaKi
 
 
 template <typename MeshType>
-inline StructuralConstitutiveLaw<MeshType>* createGeneralizedActiveHolzapfelOgdenMaterial()
+inline ActiveStructuralConstitutiveLaw<MeshType>* createGeneralizedActiveHolzapfelOgdenMaterial()
 {
     return new GeneralizedActiveHolzapfelOgdenMaterial<MeshType>();
 }
 namespace
 {
-static bool registerGHO = StructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ("GAHO", &createGeneralizedActiveHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
+static bool registerGHO = ActiveStructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ("GAHO", &createGeneralizedActiveHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
 }
 
 

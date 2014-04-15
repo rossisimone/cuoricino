@@ -4,6 +4,9 @@ SET(solver_HEADERS
   solver/EMSolver.hpp
   solver/EMETAFunctors.hpp
   solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp
+  solver/ActiveStructuralConstitutiveLaw.hpp
+  solver/NeoHookeanActivatedMaterial.hpp
+  solver/HolzapfelOgdenMaterial.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES

@@ -51,13 +51,13 @@ namespace LifeV
 
 template <typename MeshType>
 class NeoHookeanActivatedMaterial :
-    public StructuralConstitutiveLaw<MeshType>
+    public ActiveStructuralConstitutiveLaw<MeshType>
 {
     //!@name Type definitions
     //@{
 
 public:
-    typedef StructuralConstitutiveLaw<MeshType>          super;
+    typedef ActiveStructuralConstitutiveLaw<MeshType>          super;
 
     typedef StructuralConstitutiveLawData            data_Type;
 
@@ -888,13 +888,13 @@ void NeoHookeanActivatedMaterial<MeshType>::computeLocalFirstPiolaKirchhoffTenso
 
 
 template <typename MeshType>
-inline StructuralConstitutiveLaw<MeshType>* createNeoHookeanActivatedMaterial()
+inline ActiveStructuralConstitutiveLaw<MeshType>* createNeoHookeanActivatedMaterial()
 {
     return new NeoHookeanActivatedMaterial<MeshType >();
 }
 namespace
 {
-static bool registerNHA = StructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ( "neoHookeanActivated", &createNeoHookeanActivatedMaterial<LifeV::RegionMesh<LinearTetra> > );
+static bool registerNHA = ActiveStructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ( "neoHookeanActivated", &createNeoHookeanActivatedMaterial<LifeV::RegionMesh<LinearTetra> > );
 }
 
 } //Namespace LifeV

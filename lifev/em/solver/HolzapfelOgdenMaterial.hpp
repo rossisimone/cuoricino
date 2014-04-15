@@ -262,13 +262,13 @@ namespace LifeV
 
 template <typename MeshType>
 class HolzapfelOgdenMaterial :
-    public StructuralConstitutiveLaw<MeshType>
+    public ActiveStructuralConstitutiveLaw<MeshType>
 {
     //!@name Type definitions
     //@{
 
 public:
-    typedef StructuralConstitutiveLaw<MeshType>          super;
+    typedef ActiveStructuralConstitutiveLaw<MeshType>          super;
 
     typedef StructuralConstitutiveLawData            data_Type;
 
@@ -1155,13 +1155,13 @@ void HolzapfelOgdenMaterial<MeshType>::computeLocalFirstPiolaKirchhoffTensor ( E
 
 
 template <typename MeshType>
-inline StructuralConstitutiveLaw<MeshType>* createHolzapfelOgdenMaterial()
+inline ActiveStructuralConstitutiveLaw<MeshType>* createHolzapfelOgdenMaterial()
 {
     return new HolzapfelOgdenMaterial<MeshType>();
 }
 namespace
 {
-static bool registerHO = StructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ("HolzapfelOgden", &createHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
+static bool registerHO = ActiveStructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ("HolzapfelOgden", &createHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
 }
 
 } //Namespace LifeV
