@@ -55,7 +55,7 @@ using namespace LifeV;
 
 //This is the norm of the precomputed solution
 //we check the test against this value
-#define SolutionTestNorm 3.157163923647911e+03
+#define SolutionTestNorm 3157.1639117380209427
 
 Int main ( Int argc, char** argv )
 {
@@ -200,7 +200,9 @@ Int main ( Int argc, char** argv )
     output.close();
 
     Real returnValue;
-    if (std::abs (SolutionTestNorm - SolutionNorm) > 1e-4 )
+    Real err = std::abs (SolutionTestNorm - SolutionNorm) / std::abs(SolutionTestNorm);
+    std::cout << std::setprecision(20) << "\nError: " << err << "\nSolution norm: " << SolutionNorm << "\n";
+    if ( err > 1e-12 )
     {
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }

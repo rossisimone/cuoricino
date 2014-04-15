@@ -70,7 +70,7 @@
 
 using namespace LifeV;
 
-#define SolutionTestNorm  1.441222535546675e+04
+#define SolutionTestNorm  14412.225993765172461
 
 Int main ( Int argc, char** argv )
 {
@@ -240,10 +240,11 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    Real err = std::abs (SolutionNorm - SolutionTestNorm) / std::abs(SolutionTestNorm);
-    if ( err > 1e-2 )
+    Real err = std::abs (SolutionTestNorm - SolutionNorm) / std::abs(SolutionTestNorm);
+    std::cout << std::setprecision(20) << "\nError: " << err << "\nSolution norm: " << SolutionNorm << "\n";
+    if ( err > 1e-12 )
     {
-    	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " <<  SolutionNorm << "\n";
+    	std::cout << "\nTest Failed!\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else

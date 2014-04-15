@@ -64,7 +64,7 @@
 
 using namespace LifeV;
 
-#define SolutionTestNorm  -2812.58296424083  // on gcc  use -2.848213312500001e+03
+#define SolutionTestNorm  -2812.5829642408311884 // on gcc  use -2.848213312500001e+03
 
 Int main ( Int argc, char** argv )
 {
@@ -241,11 +241,12 @@ Int main ( Int argc, char** argv )
 
     Real returnValue;
 
-    Real err = std::abs (SolutionNorm - SolutionTestNorm) / std::abs(SolutionTestNorm);
-    if ( err > 1e-2 )
+    Real err = std::abs (SolutionTestNorm - SolutionNorm) / std::abs(SolutionTestNorm);
+    std::cout << std::setprecision(20) << "\nError: " << err << "\nSolution norm: " << SolutionNorm << "\n";
+    if ( err > 1e-12 )
     {
-    	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " << std::setprecision(15) <<  SolutionNorm << "\n";
-        returnValue = EXIT_FAILURE; // Norm of solution did not match
+    	std::cout << "\nTest Failed!\n";
+    	returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
     {

@@ -95,7 +95,7 @@ template<UInt Dim1, UInt Dim2> void setCol (MatrixSmall<Dim1, Dim2>& A, const Ve
 
 //This is the norm of the precomputed solution
 //we check the test against this value
-#define SolutionTestNorm 4.569135990554040e+05
+#define SolutionTestNorm 456913.59773800277617
 
 
 Int main ( Int argc, char** argv )
@@ -194,10 +194,10 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
 
     Real returnValue;
-
-    if (std::abs (valueToTest - SolutionTestNorm) > 1e-1 )
+    Real err = std::abs (valueToTest - SolutionTestNorm) / std::abs(SolutionTestNorm);
+    std::cout << std::setprecision(20) << "\nError: " << err << "\nSolution norm: " << valueToTest << "\n";
+    if ( err > 1e-12 )
     {
-        std::cout << "\nTest Failed:  "<<  std::abs (valueToTest - SolutionTestNorm) <<"\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else

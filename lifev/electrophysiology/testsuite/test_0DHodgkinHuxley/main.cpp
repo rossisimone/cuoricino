@@ -65,7 +65,7 @@ using std::cout;
 using std::endl;
 using namespace LifeV;
 
-#define SolutionTestNorm  1.820865339768372e+04
+#define SolutionTestNorm  18208.651394522181363
 
 
 Int main ( Int argc, char** argv )
@@ -239,10 +239,11 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
     Real returnValue;
 
-    Real err = std::abs (SolutionNorm - SolutionTestNorm) / std::abs(SolutionTestNorm);
-    if ( err > 1e-3 )
+    Real err = std::abs (SolutionTestNorm - SolutionNorm) / std::abs(SolutionTestNorm);
+    std::cout << std::setprecision(20) << "\nError: " << err << "\nSolution norm: " << SolutionNorm << "\n";
+    if ( err > 1e-12 )
     {
-    	std::cout << "\nTest Failed: " <<  err <<"\n";
+    	std::cout << "\nTest Failed!\n";
         returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
