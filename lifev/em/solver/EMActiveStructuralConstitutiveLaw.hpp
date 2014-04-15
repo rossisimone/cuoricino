@@ -33,43 +33,11 @@
  *  @author Simone Rossi <simone.rossi@epfl.ch>
  */
 
-#ifndef _ACTIVESTRUCTURALCONSTITUTIVELAW_H_
-#define _ACTIVESTRUCTURALCONSTITUTIVELAW_H_ 1
-
-#include <string>
-#include <sstream>
-#include <iostream>
-#include <stdexcept>
-#include <boost/scoped_ptr.hpp>
+#ifndef _EMACTIVESTRUCTURALCONSTITUTIVELAW_H_
+#define _EMACTIVESTRUCTURALCONSTITUTIVELAW_H_ 1
 
 
-#include <Epetra_Vector.h>
-#include <EpetraExt_MatrixMatrix.h>
-#include <Epetra_SerialDenseMatrix.h>
-
-
-#include <lifev/core/array/MatrixElemental.hpp>
-#include <lifev/core/array/VectorElemental.hpp>
-#include <lifev/core/array/MatrixEpetra.hpp>
-#include <lifev/core/array/VectorEpetra.hpp>
-
-#include <lifev/core/fem/Assembly.hpp>
-#include <lifev/core/fem/AssemblyElemental.hpp>
-#include <lifev/structure/fem/AssemblyElementalStructure.hpp>
-#include <lifev/core/fem/FESpace.hpp>
-
-#include <lifev/core/LifeV.hpp>
-#include <lifev/core/util/Displayer.hpp>
-#include <lifev/core/util/Factory.hpp>
-#include <lifev/core/util/FactorySingleton.hpp>
-
-#include <lifev/core/algorithm/SolverAztecOO.hpp>
-
-#include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
-
-//ET include for assemblings
-#include <lifev/eta/fem/ETFESpace.hpp>
-#include <lifev/eta/expression/Integrate.hpp>
+#include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 
 namespace LifeV
 {
@@ -81,7 +49,7 @@ namespace LifeV
 */
 
 template <typename MeshType>
-class ActiveStructuralConstitutiveLaw : public StructuralConstitutiveLaw
+class EMActiveStructuralConstitutiveLaw : public StructuralConstitutiveLaw<MeshType>
 {
 public:
 
@@ -97,7 +65,7 @@ public:
     typedef typename boost::shared_ptr<data_Type>  dataPtr_Type;
     typedef typename boost::shared_ptr<const Displayer>    displayerPtr_Type;
 
-    typedef FactorySingleton<Factory<ActiveStructuralConstitutiveLaw<MeshType>, std::string> >  StructureMaterialFactory;
+    typedef FactorySingleton<Factory<EMActiveStructuralConstitutiveLaw<MeshType>, std::string> >  StructureMaterialFactory;
 
     typedef std::vector< typename MeshType::element_Type* > vectorVolumes_Type;
 
@@ -129,9 +97,9 @@ public:
     //! @name Constructor &  Deconstructor
     //@{
 
-    ActiveStructuralConstitutiveLaw();
+    EMActiveStructuralConstitutiveLaw();
 
-    virtual ~ActiveStructuralConstitutiveLaw() {}
+    virtual ~EMActiveStructuralConstitutiveLaw() {}
 
     //@}
 
@@ -140,7 +108,7 @@ public:
     //!@name Methods
     //@{
 
-    //! Setup the created object of the class ActiveStructuralConstitutiveLaw
+    //! Setup the created object of the class EMActiveStructuralConstitutiveLaw
     /*!
       \param dFespace: the FiniteElement Space
       \param monolithicMap: the MapEpetra
@@ -385,7 +353,7 @@ protected:
 //=====================================
 
 template <typename MeshType>
-ActiveStructuralConstitutiveLaw<MeshType>::StructuralConstitutiveLaw( ) :
+EMActiveStructuralConstitutiveLaw<MeshType>::StructuralConstitutiveLaw( ) :
     M_dispFESpace                ( ),
     M_dispETFESpace              ( ),
     M_localMap                   ( ),

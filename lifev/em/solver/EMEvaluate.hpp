@@ -30,8 +30,6 @@
  @contributor Simone Rossi <simone.rossi@epfl.ch>
  @maintainer Simone Rossi <simone.rossi@epfl.ch>
 
- This file contains a set of base utilities used to read vectorial data (mainly fiber
- and sheet directions) from different formats to VectorEpetra objects.
  */
 
 #ifndef EMEVALUATE_H

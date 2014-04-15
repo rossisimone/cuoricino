@@ -41,7 +41,7 @@
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
+#include <lifev/em/solver/EMActiveStructuralConstitutiveLaw.hpp>
 #include <lifev/electrophysiology/util/HeartUtility.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
 
@@ -50,14 +50,14 @@ namespace LifeV
 {
 
 template <typename MeshType>
-class NeoHookeanActivatedMaterial :
-    public ActiveStructuralConstitutiveLaw<MeshType>
+class EMNeoHookeanActivatedMaterial :
+    public EMActiveStructuralConstitutiveLaw<MeshType>
 {
     //!@name Type definitions
     //@{
 
 public:
-    typedef ActiveStructuralConstitutiveLaw<MeshType>          super;
+    typedef EMActiveStructuralConstitutiveLaw<MeshType>          super;
 
     typedef StructuralConstitutiveLawData            data_Type;
 
@@ -103,9 +103,9 @@ public:
     //! @name Constructor &  Destructor
     //@{
 
-    NeoHookeanActivatedMaterial();
+    EMNeoHookeanActivatedMaterial();
 
-    virtual  ~NeoHookeanActivatedMaterial();
+    virtual  ~EMNeoHookeanActivatedMaterial();
 
     //@}
 
@@ -340,7 +340,7 @@ protected:
 };
 
 template <typename MeshType>
-NeoHookeanActivatedMaterial<MeshType>::NeoHookeanActivatedMaterial() :
+EMNeoHookeanActivatedMaterial<MeshType>::EMNeoHookeanActivatedMaterial() :
     super           ( ),
     M_stiff         ( ),
     M_identity      ( ),
@@ -355,13 +355,13 @@ NeoHookeanActivatedMaterial<MeshType>::NeoHookeanActivatedMaterial() :
 
 
 template <typename MeshType>
-NeoHookeanActivatedMaterial<MeshType>::~NeoHookeanActivatedMaterial()
+EMNeoHookeanActivatedMaterial<MeshType>::~EMNeoHookeanActivatedMaterial()
 {}
 
 
 template <typename MeshType>
 void
-NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
+EMNeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
                                                const ETFESpacePtr_Type& dETFESpace,
                                                const boost::shared_ptr<const MapEpetra>&   monolithicMap,
                                                const UInt offset, const dataPtr_Type& dataMaterial,
@@ -419,7 +419,7 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
 
 template <typename MeshType>
 void
-NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
+EMNeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
                                                const ETFESpacePtr_Type&                    dETFESpace,
                                                const ETFESpacePtr_Type& activationSpace,
                                                const boost::shared_ptr<const MapEpetra>&   monolithicMap,
@@ -464,7 +464,7 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&           
 
 template <typename MeshType>
 void
-NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
+EMNeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
                                                const ETFESpacePtr_Type&                    dETFESpace,
                                                const ETFESpacePtr_Type& activationSpace,
                                                const boost::shared_ptr<const MapEpetra>&   monolithicMap,
@@ -479,7 +479,7 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&           
 
 template <typename MeshType>
 void
-NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
+EMNeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
                                                const ETFESpacePtr_Type&                    dETFESpace,
                                                const ETFESpacePtr_Type& activationSpace,
                                                const boost::shared_ptr<const MapEpetra>&   monolithicMap,
@@ -495,7 +495,7 @@ NeoHookeanActivatedMaterial<MeshType>::setup ( const FESpacePtr_Type&           
 
 template <typename MeshType>
 void
-NeoHookeanActivatedMaterial<MeshType>::setupVectorsParameters ( void )
+EMNeoHookeanActivatedMaterial<MeshType>::setupVectorsParameters ( void )
 {
     // Paolo Tricerri: February, 20th
     // In each class, the name of the parameters has to inserted in the law
@@ -528,7 +528,7 @@ NeoHookeanActivatedMaterial<MeshType>::setupVectorsParameters ( void )
 
 
 template <typename MeshType>
-void NeoHookeanActivatedMaterial<MeshType>::computeLinearStiff (dataPtr_Type& /*dataMaterial*/,
+void EMNeoHookeanActivatedMaterial<MeshType>::computeLinearStiff (dataPtr_Type& /*dataMaterial*/,
                                                                 const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
                                                                 const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/)
 {
@@ -537,7 +537,7 @@ void NeoHookeanActivatedMaterial<MeshType>::computeLinearStiff (dataPtr_Type& /*
 
 
 template <typename MeshType>
-void NeoHookeanActivatedMaterial<MeshType>::updateJacobianMatrix ( const vector_Type&       disp,
+void EMNeoHookeanActivatedMaterial<MeshType>::updateJacobianMatrix ( const vector_Type&       disp,
                                                                    const dataPtr_Type&      dataMaterial,
                                                                    const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
                                                                    const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
@@ -554,7 +554,7 @@ void NeoHookeanActivatedMaterial<MeshType>::updateJacobianMatrix ( const vector_
 
 
 template <typename MeshType>
-void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_Type&       jacobian,
+void EMNeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_Type&       jacobian,
                                                                            const vector_Type&    disp,
                                                                            const dataPtr_Type&   dataMaterial,
                                                                            const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
@@ -717,7 +717,7 @@ void NeoHookeanActivatedMaterial<MeshType>::updateNonLinearJacobianTerms ( matri
 
 
 template <typename MeshType>
-void NeoHookeanActivatedMaterial<MeshType>::apply ( const vector_Type& sol, vector_Type& res,
+void EMNeoHookeanActivatedMaterial<MeshType>::apply ( const vector_Type& sol, vector_Type& res,
                                                     const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
                                                     const mapMarkerIndexesPtr_Type mapsMarkerIndexes)
 {
@@ -727,7 +727,7 @@ void NeoHookeanActivatedMaterial<MeshType>::apply ( const vector_Type& sol, vect
 
 
 template <typename MeshType>
-void NeoHookeanActivatedMaterial<MeshType>::computeRes ( vectorPtr_Type& res, const vector_Type&       disp,
+void EMNeoHookeanActivatedMaterial<MeshType>::computeRes ( vectorPtr_Type& res, const vector_Type&       disp,
                                                          const displayerPtr_Type& displayer )
 {
     using namespace ExpressionAssembly;
@@ -762,7 +762,7 @@ void NeoHookeanActivatedMaterial<MeshType>::computeRes ( vectorPtr_Type& res, co
 }
 
 template <typename MeshType>
-void NeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type&       disp,
+void EMNeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type&       disp,
                                                                Real                     /*factor*/,
                                                                const dataPtr_Type&      dataMaterial,
                                                                const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
@@ -825,7 +825,7 @@ void NeoHookeanActivatedMaterial<MeshType>::computeStiffness ( const vector_Type
 }
 
 template <typename MeshType>
-void NeoHookeanActivatedMaterial<MeshType>::showMe ( std::string const& fileNameStiff,
+void EMNeoHookeanActivatedMaterial<MeshType>::showMe ( std::string const& fileNameStiff,
                                                      std::string const& fileNameJacobian)
 {
     this->M_stiff->spy (fileNameStiff);
@@ -833,7 +833,7 @@ void NeoHookeanActivatedMaterial<MeshType>::showMe ( std::string const& fileName
 }
 
 template <typename MeshType>
-void NeoHookeanActivatedMaterial<MeshType>::computeLocalFirstPiolaKirchhoffTensor ( Epetra_SerialDenseMatrix& firstPiola,
+void EMNeoHookeanActivatedMaterial<MeshType>::computeLocalFirstPiolaKirchhoffTensor ( Epetra_SerialDenseMatrix& firstPiola,
         const Epetra_SerialDenseMatrix& tensorF,
         const Epetra_SerialDenseMatrix& cofactorF,
         const std::vector<Real>& invariants,
@@ -888,13 +888,13 @@ void NeoHookeanActivatedMaterial<MeshType>::computeLocalFirstPiolaKirchhoffTenso
 
 
 template <typename MeshType>
-inline ActiveStructuralConstitutiveLaw<MeshType>* createNeoHookeanActivatedMaterial()
+inline EMActiveStructuralConstitutiveLaw<MeshType>* createNeoHookeanActivatedMaterial()
 {
-    return new NeoHookeanActivatedMaterial<MeshType >();
+    return new EMNeoHookeanActivatedMaterial<MeshType >();
 }
 namespace
 {
-static bool registerNHA = ActiveStructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ( "neoHookeanActivated", &createNeoHookeanActivatedMaterial<LifeV::RegionMesh<LinearTetra> > );
+static bool registerNHA = EMActiveStructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ( "neoHookeanActivated", &createNeoHookeanActivatedMaterial<LifeV::RegionMesh<LinearTetra> > );
 }
 
 } //Namespace LifeV

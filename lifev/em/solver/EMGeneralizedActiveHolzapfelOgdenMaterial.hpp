@@ -32,13 +32,13 @@
  *  @author Simone Rossi <simone.rossi@epfl.ch>
 **/
 
-#ifndef _GENERALIZEDACTIVEHOLZAPFELOGDENMATERIAL_H_
-#define _GENERALIZEDACTIVEHOLZAPFELOGDENMATERIAL_H_
+#ifndef _EMGENERALIZEDACTIVEHOLZAPFELOGDENMATERIAL_H_
+#define _EMGENERALIZEDACTIVEHOLZAPFELOGDENMATERIAL_H_
 
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 
-#include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
+#include <lifev/em/solver/EMActiveStructuralConstitutiveLaw.hpp>
 #include <lifev/electrophysiology/util/HeartUtility.hpp>
 #include <lifev/eta/expression/Integrate.hpp>
 #include <boost/typeof/typeof.hpp>
@@ -419,14 +419,14 @@ namespace LifeV
 {
 
 template <typename MeshType>
-class GeneralizedActiveHolzapfelOgdenMaterial :
-    public ActiveStructuralConstitutiveLaw<MeshType>
+class EMGeneralizedActiveHolzapfelOgdenMaterial :
+    public EMActiveStructuralConstitutiveLaw<MeshType>
 {
     //!@name Type definitions
     //@{
 
 public:
-    typedef ActiveStructuralConstitutiveLaw<MeshType>          super;
+    typedef EMActiveStructuralConstitutiveLaw<MeshType>          super;
 
     typedef StructuralConstitutiveLawData            data_Type;
 
@@ -473,9 +473,9 @@ public:
     //! @name Constructor &  Destructor
     //@{
 
-    GeneralizedActiveHolzapfelOgdenMaterial();
+    EMGeneralizedActiveHolzapfelOgdenMaterial();
 
-    virtual  ~GeneralizedActiveHolzapfelOgdenMaterial();
+    virtual  ~EMGeneralizedActiveHolzapfelOgdenMaterial();
 
     //@}
 
@@ -766,7 +766,7 @@ protected:
 };
 
 template <typename MeshType>
-GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::GeneralizedActiveHolzapfelOgdenMaterial() :
+EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::EMGeneralizedActiveHolzapfelOgdenMaterial() :
     super           ( ),
     M_stiff         ( ),
     M_Gammaf        ( ),
@@ -783,13 +783,13 @@ GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::GeneralizedActiveHolzapfelOgd
 
 
 template <typename MeshType>
-GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::~GeneralizedActiveHolzapfelOgdenMaterial()
+EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::~EMGeneralizedActiveHolzapfelOgdenMaterial()
 {}
 
 
 template <typename MeshType>
 void
-GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
+EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type& dFESpace,
                                                            const ETFESpacePtr_Type& dETFESpace,
                                                            const boost::shared_ptr<const MapEpetra>&   monolithicMap,
                                                            const UInt offset, const dataPtr_Type& dataMaterial,
@@ -833,7 +833,7 @@ GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type
 }
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setDefaultParams()
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setDefaultParams()
 {
     // Bulk modulus
     M_kappa = 350.0; // in [kPa]
@@ -851,7 +851,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setDefaultParams()
 
 template <typename MeshType>
 void
-GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
+EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
                                                            const ETFESpacePtr_Type&                    dETFESpace,
                                                            const ETFESpacePtr_Type& activationSpace,
                                                            const boost::shared_ptr<const MapEpetra>&   monolithicMap,
@@ -890,7 +890,7 @@ GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type
 
 template <typename MeshType>
 void
-GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
+EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
                                                            const ETFESpacePtr_Type&                    dETFESpace,
                                                            const ETFESpacePtr_Type& activationSpace,
                                                            const boost::shared_ptr<const MapEpetra>&   monolithicMap,
@@ -905,7 +905,7 @@ GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type
 
 template <typename MeshType>
 void
-GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
+EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type&                      dFESpace,
                                                            const ETFESpacePtr_Type&                    dETFESpace,
                                                            const ETFESpacePtr_Type& activationSpace,
                                                            const boost::shared_ptr<const MapEpetra>&   monolithicMap,
@@ -921,7 +921,7 @@ GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setup ( const FESpacePtr_Type
 
 template <typename MeshType>
 void
-GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setupVectorsParameters ( void )
+EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setupVectorsParameters ( void )
 {
     // Paolo Tricerri: February, 20th
     // In each class, the name of the parameters has to inserted in the law
@@ -962,7 +962,7 @@ GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::setupVectorsParameters ( void
 
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeLinearStiff (dataPtr_Type& /*dataMaterial*/,
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeLinearStiff (dataPtr_Type& /*dataMaterial*/,
                                                                             const mapMarkerVolumesPtr_Type /*mapsMarkerVolumes*/,
                                                                             const mapMarkerIndexesPtr_Type /*mapsMarkerIndexes*/)
 {
@@ -971,7 +971,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeLinearStiff (data
 
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateJacobianMatrix ( const vector_Type&       disp,
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateJacobianMatrix ( const vector_Type&       disp,
                                                                                const dataPtr_Type&      dataMaterial,
                                                                                const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
                                                                                const mapMarkerIndexesPtr_Type mapsMarkerIndexes,
@@ -988,7 +988,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateJacobianMatrix ( c
 
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_Type&       jacobian,
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianTerms ( matrixPtr_Type&       jacobian,
         const vector_Type&    disp,
         const dataPtr_Type&   dataMaterial,
         const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
@@ -1220,7 +1220,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::updateNonLinearJacobianT
 
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::apply ( const vector_Type& sol, vector_Type& res,
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::apply ( const vector_Type& sol, vector_Type& res,
                                                                 const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
                                                                 const mapMarkerIndexesPtr_Type mapsMarkerIndexes)
 {
@@ -1229,7 +1229,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::apply ( const vector_Typ
 }
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const vector_Type&       disp,
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const vector_Type&       disp,
                                                                            Real                     /*factor*/,
                                                                            const dataPtr_Type&      dataMaterial,
                                                                            const mapMarkerVolumesPtr_Type mapsMarkerVolumes,
@@ -1245,7 +1245,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeStiffness ( const
 
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeResidual ( const vector_Type& disp )
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeResidual ( const vector_Type& disp )
 {
     using namespace ExpressionAssembly;
 
@@ -1423,7 +1423,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeResidual ( const 
 }
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::showMe ( std::string const& fileNameStiff,
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::showMe ( std::string const& fileNameStiff,
                                                                  std::string const& fileNameJacobian)
 {
     this->M_stiff->spy (fileNameStiff);
@@ -1432,7 +1432,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::showMe ( std::string con
 
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::showMyParameters ()
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::showMyParameters ()
 {
     std::cout << "\n\n********************************************";
     std::cout << "\na: " << M_aiso;
@@ -1448,7 +1448,7 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::showMyParameters ()
 }
 
 template <typename MeshType>
-void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeLocalFirstPiolaKirchhoffTensor ( Epetra_SerialDenseMatrix& /*firstPiola*/,
+void EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeLocalFirstPiolaKirchhoffTensor ( Epetra_SerialDenseMatrix& /*firstPiola*/,
         const Epetra_SerialDenseMatrix& /*tensorF*/,
         const Epetra_SerialDenseMatrix& /*cofactorF*/,
         const std::vector<Real>& /*invariants*/,
@@ -1459,13 +1459,13 @@ void GeneralizedActiveHolzapfelOgdenMaterial<MeshType>::computeLocalFirstPiolaKi
 
 
 template <typename MeshType>
-inline ActiveStructuralConstitutiveLaw<MeshType>* createGeneralizedActiveHolzapfelOgdenMaterial()
+inline EMActiveStructuralConstitutiveLaw<MeshType>* createGeneralizedActiveHolzapfelOgdenMaterial()
 {
-    return new GeneralizedActiveHolzapfelOgdenMaterial<MeshType>();
+    return new EMGeneralizedActiveHolzapfelOgdenMaterial<MeshType>();
 }
 namespace
 {
-static bool registerGHO = ActiveStructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ("GAHO", &createGeneralizedActiveHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
+static bool registerGHO = EMActiveStructuralConstitutiveLaw<LifeV::RegionMesh<LinearTetra> >::StructureMaterialFactory::instance().registerProduct ("GAHO", &createGeneralizedActiveHolzapfelOgdenMaterial<LifeV::RegionMesh<LinearTetra> > );
 }
 
 

@@ -64,6 +64,7 @@
 
 #include <lifev/structure/solver/StructuralOperator.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
+#include <lifev/em/solver/EMActiveStructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinear.hpp>
 #include <lifev/structure/solver/VenantKirchhoffMaterialNonLinearPenalized.hpp>
 #include <lifev/structure/solver/SecondOrderExponentialMaterialNonLinear.hpp>
@@ -350,19 +351,20 @@ public:
     {
         return new VenantKirchhoffMaterialNonLinearPenalized< FSIOperator::mesh_Type >();
     }
-    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createNeoHookeanMaterialActivated()
-    {
-        return new NeoHookeanActivatedMaterial< FSIOperator::mesh_Type >();
-    }
-    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createHolzapfelOgdenMaterial()
-    {
-        return new HolzapfelOgdenMaterial< FSIOperator::mesh_Type >();
-    }
 
 #if defined(LIFEV_HAS_EM)
-    static StructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createGeneralizedActiveHolzapfelOgdenMaterial()
+    static EMActiveStructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createNeoHookeanMaterialActivated()
     {
-        return new GeneralizedActiveHolzapfelOgdenMaterial< FSIOperator::mesh_Type >();
+        return new EMNeoHookeanActivatedMaterial< FSIOperator::mesh_Type >();
+    }
+    static EMActiveStructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createHolzapfelOgdenMaterial()
+    {
+        return new EMHolzapfelOgdenMaterial< FSIOperator::mesh_Type >();
+    }
+
+    static EMActiveStructuralConstitutiveLaw< FSIOperator::mesh_Type >*    createGeneralizedActiveHolzapfelOgdenMaterial()
+    {
+        return new EMGeneralizedActiveHolzapfelOgdenMaterial< FSIOperator::mesh_Type >();
     }
 #endif
 
