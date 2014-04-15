@@ -951,8 +951,6 @@ public:
     void solveOneStepGatingVariablesRL();
     //! Compute the rhs using state variable interpolation
     void computeRhsSVI();
-    //! Compute the rhs using mixed variable interpolation
-    void computeRhsMixed();
     //! Compute the rhs using ionic current interpolation
     void computeRhsICI();
     void computeRhsICI (matrix_Type& mass);
@@ -972,8 +970,6 @@ public:
      * \f]
      */
     void solveOneSVIStep();
-    //! solve system using a combination of SVI and ICI from M_initialTime to the M_endTime with time step M_timeStep
-    void solveOneMixedStep();
     //! solve system using ICI from M_initialTime to the M_endTime with time step M_timeStep
     void solveICI();
     //! solve system using SVI from M_initialTime to the M_endTime with time step M_timeStep
@@ -994,8 +990,6 @@ public:
      * \f]
      */
     void solveOneSVIStep (IOFile_Type& exporter, Real t);
-    //! solve system using a combination of SVI and ICI from M_initialTime to the M_endTime with time step M_timeStep
-    void solveOneMixedStep (IOFile_Type& exporter, Real t);
     //! solve system using ICI from M_initialTime to the M_endTime with time step M_timeStep and export the solution
     void solveICI (IOFile_Type& exporter);
     //! solve system using SVI from M_initialTime to the M_endTime with time step M_timeStep and export the solution
@@ -2072,55 +2066,6 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsSVI()
 }
 
 template<typename Mesh, typename IonicModel>
-void ElectroETAMonodomainSolver<Mesh, IonicModel>::computeRhsMixed()
-{
-    //    if(M_displacementPtr)
-    //    {
-    //        if(M_commPtr -> MyPID() == 0)
-    //        {
-    //            std::cout << "\nETA Monodomain Solver: updating rhs with SVI with mechanical coupling\n";
-    //        }
-    //        boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > vectorialSpace(
-    //                    new FESpace<mesh_Type, MapEpetra>(M_localMeshPtr, M_elementsOrder,
-    //                            3, M_commPtr));
-    //        M_ionicModelPtr -> computePotentialRhsSVI(M_globalSolution,
-    //                    M_globalRhs, (*M_feSpacePtr), *M_displacementPtr, vectorialSpace);
-    //
-    //        //std::cout << "\nETA Monodomain Solver SVI rhs: " << M_globalRhs[0] -> norm2() << "\n";
-    //    }
-    //    else
-    //    {
-    if (M_verbose && M_commPtr -> MyPID() == 0)
-    {
-        std::cout << "\nETA Monodomain Solver: updating rhs with mixed (SVI + ICI)";
-    }
-    vectorOfPtr_Type rhsSVI;
-    vectorOfPtr_Type rhsICI;
-
-    rhsSVI.push_back (* (new vectorPtr_Type (new VectorEpetra (M_ETFESpacePtr->map() ) ) ) );
-    rhsICI.push_back (* (new vectorPtr_Type (new VectorEpetra (M_ETFESpacePtr->map() ) ) ) );
-
-    for (int k = 1; k < M_ionicModelPtr->Size(); ++k)
-    {
-        rhsSVI.push_back (
-            * (new vectorPtr_Type (new VectorEpetra (M_ETFESpacePtr->map() ) ) ) );
-        rhsICI.push_back (
-            * (new vectorPtr_Type (new VectorEpetra (M_ETFESpacePtr->map() ) ) ) );
-    }
-
-    // Take a convex combination of SVI(1) and ICI ionic currents
-    M_ionicModelPtr->superIonicModel::computePotentialRhsSVI (M_globalSolution, rhsSVI, (*M_feSpacePtr), quadRuleTetra1pt );
-    M_ionicModelPtr->superIonicModel::computePotentialRhsICI (M_globalSolution, rhsICI, (*M_massMatrixPtr) );
-
-    for (int i = 0; i < M_ionicModelPtr->Size(); i++)
-    {
-        * (M_globalRhs[i]) = 0.015 * (* (rhsSVI[i]) ) + 0.985 * (* (rhsICI[i]) );
-    }
-    //}
-    updateRhs();
-}
-
-template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneICIStep()
 {
     computeRhsICI();
@@ -2148,18 +2093,6 @@ template<typename Mesh, typename IonicModel>
 void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneSVIStep()
 {
     computeRhsSVI();
-    if (M_displacementPtr)
-    {
-        M_linearSolverPtr->setOperator (M_globalMatrixPtr);
-    }
-    M_linearSolverPtr->setRightHandSide (M_rhsPtrUnique);
-    M_linearSolverPtr->solve (M_potentialPtr);
-}
-
-template<typename Mesh, typename IonicModel>
-void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneMixedStep()
-{
-    computeRhsMixed();
     if (M_displacementPtr)
     {
         M_linearSolverPtr->setOperator (M_globalMatrixPtr);
@@ -2211,14 +2144,6 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneSVIStep (
     IOFile_Type& exporter, Real t)
 {
     solveOneSVIStep();
-    exportSolution (exporter, t);
-}
-
-template<typename Mesh, typename IonicModel>
-void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneMixedStep (
-    IOFile_Type& exporter, Real t)
-{
-    solveOneMixedStep();
     exportSolution (exporter, t);
 }
 
