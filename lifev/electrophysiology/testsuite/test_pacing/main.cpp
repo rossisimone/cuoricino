@@ -361,7 +361,7 @@ Int main ( Int argc, char** argv )
 
 
     Real err = std::abs (newSolutionNorm - solutionNorm) / std::abs(solutionNorm);
-    if ( err > 1e-3 )
+    if ( err > 1e-8 )
     {
     	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " <<  newSolutionNorm << "\n";
         return EXIT_FAILURE; // Norm of solution did not match

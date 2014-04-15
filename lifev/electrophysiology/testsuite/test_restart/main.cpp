@@ -275,7 +275,7 @@ Int main ( Int argc, char** argv )
 
     ExporterHDF5< RegionMesh <LinearTetra> > exporter;
     monodomain -> setupExporter ( exporter, monodomainList.get ("OutputFile", "Solution"), problemFolder );
-    monodomain -> exportSolution ( exporter, 0);
+    monodomain -> exportSolution ( exporter, initialTime);
 
     //********************************************//
     // Solving the system                         //
@@ -308,7 +308,8 @@ Int main ( Int argc, char** argv )
     // Loop over time solving with L-ICI          //
     //********************************************//
 	int loop = 0;
-	for (Real t = initialTime; t < TF;)
+	Real tt(0);
+	for (Real t = initialTime; t < (TF-dt*1e-4);)// the -dt*1e-4 is needed or you do an additional iteration
     {
 		loop++;
         t += dt;
@@ -321,7 +322,6 @@ Int main ( Int argc, char** argv )
         monodomain -> solveOneICIStep();
         if(loop % iter == 0 ) exporter.postProcess (t);
     }
-
     //********************************************//
 	// Close the exporter                         //
 	//********************************************//
@@ -340,7 +340,9 @@ Int main ( Int argc, char** argv )
     MPI_Finalize();
 
     Real err = std::abs (newSolutionNorm - solutionNorm) / std::abs(solutionNorm);
-    if ( err > 1e-3 )
+	std::cout << std::setprecision(20) << "\nError: " <<  err << "\nSolution Norm: " <<  newSolutionNorm << "\n";
+	std::cout << std::setprecision(20) << "\nImported solution Norm: " <<  solutionNorm << "\n";
+    if ( err > 1e-8 )
     {
     	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nSolution Norm: " <<  newSolutionNorm << "\n";
         return EXIT_FAILURE; // Norm of solution did not match

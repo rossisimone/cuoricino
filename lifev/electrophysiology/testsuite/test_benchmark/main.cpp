@@ -731,17 +731,23 @@ Int main ( Int argc, char** argv )
     // time and we compare it with the precomputed value.
 	// ---------------------------------------------------------------
     Real fullActivationTime = activationTimeVector -> maxValue();
+    activationTimeVector.reset();
     Real returnValue;
 
     Real err = std::abs (fullActivationTime - finalActivationTime) / std::abs(finalActivationTime);
-    if ( err > 1e-4 )
-    {
-        if ( Comm->MyPID() == 0 )
-        {
 
-        	std::cout << "\nTest Failed: " <<  err <<"\n" << "\nActivation time: " <<  fullActivationTime << "\n";
-        }
-        returnValue = EXIT_FAILURE; // Norm of solution did not match
+    if ( Comm->MyPID() == 0 )
+    {
+    	std::cout << "\nError: " <<  err <<"\n" << "\nActivation time: " <<  fullActivationTime << "\n";
+    }
+
+    if ( err > 1e-12 )
+    {
+    	if ( Comm->MyPID() == 0 )
+		{
+			std::cout << "\nTest failed!\n";
+		}
+    	returnValue = EXIT_FAILURE; // Norm of solution did not match
     }
     else
     {
