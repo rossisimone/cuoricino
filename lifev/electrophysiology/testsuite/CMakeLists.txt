@@ -8,7 +8,6 @@ ADD_SUBDIRECTORIES(
 	test_restart
 	test_0DAlievPanfilovModel
 	test_0DLuoRudyIModel
-	test_0DJafriRiceWinslowModel
 	test_0DMinimalModel
 	test_0DFitzHughNagumoModel
 	test_0DFoxModel

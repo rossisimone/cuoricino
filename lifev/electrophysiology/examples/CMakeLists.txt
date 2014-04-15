@@ -8,6 +8,7 @@ ADD_SUBDIRECTORIES(
   benchmarkPurkinje
   FiberInterpolation
   XbNegroniLascano96
+  example_0DJafriRiceWinslowModel
   example_0DJafriRiceWinslowModelwStimPro
   #IonicRogersMcCulloch_pacingECG
   #IonicRogersMcCullochSpiral
