@@ -153,11 +153,11 @@ Int main ( Int argc, char** argv )
     //********************************************//
     meshPtr_Type mesh1 ( new mesh_Type ( comm ) );
     meshPtr_Type fullMesh1 ( new mesh_Type ( comm ) );
-    MeshUtility::fillWithFullMesh (mesh1, fullMesh1, meshName1, meshPath1);
+    MeshUtility::loadMesh (mesh1, fullMesh1, meshName1, meshPath1);
 
     meshPtr_Type mesh2 ( new mesh_Type ( comm ) );
     meshPtr_Type fullMesh2 ( new mesh_Type ( comm ) );
-    MeshUtility::fillWithFullMesh (mesh2, fullMesh2, meshName2, meshPath2);
+    MeshUtility::loadMesh (mesh2, fullMesh2, meshName2, meshPath2);
 
 
     //********************************************//
