@@ -71,11 +71,11 @@
 #include <lifev/structure/solver/VenantKirchhoffMaterialLinear.hpp>
 #include <lifev/structure/solver/ExponentialMaterialNonLinear.hpp>
 #include <lifev/structure/solver/NeoHookeanMaterialNonLinear.hpp>
-#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
-#include <lifev/structure/solver/HolzapfelOgdenMaterial.hpp>
 
 #if defined(LIFEV_HAS_EM)
-#include <lifev/em/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
+#include <lifev/em/solver/EMGeneralizedActiveHolzapfelOgdenMaterial.hpp>
+#include <lifev/em/solver/EMNeoHookeanActivatedMaterial.hpp>
+#include <lifev/em/solver/EMHolzapfelOgdenMaterial.hpp>
 #endif
 
 #include <lifev/core/fem/DOFInterface3Dto3D.hpp>
