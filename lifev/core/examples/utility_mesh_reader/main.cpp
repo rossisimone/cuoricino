@@ -48,7 +48,7 @@ int main (int argc, char** argv)
     {
         //Create the mesh data and read and partitioned the mesh
         boost::shared_ptr< RegionMesh <LinearTetra> > meshPtr ( new RegionMesh <LinearTetra> ( comm ) );
-        MeshUtility::fillWithMesh ( meshPtr, isPartitioned, meshName, meshPath, meshOrder );
+        MeshUtility::loadMesh ( meshPtr, meshName, meshPath, isPartitioned, meshOrder );
         if ( comm -> MyPID() == 0 )
         {
             cout << "... DONE! ";
@@ -63,7 +63,7 @@ int main (int argc, char** argv)
         }
         boost::shared_ptr< RegionMesh <LinearTetra> > meshFullPtr ( new RegionMesh <LinearTetra> ( comm ) );
         boost::shared_ptr< RegionMesh <LinearTetra> > meshLocalPtr ( new RegionMesh <LinearTetra> ( comm ) );
-        MeshUtility::fillWithMesh ( meshLocalPtr, meshFullPtr, isPartitioned, meshName, meshPath, "P1" );
+        MeshUtility::loadMesh ( meshLocalPtr, meshFullPtr, meshName, meshPath, isPartitioned, "P1" );
         if ( comm -> MyPID() == 0 )
         {
             cout << "... DONE! ";
@@ -77,7 +77,7 @@ int main (int argc, char** argv)
             cout << "\n\nCreating a structured mesh without saving the full mesh: ... \n";
         }
         boost::shared_ptr< RegionMesh <LinearTetra> > meshStructPtr ( new RegionMesh <LinearTetra> ( comm ) );
-        MeshUtility::fillWithStructuredMesh ( meshStructPtr,
+        MeshUtility::loadStructuredMesh ( meshStructPtr,
                                               1,
                                               std::vector<UInt> (3, 5),
                                               true,
@@ -100,7 +100,7 @@ int main (int argc, char** argv)
         }
         boost::shared_ptr< RegionMesh <LinearTriangle> > meshLocalStructPtr ( new RegionMesh <LinearTriangle> ( comm ) );
         boost::shared_ptr< RegionMesh <LinearTriangle> > meshFullStructPtr ( new RegionMesh <LinearTriangle> ( comm ) );
-        MeshUtility::fillWithStructuredMesh (meshLocalStructPtr,
+        MeshUtility::loadStructuredMesh (meshLocalStructPtr,
                                              meshFullStructPtr,
                                              1,
                                              std::vector<UInt> (2, 5),
