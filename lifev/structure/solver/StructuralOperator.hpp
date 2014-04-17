@@ -225,7 +225,7 @@ public:
       \param BCh boundary conditions for the displacement
       \param comm the Epetra Comunicator
     */
-    void setup ( boost::shared_ptr<data_Type>  data,
+    virtual void setup ( boost::shared_ptr<data_Type>  data,
                  const FESpacePtr_Type&        dFESpace,
                  const ETFESpacePtr_Type&      dETFESpace,
                  const bcHandler_Type&       BCh,
@@ -610,7 +610,7 @@ public:
     /*! Get the offset parameter. It is taken into account when the boundary conditions
       are applied and the matrices are assembled.
     */
-    const materialPtr_Type& material() const
+    virtual const materialPtr_Type& material() const
     {
         return M_material;
     }
