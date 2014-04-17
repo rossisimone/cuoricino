@@ -90,94 +90,6 @@ getMeshData ( const std::string& meshName,
     return meshData;
 }
 
-template< typename RegionMeshType>
-void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
-                               const std::string& meshName,
-                               const std::string& resourcesPath = "./" );
-
-template< typename RegionMeshType>
-void fillWithFullMesh (  boost::shared_ptr< RegionMeshType >& meshLocal,
-                         boost::shared_ptr< RegionMeshType >& meshFull,
-                         const std::string& meshName,
-                         const std::string& resourcesPath = "./",
-                         const std::string& meshOrder = "P1" );
-
-
-//! Read and partitioned a *.mesh file
-/*!
-  @param meshLocal The partitioned mesh that we want to generate
-  @param meshFull  The non partitioned mesh that we want to keep
-  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
-  @param meshOrder order of the mesh
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-template< typename RegionMeshType>
-void fillWithMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
-                    boost::shared_ptr< RegionMeshType >& meshFull ,
-                    bool isPartitioned,
-                    const std::string& meshName,
-                    const std::string& resourcesPath = "./",
-                    const std::string& meshOrder = "P1" )
-{
-    if (isPartitioned)
-    {
-        fillWithPartitionedMesh ( meshLocal, meshName, resourcesPath );
-    }
-    else
-    {
-        fillWithFullMesh ( meshLocal,  meshFull, meshName, resourcesPath, meshOrder );
-    }
-}
-
-//! Read and partitioned a *.mesh file
-/*!
-  @param meshLocal The partitioned mesh that we want to generate
-  @param meshFull  The non partitioned mesh that we want to keep
-  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
-  @param meshOrder order of the mesh
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-template< typename RegionMeshType>
-void fillWithMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
-                    const std::string& meshName,
-                    const std::string& resourcesPath = "./",
-                    const std::string& meshOrder = "P1" )
-{
-    boost::shared_ptr< RegionMeshType > meshFull;
-    fillWithFullMesh ( meshLocal,  meshFull, meshName, resourcesPath, meshOrder );
-    meshFull.reset();
-}
-
-//! Read and partitioned a *.mesh file
-/*!
-  @param meshLocal The partitioned mesh that we want to generate
-  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
-  @param meshName name of the mesh file
-  @param resourcesPath path to the mesh folder
-  @param meshOrder order of the mesh
-*/
-/*!
-    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
- */
-template< typename RegionMeshType>
-void fillWithMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
-                    bool isPartitioned,
-                    const std::string& meshName,
-                    const std::string& resourcesPath = "./",
-                    const std::string& meshOrder = "P1" )
-{
-    boost::shared_ptr< RegionMeshType > tmpMeshFull ( new RegionMeshType );
-    fillWithMesh ( meshLocal, tmpMeshFull, isPartitioned, meshName, resourcesPath, meshOrder );
-}
-
 
 //! Read and partitioned a *.mesh file
 /*!
@@ -191,11 +103,11 @@ void fillWithMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template< typename RegionMeshType>
-void fillWithFullMesh (  boost::shared_ptr< RegionMeshType >& meshLocal,
-                         boost::shared_ptr< RegionMeshType >& meshFull,
-                         const std::string& meshName,
-                         const std::string& resourcesPath,
-                         const std::string& meshOrder )
+void loadMesh (  boost::shared_ptr< RegionMeshType >& meshLocal,
+                 boost::shared_ptr< RegionMeshType >& meshFull,
+                 const std::string& meshName,
+                 const std::string& resourcesPath,
+                 const std::string& meshOrder )
 {
 #ifdef HAVE_MPI
     boost::shared_ptr<Epetra_Comm> Comm ( new Epetra_MpiComm ( MPI_COMM_WORLD ) );
@@ -238,7 +150,7 @@ void fillWithFullMesh (  boost::shared_ptr< RegionMeshType >& meshLocal,
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template< typename RegionMeshType>
-void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& /*meshLocal*/,
+void loadPartitionedMesh ( boost::shared_ptr< RegionMeshType >& /*meshLocal*/,
                                const std::string& /*meshName*/,
                                const std::string& /*resourcesPath*/ )
 {
@@ -257,6 +169,59 @@ void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& /*meshLocal*
     //    displayer.leaderPrint ("Loading time: ", meshReadChrono.diff(), " s.\n");
 }
 
+//! Read and partitioned a *.mesh file
+/*!
+  @param meshLocal The partitioned mesh that we want to generate
+  @param meshFull  The non partitioned mesh that we want to keep
+  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+  @param meshOrder order of the mesh
+*/
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+template< typename RegionMeshType>
+void loadMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
+                    boost::shared_ptr< RegionMeshType >& meshFull ,
+                    const std::string& meshName,
+                    const std::string& resourcesPath = "./",
+                    bool isPartitioned = false,
+                    const std::string& meshOrder = "P1" )
+{
+    if (isPartitioned)
+    {
+        loadPartitionedMesh ( meshLocal, meshName, resourcesPath );
+    }
+    else
+    {
+        loadMesh ( meshLocal,  meshFull, meshName, resourcesPath, meshOrder );
+    }
+}
+
+
+//! Read and partitioned a *.mesh file
+/*!
+  @param meshLocal The partitioned mesh that we want to generate
+  @param isPartitioned boolean to say if the mesh should be partitioned or just loaded
+  @param meshName name of the mesh file
+  @param resourcesPath path to the mesh folder
+  @param meshOrder order of the mesh
+*/
+/*!
+    @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
+ */
+template< typename RegionMeshType>
+void loadMesh ( boost::shared_ptr< RegionMeshType >& meshLocal,
+                const std::string& meshName,
+                const std::string& resourcesPath = "./",
+                bool isPartitioned = false,
+                const std::string& meshOrder = "P1" )
+{
+    boost::shared_ptr< RegionMeshType > tmpMeshFull;
+    loadMesh ( meshLocal, tmpMeshFull, meshName, resourcesPath, isPartitioned, meshOrder );
+}
+
 //! Build a mesh from a partitioned mesh
 /*!
   @param mesh The mesh that we want to generate
@@ -270,7 +235,7 @@ void fillWithPartitionedMesh ( boost::shared_ptr< RegionMeshType >& /*meshLocal*
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template< typename RegionMeshType>
-void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
+void loadStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
                               boost::shared_ptr< RegionMeshType >& meshFull,
                               markerID_Type regionFlag,
                               const std::vector<UInt> m,
@@ -322,7 +287,7 @@ void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
     @author Gwenol Grandperrin <gwenol.grandperrin@epfl.ch>
  */
 template< typename RegionMeshType>
-void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
+void loadStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
                               markerID_Type regionFlag,
                               const std::vector<UInt> m,
                               bool verbose = false,
@@ -330,7 +295,7 @@ void fillWithStructuredMesh ( boost::shared_ptr< RegionMeshType >& mesh,
                               const Vector3D t = Vector3D ( 0., 0., 0. ) )
 {
     boost::shared_ptr< RegionMeshType > tmpMeshFull ( new RegionMeshType );
-    fillWithStructuredMesh ( mesh, tmpMeshFull, regionFlag, m, verbose, l, t );
+    loadStructuredMesh ( mesh, tmpMeshFull, regionFlag, m, verbose, l, t );
 }
 
 
