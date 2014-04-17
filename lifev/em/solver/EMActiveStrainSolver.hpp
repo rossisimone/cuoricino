@@ -143,7 +143,7 @@ public:
     typedef StructuralConstitutiveLawData           structureData_Type;
     typedef boost::shared_ptr<structureData_Type>           structureDataPtr_Type;
 
-    typedef StructuralOperator< RegionMesh<LinearTetra> > structuralOperator_Type;
+    typedef EMStructuralOperator< RegionMesh<LinearTetra> > structuralOperator_Type;
     typedef boost::shared_ptr< structuralOperator_Type > structuralOperatorPtr_Type;
 
     //
@@ -764,7 +764,7 @@ void EMActiveStrainSolver<Mesh>::readMeshFromList (Teuchos::ParameterList parame
 {
     std::string meshName = parameterList.get ("mesh_name", "lid16.mesh");
     std::string meshPath = parameterList.get ("mesh_path", "./");
-    MeshUtility::fillWithMesh (M_meshPtr, meshName,  meshPath );
+    MeshUtility::loadMesh (M_meshPtr, meshName,  meshPath );
 }
 
 template<typename Mesh>

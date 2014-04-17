@@ -6,8 +6,8 @@
 
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
-#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
-#include <lifev/em/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
+#include <lifev/em/solver/EMNeoHookeanActivatedMaterial.hpp>
+#include <lifev/em/solver/EMGeneralizedActiveHolzapfelOgdenMaterial.hpp>
 #include <lifev/em/solver/EMETAFunctors.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
@@ -184,7 +184,7 @@ int main (int argc, char** argv)
 
     typedef BCHandler                                          bc_Type;
     typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
-    typedef  StructuralOperator< RegionMesh<LinearTetra> >      physicalSolver_Type;
+    typedef StructuralOperator< RegionMesh<LinearTetra> >      physicalSolver_Type;
     typedef BCInterface3D< bc_Type, physicalSolver_Type >              bcInterface_Type;
     typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
 
@@ -451,7 +451,7 @@ int main (int argc, char** argv)
     {
         fullSolidMesh.reset (new mesh_Type ( comm ) );
         localSolidMesh.reset (new mesh_Type ( comm ) );
-        MeshUtility::fillWithFullMesh (localSolidMesh, fullSolidMesh,  solidMeshName,  parameterList.get ("solid_mesh_path", "") );
+        MeshUtility::loadMesh (localSolidMesh, fullSolidMesh,  solidMeshName,  parameterList.get ("solid_mesh_path", "") );
     }
     else
     {
@@ -486,7 +486,7 @@ int main (int argc, char** argv)
         }
     }
     //! 1. Constructor of the structuralSolver
-    StructuralOperator< RegionMesh<LinearTetra> > solid;
+    EMStructuralOperator< RegionMesh<LinearTetra> > solid;
     solid.setup (dataStructure,
                  dFESpace,
                  dETFESpace,
@@ -551,14 +551,14 @@ int main (int argc, char** argv)
     Real sx = parameterList.get ("sheet_X", 0.0);
     Real sy = parameterList.get ("sheet_Y", 1.0);
     Real sz = parameterList.get ("sheet_Z", 0.0);;
-    solid.material()->setupSheetVector (sx, sy, sz);
+    solid.activeMaterial()->setupSheetVector (sx, sy, sz);
 
     if ( comm->MyPID() == 0 )
     {
         std::cout << "\nset fibers" << std::endl;
     }
 
-    solid.material() -> setFiberVector ( *solidFibers );
+    solid.activeMaterial() -> setFiberVector ( *solidFibers );
 
     //     monodomain -> setupFibers();
 
@@ -643,7 +643,7 @@ int main (int argc, char** argv)
     {
         std::cout << "\nset gammaf and fibers" << std::endl;
     }
-    solid.material() -> setGammaf ( *solidGammaf );
+    solid.activeMaterial() -> setGammaf ( *solidGammaf );
 
     vectorPtr_Type solidGammas ( new vector_Type ( solidGammaf -> map() ) );
     vectorPtr_Type solidGamman ( new vector_Type ( solidGammaf -> map() ) );
@@ -656,12 +656,12 @@ int main (int argc, char** argv)
     {
         Real gfactor = parameterList.get ("gfactor", 3.0);
         *solidGamman = gfactor * *solidGammaf;
-        solid.material() -> setGamman (*solidGamman);
+        solid.activeMaterial() -> setGamman (*solidGamman);
         *solidGammas = 1.0;
         *solidGammas /= (1.0 + *solidGammaf);
         *solidGammas /= (1.0 + *solidGamman);
         *solidGammas -= 1.0;
-        solid.material() -> setGammas (*solidGammas);
+        solid.activeMaterial() -> setGammas (*solidGammas);
 
         if (usingDifferentMeshes)
         {
@@ -683,9 +683,9 @@ int main (int argc, char** argv)
         *solidGammas /= (1.0 + *solidGammaf);
         EpetraSqrt (*solidGammas);
         *solidGammas -= 1.0;
-        solid.material() -> setGamman (*solidGammas);
+        solid.activeMaterial() -> setGamman (*solidGammas);
         *solidGamman = *solidGammas;
-        solid.material() -> setGammas (*solidGamman);
+        solid.activeMaterial() -> setGammas (*solidGamman);
 
         if (usingDifferentMeshes)
         {
@@ -805,8 +805,8 @@ int main (int argc, char** argv)
 
     //     if ( comm->MyPID() == 0 )
     //    {
-    //        std::cout << "\nnorm inf gammaf: " << solid.material() -> gammaf() -> normInf() << std::endl;
-    //        std::cout << "\nnorm inf fiber: " << solid.material() -> fiberVector() -> normInf() << std::endl;
+    //        std::cout << "\nnorm inf gammaf: " << solid.activeMaterial() -> gammaf() -> normInf() << std::endl;
+    //        std::cout << "\nnorm inf fiber: " << solid.activeMaterial() -> fiberVector() -> normInf() << std::endl;
     //    }
     if ( comm->MyPID() == 0 )
     {
@@ -1006,7 +1006,7 @@ int main (int argc, char** argv)
         std::cout << "\nContractile fraction: " << solid.data() -> contractileFraction() << std::endl;
     }
     solid.data() -> showMe();
-    solid.material() -> showMyParameters();
+    solid.activeMaterial() -> showMyParameters();
 
     if (parameterList.get ("pressure_ramp", false) == true)
     {
@@ -1174,7 +1174,7 @@ int main (int argc, char** argv)
                 BOOST_AUTO_TPL (I4f,    dot (f, f) );
 
 
-                BOOST_AUTO_TPL (s0,     value (electrodETFESpace, * (solid.material() -> sheetVectorPtr() ) ) );
+                BOOST_AUTO_TPL (s0,     value (electrodETFESpace, * (solid.activeMaterial() -> sheetVectorPtr() ) ) );
                 BOOST_AUTO_TPL (I4s,    dot (F * s0, F * s0) );
 
                 BOOST_AUTO_TPL (I1iso,   Jm23 * I1);
@@ -1342,18 +1342,18 @@ int main (int argc, char** argv)
             }
 
 
-            solid.material() -> setGammaf ( *solidGammaf );
+            solid.activeMaterial() -> setGammaf ( *solidGammaf );
 
             if (gcase == 1)
             {
                 Real gfactor2 = parameterList.get ("gfactor", 3.0);
                 *solidGamman = gfactor2 * *solidGammaf;
-                solid.material() -> setGamman (*solidGamman);
+                solid.activeMaterial() -> setGamman (*solidGamman);
                 *solidGammas = 1.0;
                 *solidGammas /= (1.0 + *solidGammaf);
                 *solidGammas /= (1.0 + *solidGamman);
                 *solidGammas -= 1.0;
-                solid.material() -> setGammas (*solidGammas);
+                solid.activeMaterial() -> setGammas (*solidGammas);
 
                 if (usingDifferentMeshes)
                 {
@@ -1375,9 +1375,9 @@ int main (int argc, char** argv)
                 *solidGammas /= (1.0 + *solidGammaf);
                 EpetraSqrt (*solidGammas);
                 *solidGammas -= 1.0;
-                solid.material() -> setGamman (*solidGammas);
+                solid.activeMaterial() -> setGamman (*solidGammas);
                 *solidGamman = *solidGammas;
-                solid.material() -> setGammas (*solidGamman);
+                solid.activeMaterial() -> setGammas (*solidGamman);
 
                 if (usingDifferentMeshes)
                 {

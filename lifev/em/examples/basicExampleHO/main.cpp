@@ -6,8 +6,8 @@
 
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
-#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
-#include <lifev/structure/solver/HolzapfelOgdenMaterial.hpp>
+#include <lifev/em/solver/EMNeoHookeanActivatedMaterial.hpp>
+#include <lifev/em/solver/EMHolzapfelOgdenMaterial.hpp>
 #include <lifev/em/solver/EMETAFunctors.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
@@ -163,7 +163,7 @@ int main (int argc, char** argv)
 
     typedef BCHandler                                          bc_Type;
     typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
-    typedef  StructuralOperator< RegionMesh<LinearTetra> >      physicalSolver_Type;
+    typedef StructuralOperator< RegionMesh<LinearTetra> >      physicalSolver_Type;
     typedef BCInterface3D< bc_Type, physicalSolver_Type >              bcInterface_Type;
     typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
 
@@ -430,7 +430,7 @@ int main (int argc, char** argv)
     {
         fullSolidMesh.reset (new mesh_Type ( comm ) );
         localSolidMesh.reset (new mesh_Type ( comm ) );
-        MeshUtility::fillWithFullMesh (localSolidMesh, fullSolidMesh,  solidMeshName,  parameterList.get ("solid_mesh_path", "") );
+        MeshUtility::loadMesh (localSolidMesh, fullSolidMesh,  solidMeshName,  parameterList.get ("solid_mesh_path", "") );
     }
     else
     {
@@ -465,7 +465,7 @@ int main (int argc, char** argv)
         }
     }
     //! 1. Constructor of the structuralSolver
-    StructuralOperator< RegionMesh<LinearTetra> > solid;
+    EMStructuralOperator< RegionMesh<LinearTetra> > solid;
     solid.setup (dataStructure,
                  dFESpace,
                  dETFESpace,
@@ -528,14 +528,14 @@ int main (int argc, char** argv)
 
 
     Real sx = 1.0, sy = 0.0, sz = 0.0;
-    solid.material()->setupSheetVector (sx, sy, sz);
+    solid.activeMaterial()->setupSheetVector (sx, sy, sz);
 
     if ( comm->MyPID() == 0 )
     {
         std::cout << "\nset fibers" << std::endl;
     }
 
-    solid.material() -> setFiberVector ( *solidFibers );
+    solid.activeMaterial() -> setFiberVector ( *solidFibers );
 
     //     monodomain -> setupFibers();
 
@@ -618,7 +618,7 @@ int main (int argc, char** argv)
     {
         std::cout << "\nset gammaf and fibers" << std::endl;
     }
-    solid.material() -> setGammaf ( *solidGammaf );
+    solid.activeMaterial() -> setGammaf ( *solidGammaf );
 
 
     //==================================================================//
@@ -1228,7 +1228,7 @@ int main (int argc, char** argv)
             }
 
 
-            solid.material() -> setGammaf ( *solidGammaf );
+            solid.activeMaterial() -> setGammaf ( *solidGammaf );
             if ( comm->MyPID() == 0 )
             {
                 std::cout << "\nSOLVING STATIC MECHANICS!\n" << std::endl;

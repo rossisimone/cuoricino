@@ -75,7 +75,7 @@ int main (int argc, char** argv)
     typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
     typedef BCHandler                                          bc_Type;
     typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
-    typedef StructuralOperator< RegionMesh<LinearTetra> >     physicalSolver_Type;
+    typedef EMStructuralOperator< RegionMesh<LinearTetra> >     physicalSolver_Type;
     typedef BCInterface3D< bc_Type, physicalSolver_Type >              bcInterface_Type;
     typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
 
@@ -258,7 +258,7 @@ int main (int argc, char** argv)
     }
 
     //! 1. Constructor of the structuralSolver
-    StructuralOperator< RegionMesh<LinearTetra> > solid;
+    EMStructuralOperator< RegionMesh<LinearTetra> > solid;
     solid.setup (dataStructure,
                  dFESpace,
                  dETFESpace,

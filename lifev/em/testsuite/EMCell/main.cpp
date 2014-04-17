@@ -3,8 +3,9 @@
 #include <lifev/electrophysiology/solver/IonicModels/IonicGoldbeter.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
-#include <lifev/structure/solver/StructuralOperator.hpp>
-#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
+#include <lifev/em/solver/EMStructuralOperator.hpp>
+#include <lifev/em/solver/EMNeoHookeanActivatedMaterial.hpp>
+
 #include <lifev/em/solver/EMETAFunctors.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
@@ -137,7 +138,7 @@ int main (int argc, char** argv)
 
     meshPtr_Type mesh ( new mesh_Type ( comm ) );
     meshPtr_Type fullMesh ( new mesh_Type ( comm ) );
-    MeshUtility::fillWithFullMesh (mesh, fullMesh, meshName, meshPath);
+    MeshUtility::loadMesh (mesh, fullMesh, meshName, meshPath);
     if ( comm->MyPID() == 0 )
     {
         std::cout << " Done!" << endl;
@@ -276,7 +277,7 @@ int main (int argc, char** argv)
         std::cout << "\nsetup structural operator" << std::endl;
     }
     //! 1. Constructor of the structuralSolver
-    StructuralOperator< RegionMesh<LinearTetra> > solid;
+    EMStructuralOperator< RegionMesh<LinearTetra> > solid;
     solid.setup (dataStructure,
                  dFESpace,
                  dETFESpace,
@@ -308,7 +309,7 @@ int main (int argc, char** argv)
 
     monodomain -> setFiberPtr ( fibers );
     monodomain -> exportFiberDirection();
-    solid.material() -> setFiberVector ( *fibers );
+    solid.activeMaterial() -> setFiberVector ( *fibers );
 
     //********************************************//
     // Global Electrophys matrix: mass + stiffness//
@@ -332,7 +333,7 @@ int main (int argc, char** argv)
     {
         std::cout << "\nset gammaf and fibers" << std::endl;
     }
-    solid.material() -> setGammaf ( * ( monodomain -> globalSolution().at (0) ) );
+    solid.activeMaterial() -> setGammaf ( * ( monodomain -> globalSolution().at (0) ) );
 
 
     if ( comm->MyPID() == 0 )
@@ -489,7 +490,7 @@ int main (int argc, char** argv)
         linearSolver.setRightHandSide (rhsActivation);
         linearSolver.solve (gammaf);
 
-        solid.material() -> setGammaf ( *gammaf );
+        solid.activeMaterial() -> setGammaf ( *gammaf );
         solid.iterate ( solidBC -> handler() );
 
         *solidDisp = solid.displacement();

@@ -56,7 +56,7 @@ public:
     //!@name Type definitions
     //@{
     typedef StructuralConstitutiveLawData          data_Type;
-
+    typedef StructuralConstitutiveLaw<MeshType>    super;
     typedef MatrixEpetra<Real>            matrix_Type;
     typedef boost::shared_ptr<matrix_Type>         matrixPtr_Type;
     typedef VectorEpetra           vector_Type;
@@ -243,7 +243,7 @@ public:
     {
         /*return (new vector_Type( M_dispFESpace -> map() ) ); */
         vectorPtr_Type k;
-        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        k.reset ( new vector_Type ( this -> M_dispFESpace -> map() ) );
         return k;
     }
 
@@ -258,32 +258,32 @@ public:
     inline virtual vectorPtr_Type gammaf()
     {
         vectorPtr_Type k;
-        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        k.reset ( new vector_Type ( this -> M_dispFESpace -> map() ) );
         return k;
     }
     inline virtual vectorPtr_Type gammas()
     {
         vectorPtr_Type k;
-        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        k.reset ( new vector_Type ( this -> M_dispFESpace -> map() ) );
         return k;
     }
     inline virtual vectorPtr_Type gamman()
     {
         vectorPtr_Type k;
-        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        k.reset ( new vector_Type ( this -> M_dispFESpace -> map() ) );
         return k;
     }
 
     inline virtual vectorPtr_Type fiberVectorPtr()
     {
         vectorPtr_Type k;
-        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        k.reset ( new vector_Type ( this -> M_dispFESpace -> map() ) );
         return k;
     }
     inline virtual vectorPtr_Type sheetVectorPtr()
     {
         vectorPtr_Type k;
-        k.reset ( new vector_Type ( M_dispFESpace -> map() ) );
+        k.reset ( new vector_Type ( this -> M_dispFESpace -> map() ) );
         return k;
     }
 
@@ -294,7 +294,7 @@ public:
 
     inline  virtual scalarETFESpacePtr_Type activationSpace()
     {
-        M_displayer->leaderPrint ("\nERROR: them chosen material law does not contain an activation space!!!! You fool!!!\n\n");
+        this -> M_displayer->leaderPrint ("\nERROR: them chosen material law does not contain an activation space!!!! You fool!!!\n\n");
         scalarETFESpacePtr_Type k;
         return k;
     }
@@ -353,15 +353,8 @@ protected:
 //=====================================
 
 template <typename MeshType>
-EMActiveStructuralConstitutiveLaw<MeshType>::StructuralConstitutiveLaw( ) :
-    M_dispFESpace                ( ),
-    M_dispETFESpace              ( ),
-    M_localMap                   ( ),
-    M_jacobian                   ( ),
-    M_offset                     ( 0 ),
-    M_vectorsParameters          ( )
+EMActiveStructuralConstitutiveLaw<MeshType>::EMActiveStructuralConstitutiveLaw( ) : super()
 {
-    //    std::cout << "I am in the constructor of ActiveStructuralConstitutiveLaw" << std::endl;
 }
 
 }

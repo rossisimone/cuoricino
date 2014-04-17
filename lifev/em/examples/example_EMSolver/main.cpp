@@ -428,7 +428,7 @@ int main (int argc, char** argv)
 
     typedef BCHandler bc_Type;
     typedef boost::shared_ptr<bc_Type> bcPtr_Type;
-    typedef StructuralOperator<RegionMesh<LinearTetra> > physicalSolver_Type;
+    typedef EMStructuralOperator<RegionMesh<LinearTetra> > physicalSolver_Type;
     typedef BCInterface3D<bc_Type, physicalSolver_Type> bcInterface_Type;
     typedef boost::shared_ptr<bcInterface_Type> bcInterfacePtr_Type;
     typedef EMSolver<mesh_Type, ionicModel_Type> emSolver_Type;

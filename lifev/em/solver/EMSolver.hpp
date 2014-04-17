@@ -59,8 +59,8 @@
 
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
 
-#include <lifev/structure/solver/StructuralOperator.hpp>
-#include <lifev/em/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
+#include <lifev/em/solver/EMStructuralOperator.hpp>
+#include <lifev/em/solver/EMGeneralizedActiveHolzapfelOgdenMaterial.hpp>
 #include <lifev/em/solver/EMActiveStrainSolver.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
 #include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
@@ -157,7 +157,7 @@ public:
     typedef StructuralConstitutiveLawData           structureData_Type;
     typedef boost::shared_ptr<structureData_Type>           structureDataPtr_Type;
 
-    typedef StructuralOperator< RegionMesh<LinearTetra> > structuralOperator_Type;
+    typedef EMStructuralOperator< RegionMesh<LinearTetra> > structuralOperator_Type;
     typedef boost::shared_ptr< structuralOperator_Type > structuralOperatorPtr_Type;
 
 
@@ -439,12 +439,12 @@ public:
 
     inline void createLVPositionVector (Real nx, Real ny, Real nz)
     {
-        M_lvPositionVectorPtr.reset (new vector_Type ( M_solidPtr -> material() -> activationSpace() -> map() ) );
+        M_lvPositionVectorPtr.reset (new vector_Type ( M_solidPtr -> activeMaterial() -> activationSpace() -> map() ) );
         createPositionVector (nx, ny, nz, M_lvFlags, *M_lvPositionVectorPtr);
     }
     inline void createRVPositionVector (Real nx, Real ny, Real nz)
     {
-        M_rvPositionVectorPtr.reset (new vector_Type ( M_solidPtr -> material() -> activationSpace() -> map() ) );
+        M_rvPositionVectorPtr.reset (new vector_Type ( M_solidPtr -> activeMaterial() -> activationSpace() -> map() ) );
         createPositionVector (nx, ny, nz, M_rvFlags, *M_rvPositionVectorPtr );
     }
 
@@ -457,19 +457,19 @@ public:
 
     inline void setSolidFibers (vector_Type& fibers)
     {
-        M_solidPtr -> material() -> setFiberVector (fibers);
+        M_solidPtr -> activeMaterial() -> setFiberVector (fibers);
     }
     inline void setSolidFibers (vectorPtr_Type fibers)
     {
-        M_solidPtr -> material() -> setFiberVector (*fibers);
+        M_solidPtr -> activeMaterial() -> setFiberVector (*fibers);
     }
     inline void setSolidSheets (vector_Type& sheets)
     {
-        M_solidPtr -> material() -> setSheetVector (sheets);
+        M_solidPtr -> activeMaterial() -> setSheetVector (sheets);
     }
     inline void setSolidSheets (vectorPtr_Type sheets)
     {
-        M_solidPtr -> material() -> setSheetVector (*sheets);
+        M_solidPtr -> activeMaterial() -> setSheetVector (*sheets);
     }
     //monodomain -> setFiberPtr( electroFibers )
     inline void setMonodomainFibers (vectorPtr_Type fibers)
@@ -717,7 +717,7 @@ EMSolver<Mesh, IonicModel>::EMSolver (   Teuchos::ParameterList& parameterList,
     if ( M_usingDifferentMeshes  )
     {
         localSolidMesh.reset (new mesh_Type ( comm ) );
-        MeshUtility::fillWithFullMesh (localSolidMesh, M_fullSolidMesh,  solidMeshName,  solidMeshPath );
+        MeshUtility::loadMesh (localSolidMesh, M_fullSolidMesh,  solidMeshName,  solidMeshPath );
     }
     else
     {
@@ -860,7 +860,7 @@ EMSolver<Mesh, IonicModel>::EMSolver (   structuralOperatorPtr_Type solidPtr, Te
     if ( M_usingDifferentMeshes  )
     {
         localSolidMesh.reset (new mesh_Type ( M_comm ) );
-        MeshUtility::fillWithFullMesh (localSolidMesh, M_fullSolidMesh,  solidMeshName,  solidMeshPath );
+        MeshUtility::loadMesh (localSolidMesh, M_fullSolidMesh,  solidMeshName,  solidMeshPath );
     }
     else
     {
@@ -930,7 +930,7 @@ void EMSolver<Mesh, IonicModel>::setup (Teuchos::ParameterList& parameterList,
     if (M_usingDifferentMeshes)
     {
         M_monodomainDisplacementPtr.reset ( new vector_Type ( M_monodomainPtr -> displacementETFESpacePtr() -> map() ) );
-        M_activationSolidPtr.reset ( new vector_Type ( M_solidPtr -> material() -> activationSpace() -> map() ) );
+        M_activationSolidPtr.reset ( new vector_Type ( M_solidPtr -> activeMaterial() -> activationSpace() -> map() ) );
         GetPot dataFile (data_file_name);
         setupInterpolants (parameterListName, parameterList, dataFile);
     }
@@ -944,7 +944,7 @@ void EMSolver<Mesh, IonicModel>::setup (Teuchos::ParameterList& parameterList,
     {
         M_monodomainPtr -> setDisplacementPtr ( M_monodomainDisplacementPtr );
     }
-    M_solidPtr -> material() -> setGammaf (*M_activationSolidPtr);
+    M_solidPtr -> activeMaterial() -> setGammaf (*M_activationSolidPtr);
     setupMonodomainMatrix (parameterList);
 
     createReferencePositionVector();
@@ -1035,11 +1035,11 @@ void EMSolver<Mesh, IonicModel>::updateSolid()
         //      }
     }
 
-    M_solidPtr -> material() -> setGammaf ( *M_activationSolidPtr );
+    M_solidPtr -> activeMaterial() -> setGammaf ( *M_activationSolidPtr );
 
-    M_activationPtr -> computeGammasAndGamman (M_solidPtr -> material() -> gammaf(),
-                                               M_solidPtr -> material() -> gammas(),
-                                               M_solidPtr -> material() -> gamman() );
+    M_activationPtr -> computeGammasAndGamman (M_solidPtr -> activeMaterial() -> gammaf(),
+                                               M_solidPtr -> activeMaterial() -> gammas(),
+                                               M_solidPtr -> activeMaterial() -> gamman() );
 }
 
 
@@ -1471,7 +1471,7 @@ void EMSolver<Mesh, IonicModel>::exportSolidFibersDirection (std::string dir )
     exp.addVariable (ExporterData<mesh_Type>::VectorField,
                      "solid_fibers",
                      M_solidPtr -> dispFESpacePtr(),
-                     M_solidPtr -> material() -> fiberVectorPtr(), UInt (0) );
+                     M_solidPtr -> activeMaterial() -> fiberVectorPtr(), UInt (0) );
     exp.postProcess (0);
     exp.closeFile();
 }
@@ -1494,7 +1494,7 @@ void EMSolver<Mesh, IonicModel>::exportSolidSheetsDirection (std::string dir )
     exp.addVariable (ExporterData<mesh_Type>::VectorField,
                      "solid_sheets",
                      M_solidPtr -> dispFESpacePtr(),
-                     M_solidPtr -> material() -> sheetVectorPtr(), UInt (0) );
+                     M_solidPtr -> activeMaterial() -> sheetVectorPtr(), UInt (0) );
     exp.postProcess (0);
     exp.closeFile();
 }
@@ -1528,7 +1528,7 @@ void EMSolver<Mesh, IonicModel>::importSolidFibers (Teuchos::ParameterList& para
 {
     std::string solidFibersFile = parameterList.get ("solid_fibers_file", "");
     std::string solidFibersField = parameterList.get ("solid_fibers_field", "");
-    HeartUtility::importVectorField ( M_solidPtr -> material() -> fiberVectorPtr(),
+    HeartUtility::importVectorField ( M_solidPtr -> activeMaterial() -> fiberVectorPtr(),
                                       solidFibersFile,
                                       solidFibersField,
                                       M_solidPtr -> mesh() );
@@ -1540,7 +1540,7 @@ void EMSolver<Mesh, IonicModel>::importSolidSheets (Teuchos::ParameterList& para
     std::string solidSheetsField = parameterList.get ("solid_sheets_field", "");
     if ( solidSheetsFile != "" )
     {
-        HeartUtility::importVectorField ( M_solidPtr -> material() -> sheetVectorPtr(),
+        HeartUtility::importVectorField ( M_solidPtr -> activeMaterial() -> sheetVectorPtr(),
                                           solidSheetsFile,
                                           solidSheetsField,
                                           M_solidPtr -> mesh() );
@@ -1678,7 +1678,7 @@ template<typename Mesh, typename IonicModel>
 void EMSolver<Mesh, IonicModel>::setupProjectionRhs()
 {
 
-    vectorPtr_Type tmpRhs ( new vector_Type ( M_solidPtr -> material() -> activationSpace() -> map(), Repeated ) );
+    vectorPtr_Type tmpRhs ( new vector_Type ( M_solidPtr -> activeMaterial() -> activationSpace() -> map(), Repeated ) );
 
     if (M_activationPtr -> gammafPtr() )
     {
@@ -1687,7 +1687,7 @@ void EMSolver<Mesh, IonicModel>::setupProjectionRhs()
 
             integrate ( elements ( M_solidPtr -> mesh() ),
                         M_activationPtr -> FESpacePtr() -> qr(),
-                        M_solidPtr -> material() -> activationSpace(),
+                        M_solidPtr -> activeMaterial() -> activationSpace(),
                         value (M_activationPtr -> ETFESpacePtr(), M_activationPtr -> gammaf() ) * phi_i  ) >> tmpRhs;
 
         }
@@ -1843,7 +1843,7 @@ void EMSolver<Mesh, IonicModel>::computeLVVolume (Real nx, Real ny, Real nz)
         BOOST_AUTO_TPL (I, value (Id) );
         BOOST_AUTO_TPL (vE1, value (E1) );
         BOOST_AUTO_TPL (Grad_u, grad (M_solidPtr -> dispETFESpacePtr(), M_solidPtr -> displacement(), 0) );
-        BOOST_AUTO_TPL (x, value (M_solidPtr -> material() -> activationSpace(), *M_lvPositionVectorPtr) );
+        BOOST_AUTO_TPL (x, value (M_solidPtr -> activeMaterial() -> activationSpace(), *M_lvPositionVectorPtr) );
         BOOST_AUTO_TPL (F, (Grad_u + I) );
         BOOST_AUTO_TPL (FmT, minusT (F) );
         BOOST_AUTO_TPL (J, det (F) );
@@ -1854,7 +1854,7 @@ void EMSolver<Mesh, IonicModel>::computeLVVolume (Real nx, Real ny, Real nz)
         *intergral *= 0.0;
         for (int i (0); i < M_lvFlags.size(); i++)
         {
-            integrate (boundary (M_solidPtr->mesh(), M_lvFlags[i]), myBDQR, M_solidPtr -> material() -> activationSpace(),
+            integrate (boundary (M_solidPtr->mesh(), M_lvFlags[i]), myBDQR, M_solidPtr -> activeMaterial() -> activationSpace(),
                        value (-1.0) * J * dot (vE1, FmT * Nface) * phi_i) >> intergral;
         }
         intergral->globalAssemble();
@@ -1943,7 +1943,7 @@ void EMSolver<Mesh, IonicModel>::computeRVVolume (Real nx, Real ny, Real nz)
         BOOST_AUTO_TPL (I, value (Id) );
         BOOST_AUTO_TPL (vE1, value (E1) );
         BOOST_AUTO_TPL (Grad_u, grad (M_solidPtr -> dispETFESpacePtr(), M_solidPtr -> displacement(), 0) );
-        BOOST_AUTO_TPL (x, value (M_solidPtr -> material() -> activationSpace(), *M_rvPositionVectorPtr) );
+        BOOST_AUTO_TPL (x, value (M_solidPtr -> activeMaterial() -> activationSpace(), *M_rvPositionVectorPtr) );
         BOOST_AUTO_TPL (F, (Grad_u + I) );
         BOOST_AUTO_TPL (FmT, minusT (F) );
         BOOST_AUTO_TPL (J, det (F) );
@@ -1954,7 +1954,7 @@ void EMSolver<Mesh, IonicModel>::computeRVVolume (Real nx, Real ny, Real nz)
         *intergral *= 0.0;
         for (int i (0); i < M_rvFlags.size(); i++)
         {
-            integrate (boundary (M_solidPtr->mesh(), M_rvFlags[i]), myBDQR, M_solidPtr -> material() -> activationSpace(),
+            integrate (boundary (M_solidPtr->mesh(), M_rvFlags[i]), myBDQR, M_solidPtr -> activeMaterial() -> activationSpace(),
                        value (-1.0) * J * dot (vE1, FmT * Nface) * phi_i) >> intergral;
         }
         intergral->globalAssemble();

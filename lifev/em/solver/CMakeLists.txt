@@ -3,10 +3,10 @@ SET(solver_HEADERS
   solver/EMEvaluate.hpp
   solver/EMSolver.hpp
   solver/EMETAFunctors.hpp
-  solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp
-  solver/ActiveStructuralConstitutiveLaw.hpp
-  solver/NeoHookeanActivatedMaterial.hpp
-  solver/HolzapfelOgdenMaterial.hpp
+  solver/EMGeneralizedActiveHolzapfelOgdenMaterial.hpp
+  solver/EMActiveStructuralConstitutiveLaw.hpp
+  solver/EMNeoHookeanActivatedMaterial.hpp
+  solver/EMHolzapfelOgdenMaterial.hpp
 CACHE INTERNAL "")
 
 SET(solver_SOURCES

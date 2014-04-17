@@ -6,7 +6,7 @@
 
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
-#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
+#include <lifev/em/solver/EMNeoHookeanActivatedMaterial.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5

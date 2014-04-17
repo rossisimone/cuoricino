@@ -1,39 +1,9 @@
 #include <lifev/core/LifeV.hpp>
+
+#include <sys/stat.h>
 #include <lifev/electrophysiology/solver/ElectroETAMonodomainSolver.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/IonicMinimalModel.hpp>
-
-#include <lifev/structure/solver/StructuralConstitutiveLawData.hpp>
-
-#include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
-#include <lifev/structure/solver/StructuralOperator.hpp>
-#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
-
-#include <lifev/core/filter/ExporterEnsight.hpp>
-#ifdef HAVE_HDF5
-#include <lifev/core/filter/ExporterHDF5.hpp>
-#endif
-#include <lifev/core/filter/ExporterEmpty.hpp>
-
-#include <lifev/eta/fem/ETFESpace.hpp>
-#include <lifev/eta/expression/Integrate.hpp>
-
-#include <lifev/core/interpolation/RBFhtp.hpp>
-#include <lifev/core/interpolation/RBFhtpVectorial.hpp>
-#include <lifev/core/mesh/MeshLoadingUtility.hpp>
-#include <lifev/core/mesh/MeshTransformer.hpp>
-#include <lifev/core/interpolation/RBFlocallyRescaledVectorial.hpp>
-#include <lifev/core/interpolation/RBFlocallyRescaledScalar.hpp>
-#include <lifev/core/interpolation/RBFrescaledVectorial.hpp>
-#include <lifev/core/interpolation/RBFrescaledScalar.hpp>
-//#include <lifev/core/interpolation/RBFscalar.hpp>
-#include <lifev/core/interpolation/RBFvectorial.hpp>
-
-#include <lifev/bc_interface/3D/bc/BCInterface3D.hpp>
-#include <sys/stat.h>
-#include <fstream>
-
 #include <lifev/em/solver/EMSolver.hpp>
-#include <lifev/em/solver/EMActiveStrainSolver.hpp>
 
 using namespace LifeV;
 
@@ -206,8 +176,8 @@ int main(int argc, char** argv) {
     sheets[0]=0.0;
     sheets[1]=1.0;
     sheets[2]=0.0;
-    emSolverPtr -> solidPtr() -> material() -> setupFiberVector(fibers[0],fibers[1],fibers[2]);
-    emSolverPtr -> solidPtr() -> material() -> setupSheetVector(sheets[0],sheets[1],sheets[2]);
+    emSolverPtr -> solidPtr() -> activeMaterial() -> setupFiberVector(fibers[0],fibers[1],fibers[2]);
+    emSolverPtr -> solidPtr() -> activeMaterial() -> setupSheetVector(sheets[0],sheets[1],sheets[2]);
 	emSolverPtr -> exportFibersAndSheetsFields(problemFolder);
     if ( comm->MyPID() == 0 )
     {

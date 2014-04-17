@@ -6,8 +6,8 @@
 
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
-#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
-#include <lifev/em/solver/GeneralizedActiveHolzapfelOgdenMaterial.hpp>
+#include <lifev/em/solver/EMNeoHookeanActivatedMaterial.hpp>
+#include <lifev/em/solver/EMGeneralizedActiveHolzapfelOgdenMaterial.hpp>
 #include <lifev/em/solver/EMETAFunctors.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
@@ -184,7 +184,7 @@ int main (int argc, char** argv)
 
     typedef BCHandler                                          bc_Type;
     typedef boost::shared_ptr< bc_Type >                       bcPtr_Type;
-    typedef  StructuralOperator< RegionMesh<LinearTetra> >      physicalSolver_Type;
+    typedef StructuralOperator< RegionMesh<LinearTetra> >      physicalSolver_Type;
     typedef BCInterface3D< bc_Type, physicalSolver_Type >              bcInterface_Type;
     typedef boost::shared_ptr< bcInterface_Type >              bcInterfacePtr_Type;
 
@@ -451,7 +451,7 @@ int main (int argc, char** argv)
     {
         fullSolidMesh.reset (new mesh_Type ( comm ) );
         localSolidMesh.reset (new mesh_Type ( comm ) );
-        MeshUtility::fillWithFullMesh (localSolidMesh, fullSolidMesh,  solidMeshName,  parameterList.get ("solid_mesh_path", "") );
+        MeshUtility::loadMesh (localSolidMesh, fullSolidMesh,  solidMeshName,  parameterList.get ("solid_mesh_path", "") );
     }
     else
     {
@@ -486,7 +486,7 @@ int main (int argc, char** argv)
         }
     }
     //! 1. Constructor of the structuralSolver
-    StructuralOperator< RegionMesh<LinearTetra> > solid;
+    EMStructuralOperator< RegionMesh<LinearTetra> > solid;
     solid.setup (dataStructure,
                  dFESpace,
                  dETFESpace,

@@ -6,7 +6,9 @@
 
 #include <lifev/structure/solver/StructuralConstitutiveLaw.hpp>
 #include <lifev/structure/solver/StructuralOperator.hpp>
-#include <lifev/structure/solver/NeoHookeanActivatedMaterial.hpp>
+#include <lifev/em/solver/EMStructuralOperator.hpp>
+
+#include <lifev/em/solver/EMNeoHookeanActivatedMaterial.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
@@ -261,8 +263,8 @@ int main (int argc, char** argv)
     sheets[0] = 0.0;
     sheets[1] = 1.0;
     sheets[2] = 0.0;
-    emSolverPtr -> solidPtr() -> material() -> setupFiberVector (fibers[0], fibers[1], fibers[2]);
-    emSolverPtr -> solidPtr() -> material() -> setupSheetVector (sheets[0], sheets[1], sheets[2]);
+    emSolverPtr -> solidPtr() -> activeMaterial() -> setupFiberVector (fibers[0], fibers[1], fibers[2]);
+    emSolverPtr -> solidPtr() -> activeMaterial() -> setupSheetVector (sheets[0], sheets[1], sheets[2]);
     emSolverPtr -> exportFibersAndSheetsFields (problemFolder);
     //    if ( comm->MyPID() == 0 )
     //    {
