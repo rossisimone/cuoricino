@@ -19,5 +19,5 @@ TRIBITS_COPY_FILES_TO_BINARY_DIR(data_pacing_data
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(lidmesh_test_pacing
   SOURCE_FILES lid16.mesh lid50.mesh
-  SOURCE_DIR ${CMAKE_SOURCE_DIR}/lifev/electrophysiology/data/mesh/inria/
+  SOURCE_DIR ${CMAKE_SOURCE_DIR}/lifev/electrophysiology/data/mesh/
 )
