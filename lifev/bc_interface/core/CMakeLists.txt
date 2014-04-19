@@ -11,6 +11,9 @@ ADD_SUBDIRECTORY(function)
 SET(HEADERS ${HEADERS} ${function_HEADERS})
 SET(SOURCES ${SOURCES} ${function_SOURCES})
 
+ADD_SUBDIRECTORY(solver)
+SET(HEADERS ${HEADERS} ${solver_HEADERS})
+
 TRIBITS_EXCLUDE_AUTOTOOLS_FILES()
 # This is the list of files excluded from the tarball
 TRIBITS_EXCLUDE_FILES()
