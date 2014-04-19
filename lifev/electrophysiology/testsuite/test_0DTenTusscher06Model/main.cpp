@@ -28,6 +28,14 @@
     @file
     @brief 0D test with Ten Tusscher et al. 2006 model
 
+    Note that the model is not solved correctly using Rush-Larsen
+    with forward Euler. In the original code of Ten Tusscher
+    the solution of CaSS and CaSR is computed using a specific
+    algorithm (which I do not know).
+    Therefore I consider all the variables except for the
+    potential as gating variable and use the specific
+    method in their original code to make it work.
+
     @date 08 - 2013
     @author Simone Rossi <simone.rossi@epfl.ch>
 
@@ -64,7 +72,7 @@
 
 using namespace LifeV;
 
-#define SolutionTestNorm  -2812.5829642408311884 // on gcc  use -2.848213312500001e+03
+#define SolutionTestNorm  -2476.4745158656560307
 
 Int main ( Int argc, char** argv )
 {
@@ -164,7 +172,7 @@ Int main ( Int argc, char** argv )
     int iter (0);
 
 
-
+    std::vector<Real> v(states);
     for ( Real t = 0; t < TF; )
     {
 
@@ -174,33 +182,29 @@ Int main ( Int argc, char** argv )
         //********************************************//
         if ( t > 50 && t < 52 )
         {
-            Iapp = 50.;
+            Iapp = 20.;
         }
         else
         {
             Iapp = 0;
         }
-        std::cout << "\r " << t << " ms.       " << std::flush;
+        std::cout << "\r " << t << " ms.       " <<  std::flush;
 
 
         iter++;
         //********************************************//
         // Compute the rhs using the model equations  //
         //********************************************//
-        ionicModel.computeRhs ( states, rhs);
-        rhs[0] += Iapp;
+        ionicModel.setAppliedCurrent(Iapp);
+        rhs[0] = ionicModel.computeLocalPotentialRhs(states);
+        ionicModel.addAppliedCurrent(rhs);
 
-
-
-        states[0] = states[0]  + dt * rhs[0];
         ionicModel.computeGatingVariablesWithRushLarsen ( states, dt);
-
-        int offset = 1 + ionicModel.numberOfGatingVariables();
-        for ( int index (0); index < ( ionicModel.Size() - offset ); index++)
-        {
-            states[index + offset] += dt * rhs[index + offset];
-
-        }
+        states[0] = states[0]  + dt * rhs[0]; //This should be divided by the membrane capacitance  ionicModel.membraneCapacitance();
+        //In the code of Ten Tusscher there is no such a division
+        // on the other hand if we don't divide by the membrane capacitance
+        // in the three dimensional simulations
+        // we get a faster wave (as fast as the LuoRudy ~2 the one in the benchmark!)
 
 
         //********************************************//
