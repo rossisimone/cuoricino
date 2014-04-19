@@ -3,9 +3,12 @@ INCLUDE(TribitsAddExecutableAndTest)
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR})
 
-TRIBITS_ADD_EXECUTABLE(
+TRIBITS_ADD_EXECUTABLE_AND_TEST(
   testSingleSourceStimulus
   SOURCES main.cpp
+  ARGS -c
+  NUM_MPI_PROCS 2
+  COMM serial mpi
 )
 
 TRIBITS_COPY_FILES_TO_BINARY_DIR(data_testSingleSourceStimulus_data
