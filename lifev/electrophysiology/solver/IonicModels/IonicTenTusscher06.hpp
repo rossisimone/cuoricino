@@ -30,6 +30,15 @@
   @date 01-2013
   @author Simone Rossi <simone.rossi@epfl.ch>
 
+    Note that the model is not solved correctly using Rush-Larsen
+    with forward Euler. In the original code of Ten Tusscher
+    the solution of CaSS and CaSR is computed using a specific
+    algorithm (which I do not know).
+    Therefore I consider all the variables except for the
+    potential as gating variable and use the specific
+    method in their original code to make it work.
+	Therefore the number of gating variable is augmented.
+
   @contributors
   @mantainer Simone Rossi <simone.rossi@epfl.ch>
   @last update 01-2013
@@ -731,7 +740,7 @@ public:
     {
         return  HT * ( - Ixfer (CaSS, Cai) * ( Vc / Vss )
                        + Irel (CaSR, CaSS, RR) * ( Vsr / Vss )
-                       + ( - ICaL (V, d, f, f2, fcass, CaSS) * inversevssF2 * M_membraneCapacitance ) );
+                       + ( - ICaL (V, d, f, f2, fcass, CaSS) * inversevssF2 * M_cellularCapacitance ) );
     };
     inline Real bcss (Real Cai, Real CaSR, Real CaSS, Real RR, Real V, Real d, Real f, Real f2, Real fcass, Real HT)
     {
@@ -755,7 +764,7 @@ public:
     inline Real dCai (Real V, Real Nai, Real Cai, Real CaSR, Real CaSS, Real HT = 1.0)
     {
         return HT * ( ( - ( IbCa (V, Cai) + IpCa (Cai) - 2. * INaCa (V, Nai, Cai) )
-                        * inverseVcF2 * M_membraneCapacitance )
+                        * inverseVcF2 * M_cellularCapacitance )
                       - ( Iup (Cai) - Ileak (CaSR, Cai) ) * ( Vsr / Vc )
                       + Ixfer (CaSS, Cai) );
     }
@@ -780,7 +789,7 @@ public:
         return - ( INa (V, m, h, j, Nai)
                    + IbNa (V, Nai)
                    + 3. * INaK (V, Nai)
-                   + 3. * INaCa (V, Nai, Cai) ) * inverseVcF * M_membraneCapacitance;
+                   + 3. * INaCa (V, Nai, Cai) ) * inverseVcF * M_cellularCapacitance;
     }
     inline Real solveNai (Real V, Real m, Real h, Real j, Real Nai, Real Cai, Real HT)
     {
@@ -795,7 +804,7 @@ public:
                   + IKr (V, xr1, xr2, Ki)
                   + IKs (V, xs, Ki, Nai)
                   - 2. * INaK (V, Nai)
-                  + IpK (V, Ki) ) * inverseVcF * M_membraneCapacitance;
+                  + IpK (V, Ki) ) * inverseVcF * M_cellularCapacitance;
     }
     inline Real solveKi (Real V, Real r, Real s, Real xr1, Real xr2, Real xs, Real Nai, Real Ki, Real HT)
     {
@@ -1148,7 +1157,7 @@ public:
                         Real r, Real s, Real xr1, Real xr2, Real xs, Real Nai, Real Ki,
                         Real Cai, Real CaSS , Real HT)
     {
-        return V + HT * ( M_appliedCurrent + (- Itot (V, m, h, j, d, f, f2, fcass, r, s, xr1, xr2, xs, Nai, Ki, Cai, CaSS ) ) );
+        return V + HT * ( M_appliedCurrent / M_membraneCapacitance + (- Itot (V, m, h, j, d, f, f2, fcass, r, s, xr1, xr2, xs, Nai, Ki, Cai, CaSS ) ) );
     }
 
     //Compute the rhs on a single node or for the 0D case
@@ -1167,6 +1176,11 @@ public:
 
     //! Display information about the model
     void showMe();
+
+    void showCurrents(std::vector<Real>& v);
+    void showCurrents (Real V, Real m, Real h, Real j, Real d, Real f, Real f2, Real fcass,
+                      Real r, Real s, Real xr1, Real xr2, Real xs, Real Nai, Real Ki,
+                      Real Cai, Real CaSS);
 
     void solveOneStep (std::vector<Real>& v, Real dt);
     //! Solves the ionic model
@@ -1252,6 +1266,8 @@ private:
     Real inversevssF2;
 
     WallFlag flag;
+
+    Real M_cellularCapacitance;
     //@}
 
 }; // class IonicTenTusscher06

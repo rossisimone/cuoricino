@@ -46,9 +46,12 @@ namespace LifeV
 //! Constructors
 // ===================================================
 IonicTenTusscher06::IonicTenTusscher06()  :
-    super       (  19 , 12  ),
+    super       (  19 , 18  ),
     flag        ( MCell )
 {
+	//Membrane capacitance
+	M_membraneCapacitance = 2.0;// In the paper they give it as 2 but in their code I cannot find it
+
     //External concentrations
     Ko = 5.4;
     Cao = 2.0;
@@ -90,7 +93,7 @@ IonicTenTusscher06::IonicTenTusscher06()  :
     RTONF = (R * T) / F;
 
     //Cellular capacitance
-    M_membraneCapacitance = 0.185;
+    M_cellularCapacitance = 0.185;
 
     //Parameters for currents
     //Parameters for IKr
@@ -269,7 +272,7 @@ IonicTenTusscher06::IonicTenTusscher06 ( Teuchos::ParameterList& parameterList  
     pKNa = parameterList.get ("pKNa", 0.0 );
 
 
-    M_membraneCapacitance = parameterList.get ("Cm", 0.0 );
+    M_cellularCapacitance = parameterList.get ("Cm", 0.0 );
     F = parameterList.get ("F", 0.0 );
     R = parameterList.get ("R", 0.0 );
     T = parameterList.get ("T", 0.0 );
@@ -562,41 +565,9 @@ void IonicTenTusscher06::computeGatingRhs ( const   std::vector<Real>&  v,
     rhs[17] = dRR (CaSR, CaSS, RR);
 }
 
-void IonicTenTusscher06::computeNonGatingRhs ( const   std::vector<Real>&  v,
-                                               std::vector<Real>& rhs )
+void IonicTenTusscher06::computeNonGatingRhs ( const   std::vector<Real>&  /*v*/,
+                                               std::vector<Real>& /*rhs*/ )
 {
-    Real V = v[0];
-    Real m = v[1];
-    Real h = v[2];
-    Real j = v[3];
-    Real d = v[4];
-    Real f = v[5];
-    Real f2 = v[6];
-    Real fcass = v[7];
-    Real r = v[8];
-    Real s = v[9];
-    Real xr1 = v[10];
-    Real xr2 = v[11];
-    Real xs = v[12];
-    Real Nai = v[13];
-    Real Ki = v[14];
-    Real Cai = v[15];
-    Real CaSS = v[16];
-    Real CaSR = v[17];
-    Real RR = v[18];
-
-    //Nai
-    rhs[0] = dNai (V, m, h, j, Nai, Cai);
-    //Ki
-    rhs[1] = dKi (V, r, s, xr1, xr2, xs, Ki, Nai);
-    //Cai
-    rhs[2] = dCai (V, Nai, Cai, CaSR, CaSS);
-    //Cass
-    rhs[3] = dCaSS (Cai, CaSR, CaSS, RR, V, d, f, f2, fcass);
-    //Casr
-    rhs[4] =  dCaSR (Cai, CaSR, CaSS, RR);
-    //Rprime
-    rhs[5] = dRR (CaSR, CaSS, RR);
 }
 
 void IonicTenTusscher06::computeRhs ( const   std::vector<Real>&  v,
@@ -707,7 +678,12 @@ void IonicTenTusscher06::computeGatingVariablesWithRushLarsen ( std::vector<Real
     Real xr1 = v[10];
     Real xr2 = v[11];
     Real xs = v[12];
+    Real Nai = v[13];
+    Real Ki = v[14];
+    Real Cai = v[15];
     Real CaSS = v[16];
+    Real CaSR = v[17];
+    Real RR = v[18];
 
     v[1] = M_INF (V) - ( M_INF (V) - m ) * std::exp (- dt / TAU_M (V) );
     v[2] = H_INF (V) - ( H_INF (V) - h ) * std::exp (- dt / TAU_H (V) );
@@ -721,6 +697,12 @@ void IonicTenTusscher06::computeGatingVariablesWithRushLarsen ( std::vector<Real
     v[10] = Xr1_INF (V) - ( Xr1_INF (V) - xr1 ) * std::exp (- dt / TAU_Xr1 (V) );
     v[11] = Xr2_INF (V) - ( Xr2_INF (V) - xr2 ) * std::exp (- dt / TAU_Xr2 (V) );
     v[12] = Xs_INF (V) - ( Xs_INF (V) - xs ) * std::exp (- dt / TAU_Xs (V) );
+    v[13] = solveNai (V, m, h, j, Nai, Cai, dt);
+    v[14] = solveKi (V, r, s, xr1, xr2, xs, Nai, Ki, dt);
+    v[15] =  solveCai (V, Nai, Cai, CaSR, CaSS, dt);
+    v[16] = solveCaSS (Cai, CaSR, CaSS, RR, V, d, f, f2, fcass, dt);
+    v[17] = solveCaSR (Cai, CaSR, CaSS, RR, dt);
+    v[18] = solveRR (CaSR, CaSS, RR, dt);
 
 
 }
@@ -770,6 +752,52 @@ void IonicTenTusscher06::solveOneStep (std::vector<Real>& v, Real dt)
 
 
 }
+
+
+void IonicTenTusscher06::showCurrents(std::vector<Real>& v)
+{
+    Real V = v[0];
+    Real m = v[1];
+    Real h = v[2];
+    Real j = v[3];
+    Real d = v[4];
+    Real f = v[5];
+    Real f2 = v[6];
+    Real fcass = v[7];
+    Real r = v[8];
+    Real s = v[9];
+    Real xr1 = v[10];
+    Real xr2 = v[11];
+    Real xs = v[12];
+    Real Nai = v[13];
+    Real Ki = v[14];
+    Real Cai = v[15];
+    Real CaSS = v[16];
+    Real CaSR = v[17];
+    Real RR = v[18];
+
+	showCurrents( V,  m,  h,  j,  d,  f,  f2,  fcass, r,  s,  xr1,  xr2,  xs,  Nai,  Ki, Cai,  CaSS);
+}
+
+void IonicTenTusscher06::showCurrents(Real V, Real m, Real h, Real j, Real d, Real f, Real f2, Real fcass,
+        Real r, Real s, Real xr1, Real xr2, Real xs, Real Nai, Real Ki,
+        Real Cai, Real CaSS)
+{
+	   std::cout << "\nIKr = "   << IKr (V, xr1, xr2, Ki);
+	   std::cout << "\nIKs = "   << IKs (V, xs, Ki, Nai);
+	   std::cout << "\nIK1 = "   << IK1 (V, Ki);
+	   std::cout << "\nIto = "   << Ito (V, r, s, Ki);
+	   std::cout << "\nINa = "   << INa (V, m, h, j, Nai);
+	   std::cout << "\nIbNa = "  << IbNa (V, Nai);
+	   std::cout << "\nICaL = "  << ICaL (V, d, f, f2, fcass, CaSS);
+	   std::cout << "\nIbCa = "  << IbCa (V, Cai);
+	   std::cout << "\nINaK = "  << INaK (V, Nai);
+	   std::cout << "\nINaCa = " << INaCa (V, Nai, Cai);
+	   std::cout << "\nIpCa = "  << IpCa (Cai);
+	   std::cout << "\nIKpK = "  << IpK (V, Ki);
+	   std::cout << "\n";
+}
+
 
 }
 
