@@ -3,7 +3,6 @@ SET( solver_IonicModels_HEADERS
   solver/IonicModels/IonicFitzHughNagumo.hpp
   solver/IonicModels/IonicLuoRudyI.hpp
   solver/IonicModels/IonicMitchellSchaeffer.hpp
-  solver/IonicModels/IonicJafriRiceWinslow.hpp
   solver/IonicModels/IonicTenTusscher06.hpp
   solver/IonicModels/IonicMinimalModel.hpp
   solver/IonicModels/ElectroIonicModel.hpp
@@ -18,8 +17,7 @@ SET( solver_IonicModels_SOURCES
   solver/IonicModels/IonicFitzHughNagumo.cpp
   solver/IonicModels/IonicLuoRudyI.cpp
   solver/IonicModels/IonicMitchellSchaeffer.cpp
-  solver/IonicModels/IonicJafriRiceWinslow.cpp
-    solver/IonicModels/IonicTenTusscher06.cpp
+  solver/IonicModels/IonicTenTusscher06.cpp
   solver/IonicModels/IonicMinimalModel.cpp
   solver/IonicModels/IonicFox.cpp
   solver/IonicModels/ElectroIonicModel.cpp
