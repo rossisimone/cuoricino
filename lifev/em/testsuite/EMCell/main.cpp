@@ -300,7 +300,7 @@ int main (int argc, char** argv)
         std::cout << "\nread fibers" << std::endl;
     }
 
-    HeartUtility::importFibers (fibers, parameterList.get ("fibers_file", ""), monodomain -> localMeshPtr() );
+    ElectrophysiologyUtility::importFibers (fibers, parameterList.get ("fibers_file", ""), monodomain -> localMeshPtr() );
 
     if ( comm->MyPID() == 0 )
     {

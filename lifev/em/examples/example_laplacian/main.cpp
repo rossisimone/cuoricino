@@ -490,7 +490,7 @@ int main ( int argc, char** argv )
 
     std::string filename = parameterList.get ("filename", "rescalingGammaf");
     std::string fieldname = parameterList.get ("fieldname", "rescalingGammaf");
-    HeartUtility::importScalarField (importedSolution, filename, fieldname, meshPart);
+    ElectrophysiologyUtility::importScalarField (importedSolution, filename, fieldname, meshPart);
 
     ExporterHDF5< RegionMesh <LinearTetra> > exporter2;
     exporter2.setMeshProcId ( meshPart, Comm->MyPID() );

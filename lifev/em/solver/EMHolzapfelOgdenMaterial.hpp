@@ -523,32 +523,32 @@ public:
 
     inline void setupFiberVector ( std::string& name, boost::shared_ptr<mesh_Type> mesh )
     {
-        HeartUtility::importFibers ( M_fiberVector, name, mesh  );
+        ElectrophysiologyUtility::importFibers ( M_fiberVector, name, mesh  );
     }
 
     inline void setupFiberVector ( std::string& name, std::string& path )
     {
-        HeartUtility::importFibers ( M_fiberVector, name, path  );
+        ElectrophysiologyUtility::importFibers ( M_fiberVector, name, path  );
     }
 
     void setupFiberVector ( Real& fx, Real& fy, Real& fz )
     {
-        HeartUtility::setupFibers ( *M_fiberVector, fx, fy, fz  );
+        ElectrophysiologyUtility::setupFibers ( *M_fiberVector, fx, fy, fz  );
     }
 
     inline void setupSheetVector ( std::string& name, boost::shared_ptr<mesh_Type> mesh )
     {
-        HeartUtility::importFibers ( M_sheetVector, name, mesh  );
+        ElectrophysiologyUtility::importFibers ( M_sheetVector, name, mesh  );
     }
 
     inline void setupSheetVector ( std::string& name, std::string& path )
     {
-        HeartUtility::importFibers ( M_sheetVector, name, path  );
+        ElectrophysiologyUtility::importFibers ( M_sheetVector, name, path  );
     }
 
     void setupSheetVector ( Real& sx, Real& sy, Real& sz )
     {
-        HeartUtility::setupFibers ( *M_sheetVector, sx, sy, sz);
+        ElectrophysiologyUtility::setupFibers ( *M_sheetVector, sx, sy, sz);
     }
     //@}
 

@@ -486,7 +486,7 @@ public:
 
     inline void  setPotentialOnBoundary (Real value, UInt flag)
     {
-        HeartUtility::setValueOnBoundary ( * (M_monodomainPtr -> potentialPtr() ), M_monodomainPtr -> fullMeshPtr(), value, flag);
+        ElectrophysiologyUtility::setValueOnBoundary ( * (M_monodomainPtr -> potentialPtr() ), M_monodomainPtr -> fullMeshPtr(), value, flag);
     }
     inline void  setPotentialFromFunction (function_Type f, Real time = 0.0)
     {
@@ -1528,7 +1528,7 @@ void EMSolver<Mesh, IonicModel>::importSolidFibers (Teuchos::ParameterList& para
 {
     std::string solidFibersFile = parameterList.get ("solid_fibers_file", "");
     std::string solidFibersField = parameterList.get ("solid_fibers_field", "");
-    HeartUtility::importVectorField ( M_solidPtr -> activeMaterial() -> fiberVectorPtr(),
+    ElectrophysiologyUtility::importVectorField ( M_solidPtr -> activeMaterial() -> fiberVectorPtr(),
                                       solidFibersFile,
                                       solidFibersField,
                                       M_solidPtr -> mesh() );
@@ -1540,7 +1540,7 @@ void EMSolver<Mesh, IonicModel>::importSolidSheets (Teuchos::ParameterList& para
     std::string solidSheetsField = parameterList.get ("solid_sheets_field", "");
     if ( solidSheetsFile != "" )
     {
-        HeartUtility::importVectorField ( M_solidPtr -> activeMaterial() -> sheetVectorPtr(),
+        ElectrophysiologyUtility::importVectorField ( M_solidPtr -> activeMaterial() -> sheetVectorPtr(),
                                           solidSheetsFile,
                                           solidSheetsField,
                                           M_solidPtr -> mesh() );
@@ -1553,7 +1553,7 @@ void EMSolver<Mesh, IonicModel>::importMonodomainFibers (Teuchos::ParameterList&
     std::string fibersFile = parameterList.get ("fibers_file", "");
     std::string fibersField = parameterList.get ("fibers_field", "");
     vectorPtr_Type monodomainFibers (new vector_Type ( M_monodomainPtr -> displacementETFESpacePtr() -> map() ) );
-    HeartUtility::importFibers (monodomainFibers, fibersFile, M_monodomainPtr -> localMeshPtr() );
+    ElectrophysiologyUtility::importFibers (monodomainFibers, fibersFile, M_monodomainPtr -> localMeshPtr() );
     //    HeartUtility::importVectorField( monodomainFibers,
     //                                   fibersFile,
     //                                   fibersField,

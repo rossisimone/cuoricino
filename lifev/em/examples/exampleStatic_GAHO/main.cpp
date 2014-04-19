@@ -304,16 +304,16 @@ int main (int argc, char** argv)
     {
         std::string V0filename = parameterList.get ("V0filename", "V0");
         std::string V0fieldname = parameterList.get ("V0fieldname", "V0");
-        HeartUtility::importScalarField (monodomain -> globalSolution().at (0), V0filename, V0fieldname, monodomain -> localMeshPtr() );
+        ElectrophysiologyUtility::importScalarField (monodomain -> globalSolution().at (0), V0filename, V0fieldname, monodomain -> localMeshPtr() );
         std::string V1filename = parameterList.get ("V1filename", "V1");
         std::string V1fieldname = parameterList.get ("V1fieldname", "V1");
-        HeartUtility::importScalarField (monodomain -> globalSolution().at (1), V1filename, V1fieldname, monodomain -> localMeshPtr() );
+        ElectrophysiologyUtility::importScalarField (monodomain -> globalSolution().at (1), V1filename, V1fieldname, monodomain -> localMeshPtr() );
         std::string V2filename = parameterList.get ("V2filename", "V2");
         std::string V2fieldname = parameterList.get ("V2fieldname", "V2");
-        HeartUtility::importScalarField (monodomain -> globalSolution().at (2), V2filename, V2fieldname, monodomain -> localMeshPtr() );
+        ElectrophysiologyUtility::importScalarField (monodomain -> globalSolution().at (2), V2filename, V2fieldname, monodomain -> localMeshPtr() );
         std::string V3filename = parameterList.get ("V3filename", "V3");
         std::string V3fieldname = parameterList.get ("V3fieldname", "V3");
-        HeartUtility::importScalarField (monodomain -> globalSolution().at (3), V3filename, V3fieldname, monodomain -> localMeshPtr() );
+        ElectrophysiologyUtility::importScalarField (monodomain -> globalSolution().at (3), V3filename, V3fieldname, monodomain -> localMeshPtr() );
     }
     else
     {
@@ -329,7 +329,7 @@ int main (int argc, char** argv)
         //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
         //      function_Type Vlid = &initialVlid;
         //      monodomain -> setPotentialFromFunction( Vlid );
-        HeartUtility::setValueOnBoundary (* (monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 5);
+        ElectrophysiologyUtility::setValueOnBoundary (* (monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 5);
     }
 
     std::cout << "Norm Inf potential = " <<  (  * ( monodomain -> globalSolution().at (0) ) ).normInf() << std::endl;
@@ -505,7 +505,7 @@ int main (int argc, char** argv)
     {
         std::string Dfilename = parameterList.get ("Gfilename", "G");
         std::string Dfieldname = parameterList.get ("Gfieldname", "G");
-        HeartUtility::importVectorField ( solid.displacementPtr(), Dfilename, Dfieldname,  localSolidMesh );
+        ElectrophysiologyUtility::importVectorField ( solid.displacementPtr(), Dfilename, Dfieldname,  localSolidMesh );
     }
     //===========================================================
     //===========================================================
@@ -529,14 +529,14 @@ int main (int argc, char** argv)
     std::cout << "\nsheet field " << solid_sheet_field << std::endl;
 
     vectorPtr_Type solidFibers ( new vector_Type ( dFESpace -> map() ) );
-    HeartUtility::importFibers ( solidFibers,
+    ElectrophysiologyUtility::importFibers ( solidFibers,
                                  solid_fiber_file,
                                  localSolidMesh );
     solid.material() -> setFiberVector ( *solidFibers );
 
 
     vectorPtr_Type solidSheet (new vector_Type ( dFESpace -> map() ) );
-    HeartUtility::importVectorField (solidSheet,
+    ElectrophysiologyUtility::importVectorField (solidSheet,
                                      solid_sheet_file,
                                      solid_sheet_field,
                                      localSolidMesh );
@@ -583,7 +583,7 @@ int main (int argc, char** argv)
         //       vectorPtr_Type fibersRotated( new vector_Type( monodomain -> feSpacePtr() -> map() ) );
 
         electroFiberFESpace -> interpolate ( static_cast< FESpace< RegionMesh<LinearTetra>, MapEpetra >::function_Type > ( fibersDirection ), *electroFibers , 0);
-        HeartUtility::normalize (*electroFibers);
+        ElectrophysiologyUtility::normalize (*electroFibers);
         //     HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
         monodomain -> setFiberPtr ( electroFibers );
         emDisp.reset (  new vector_Type ( electroFibers -> map() ) );
@@ -631,7 +631,7 @@ int main (int argc, char** argv)
     {
         std::string Gfilename = parameterList.get ("Gfilename", "G");
         std::string Gfieldname = parameterList.get ("Gfieldname", "G");
-        HeartUtility::importScalarField (gammaf, Gfilename, Gfieldname, monodomain -> localMeshPtr() );
+        ElectrophysiologyUtility::importScalarField (gammaf, Gfilename, Gfieldname, monodomain -> localMeshPtr() );
     }
     else
     {

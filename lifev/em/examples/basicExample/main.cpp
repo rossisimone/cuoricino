@@ -453,7 +453,7 @@ int main (int argc, char** argv)
     fvec.at (0)  = parameterList.get ("fiber_X", 1.0);
     fvec.at (1)  = parameterList.get ("fiber_Y", 0.0);
     fvec.at (2)  = parameterList.get ("fiber_Z", 0.0);
-    HeartUtility::setupFibers (*solidFibers, fvec);
+    ElectrophysiologyUtility::setupFibers (*solidFibers, fvec);
 
     if ( comm->MyPID() == 0 )
     {
@@ -478,7 +478,7 @@ int main (int argc, char** argv)
         electrodETFESpace.reset ( new solidETFESpace_Type (monodomain -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
 
         vectorPtr_Type electroFibers ( new vector_Type ( electroFiberFESpace -> map() ) );
-        HeartUtility::setupFibers (*electroFibers, fvec);
+        ElectrophysiologyUtility::setupFibers (*electroFibers, fvec);
         //         HeartUtility::importFibers(electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
         monodomain -> setFiberPtr ( electroFibers );
         emDisp.reset (  new vector_Type ( electroFibers -> map() ) );

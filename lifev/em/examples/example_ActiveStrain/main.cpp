@@ -222,8 +222,8 @@ int main (int argc, char** argv)
     //HeartUtility::setValueOnBoundary( *(monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 30 );
     //    function_Type Vlid = &initialVlid;
     //    monodomain -> setPotentialFromFunction( Vlid );
-    HeartUtility::setValueOnBoundary ( * (monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 21 );
-    HeartUtility::setValueOnBoundary ( * (monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 22 );
+    ElectrophysiologyUtility::setValueOnBoundary ( * (monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 21 );
+    ElectrophysiologyUtility::setValueOnBoundary ( * (monodomain -> potentialPtr() ), monodomain -> fullMeshPtr(), 1.0, 22 );
 
     for (int i (0); i < ionicModel -> Size(); i++ )
     {
@@ -434,7 +434,7 @@ int main (int argc, char** argv)
         std::cout << "\nread fibers" << std::endl;
     }
 
-    HeartUtility::importFibers (solidFibers, parameterList.get ("solid_fiber_file", ""), localSolidMesh );
+    ElectrophysiologyUtility::importFibers (solidFibers, parameterList.get ("solid_fiber_file", ""), localSolidMesh );
 
     if ( comm->MyPID() == 0 )
     {
@@ -459,7 +459,7 @@ int main (int argc, char** argv)
         electrodETFESpace.reset ( new solidETFESpace_Type (monodomain -> localMeshPtr(), & (dFESpace->refFE() ), & (dFESpace->fe().geoMap() ), comm) );
 
         vectorPtr_Type electroFibers ( new vector_Type ( electroFiberFESpace -> map() ) );
-        HeartUtility::importFibers (electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
+        ElectrophysiologyUtility::importFibers (electroFibers, parameterList.get ("fiber_file", ""), monodomain -> localMeshPtr() );
         monodomain -> setFiberPtr ( electroFibers );
         emDisp.reset (  new vector_Type ( electroFibers -> map() ) );
         solidGammaf.reset ( new vector_Type ( solidaFESpace -> map() ) );

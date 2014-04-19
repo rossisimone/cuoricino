@@ -693,13 +693,13 @@ public:
     inline void setFiberVector ( const vector_Type& fiberVector)
     {
         M_fiberVector.reset ( new vector_Type ( fiberVector ) );
-        HeartUtility::normalize (*M_fiberVector);
+        ElectrophysiologyUtility::normalize (*M_fiberVector);
     }
 
     inline void setSheetVector ( const vector_Type& sheetVector)
     {
         M_sheetVector.reset ( new vector_Type ( sheetVector ) );
-        HeartUtility::normalize (*M_sheetVector);
+        ElectrophysiologyUtility::normalize (*M_sheetVector);
     }
 
     //@}
@@ -709,38 +709,38 @@ public:
 
     inline void setupFiberVector ( std::string& name, boost::shared_ptr<mesh_Type> mesh )
     {
-        HeartUtility::importFibers ( M_fiberVector, name, mesh  );
-        HeartUtility::normalize (*M_fiberVector);
+        ElectrophysiologyUtility::importFibers ( M_fiberVector, name, mesh  );
+        ElectrophysiologyUtility::normalize (*M_fiberVector);
     }
 
     inline void setupFiberVector ( std::string& name, std::string& path )
     {
-        HeartUtility::importFibers ( M_fiberVector, name, path  );
-        HeartUtility::normalize (*M_fiberVector);
+        ElectrophysiologyUtility::importFibers ( M_fiberVector, name, path  );
+        ElectrophysiologyUtility::normalize (*M_fiberVector);
     }
 
     void setupFiberVector ( Real& fx, Real& fy, Real& fz )
     {
-        HeartUtility::setupFibers ( *M_fiberVector, fx, fy, fz  );
-        HeartUtility::normalize (*M_fiberVector);
+        ElectrophysiologyUtility::setupFibers ( *M_fiberVector, fx, fy, fz  );
+        ElectrophysiologyUtility::normalize (*M_fiberVector);
     }
 
     inline void setupSheetVector ( std::string& name, boost::shared_ptr<mesh_Type> mesh )
     {
-        HeartUtility::importFibers ( M_sheetVector, name, mesh  );
-        HeartUtility::normalize (*M_sheetVector);
+        ElectrophysiologyUtility::importFibers ( M_sheetVector, name, mesh  );
+        ElectrophysiologyUtility::normalize (*M_sheetVector);
     }
 
     inline void setupSheetVector ( std::string& name, std::string& path )
     {
-        HeartUtility::importFibers ( M_sheetVector, name, path  );
-        HeartUtility::normalize (*M_sheetVector);
+        ElectrophysiologyUtility::importFibers ( M_sheetVector, name, path  );
+        ElectrophysiologyUtility::normalize (*M_sheetVector);
     }
 
     void setupSheetVector ( Real& sx, Real& sy, Real& sz )
     {
-        HeartUtility::setupFibers ( *M_sheetVector, sx, sy, sz);
-        HeartUtility::normalize (*M_sheetVector);
+        ElectrophysiologyUtility::setupFibers ( *M_sheetVector, sx, sy, sz);
+        ElectrophysiologyUtility::normalize (*M_sheetVector);
     }
     //@}
 
