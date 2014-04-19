@@ -308,7 +308,6 @@ Int main ( Int argc, char** argv )
     // Loop over time solving with L-ICI          //
     //********************************************//
 	int loop = 0;
-	Real tt(0);
 	for (Real t = initialTime; t < (TF-dt*1e-4);)// the -dt*1e-4 is needed or you do an additional iteration
     {
 		loop++;
