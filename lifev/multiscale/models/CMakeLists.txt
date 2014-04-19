@@ -102,6 +102,7 @@ ENDIF()
 
 
 IF (LifeV_ENABLE_Electrophysiology)
+IF (LifeV_ENABLE_EM)
 IF (LifeV_ENABLE_FSI)
 
 SET(modelsFSI3DActivated_HEADERS
@@ -116,14 +117,10 @@ ELSE()
 
 SET(modelsFSI3DActivated_HEADERS "")
 SET(modelsFSI3DActivated_SOURCES "")
+
   
 ENDIF()
-
-ELSE()
-
-SET(modelsFSI3DActivated_HEADERS "")
-SET(modelsFSI3DActivated_SOURCES "")
-
+ENDIF()
 ENDIF()
 
 
