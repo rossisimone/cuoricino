@@ -2236,28 +2236,10 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::solveOneStepGatingVariablesRL
     M_ionicModelPtr->superIonicModel::computeNonGatingRhs (M_globalSolution,
                                                            M_globalRhs);
     int offset = M_ionicModelPtr->numberOfGatingVariables() + 1;
-//    std::cout << "\n offset = " << offset;
-//    * (M_globalSolution.at (8) ) = * (M_globalSolution.at (8) )
-//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (8) ) );
-//    std::cout << "\n size = " << M_ionicModelPtr->Size();
-//    * (M_globalSolution.at (9) ) = * (M_globalSolution.at (9) )
-//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (9) ) );
-//    std::cout << "\n size = " << M_ionicModelPtr->Size();
-//    * (M_globalSolution.at (10) ) = * (M_globalSolution.at (10) )
-//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (10) ) );
-//    std::cout << "\n size = " << M_ionicModelPtr->Size();
-//    * (M_globalSolution.at (11) ) = * (M_globalSolution.at (11) )
-//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (11) ) );
-//    std::cout << "\n size = " << M_ionicModelPtr->Size();
-//    * (M_globalSolution.at (12) ) = * (M_globalSolution.at (12) )
-//                                           + ( (M_timeStep) ) * (* (M_globalRhs.at (12) ) );
-//    std::cout << "\n size = " << M_ionicModelPtr->Size();
     for (int i = offset; i < M_ionicModelPtr->Size(); i++)
     {
     	*(M_globalRhs[i]) *= M_timeStep;
     	* (M_globalSolution[i]) += *(M_globalRhs[i]);
-//        * (M_globalSolution.at (i) ) = * (M_globalSolution.at (i) )
-//                                       + ( (M_timeStep) ) * (* (M_globalRhs.at (i) ) );
     }
 }
 
