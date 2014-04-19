@@ -33,6 +33,7 @@
 
     This file contains a set of base utilities used to read vectorial data (mainly fiber
     and sheet directions) from different formats to VectorEpetra objects.
+    Also other useful functions are collected here.
  */
 
 #ifndef HEARTUTILITY_H
@@ -54,10 +55,10 @@ namespace LifeV
 
 // Predeclaration
 
-namespace HeartUtility
+namespace ElectrophysiologyUtility
 {
 
-//! HeartUtility - A string parser grammar based on \c boost::spirit::qi
+//! HeartUtility
 /*!
  *  @author(s) Simone Rossi
  *
@@ -305,24 +306,14 @@ inline void setupFibers ( VectorEpetra& fiberVector, Real fx, Real fy, Real fz)
     setupFibers (fiberVector, fiberVectorSmall);
 }
 
-inline void setValueOnBoundary ( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, std::vector<UInt> flags)
-{
 
-    for ( int j (0); j < vec.epetraVector().MyLength() ; ++j )
-    {
-        for ( UInt k (0); k < flags.size(); k++ )
-        {
-            if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flags.at (k) )
-            {
-                if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
-                {
-                    (vec) ( vec.blockMap().GID (j) ) = value;
-                }
-            }
-        }
-    }
-}
-
+//! On the boundary with the specified flag, set the wanted value
+/*!
+ * @param vec         VectorEpetra object where we want to impose the boundary value
+ * @param fullMesh    Pointer to the non partitioned mesh
+ * @param value       value to set on that boundary
+ * @param flag        flag of the boundary
+ */
 inline void setValueOnBoundary ( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, UInt flag)
 {
 
@@ -333,6 +324,31 @@ inline void setValueOnBoundary ( VectorEpetra& vec, boost::shared_ptr<  RegionMe
             if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
             {
                 (vec) ( vec.blockMap().GID (j) ) = value;
+            }
+        }
+    }
+}
+
+
+//! On the boundary with the specified flags, set the wanted value
+/*!
+ * @param vec         VectorEpetra object where we want to impose the boundary value
+ * @param fullMesh    Pointer to the non partitioned mesh
+ * @param value       value to set on that boundary
+ * @param flags        flags of the boundary
+ */
+inline void setValueOnBoundary ( VectorEpetra& vec, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, Real value, std::vector<UInt> flags)
+{
+    for ( int j (0); j < vec.epetraVector().MyLength() ; ++j )
+    {
+        for ( UInt k (0); k < flags.size(); k++ )
+        {
+            if ( fullMesh -> point ( vec.blockMap().GID (j) ).markerID() == flags.at (k) )
+            {
+                if ( vec.blockMap().LID ( vec.blockMap().GID (j) ) != -1 )
+                {
+                    (vec) ( vec.blockMap().GID (j) ) = value;
+                }
             }
         }
     }
@@ -363,6 +379,13 @@ inline void rescaleVector ( VectorEpetra& vector, Real scaleFactor = 1.0 )
     rescaleVector ( vector, min, max, scaleFactor);
 }
 
+//! Rescale a scalar field by a constant factor on a boundary
+/*!
+ * @param vector      VectorEpetra object that contains the scalar field
+ * @param fullMesh    pointer to the non partitioned mesh
+ * @param flag        flag of the boundary
+ * @param scaleFactor Additional scaling factor (defaults to 1)
+ */
 inline void rescaleVectorOnBoundary ( VectorEpetra& vector, boost::shared_ptr<  RegionMesh<LinearTetra> > fullMesh, UInt flag, Real scaleFactor = 1.0 )
 {
     for ( Int j (0); j < vector.epetraVector().MyLength() ; ++j )
@@ -403,7 +426,7 @@ inline void normalize ( VectorEpetra& vector )
         }
         else
         {
-            std::cout << "\n\nThe fiber vector in the node: " << i << " has component:";
+            std::cout << "\n\nThe vector in the node: " << i << " has component:";
             std::cout << "\nx: " <<  vector[i];
             std::cout << "\ny: " <<  vector[j];
             std::cout << "\nz: " <<  vector[k];
@@ -446,7 +469,7 @@ inline void addNoiseToFibers ( VectorEpetra& fiberVector, Real magnitude = 0.01,
         }
     }
 
-    HeartUtility::normalize(fiberVector);
+    ElectrophysiologyUtility::normalize(fiberVector);
 }
 
 

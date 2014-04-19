@@ -312,7 +312,7 @@ Int main ( Int argc, char** argv )
 
     boost::shared_ptr<VectorEpetra> fiber ( new VectorEpetra ( Space3D -> map() ) );
     std::string nm = bidomainList.get ("fiber_file", "FiberDirection") ;
-    HeartUtility::setupFibers ( *fiber, 0.0, 0.0, 1.0 );
+    ElectrophysiologyUtility::setupFibers ( *fiber, 0.0, 0.0, 1.0 );
     splitting -> setFiberPtr (fiber);
 
     if ( Comm->MyPID() == 0 )

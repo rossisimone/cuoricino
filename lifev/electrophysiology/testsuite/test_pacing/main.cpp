@@ -225,8 +225,8 @@ Int main ( Int argc, char** argv )
     // and the signal may propagate.
     monodomain -> setupFibers();
     function_Type fibreFunction = &fiberDistribution;
-    HeartUtility::setFibersFromFunction(monodomain -> fiberPtr(), monodomain -> localMeshPtr(), fibreFunction);
-    HeartUtility::normalize(*(monodomain -> fiberPtr()));
+    ElectrophysiologyUtility::setFibersFromFunction(monodomain -> fiberPtr(), monodomain -> localMeshPtr(), fibreFunction);
+    ElectrophysiologyUtility::normalize(*(monodomain -> fiberPtr()));
 
     //********************************************//
     // Set some noise in the fiber.               //
@@ -238,7 +238,7 @@ Int main ( Int argc, char** argv )
     	std::vector<bool> component(3,false);
     	component[0]=true;
     	Real magnitude = monodomainList.get ("noise_magnitude", 1e-3);
-    	HeartUtility::addNoiseToFibers(*(monodomain -> fiberPtr()), magnitude, component );
+    	ElectrophysiologyUtility::addNoiseToFibers(*(monodomain -> fiberPtr()), magnitude, component );
     }
     if ( Comm->MyPID() == 0 )
     {

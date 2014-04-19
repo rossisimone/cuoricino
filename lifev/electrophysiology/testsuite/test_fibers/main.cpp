@@ -440,7 +440,7 @@ int main ( int argc, char** argv )
         (*rbSheet) [k] = (*sz) [i];
     }
 
-    HeartUtility::normalize (*rbSheet);
+    ElectrophysiologyUtility::normalize (*rbSheet);
 
     //*************************************************************//
     // The algorithm requires to give as input the centerline of
@@ -476,7 +476,7 @@ int main ( int argc, char** argv )
         (*projection) [k] = cz - cdot *  (*rbSheet) [k];
     }
 
-    HeartUtility::normalize (*projection);
+    ElectrophysiologyUtility::normalize (*projection);
 
     //*************************************************************//
     // In each point we have defined to orthogonal direction s and p
@@ -504,7 +504,7 @@ int main ( int argc, char** argv )
         (*rbFiber) [k] = (*rbSheet) [i]  * (*projection) [j] - (*rbSheet) [j]  * (*projection) [i];
     }
 
-    HeartUtility::normalize (*rbFiber);
+    ElectrophysiologyUtility::normalize (*rbFiber);
 
     //*************************************************************//
     // The last step is to rotate the flat fiber field just computed

@@ -1171,7 +1171,7 @@ public:
      */
     inline void setupFibers (std::string fibersFile, const std::string& filePath = "./")
     {
-        HeartUtility::importFibers (M_fiberPtr, fibersFile, M_localMeshPtr, filePath);
+        ElectrophysiologyUtility::importFibers (M_fiberPtr, fibersFile, M_localMeshPtr, filePath);
     }
 
     //! Imports the fiber direction from a vtk file ( format = 0), or text file
@@ -1189,7 +1189,7 @@ public:
     inline void setupFibers (std::string fibersFile, std::string directory,
                              int format = 0)
     {
-        HeartUtility::importFibersFromTextFile (M_fiberPtr, fibersFile,
+        ElectrophysiologyUtility::importFibersFromTextFile (M_fiberPtr, fibersFile,
                                                 directory, format);
     }
 
@@ -1604,7 +1604,7 @@ void ElectroETAMonodomainSolver<Mesh, IonicModel>::setupFibers (
 
     M_fiberPtr.reset (new vector_Type (Space3D->map() ) );
 
-    HeartUtility::setupFibers (*M_fiberPtr, fibers);
+    ElectrophysiologyUtility::setupFibers (*M_fiberPtr, fibers);
 }
 
 template<typename Mesh, typename IonicModel>

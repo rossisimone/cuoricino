@@ -187,11 +187,11 @@ Int main ( Int argc, char** argv )
     std::string fiberFileType = list1.get ("fiber_file_type", "hdf5" );
     if ( fiberFileType == "hdf5" )
     {
-        HeartUtility::importFibers (fiber1, fibersFile, mesh1 );
+        ElectrophysiologyUtility::importFibers (fiber1, fibersFile, mesh1 );
     }
     else
     {
-        HeartUtility::importFibersFromTextFile (fiber1, fibersFile, fibersDirectory, format );
+        ElectrophysiologyUtility::importFibersFromTextFile (fiber1, fibersFile, fibersDirectory, format );
     }
 
     //********************************************//
