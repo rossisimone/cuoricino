@@ -565,11 +565,10 @@ int main ( int argc, char** argv )
         // The fiber field F is a rotation of the flat fiber field f
         // F = R f
         // where R is the rotation matrix.
-        // To compute R we need the cos(teta), the sin(teta) and
+        // To compute R we need the sin(teta) and
         // the sin(teta)^2 and the cross-product matrix W (check
         // rodrigues formula on wikipedia :) )
         //*************************************************************//
-        Real ca = std::cos (teta);
         Real sa = std::sin (teta);
         Real sa2 = 2.0 * std::sin (0.5 * teta) * std::sin (0.5 * teta);
 
