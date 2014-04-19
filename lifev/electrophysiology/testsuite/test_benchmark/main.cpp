@@ -42,6 +42,19 @@
     Run it using e.g.:
     mpirun -n 2 Electrophysiology_benchmark -o OutputFolder
 
+
+    WARNING: The provided mesh is coarse!!! You should not expect nice results
+    using such mesh. A finer mesh can be obtained just using gmsh and using
+    the refine by splitting function. The required mesh would be too large
+    and we decided to provide only a coarse one.
+
+    NOTICE: The value of the membrane capacitance has a big influence on the
+    propagation. For example the TenTusscher model has Cm = 2 and final activation
+    time (in this benchmark) about twice the one computed with Luo-Rudy I or the Minimal
+    Model. Imposing Cm = 1, then, these ionic models give similar results in terms of
+    activation times.
+    Be aware of what you are doing! Don't use the default parameters as black boxes!!!
+
     @date 01-2013
     @author Simone Rossi <simone.rossi@epfl.ch>
 
@@ -68,7 +81,7 @@
 //           - HodgkinHuxley
 //           - NoblePurkinje
 //           - MinimalModel
-//           - Fox (not working!!!)
+//           - Fox (tested with timestep 0.0025 ms, RushLarsen method not implemented)
 //
 // - pacingProtocolMM,
 //           to pace with the minimal model and AlievPanfilov
@@ -105,7 +118,7 @@ using namespace LifeV;
 // On Mac Os X 10.9 Mavercik with clang 503.0.38 the test has final time 40.
 // ---------------------------------------------------------------
 
-#define finalActivationTime  42.71
+#define finalActivationTime  53.1
 
 // ---------------------------------------------------------------
 //  We start the programm by the definition of the communicator.
@@ -206,7 +219,7 @@ Int main ( Int argc, char** argv )
 	//           - HodgkinHuxley
 	//           - NoblePurkinje
 	//           - MinimalModel
-	//           - Fox (not working!!!)
+	//           - Fox (tested with timestep 0.0025 ms)
 	// These are not the only model available. All the ionic models can
 	// be found in the folder solver/IonicModels/ of this module.
 	// The function chooseIonicModel returns the value for which we
@@ -449,6 +462,7 @@ Int main ( Int argc, char** argv )
 
     Real dt(solver -> timeStep());
     Int iter = monodomainList.get ("saveStep", 1.0) / dt;
+    Int subiter = monodomainList.get("subiter", 10);
     Int k (0);
 
     Real timeReac = 0.0;
@@ -502,7 +516,6 @@ Int main ( Int argc, char** argv )
     	// ---------------------------------------------------------------
 
     	solver -> setAppliedCurrentFromFunction ( stimulus, t );
-
     	// ---------------------------------------------------------------
         // Next we consider case by case the different solution methods:
         // ---------------------------------------------------------------
@@ -527,7 +540,11 @@ Int main ( Int argc, char** argv )
 			chrono.start();
 			if(ionic_model != "MinimalModel" && ionic_model != "AlievPanfilov" && ionic_model != "Fox")
 				solver->solveOneReactionStepRL();
-			else solver->solveOneReactionStepFE();
+			else
+				{
+					for(int j = 0; j<subiter; j++)
+					solver->solveOneReactionStepFE(subiter);
+				}
 			chrono.stop();
 
 			timeReac += chrono.globalDiff( *Comm );
@@ -741,6 +758,8 @@ Int main ( Int argc, char** argv )
     	std::cout << "\nError: " <<  err <<"\n" << "\nActivation time: " <<  fullActivationTime << "\n";
     }
 
+    MPI_Barrier (MPI_COMM_WORLD);
+    MPI_Finalize();
     if ( err > 1e-12 )
     {
     	if ( Comm->MyPID() == 0 )
@@ -754,8 +773,7 @@ Int main ( Int argc, char** argv )
         returnValue = EXIT_SUCCESS;
     }
 
-    MPI_Barrier (MPI_COMM_WORLD);
-    MPI_Finalize();
+
 
     return ( returnValue );
 }

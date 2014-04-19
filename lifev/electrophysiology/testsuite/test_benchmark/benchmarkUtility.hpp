@@ -134,10 +134,10 @@ Real chooseIonicModel(ionicModelPtr_Type& model, std::string ionic_model, Epetra
     }
     if ( ionic_model == "Fox")
     {
-//        model.reset ( new IonicFox() );
+        model.reset ( new IonicFox() );
         if ( Comm.MyPID() == 0 )
         {
-            assert(0 && "Fox model is not properly working in 3D."); //TO DO: Fix It!
+//            assert(0 && "Fox model is not properly working in 3D."); //TO DO: Fix It!
         }
     }
 
@@ -240,8 +240,7 @@ Real PacingProtocol ( const Real& t, const Real& x, const Real& y, const Real& z
             std::abs ( z - pacingSite_Z ) <= stimulusRadius
             &&
             std::abs ( y - pacingSite_Y ) <= stimulusRadius
-            &&
-            t <= 2)
+            && t >= 0.1 && t <= 2)
     {
         returnValue = stimulusValue;
     }
