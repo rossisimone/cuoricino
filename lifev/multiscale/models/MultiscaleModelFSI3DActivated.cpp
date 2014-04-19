@@ -185,7 +185,7 @@ MultiscaleModelFSI3DActivated::setupData ( const std::string& fileName )
     ( new vectorialETFESpace_Type ( M_monodomain -> localMeshPtr(),  &feTetraP1,  comm ) );
     M_fiber.reset ( new vector_Type ( M_monodomainDisplacementETFESpace -> map() ) );
     std::string nm = monodomainList.get ("fiber_file", "FiberDirection") ;
-    HeartUtility::importFibers ( M_fiber, nm, M_monodomain -> localMeshPtr() );
+    ElectrophysiologyUtility::importFibers ( M_fiber, nm, M_monodomain -> localMeshPtr() );
     M_monodomain-> setFiberPtr (M_fiber);
 
     // Activation function
@@ -313,7 +313,7 @@ MultiscaleModelFSI3DActivated::setupModel()
 
     // Setting up initial conditions
 
-    super::solver() -> solid().material() -> setGammaf ( *M_gammaf );
+    super::solver() -> solid().activeMaterial() -> setGammaf ( *M_gammaf );
     if (!M_oneWayCoupling)
     {
         M_monodomain -> setDisplacementPtr ( M_displacementMonodomain );
@@ -335,7 +335,7 @@ MultiscaleModelFSI3DActivated::setupModel()
     {
         M_rescalingVector.reset (new vector_Type ( M_gammafSolid -> map() ) );
         std::string fieldname = list.get ("fieldname", "");
-        HeartUtility::importScalarField (M_rescalingVector, filename, fieldname, super::solver() -> solidLocalMeshPtr() );
+        ElectrophysiologyUtility::importScalarField (M_rescalingVector, filename, fieldname, super::solver() -> solidLocalMeshPtr() );
     }
 
     // Restart from a previous solution if requested
@@ -349,21 +349,21 @@ MultiscaleModelFSI3DActivated::setupModel()
     // Setup activation solver
 
     vectorPtr_Type fiber (new vector_Type ( super::solver() -> dFESpace().map() ) );
-    HeartUtility::importFibers ( fiber,
-                                 super::solver() -> solid().material() -> materialData() -> fileFiberDirections(),
+    ElectrophysiologyUtility::importFibers ( fiber,
+                                 super::solver() -> solid().activeMaterial() -> materialData() -> fileFiberDirections(),
                                  solidLocalMeshPtr );
-    super::solver() ->solid().material() -> setFiberVector (*fiber);
+    super::solver() ->solid().activeMaterial() -> setFiberVector (*fiber);
 
     // Sheet direction for solid mechanics
 
     std::string sheetFileName = list.get ("sheet_file", "SheetDirection") ;
     std::string sheetFieldName = list.get ("sheet_field", "sheets") ;
     vectorPtr_Type sheet (new vector_Type ( super::solver() -> dFESpace().map() ) );
-    HeartUtility::importVectorField (sheet,
+    ElectrophysiologyUtility::importVectorField (sheet,
                                      sheetFileName,
                                      sheetFieldName,
                                      super::solver() -> solidLocalMeshPtr() );
-    super::solver() ->solid().material() -> setSheetVector (*sheet);
+    super::solver() ->solid().activeMaterial() -> setSheetVector (*sheet);
 
 }
 
@@ -377,7 +377,7 @@ MultiscaleModelFSI3DActivated::buildModel()
         //if( !M_oneWayCoupling ) M_coarseToFineInterpolant -> buildOperators();
     }
 
-    super::solver() -> solid().material() -> showMyParameters();
+    super::solver() -> solid().activeMaterial() -> showMyParameters();
 
     M_monodomain -> setupLumpedMassMatrix();
     M_monodomain -> setupStiffnessMatrix();
@@ -463,7 +463,7 @@ MultiscaleModelFSI3DActivated::solveModel()
                     }
 
                     Real beta = -0.3;
-                    HeartUtility::rescaleVector ( *M_gammaf, M_minCalciumLikeVariable, M_maxCalciumLikeVariable, beta);
+                    ElectrophysiologyUtility::rescaleVector ( *M_gammaf, M_minCalciumLikeVariable, M_maxCalciumLikeVariable, beta);
                     break;
                 }
                 case SimpleODE:
@@ -605,7 +605,7 @@ MultiscaleModelFSI3DActivated::solveModel()
         //            *M_gammafSolid *= *M_rescalingVector;
         //        }
 
-        super::solver() -> solid().material() -> setGammaf ( *M_gammafSolid );
+        super::solver() -> solid().activeMaterial() -> setGammaf ( *M_gammafSolid );
         switch (M_activationType)
         {
             case TransverselyIsotropic:
@@ -630,8 +630,8 @@ MultiscaleModelFSI3DActivated::solveModel()
                 *M_gammasSolid -= 1.0;
                 break;
         }
-        super::solver() -> solid().material() -> setGamman ( *M_gammanSolid );
-        super::solver() -> solid().material() -> setGammas ( *M_gammasSolid );
+        super::solver() -> solid().activeMaterial() -> setGamman ( *M_gammanSolid );
+        super::solver() -> solid().activeMaterial() -> setGammas ( *M_gammasSolid );
 
     }
 
