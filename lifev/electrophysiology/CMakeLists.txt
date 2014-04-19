@@ -32,8 +32,8 @@ SET(SOURCES ${SOURCES} ${stimulus_SOURCES})
 
 
 ADD_SUBDIRECTORY(solver)
-SET(HEADERS ${HEADERS} ${solver_HEADERS} ${solver_IonicModels_HEADERS} ${solver_XbModels_HEADERS})
-SET(SOURCES ${SOURCES} ${solver_IonicModels_SOURCES} ${solver_XbModels_SOURCES})
+SET(HEADERS ${HEADERS} ${solver_HEADERS} ${solver_IonicModels_HEADERS})
+SET(SOURCES ${SOURCES} ${solver_IonicModels_SOURCES})
 
 TRIBITS_EXCLUDE_AUTOTOOLS_FILES()
 # This is the list of files excluded from the tarball
