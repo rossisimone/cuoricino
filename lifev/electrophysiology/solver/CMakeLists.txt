@@ -1,5 +1,4 @@
 ADD_SUBDIRECTORIES(
-	XbModels
 	IonicModels
 )
 SET(solver_HEADERS
