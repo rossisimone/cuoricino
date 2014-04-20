@@ -46,18 +46,13 @@
 // To use LifeV
 #include <lifev/core/LifeV.hpp>
 
-// To import parameters from xml we use Teuchos
-#include <Teuchos_RCP.hpp>
-#include <Teuchos_ParameterList.hpp>
-#include "Teuchos_XMLParameterListHelpers.hpp"
-
 using namespace LifeV;
 
 //This is the norm of the precomputed solution
 //we check the test against this value
 #define SolutionTestNorm 3157.1639117380209427
 
-Int main ( Int argc, char** argv )
+Int main ()
 {
     //********************************************//
     // Import parameters from an xml list. Use    //
