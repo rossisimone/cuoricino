@@ -150,7 +150,7 @@ Int main ( Int argc, char** argv )
     //********************************************//
     if ( Comm->MyPID() == 0 )
     {
-        std::cout << "Building Constructor for Minimal Model with parameters ... ";
+        std::cout << "Building Constructor for Aliev Panfilov model ... ";
     }
     boost::shared_ptr<IonicAlievPanfilov>  model ( new IonicAlievPanfilov() );
     if ( Comm->MyPID() == 0 )
