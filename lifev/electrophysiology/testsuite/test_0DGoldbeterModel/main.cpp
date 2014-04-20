@@ -51,7 +51,7 @@ using namespace LifeV;
 //we check the test against this value
 #define SolutionTestNorm 639.4563875712343588
 
-Int main ( Int argc, char** argv )
+Int main ()
 {
 
     //********************************************//
