@@ -3,7 +3,6 @@ ADD_SUBDIRECTORIES(
 )
 SET(solver_HEADERS
   solver/ElectroETAMonodomainSolver.hpp
-  solver/ElectroETABidomainSolver.hpp
 CACHE INTERNAL "")
 
 #SET(solver_SOURCES
