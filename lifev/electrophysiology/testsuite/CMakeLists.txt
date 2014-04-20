@@ -16,4 +16,5 @@ ADD_SUBDIRECTORIES(
 	test_fibers
 	test_pacing
 	test_restart
+	test_ventricle
 )
