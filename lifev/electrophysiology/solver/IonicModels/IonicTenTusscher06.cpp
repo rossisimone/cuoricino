@@ -773,8 +773,6 @@ void IonicTenTusscher06::showCurrents(std::vector<Real>& v)
     Real Ki = v[14];
     Real Cai = v[15];
     Real CaSS = v[16];
-    Real CaSR = v[17];
-    Real RR = v[18];
 
 	showCurrents( V,  m,  h,  j,  d,  f,  f2,  fcass, r,  s,  xr1,  xr2,  xs,  Nai,  Ki, Cai,  CaSS);
 }
