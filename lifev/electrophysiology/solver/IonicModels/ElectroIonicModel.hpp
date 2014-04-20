@@ -28,6 +28,36 @@
   @file
   @brief Base class for ionic models
 
+  This class is a  abstract base class for all ionic models.
+
+  Assume that the ionic model is written in the form
+
+  \f[ \dfrac{\partial \mathbf{v} }{\partial t} = f(\mathbf{v), t\f]
+
+  If you wish to implement a new ionic model you should create a new
+  class which inherits from this class and implement the abstract methods:
+
+  Given \f[ \mathbf{v} \f] compute \f[ f(\mathbf{v}, t) \f]
+  void computeRhs ( const std::vector<Real>& v, std::vector<Real>& rhs);
+  In principle this method should call the following two methods:
+
+  Given \f[ \mathbf{v} \f] compute \f[ f(\mathbf{v}, t) \f]  only for the first
+  equation, that is only for the  transmembrane potential
+  Real computeLocalPotentialRhs ( const std::vector<Real>& v );
+
+  Given \f[ \mathbf{v} \f] compute \f[ f(\mathbf{v}, t) \f] for all the variables
+  excpet the first one, that is all variables except the transmembrane potential
+  void computeGatingRhs ( const std::vector<Real>& v, std::vector<Real>& rhs );
+
+  Print out informations about the ionic model
+  void showMe();
+
+  Some ionic models may be solved with the Rush Larsen scheme.
+  The implementation of this method is not mandatory.
+  For biophysically detailed models, it may be convenient,
+  to have it.
+  void computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt ) {}
+
   @date 01-2013
   @author Simone Rossi <simone.rossi@epfl.ch>
 
