@@ -1,6 +1,5 @@
 <ParameterList>	<!-- LinearSolver parameters -->
     <Parameter name="surfaceVolumeRatio" type="double" value="1400.0"/><!-- cm ^ -1-->
-    <Parameter name="membraneCapacitance" type="double" value=".185"/><!-- mu F cm ^ -2 -->
     <Parameter name="timeStep" type="double" value="0.1"  /><!-- ms ^ -1-->
     <Parameter name="endTime" type="double" value="55."  />
     <Parameter name="saveStep" type="double" value="1.0"  />
