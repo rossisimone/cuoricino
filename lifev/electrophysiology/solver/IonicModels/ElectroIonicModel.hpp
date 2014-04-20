@@ -92,16 +92,26 @@ public:
     //@{
 
     typedef VectorEpetra                            vector_Type;
+
     typedef boost::shared_ptr<VectorEpetra>         vectorPtr_Type;
-    typedef boost::shared_ptr<VectorElemental>  elvecPtr_Type;
+
+    typedef boost::shared_ptr<VectorElemental>  	elvecPtr_Type;
+
     typedef RegionMesh<LinearTetra>                 mesh_Type;
-    typedef MatrixEpetra<Real> matrix_Type;
-    typedef boost::shared_ptr<matrix_Type> matrixPtr_Type;
-    typedef FESpace<mesh_Type, MapEpetra> feSpace_Type;
-    typedef boost::shared_ptr<feSpace_Type> feSpacePtr_Type;
-    typedef boost::function <
-    Real (const Real& t, const Real& x, const Real& y, const Real& z,
-          const ID& i) > function_Type;
+
+    typedef MatrixEpetra<Real> 						matrix_Type;
+
+    typedef boost::shared_ptr<matrix_Type> 			matrixPtr_Type;
+
+    typedef FESpace<mesh_Type, MapEpetra> 			feSpace_Type;
+
+    typedef boost::shared_ptr<feSpace_Type> 		feSpacePtr_Type;
+
+    typedef boost::function <Real (const Real& t,
+    							   const Real& x,
+    							   const Real& y,
+    							   const Real& z,
+    							   const ID& i) > 	function_Type;
     //@}
 
     //! @name Constructors & Destructor
@@ -187,7 +197,6 @@ public:
         return M_appliedCurrentPtr;
     }
 
-
     //! returns the vector with the resting values of the variables in the ionic model
 	/*!
 	 * @param
@@ -260,12 +269,15 @@ public:
             *M_appliedCurrentPtr, time);
     }
 
-
-
-    //! TO BE CHECKED - SR
+    //! Interpolate the function of the electro stimulus
     /*!
-     *  This method is experimental. It need further checks. I do not know what is a Electrotimulus object and how it is used
+     *  This method is a wrapper of the interpolation method from the FESpace class
      */
+	/*!
+	 * @param stimulus pacing protocol defined as ElectroStimulus boost function f(t,x,y,x,ID)
+	 * @param feSpacePtr pointer to the finite element space on which we interpolate
+	 * @param time time at which we evaluate the boost function f
+	 */
     inline void setAppliedCurrentFromElectroStimulus ( ElectroStimulus& stimulus, feSpacePtr_Type feSpacePtr, Real time = 0.0)
     {
 
@@ -277,10 +289,10 @@ public:
             *M_appliedCurrentPtr, time);
     }
 
-    //! TO BE CHECKED - SR
+    //! Set the pacing protocol as boost function
     /*!
-     *  This method is experimental. It need further checks. I do not know what is a pacingProtocol object and how it is used
-     */
+	 * @param pacingProtocol  boost function defining the pacing protocol
+	 */
     inline void setPacingProtocol ( function_Type pacingProtocol )
     {
         M_pacingProtocol = pacingProtocol;
@@ -306,8 +318,6 @@ public:
 
     //@}
 
-
-
     //! This methods computes the Jacobian numerically
 	/*!
 	 * @param v vector of pointers to the  state variables vectors
@@ -322,11 +332,6 @@ public:
 	 */
     virtual std::vector< std::vector<Real> > getJac (const std::vector<Real>& v, Real h = 1.0e-8);
 
-
-
-
-
-
     //! This methods computes the right hand side of the gating variables in the 3D case
     /*!
      *  In 3D the gating variables are still treated nodewise (that is, as a local 0D system)
@@ -337,7 +342,6 @@ public:
 	 * @param rhs vector of pointers to the right hand side vectors of each variable
 	 */
     virtual void computeGatingRhs ( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
-
 
     //! This methods computes the right hand side of the state variables that are not gating variables in the 3D case
     /*!
@@ -361,7 +365,6 @@ public:
 	 */
     virtual void computeGatingVariablesWithRushLarsen ( std::vector<vectorPtr_Type>& v, const Real dt );
 
-
     //! Compute the right hand side of the ionic model in 3D
     /*!
      *  This method wraps the 0D model to be used in 3D
@@ -371,7 +374,6 @@ public:
 	 * @param rhs vector of right hand side state variables
 	 */
     virtual void computeRhs ( const std::vector<vectorPtr_Type>& v, std::vector<vectorPtr_Type>& rhs );
-
 
     //! Compute the right hand side of the voltage equation linearly interpolating the ionic currents
 	/*!
@@ -405,22 +407,6 @@ public:
                                           std::vector<vectorPtr_Type>&        rhs,
                                           FESpace<mesh_Type, MapEpetra>&  uFESpace,
                                           const QuadratureRule& qr );
-
-    //! Compute the right hand side of the voltage equation using SVI  taking into account deformations
-	/*!
-	 * @param v vector of pointers to the  state variables vectors
-	 * @param rhs vector of right hand side state variables
-	 * @param uFESpace finite element space of the voltage
-	 * @param disp displacement vector
-	 * @param finite element space of the displacement vector
-	 */
-    virtual void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
-                                          std::vector<vectorPtr_Type>&        rhs,
-                                          FESpace<mesh_Type, MapEpetra>&  uFESpace,
-                                          vector_Type& disp,
-                                          boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace);
-    //@}
-
 
     //! Initialize the ionic model with a given vector of state variable (0D version)
 	/*!
@@ -483,7 +469,6 @@ public:
 	 */
     virtual void showMe() = 0;
 
-
     //! This methods contains the actual evaluation of the rhs of the voltage equation only (0D version)
     /*!
      *  Overload this method in order to solve the ionic model with the Rush-Larsen method in the monodomain solver
@@ -517,16 +502,22 @@ protected:
 
     //Number of equations in the model
     short int  M_numberOfEquations;
+
     //Number of gating variables in the model
     short int  M_numberOfGatingVariables;
+
     //Resting conditions or default initial conditions of the ionic model
     std::vector<Real> M_restingConditions;
+
     //Value of the membrane capacitance in the ionic model
     Real M_membraneCapacitance;
+
     //Applied current in the 0D version and applied current in a point in the 3D version
     Real M_appliedCurrent;
+
     //Pointer to the applied current FE vector for 3D simulations
     vectorPtr_Type M_appliedCurrentPtr;
+
     //Function describing the pacing protocol of the model - NEEDS TO BE CONFIRMED
     function_Type M_pacingProtocol;
 

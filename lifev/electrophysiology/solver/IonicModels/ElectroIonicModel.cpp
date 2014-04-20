@@ -33,13 +33,10 @@
 
   @contributors
   @mantainer Simone Rossi <simone.rossi@epfl.ch>
-  @last update 02-2012
+  @last update 04 - 2014
  */
 
-
-
 #include <lifev/electrophysiology/solver/IonicModels/ElectroIonicModel.hpp>
-#include <lifev/core/fem/GradientRecovery.hpp>
 
 
 namespace LifeV
@@ -372,14 +369,6 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
     }
 
     VectorEpetra    IappRep ( *M_appliedCurrentPtr, Repeated );
-    //    if(M_appliedCurrentPtr)
-    //      {
-    //      //M_appliedCurrentPtr -> setMapType(Repeated);
-    //
-    //      IappRep = *M_appliedCurrentPtr;
-    //      }
-    //    else IappRep *= 0.0;
-
 
     std::vector<elvecPtr_Type>      elvecPtr;
     for ( int k = 0; k < M_numberOfEquations; k++ )
@@ -467,11 +456,6 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
         M_appliedCurrentPtr -> setMapType (Unique);
     }
 
-    //    for ( int k = 0; k < M_numberOfEquations; k++ )
-    //    {
-    //        URepPtr[k].reset();
-    //        elvecPtr[k].reset();
-    //    }
 }
 
 void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_Type>& v,
@@ -491,14 +475,6 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
     }
 
     VectorEpetra    IappRep ( *M_appliedCurrentPtr, Repeated );
-
-    /*if(M_appliedCurrentPtr)
-        {
-        M_appliedCurrentPtr -> setMapType(Repeated);
-        IappRep = *M_appliedCurrentPtr;
-        }
-    else IappRep *= 0.0;*/
-
 
     std::vector<elvecPtr_Type>      elvecPtr;
     for ( int k = 0; k < M_numberOfEquations; k++ )
@@ -593,167 +569,8 @@ void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_T
         M_appliedCurrentPtr -> setMapType (Unique);
     }
 
-    //    for ( int k = 0; k < M_numberOfEquations; k++ )
-    //    {
-    //        URepPtr[k].reset();
-    //        elvecPtr[k].reset();
-    //    }
 }
 
-
-void ElectroIonicModel::computePotentialRhsSVI (   const std::vector<vectorPtr_Type>& v,
-                                                   std::vector<vectorPtr_Type>& rhs,
-                                                   FESpace<mesh_Type, MapEpetra>& uFESpace,
-                                                   vector_Type& disp,
-                                                   boost::shared_ptr<FESpace<mesh_Type, MapEpetra> >  dispFESPace )
-{
-
-    if ( uFESpace.map().commPtr() -> MyPID() == 0)
-    {
-        std::cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
-        std::cout << "\n IONIC MODEL: I'm enetering in the wrong method!!!!";
-        std::cout << "\nXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
-    }
-    //computing Jacobian of deformation
-    vectorPtr_Type dUdx (new vector_Type ( disp.map() ) );
-    vectorPtr_Type dUdy (new vector_Type ( disp.map() ) );
-    vectorPtr_Type dUdz (new vector_Type ( disp.map() ) );
-    vectorPtr_Type D ( new vector_Type ( disp, Repeated ) );
-    *dUdx = GradientRecovery::ZZGradient (dispFESPace, *D, 0);
-    *dUdy = GradientRecovery::ZZGradient (dispFESPace, *D, 1);
-    *dUdz = GradientRecovery::ZZGradient (dispFESPace, *D, 2);
-
-    vectorPtr_Type J0 (new vector_Type ( rhs[0] -> map() ) );
-    int n = J0->epetraVector().MyLength();
-    int i (0);
-    int j (0);
-    int k (0);
-    for (int p (0); p < n; p++)
-    {
-        i = dUdx->blockMap().GID (p);
-        j = dUdx->blockMap().GID (p + n);
-        k = dUdx->blockMap().GID (p + 2 * n);
-
-        Real F11 = 1.0 + (*dUdx) [i];
-        Real F12 =       (*dUdy) [i];
-        Real F13 =       (*dUdz) [i];
-        Real F21 =       (*dUdx) [j];
-        Real F22 = 1.0 + (*dUdy) [j];
-        Real F23 =       (*dUdz) [j];
-        Real F31 =       (*dUdx) [k];
-        Real F32 =       (*dUdy) [k];
-        Real F33 = 1.0 + (*dUdz) [k];
-
-        (*J0) [i] = F11 * ( F22 * F33 - F32 * F23 )
-                    - F12 * ( F21 * F33 - F31 * F23 )
-                    + F13 * ( F21 * F32 - F31 * F22 );
-    }
-    vectorPtr_Type J (new vector_Type ( *J0, Repeated ) );
-    std::vector<Real> U (M_numberOfEquations, 0.0);
-    Real I (0.0);
-    Real detF (0.0);
-    ( * ( rhs.at (0) ) ) *= 0.0;
-
-    std::vector<vectorPtr_Type>      URepPtr;
-    for ( int k = 0; k < M_numberOfEquations; k++ )
-    {
-        URepPtr.push_back ( * ( new vectorPtr_Type ( new VectorEpetra (  * ( v.at (k) )     , Repeated ) ) ) );
-    }
-
-    VectorEpetra    IappRep ( uFESpace.map(), Repeated );
-    if (M_appliedCurrentPtr)
-    {
-        IappRep = (* ( new VectorEpetra ( *M_appliedCurrentPtr , Repeated ) ) );
-    }
-    else
-    {
-        IappRep *= 0.0;
-    }
-
-
-    std::vector<elvecPtr_Type>      elvecPtr;
-    for ( int k = 0; k < M_numberOfEquations; k++ )
-    {
-        elvecPtr.push_back ( * ( new elvecPtr_Type ( new VectorElemental (  uFESpace.fe().nbFEDof(), 1  ) ) ) );
-    }
-
-    VectorElemental elvec_Iapp ( uFESpace.fe().nbFEDof(), 1 );
-    VectorElemental elvec_Iion ( uFESpace.fe().nbFEDof(), 1 );
-    VectorElemental elvec_detF ( uFESpace.fe().nbFEDof(), 1 );
-
-    for (UInt iVol = 0; iVol < uFESpace.mesh()->numVolumes(); ++iVol)
-    {
-
-        uFESpace.fe().updateJacQuadPt ( uFESpace.mesh()->volumeList ( iVol ) );
-
-
-        for ( int k = 0; k < M_numberOfEquations; k++ )
-        {
-            ( * ( elvecPtr.at (k) ) ).zero();
-        }
-        elvec_Iapp.zero();
-        elvec_Iion.zero();
-        elvec_detF.zero();
-
-        UInt eleIDu = uFESpace.fe().currentLocalId();
-        UInt nbNode = ( UInt ) uFESpace.fe().nbFEDof();
-
-        //! Filling local elvec_u with potential values in the nodes
-        for ( UInt iNode = 0 ; iNode < nbNode ; iNode++ )
-        {
-
-            Int  ig = uFESpace.dof().localToGlobalMap ( eleIDu, iNode );
-
-            for ( int k = 0; k < M_numberOfEquations; k++ )
-            {
-                ( * ( elvecPtr.at (k) ) ).vec() [iNode] = ( * ( URepPtr.at (k) ) ) [ig];
-            }
-
-            elvec_Iapp.vec() [ iNode ] = IappRep[ig];
-            elvec_detF.vec() [ iNode ] = (*J) [ig];
-        }
-
-        //compute the local vector
-        for ( UInt ig = 0; ig < uFESpace.fe().nbQuadPt(); ig++ )
-        {
-
-            for ( int k = 0; k < M_numberOfEquations; k++ )
-            {
-                U.at (k) = 0;
-            }
-            I = 0;
-            detF = 0;
-
-            for ( UInt i = 0; i < uFESpace.fe().nbFEDof(); i++ )
-            {
-
-                for ( int k = 0; k < M_numberOfEquations; k++ )
-                {
-                    U.at (k) +=  ( * ( elvecPtr.at (k) ) ) (i) *  uFESpace.fe().phi ( i, ig );
-                }
-
-                I += elvec_Iapp (i) * uFESpace.fe().phi ( i, ig );
-                detF += elvec_detF (i) * uFESpace.fe().phi ( i, ig );
-            }
-
-
-            for ( UInt i = 0; i < uFESpace.fe().nbFEDof(); i++ )
-            {
-
-                elvec_Iion ( i ) += detF * ( computeLocalPotentialRhs (U) + I ) * uFESpace.fe().phi ( i, ig ) * uFESpace.fe().weightDet ( ig );
-
-            }
-
-        }
-
-        //assembly
-        for ( UInt i = 0 ; i < uFESpace.fe().nbFEDof(); i++ )
-        {
-            Int  ig = uFESpace.dof().localToGlobalMap ( eleIDu, i );
-            ( * ( rhs.at (0) ) ).sumIntoGlobalValues (ig,  elvec_Iion.vec() [i] );
-        }
-    }
-}
 
 void ElectroIonicModel::computeGatingVariablesWithRushLarsen ( std::vector<vectorPtr_Type>& v, const Real dt )
 {
@@ -783,6 +600,8 @@ void ElectroIonicModel::computeGatingVariablesWithRushLarsen ( std::vector<vecto
     }
 
 }
+
+
 void ElectroIonicModel::initialize ( std::vector<Real>& v )
 {
     for (int i (0); i <  M_numberOfEquations; i++ )
@@ -790,6 +609,7 @@ void ElectroIonicModel::initialize ( std::vector<Real>& v )
         v.at (i) = M_restingConditions.at (i);
     }
 }
+
 
 void ElectroIonicModel::initialize ( std::vector<vectorPtr_Type>& v )
 {
