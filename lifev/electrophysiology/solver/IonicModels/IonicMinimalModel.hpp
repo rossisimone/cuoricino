@@ -349,14 +349,6 @@ public:
     // compute the rhs with state variable interpolation
     Real computeLocalPotentialRhs ( const std::vector<Real>& v );
 
-
-    //compute SVI with ETA (Yuppi Doo!!!)
-    void computePotentialRhsSVI ( const std::vector<vectorPtr_Type>& v,
-                                  std::vector<vectorPtr_Type>&        rhs,
-                                  FESpace<mesh_Type, MapEpetra>&  uFESpace,
-                                  vector_Type& disp,
-                                  boost::shared_ptr<FESpace<mesh_Type, MapEpetra> > dispFESPace);
-
     //
     void computeGatingVariablesWithRushLarsen ( std::vector<Real>& v, const Real dt );
 
