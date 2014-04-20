@@ -9,6 +9,7 @@ ADD_SUBDIRECTORIES(
 	test_0DGoldbeterModel
 	test_0DLuoRudyIModel
 	test_0DMinimalModel
+	test_0DMitchellSchaefferModel
 	test_0DNoblePurkinje
 	test_0DTenTusscher06Model
 	test_benchmark 
