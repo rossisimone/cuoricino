@@ -28,6 +28,10 @@
     @file
     @brief Test for ElectroETAbidomainSolver and IonicMinimalModel
 
+    This example make use of a bidomain solver which should not
+    be considered as a solver! If you would like to implement
+    a bidomain solver, please make write it from scratch.
+
     @date 08 - 013
     @author Toni Lassila <toni.lassila@epfl.ch>
 
@@ -66,7 +70,7 @@
 #include <lifev/core/filter/ExporterEmpty.hpp>
 
 #include <lifev/core/algorithm/LinearSolver.hpp>
-#include <lifev/electrophysiology/solver/ElectroETABidomainSolver.hpp>
+#include <lifev/electrophysiology/examples/example_bidomain/ElectroETABidomainSolver.hpp>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
@@ -217,7 +221,7 @@ Int main ( Int argc, char** argv )
     // We need the GetPot datafile for to setup   //
     // the preconditioner.                        //
     //********************************************//
-    GetPot command_line (argc, argv);
+    GetPot dataFile (argc, argv);
 
     //********************************************//
     // We create three solvers to solve with:     //
