@@ -45,14 +45,6 @@
 #ifndef _ELECTROETAMONODOMAINSOLVER_H_
 #define _ELECTROETAMONODOMAINSOLVER_H_
 
-#ifdef EPETRA_MPI
-#include <mpi.h>
-#include <Epetra_MpiComm.h>
-#else
-#include <Epetra_SerialComm.h>
-#endif
-
-#include <string>
 
 #include <lifev/core/filter/ExporterEnsight.hpp>
 #ifdef HAVE_HDF5
@@ -62,23 +54,17 @@
 
 #include <Epetra_LocalMap.h>
 
-#include <lifev/core/array/MatrixElemental.hpp>
 #include <lifev/core/array/MatrixSmall.hpp>
 
-#include <lifev/core/algorithm/SolverAztecOO.hpp>
 #include <lifev/core/array/MapEpetra.hpp>
 #include <lifev/core/array/MatrixEpetra.hpp>
 #include <lifev/core/array/VectorEpetra.hpp>
-#include <lifev/core/array/VectorStandard.hpp>
 #include <lifev/core/fem/SobolevNorms.hpp>
 #include <lifev/core/fem/GeometricMap.hpp>
 #include <lifev/electrophysiology/solver/IonicModels/ElectroIonicModel.hpp>
 #include <lifev/electrophysiology/stimulus/ElectroStimulus.hpp>
-#include <lifev/core/fem/RosenbrockTransformed.hpp>
-#include <lifev/core/fem/ROS3P.hpp>
 
 #include <lifev/core/util/LifeChrono.hpp>
-#include <boost/shared_ptr.hpp>
 #include <lifev/core/fem/FESpace.hpp>
 #include <lifev/electrophysiology/util/HeartUtility.hpp>
 
@@ -95,9 +81,6 @@
 #include <lifev/core/algorithm/PreconditionerML.hpp>
 #include <lifev/core/algorithm/PreconditionerIfpack.hpp>
 
-#include <boost/typeof/typeof.hpp>
-
-#include <lifev/core/fem/GradientRecovery.hpp>
 
 namespace LifeV
 {
