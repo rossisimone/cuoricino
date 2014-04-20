@@ -25,8 +25,14 @@
 //@HEADER
 
 /*!
-  @file
+  @file IonicMitchellSchaeffer
   @brief Ionic model based on Mitchell-Schaeffer model.
+
+  model as in
+  Mitchell, Colleen C., and David G. Schaeffer.
+  "A two-current model for the dynamics of cardiac membrane."
+  Bulletin of mathematical biology 65.5 (2003): 767-793.
+
   @date 03-2013
   @author Luis Miguel De Oliveira Vilaca <luismiguel.deoliveiravilaca@epfl.ch>
 

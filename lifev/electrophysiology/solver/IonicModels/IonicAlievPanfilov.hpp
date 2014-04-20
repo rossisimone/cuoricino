@@ -25,8 +25,14 @@
 //@HEADER
 
 /*!
-  @file
+  @file IonicAlievPanfilov
   @brief Ionic model of Aliev-Panfilov
+
+  Model from:
+  Nash, Martyn P., and Alexander V. Panfilov.
+  "Electromechanical model of excitable tissue to study reentrant cardiac arrhythmias."
+  Progress in biophysics and molecular biology 85.2 (2004): 501-522.
+
   @date 01-2013
   @author Simone Rossi <simone.rossi@epfl.ch>
 

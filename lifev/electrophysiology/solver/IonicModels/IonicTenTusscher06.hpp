@@ -25,8 +25,18 @@
 //@HEADER
 
 /*!
-  @file
+  @file IonicTenTusscher06
   @brief Ionic model of ten Tusscher-Panfilov 2006
+
+  model as in
+  Ten Tusscher, K. H. W. J., and A. V. Panfilov.
+  "Alternans and spiral breakup in a human ventricular."
+  Am J Physiol Heart Circ Physiol 291 (2006): H1088-H1100.
+
+
+  Implementation derived from the original code of TenTusscher freely available at
+  http://www-binf.bio.uu.nl/khwjtuss/SourceCodes/
+
   @date 01-2013
   @author Simone Rossi <simone.rossi@epfl.ch>
 

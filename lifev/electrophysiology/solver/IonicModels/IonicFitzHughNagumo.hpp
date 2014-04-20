@@ -25,8 +25,15 @@
 //@HEADER
 
 /*!
-  @file
+  @file IonicFitzHughNagumo
   @brief Ionic model of FitzHugh-Nagumo
+
+  Model taken as in
+  Franzone, Piero Colli, et al.
+  "Adaptivity in space and time for reaction-diffusion systems in electrocardiology."
+  SIAM Journal on Scientific Computing 28.3 (2006): 942-962.
+
+
   @date 01-2013
   @author Giacomo Rosilho de Souza <giacomo.rosilhodesouza@epfl.ch>
 

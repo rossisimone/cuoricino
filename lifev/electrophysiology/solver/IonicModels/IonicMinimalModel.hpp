@@ -25,8 +25,14 @@
 //@HEADER
 
 /*!
-  @file
+  @file IonicMinimalModel
   @brief Ionic model of Bueno-Orovio et al.
+
+  Model as in
+  Bueno-Orovio, Alfonso, Elizabeth M. Cherry, and Flavio H. Fenton.
+  "Minimal model for human ventricular action potentials in tissue."
+  Journal of theoretical biology 253.3 (2008): 544-560.
+
   @date 01-2013
   @author Simone Rossi <simone.rossi@epfl.ch>
 

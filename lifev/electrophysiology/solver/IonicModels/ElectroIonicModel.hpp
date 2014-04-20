@@ -25,7 +25,7 @@
 //@HEADER
 
 /*!
-  @file
+  @file ElectroIonicModel
   @brief Base class for ionic models
 
   This class is a  abstract base class for all ionic models.
