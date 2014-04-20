@@ -30,10 +30,6 @@ SET(array_HEADERS
   array/RNMOperator.hpp
   array/MatrixContainer.hpp
   array/GhostHandler.hpp
-  array/MatrixLU.hpp
-  array/VectorLU.hpp
-  array/MatrixStandard.hpp
-  array/VectorStandard.hpp
 CACHE INTERNAL "")
 
 SET(array_SOURCES
@@ -48,10 +44,6 @@ SET(array_SOURCES
   array/VectorEpetra.cpp
   array/MapEpetra.cpp
   array/VectorEpetraStructured.cpp
-  array/MatrixLU.cpp
-  array/VectorLU.cpp
-  array/MatrixStandard.cpp
-  array/VectorStandard.cpp
 CACHE INTERNAL "")
 
 

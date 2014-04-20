@@ -17,7 +17,6 @@ SET(algorithm_HEADERS
   algorithm/PreconditionerComposition.hpp
   algorithm/PreconditionerTeko.hpp
   algorithm/PreconditionerLinearSolver.hpp
-  algorithm/MatrixStandardSolver.hpp
 CACHE INTERNAL "")
 
 SET(algorithm_SOURCES
@@ -34,7 +33,6 @@ SET(algorithm_SOURCES
   algorithm/LinearSolver.cpp
   algorithm/PreconditionerTeko.cpp
   algorithm/PreconditionerLinearSolver.cpp
-  algorithm/MatrixStandardSolver.cpp
 CACHE INTERNAL "")
 
 
