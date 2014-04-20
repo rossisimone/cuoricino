@@ -4,8 +4,8 @@ INCLUDE(AddSubdirectories)
 
 ADD_SUBDIRECTORIES(
   benchmarkPurkinje
+  example_0DTenTusscherModelwStimPro
+  example_bidomain
   FiberInterpolation
-  IonicRogersMcCulloch_pacingECG
   IonicMinimalModel_pacingECG
-  IonicFox_pacingECG
 )
